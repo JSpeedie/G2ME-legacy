@@ -27,7 +27,7 @@ just some classes and functions. This code saves player data in binary files
 (to reduce storage costs since they store every change in rating), takes bracket
 files as inputs and calculates the new glicko ratings for all the players.
 
-*It makes very easy to simulate a tournament for glicko ratings*
+*It makes it very easy to simulate a tournament for glicko ratings*
 
 
 
@@ -70,8 +70,8 @@ set count is 3-2, 7-0 or 2-1, glicko only sees this as 1 win for the first
 player. The reasoning behind this is that some people sand bag so they can
 lose some games because they were messing around, but they usually never let
 it cost them the set. Because of this, I believe set count is a good measure,
-but it has the downsides. For instance, it takes a while to get enough data to
-accurately rate players and there's no disparity between a player who always
+but it has its downsides. For instance, it takes more than a few games to get enough data to
+accurately rate a player and there's no disparity between a player who always
 goes 3-2 against someone and a player who always goes 3-0 against the same
 someone.
 
@@ -89,6 +89,19 @@ several tournaments to create a finalized ranking. The file format of the file
 input (`pr` in this case) has each and every line to be a valid file path to
 a player file created by G2ME.
 
+An example input file:
+
+```
+Bilal
+Julian
+Steven
+Jon
+Ron
+Isaiah
+Santos
+Andrew
+```
+
 ### The 'a' flag
 
 `G2ME -a Julian`
@@ -101,7 +114,7 @@ have to use this. Used almost exclusively for debugging and last minute fixes.
 
 `G2ME -h Julian`
 
-Stands for Output-File-in-**H**uman-readable-form. Often used to output a file
+Stands for Output-File-in-**H**uman-Readable-Form. Often used to output a file
 and use various shell commands to parse data for things such as
 "Record Against *x-player*" or "Sets Played".
 
@@ -140,17 +153,22 @@ a volatility pr/consistency pr.
 In case someone wants to reverse-engineer the player files or fork this and
 write the player files in a different format, currently it has each entry as
 `[len_p1_name][len_p2_name][p1_name][p2_name][p1_rating_after][p1_RD_after][p1_vol_after][p1_game_count][p2_game_count][day][month][year]`
-In terms of bytes, the first byte is a char storing the length of the first
-players name, the 2nd byte is another char storing the lenght of the second
-players name (these are included because there are no new lines, so in order
+In terms of bytes,
+1. `sizeof(char)` the length of the player-1's name
+2. `sizeof(char)` the length of the player-2's name
+(these are included because there are no new lines, so in order
 to find the next entry, we must know the full size in bytes of the current
-entry). The next `int(len_p1_name)` are the characters in the first players name.
-The same applies for player 2. After that is `sizeof(double)` bytes representing
-player 1s rating. Then it's `sizeof(double)` bytes representing the players
-RD and another `sizeof(double)` bytes representing their volatility. After that
-it's 4 bytes where each byte is a char representing (in order) the first
-(1) player's game count, (2) the second player's game count, (3) the day, and
-(4) the month. The last `sizeof(short)` bytes are the year.
+entry)
+3. `len_p1_name` bytes are the characters in the first players name.
+4. The same applies for player 2
+5. `sizeof(double).` bytes representing player-1's rating
+6. `sizeof(double).` bytes representing the player-1's RD
+6. `sizeof(double).` bytes representing the player-1's volatility
+7. `sizeof(char)` the player-1's game count
+8. `sizeof(char)` the player-2's game count
+9. `sizeof(char)` the day
+10. `sizeof(char)` the month
+11. `sizeof(short)` bytes are the year.
 This design allows for names containing spaces (although the bracket file
 format does not), but more importantly, high precision doubles with minimal file
 sizes. Also it's really cool :)
