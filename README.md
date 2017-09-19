@@ -1,3 +1,22 @@
+# Table of Contents
+
+* [Technical Description](#technical-description)
+* [Examples](#examples)
+* [Purpose](#purpose)
+* [What it is](#what-it-is)
+* [Why it makes Glicko 2 Easier](#why-it-makes-glicko-2-easier)
+* [Usage](#usage)
+	* [The 'a' flag](#the-a-flag)
+	* [The 'b' flag](#the-b-flag)
+	* [The 'g' flag](#the-g-flag)
+	* [The 'h' flag](#the-h-flag)
+	* [The 'l' flag](#the-l-flag)
+	* [The 'p' flag](#the-p-flag)
+* [The Glicko2 System Explained](#the-glicko2-system-explained)
+* [The Player File Format](#the-player-file-format)
+
+
+
 ## Technical Description
 C implementation of glicko + the real program that makes handling a glicko system with many people more manageable.
 
@@ -32,6 +51,14 @@ files as inputs and calculates the new glicko ratings for all the players.
 
 
 ## Usage
+
+### The 'a' flag
+
+`G2ME -a Julian`
+
+Takes a file path, prompts user for space-delimited entry information and then
+appends it to the given file. If you use G2ME as intended, you should never
+have to use this. Used almost exclusively for debugging and last minute fixes.
 
 ### The 'b' flag
 
@@ -79,6 +106,21 @@ It is up to the user of G2ME to decide which they want to use but I advise
 using the g flag only when you have few tournaments with lots of large sets
 (best of 5s or 7s).
 
+### The 'h' flag
+
+`G2ME -h Julian`
+
+Stands for Output-File-in-**H**uman-Readable-Form. Often used to output a file
+and use various shell commands to parse data for things such as
+"Record Against *x-player*" or "Sets Played".
+
+### The 'l' flag
+
+`G2ME -l Julian`
+
+Stands for Output-**L**ast-Line. Not really useful except for debugging. Same
+as `-h` except it's only the last line.
+
 ### The 'p' flag
 
 `G2ME -p pr`
@@ -102,32 +144,9 @@ Santos
 Andrew
 ```
 
-### The 'a' flag
-
-`G2ME -a Julian`
-
-Takes a file path, prompts user for space-delimited entry information and then
-appends it to the given file. If you use G2ME as intended, you should never
-have to use this. Used almost exclusively for debugging and last minute fixes.
-
-### The 'h' flag
-
-`G2ME -h Julian`
-
-Stands for Output-File-in-**H**uman-Readable-Form. Often used to output a file
-and use various shell commands to parse data for things such as
-"Record Against *x-player*" or "Sets Played".
-
-### The 'l' flag
-
-`G2ME -l Julian`
-
-Stands for Output-**L**ast-Line. Not really useful except for debugging. Same
-as `-h` except it's only the last line.
 
 
-
-## The Glicko2 system explained
+## The Glicko2 System Explained
 
 In chess they use only one number to represent skill. Your elo.
 There are several possible issues with this. The same rating from 2 players
