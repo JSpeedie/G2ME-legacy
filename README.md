@@ -192,3 +192,11 @@ This design allows for names containing spaces (although the bracket file
 format does not), but more importantly, high precision doubles with minimal file
 sizes. Also it's really cool :)
 
+
+
+## TODO
+
+* Write the man pages
+* Clean up glicko2.c to meet code conventions (line length, doc string,
+no TODOs)
+* Remove TODOs in G2ME.c, make sure invalid input/error checking is sound

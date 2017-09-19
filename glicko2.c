@@ -43,37 +43,25 @@ double _g(double);
 double _newVol(struct player*, double*, int, double*, double*, double);
 double _v(struct player*, double*, int, double*);
 
-/* TODO use these when making a new player struct
-double _tau = 0.5;
-double __rating = 1500;
-double __rd = 350;
-double vol = 0.06;
-*/
-
-// CORRECT
 // aka mu
 double getRating(struct player* P) {
 	return (P->__rating * 173.7178) + 1500;
 }
 
-// CORRECT
 void setRating(struct player* P, double rating) {
 	P->__rating = (rating - 1500) / 173.7178;
 }
 
-// CORRECT
 // aka phi
 double getRd(struct player* P) {
 	return P->__rd * 173.7178;
 }
 
-// CORRECT
 void setRd(struct player* P, double rd) {
 	P->__rd = rd / 173.7178;
 }
 
 
-// CORRECT
 void _preRatingRD(struct player* P) {
 	/* Calculates and updates the player's rating deviation for the
 	beginning of a rating period.
@@ -82,7 +70,6 @@ void _preRatingRD(struct player* P) {
 	P->__rd = sqrt(pow(P->__rd, 2) + pow(P->vol, 2));
 }
 
-// CORRECT
 void update_player(struct player *P,
 	double *rating_list, int rating_list_size,
 	double *RD_list, double *outcome_list) {
@@ -116,7 +103,6 @@ void update_player(struct player *P,
 }
 
 
-// CORRECT
 double _newVol(struct player* P, double *rating_list, int rating_list_size,
 	double *RD_list, double *outcome_list, double v) {
 	/* Calculating the new volatility as per the Glicko2 system.
@@ -143,7 +129,6 @@ double _newVol(struct player* P, double *rating_list, int rating_list_size,
 	return exp(x1 / 2);
 }
 
-// CORRECT
 double _delta(struct player* P, double *rating_list, int rating_list_size,
 	double *RD_list, double *outcome_list, double v) {
 	/* The delta function of the Glicko2 system.
@@ -158,7 +143,6 @@ double _delta(struct player* P, double *rating_list, int rating_list_size,
 	return v * tempSum;
 }
 
-// CORRECT
 double _v(struct player* P, double *rating_list, int rating_list_size, double *RD_list) {
 	/* The v function of the Glicko2 system.
 	_v(list[int], list[int]) -> float */
