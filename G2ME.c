@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include "glicko2.h"
 
-
 char use_games = 0;
 
 typedef struct entry {
@@ -120,10 +119,18 @@ void write_entry_from_input(char* file_path) {
 	append_entry_to_file(&input_entry, file_path);
 }
 
+/** Prints a string representation of a struct player to stdout
+ *
+ * \param '*P' the struct player to print
+ */
 void print_player(struct player *P) {
 	printf("%16.14lf %16.14lf %16.14lf\n", getRating(P), getRd(P), P->vol);
 }
 
+/** Prints a string representation of a struct entry to stdout
+ *
+ * \param 'E' the struct entry to print
+ */
 void print_entry(struct entry E) {
 	/* Process date data into one string */
 	char date[32];
@@ -133,6 +140,13 @@ void print_entry(struct entry E) {
 		E.len_name, E.len_opp_name, E.name, E.opp_name, E.rating, E.RD, E.vol, E.gc, E.opp_gc, date);
 }
 
+/** Reads contents of a player file to a struct entry. Returns 0 upon success,
+ * and a negative number upon failure.
+ *
+ * \param '*f' the file being read
+ * \param '*E' the struct entry to store an entry found in the file too
+ * \return 0 upon success, or a negative number upon failure.
+ */
 int read_entry(FILE *f, struct entry *E) {
 	if (0 == fread(&E->len_name, sizeof(char), 1, f)) { return -1; }
 	if (0 == fread(&E->len_opp_name, sizeof(char), 1, f)) { return -2; }
@@ -154,6 +168,12 @@ int read_entry(FILE *f, struct entry *E) {
 	return 0;
 }
 
+/** Prints all the contents of a player file to stdout with each entry
+ * on a new line.
+ *
+ * \param '*file_path' the file path of the player file to be read
+ * \return void
+ */
 void print_player_file(char* file_path) {
 	FILE *p_file = fopen(file_path, "rb+");
 	if (p_file == NULL) {
@@ -172,6 +192,11 @@ void print_player_file(char* file_path) {
 	return;
 }
 
+/** Creates a struct entry from the last entry found in a player file.
+ *
+ * \param '*file_path' the file path of the player file to be read
+ * \return a struct entry representing the last entry in the file
+ */
 struct entry read_last_entry(char* file_path) {
 	struct entry line;
 	/* Open files for reading contents */
@@ -190,6 +215,14 @@ struct entry read_last_entry(char* file_path) {
 	return line;
 }
 
+/** Initializes a struct player based off of the information found in a
+ * struct entry.
+ *
+ * \param '*P' the struct player to be initialized
+ * \param '*E' the struct entry from which to get the data to initialize the
+ *     struct player
+ * \return void
+ */
 void init_player_from_entry(struct player* P, struct entry* E) {
 	setRating(P, E->rating);
 	setRd(P, E->RD);
@@ -197,6 +230,18 @@ void init_player_from_entry(struct player* P, struct entry* E) {
 	return;
 }
 
+/** Creates a struct entry which contains all the important data about a set
+ *
+ * \param '*P' a struct player that represents player-1
+ * \param '*name' the name of player-1
+ * \param '*opp_name' the name of player-2
+ * \param 'gc' the number of games won by player-1 in the set
+ * \param 'opp_gc' the number of games won by player-2 in the set
+ * \param 'day' a char representing the day of the month the set was played on
+ * \param 'month' a char representing the month the set was played in
+ * \param 'year' a short representing the year the set was played in
+ * \return a struct entry containing all that information
+ */
 struct entry create_entry(struct player* P, char* name, char* opp_name,
 	char gc, char opp_gc, char day, char month, short year) {
 
