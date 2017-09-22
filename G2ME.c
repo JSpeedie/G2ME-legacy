@@ -22,6 +22,13 @@ typedef struct entry {
 	short year;
 }Entry;
 
+/** Returns the offset within a player file at which the last entry begins.
+ *
+ * \param '*file_path' a string of the file path of a player file for the
+ *     function to find the offset of the last entry
+ * \return a long representing the offset within the file at which the last
+ *     entry begins
+ */
 long int get_last_entry_offset(char* file_path) {
 	FILE *entry_file = fopen(file_path, "rb");
 	if (entry_file == NULL) {
@@ -51,6 +58,11 @@ long int get_last_entry_offset(char* file_path) {
 	return last_entry_offset;
 }
 
+/** Writes nothing to a file, clearing it.
+ *
+ * \param '*file' the file path for the file to be wiped
+ * \return void
+ */
 void clear_file(char* file) {
 
 	FILE* victim = fopen(file, "w");
@@ -64,6 +76,12 @@ void clear_file(char* file) {
 	return;
 }
 
+/** Appends an entry to a given player file.
+ *
+ * \param '*E' the struct entry to be appended
+ * \param '*file_path' the file path of the player file
+ * \return void
+ */
 void append_entry_to_file(struct entry* E, char* file_path) {
 	FILE *entry_file = fopen(file_path, "ab+");
 	if (entry_file == NULL) {
@@ -93,6 +111,13 @@ void append_entry_to_file(struct entry* E, char* file_path) {
 	fclose(entry_file);
 }
 
+/** Appends a pr entry (the name and glicko2 data for a player) to a given
+ * file.
+ *
+ * \param '*E' the struct entry to append to the pr file
+ * \param '*file_path' the file path for the pr file
+ * \return void
+ */
 void append_pr_entry_to_file(struct entry* E, char* file_path) {
 	FILE *entry_file = fopen(file_path, "a+");
 	if (entry_file == NULL) {
@@ -107,6 +132,11 @@ void append_pr_entry_to_file(struct entry* E, char* file_path) {
 	return;
 }
 
+/** Appends an entry created from user input to a file.
+ *
+ * \param '*file_path' the file path that you want to append the entry to
+ * \return void
+ */
 void write_entry_from_input(char* file_path) {
 	printf("[Name] [Opp] [Rating] [RD] [Vol] [gc] [opp gc] [day] [month] [year]: ");
 
