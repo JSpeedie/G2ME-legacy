@@ -46,7 +46,7 @@ double _v(struct player*, double*, int, double*);
 /** Returns the value of a given struct player's rating (known in the
  * glicko2 formulas as μ (mu))
  *
- * \param *P the struct player whose rating will be returned
+ * \param '*P' the struct player whose rating will be returned
  * \return double representing '*P's rating
  */
 double getRating(struct player* P) {
@@ -55,8 +55,8 @@ double getRating(struct player* P) {
 
 /** Sets the given struct player's rating to the given value
  *
- * \param *P the struct player whose rating will be changed
- * \param rating the value to set '*P's rating to
+ * \param '*P' the struct player whose rating will be changed
+ * \param 'rating' the value to set '*P's rating to
  * \return modifies the struct player '*P', returns void
  */
 void setRating(struct player* P, double rating) {
@@ -66,7 +66,7 @@ void setRating(struct player* P, double rating) {
 /** Returns the value of a given struct player's rating deviation (known
  * in the glicko2 formulas as Φ (phi))
  *
- * \param *P the struct player whose RD will be returned
+ * \param '*P' the struct player whose RD will be returned
  * \return double representing '*P's rating deviation
  */
 double getRd(struct player* P) {
@@ -75,8 +75,8 @@ double getRd(struct player* P) {
 
 /** Sets the given struct player's rating deviation to the given value
  *
- * \param *P the struct player whose RD will be changed
- * \param rd the value to set '*P's rating deviation to
+ * \param '*P' the struct player whose RD will be changed
+ * \param 'rd' the value to set '*P's rating deviation to
  * \return modifies the struct player '*P', returns void
  */
 void setRd(struct player* P, double rd) {
@@ -86,7 +86,7 @@ void setRd(struct player* P, double rd) {
 /** Calculates and updates a struct player's rating deviation for the
  * beginning of a rating period.
  *
- * \param *P a struct player representing the player whose RD is to be changed
+ * \param '*P' a struct player representing the player whose RD is to be changed
  * \return modifies struct player '*P', returns void
  */
 void _preRatingRD(struct player* P) {
@@ -97,13 +97,13 @@ void _preRatingRD(struct player* P) {
  * 'rating_list_size' games with the given outcomes and given opponent ratings
  * and RDs.
  *
- * \param *P a struct player representing the player whose rating is to be changed
- * \param *rating_list an array of doubles containing (in order) all the ratings of
- *     the opponenets '*P' played
- * \param rating_list_size the size of the '*rating_list' array
- * \param *RD_list an array od doubles containing (in order) the RDs of the opponents
+ * \param '*P' a struct player representing the player whose rating is to be changed
+ * \param '*rating_list' an array of doubles containing (in order) all the ratings of
+ *     the opponents '*P' played
+ * \param 'rating_list_size' the size of the '*rating_list' array
+ * \param '*RD_list' an array od doubles containing (in order) the RDs of the opponents
  *     '*P' played
- * \param *outcome_list an array of doubles containing (in order) the outcomes
+ * \param '*outcome_list' an array of doubles containing (in order) the outcomes
  *     of the games '*P' played. 1 for '*P' winning, 0.5 for a draw and 0
  *     for a '*P' loss
  * \return modifies the given struct player '*P', returns void
@@ -136,14 +136,14 @@ void update_player(struct player *P,
 
 /** Calculates the new volatility of a player
  *
- * \param *P the struct player who will have their volatility recalculated
- * \param *rating_list an array of doubles representing the ratings of the
+ * \param '*P' the struct player who will have their volatility recalculated
+ * \param '*rating_list' an array of doubles representing the ratings of the
  *     opponents '*P' played
- * \param rating_list_size int representing the size of the '*rating_list'
+ * \param 'rating_list_size' int representing the size of the '*rating_list'
  *     array
- * \param *RD_list an array of doubles representing the rating deviations
+ * \param '*RD_list' an array of doubles representing the rating deviations
  *     of the opponents '*P' played
- * \param *outcome_list an array of doubles containing (in order) the outcomes
+ * \param '*outcome_list' an array of doubles containing (in order) the outcomes
  *     of the games '*P' played. 1 for '*P' winning, 0.5 for a draw and 0
  *     for a '*P' loss
  * \param // TODO fill out this param
