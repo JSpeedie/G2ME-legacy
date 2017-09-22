@@ -173,11 +173,25 @@ double _newVol(struct player* P, double *rating_list, int rating_list_size,
 	return exp(x1 / 2);
 }
 
-// TODO write this doc
+/** Calculates the delta value which represents the "estimated improvement in
+ * rating by comparing the pre-period rating to the performance rating based
+ * only on game outcomes"
+ *
+ * \param '*P' the struct player the function will calculate the delta of
+ * \param '*rating_list' an array of doubles representing the ratings of the
+ *     opponents '*P' played
+ * \param 'rating_list_size' int representing the size of the '*rating_list'
+ *     array
+ * \param '*RD_list' an array of doubles representing the rating deviations
+ *     of the opponents '*P' played
+ * \param '*outcome_list' an array of doubles containing (in order) the outcomes
+ *     of the games '*P' played. 1 for '*P' winning, 0.5 for a draw and 0
+ *     for a '*P' loss
+ * \param 'v' a double representing the result of a '_v' function call
+ * \return a double containing the estimated improvement in '*P's rating
+ */
 double _delta(struct player* P, double *rating_list, int rating_list_size,
 	double *RD_list, double *outcome_list, double v) {
-	/* The delta function of the Glicko2 system.
-	_delta(list, list, list) -> float */
 
 	double tempSum = 0;
 
@@ -188,10 +202,21 @@ double _delta(struct player* P, double *rating_list, int rating_list_size,
 	return v * tempSum;
 }
 
-// TODO write this doc
+/** Calculates the "estimated variance of a the team's/player's rating
+ * based only on game outcomes"
+ *
+ * \param '*P' the struct player who will have their estimated variance
+ *     calculated
+ * \param '*rating_list' an array of doubles representing the ratings of the
+ *     opponents '*P' played
+ * \param 'rating_list_size' int representing the size of the '*rating_list'
+ *     array
+ * \param '*RD_list' an array of doubles representing the rating deviations
+ *     of the opponents '*P' played
+ * \return a double representing the estimated variance of '*P' based on
+ *     game outcomes
+ */
 double _v(struct player* P, double *rating_list, int rating_list_size, double *RD_list) {
-	/* The v function of the Glicko2 system.
-	_v(list[int], list[int]) -> float */
 
 	double tempSum = 0;
 
@@ -203,26 +228,33 @@ double _v(struct player* P, double *rating_list, int rating_list_size, double *R
 	return 1 / tempSum;
 }
 
-// TODO write this doc
+/** The Glicko2 E function which is a helper function for '_v'
+ *
+ * \param '*P' the struct player who will have their estimated variance
+ *     calculated
+ * \param 'p2rating' a double representing the rating of '*P's opponent
+ * \param 'p2RD' a double representing the rating deviation of '*P's opponent
+ * \return //TODO write this return
+ */
 double _E(struct player* P, double p2rating, double p2RD) {
-	/* The Glicko E function.
-	_E(int) -> float*/
-
 	return 1 / (1 + exp(-1 * _g(p2RD) * (P->__rating - p2rating)));
 }
 
-// TODO write this doc
+/** The Glicko2 g function which is a helper function for '_E'
+ *
+ * \param 'RD' a double representing a player's rating deviation
+ * \return //TODO write this return
+ */
 double _g(double RD) {
-	/* The Glicko2 g(RD) function.
-	_g() -> float */
-
 	return 1.00 / sqrt(1 + 3 * pow(RD, 2) / pow(M_PI, 2));
 }
 
-// TODO write this doc
+/* Applies Step 6 of the algorithm. Use this for players who did not compete
+ * in the rating period.
+ *
+ * \param '*P' the struct player who did not compete
+ * \return void
+*/
 void did_not_compete(struct player* P) {
-	/* Applies Step 6 of the algorithm. Use this for
-	players who did not compete in the rating period.
-	did_not_compete() -> None */
 	_preRatingRD(P);
 }
