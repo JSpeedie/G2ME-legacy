@@ -5,13 +5,15 @@
 #include <unistd.h>
 #include "glicko2.h"
 
+#define MAX_NAME_LEN 128
+
 char use_games = 0;
 
 typedef struct entry {
 	char len_name;
 	char len_opp_name;
-	char name[128];
-	char opp_name[128];
+	char name[MAX_NAME_LEN];
+	char opp_name[MAX_NAME_LEN];
 	double rating;
 	double RD;
 	double vol;
@@ -371,8 +373,8 @@ void update_players(char* bracket_file_path) {
 	}
 
 	char line[256];
-	char p1_name[128];
-	char p2_name[128];
+	char p1_name[MAX_NAME_LEN];
+	char p2_name[MAX_NAME_LEN];
 	char p1_gc;
 	char p2_gc;
 	char day;
@@ -444,6 +446,32 @@ void generate_ratings_file(char* file_path) {
 	return;
 }
 
+void refactor_file(char *file_path) {
+	char new_name[MAX_NAME_LEN];
+	printf("New player name: ");
+	scanf("%s", new_name);
+
+	FILE *base_file = fopen(file_path, "ab+");
+	if (base_file == NULL) {
+		perror("fopen (refactor_file)");
+		return;
+	}
+
+	/* Read entry from old file */
+	struct entry *cur_entry = malloc(sizeof(struct entry));
+	int ret = 0;
+	/* While the function is still able to read entries from the old file */
+	while (0 == (ret = read_entry(base_file, cur_entry))) {
+		/* Update entry information to have the new name */
+		strncpy(cur_entry->name, new_name, MAX_NAME_LEN - 1);
+		cur_entry->len_name = strlen(new_name);
+
+		// write new entry in new file as we get each old entry
+		append_entry_to_file(cur_entry, new_name);
+	}
+	free(cur_entry);
+}
+
 int main(int argc, char **argv) {
 	int opt;
 	struct option opt_table[] = {
@@ -460,11 +488,12 @@ int main(int argc, char **argv) {
 		{ "bracket",	required_argument,	NULL,	'b' },
 		/* Output a file with a sorted list of players and their ratings */
 		{ "power-rating",required_argument,	NULL,	'p' },
+		{ "refactor",	required_argument,	NULL,	'r' },
 		{ 0, 0, 0, 0 }
 	};
 
 	while ((opt = getopt_long(argc, argv, \
-		"gh:l:a:b:p:", opt_table, NULL)) != -1) {
+		"gh:l:a:b:p:r:", opt_table, NULL)) != -1) {
 		switch (opt) {
 			case 'g':
 				use_games = 1;
@@ -483,6 +512,9 @@ int main(int argc, char **argv) {
 				break;
 			case 'p':
 				generate_ratings_file(optarg);
+				break;
+			case 'r':
+				refactor_file(optarg);
 				break;
 		}
 	}
