@@ -384,7 +384,6 @@ void update_players(char* bracket_file_path) {
 	short year;
 
 	while (fgets(line, sizeof(line), bracket_file)) {
-		printf("read line=\"%s\"\n", line);
 		/* Read data from one line of bracket file into all the variables */
 		sscanf(line, "%s %s %hhd %hhd %hhd %hhd %hd",
 			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
