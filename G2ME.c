@@ -350,15 +350,9 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	new_p1.__rating = p1->__rating + ((new_p1.__rating - p1->__rating) * outcome_weight);
 	new_p1.__rd = p1->__rd + ((new_p1.__rd - p1->__rd) * outcome_weight);
 	new_p1.vol = p1->vol + ((new_p1.vol - p1->vol) * outcome_weight);
-	new_p2.__rating = p2->__rating + ((new_p2.__rating - p2->__rating) * outcome_weight);
-	new_p2.__rd = p2->__rd + ((new_p2.__rd - p2->__rd) * outcome_weight);
-	new_p2.vol = p2->vol + ((new_p2.vol - p2->vol) * outcome_weight);
 	struct entry p1_new_entry =
 		create_entry(&new_p1, p1_name, p2_name, *p1_gc, *p2_gc, day, month, year);
-	struct entry p2_new_entry =
-		create_entry(&new_p2, p2_name, p1_name, *p2_gc, *p1_gc, day, month, year);
 	append_entry_to_file(&p1_new_entry, p1_name);
-	append_entry_to_file(&p2_new_entry, p2_name);
 
 	return;
 }
@@ -390,6 +384,7 @@ void update_players(char* bracket_file_path) {
 	short year;
 
 	while (fgets(line, sizeof(line), bracket_file)) {
+		printf("read line=\"%s\"\n", line);
 		/* Read data from one line of bracket file into all the variables */
 		sscanf(line, "%s %s %hhd %hhd %hhd %hhd %hd",
 			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
