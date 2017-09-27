@@ -489,11 +489,12 @@ int main(int argc, char **argv) {
 		/* Output a file with a sorted list of players and their ratings */
 		{ "power-rating",required_argument,	NULL,	'p' },
 		{ "refactor",	required_argument,	NULL,	'r' },
+		{ "weight",		required_argument,	NULL,	'w' },
 		{ 0, 0, 0, 0 }
 	};
 
 	while ((opt = getopt_long(argc, argv, \
-		"gh:l:a:b:p:r:", opt_table, NULL)) != -1) {
+		"gh:l:a:b:p:r:w:", opt_table, NULL)) != -1) {
 		switch (opt) {
 			case 'g':
 				use_games = 1;
@@ -515,6 +516,9 @@ int main(int argc, char **argv) {
 				break;
 			case 'r':
 				refactor_file(optarg);
+				break;
+			case 'w':
+				outcome_weight = strtol(optarg);
 				break;
 		}
 	}
