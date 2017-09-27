@@ -8,6 +8,7 @@
 #define MAX_NAME_LEN 128
 
 char use_games = 0;
+double outcome_weight = 1;
 
 typedef struct entry {
 	char len_name;
@@ -345,6 +346,13 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 
 	update_player(&new_p1, &p2->__rating, 1, &p2->__rd, p1_gc);
 	update_player(&new_p2, &p1->__rating, 1, &p1->__rd, p2_gc);
+	/* Adjust changes in glicko data based on weight of given game/set */
+	new_p1.__rating = p1->__rating + ((new_p1.__rating - p1->__rating) * outcome_weight);
+	new_p1.__rd = p1->__rd + ((new_p1.__rd - p1->__rd) * outcome_weight);
+	new_p1.vol = p1->vol + ((new_p1.vol - p1->vol) * outcome_weight);
+	new_p2.__rating = p2->__rating + ((new_p2.__rating - p2->__rating) * outcome_weight);
+	new_p2.__rd = p2->__rd + ((new_p2.__rd - p2->__rd) * outcome_weight);
+	new_p2.vol = p2->vol + ((new_p2.vol - p2->vol) * outcome_weight);
 	struct entry p1_new_entry =
 		create_entry(&new_p1, p1_name, p2_name, *p1_gc, *p2_gc, day, month, year);
 	struct entry p2_new_entry =
@@ -518,7 +526,7 @@ int main(int argc, char **argv) {
 				refactor_file(optarg);
 				break;
 			case 'w':
-				outcome_weight = strtol(optarg);
+				outcome_weight = strtod(optarg, NULL);
 				break;
 		}
 	}
