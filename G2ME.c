@@ -410,7 +410,6 @@ void adjust_absent_players(char* player_list) {
 		}
 
 		if (did_not_comp) {
-			printf("player did not compete: %s\n", line);
 			/* If the player who did not compete has a player file */
 			if (access(line, R_OK | W_OK) != -1) {
 				struct player P;
@@ -603,7 +602,6 @@ void remove_line_from_file(char *file_path) {
 	memset(new_file_name, 0, sizeof(new_file_name));
 	strncat(new_file_name, ".", sizeof(new_file_name) - 1);
 	strncat(new_file_name, file_path, sizeof(new_file_name) - 2);
-	printf("new file name %s\n", new_file_name);
 	/* While the function is still able to read entries from the old file */
 	while (0 == read_entry(base_file, cur_entry) && entries_read < (entries - lines_to_remove)) {
 		entries_read++;
