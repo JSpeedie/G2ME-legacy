@@ -411,24 +411,28 @@ void adjust_absent_players(char* player_list) {
 
 		if (did_not_comp) {
 			printf("player did not compete: %s\n", line);
-			struct player P;
-			struct entry latest_ent = read_last_entry(line);
-			init_player_from_entry(&P, &latest_ent);
-			print_entry(latest_ent);
-			did_not_compete(&P);
-			/* Only need to change entry RD since that's all Step 6 changes */
-			latest_ent.RD = getRd(&P);
-			/* Change qualities of the entry to reflect that it was not a
-			 * real set, but a did_not_compete */
-			strcpy(latest_ent.opp_name, "-");
-			latest_ent.len_opp_name = strlen(latest_ent.opp_name);
-			latest_ent.gc = 0;
-			latest_ent.opp_gc = 0;
-			latest_ent.day = 0;
-			latest_ent.month = 0;
-			latest_ent.year = 0;
-			print_entry(latest_ent);
-			append_entry_to_file(&latest_ent, line);
+			/* If the player who did not compete has a player file */
+			if (access(line, R_OK | W_OK) != -1) {
+				struct player P;
+				struct entry latest_ent = read_last_entry(line);
+				init_player_from_entry(&P, &latest_ent);
+				print_entry(latest_ent);
+				did_not_compete(&P);
+				/* Only need to change entry RD since that's all Step 6 changes */
+				latest_ent.RD = getRd(&P);
+				/* Change qualities of the entry to reflect that it was not a
+				 * real set, but a did_not_compete */
+				strcpy(latest_ent.opp_name, "-");
+				latest_ent.len_opp_name = strlen(latest_ent.opp_name);
+				latest_ent.gc = 0;
+				latest_ent.opp_gc = 0;
+				latest_ent.day = 0;
+				latest_ent.month = 0;
+				latest_ent.year = 0;
+				print_entry(latest_ent);
+				append_entry_to_file(&latest_ent, line);
+			}
+			/* If they do not then they have never competed, so skip them */
 		}
 	}
 
