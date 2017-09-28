@@ -415,7 +415,6 @@ void adjust_absent_players(char* player_list) {
 				struct player P;
 				struct entry latest_ent = read_last_entry(line);
 				init_player_from_entry(&P, &latest_ent);
-				print_entry(latest_ent);
 				did_not_compete(&P);
 				/* Only need to change entry RD since that's all Step 6 changes */
 				latest_ent.RD = getRd(&P);
