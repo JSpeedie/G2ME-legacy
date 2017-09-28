@@ -10,6 +10,8 @@
 char use_games = 0;
 char calc_absent_players = 0;
 double outcome_weight = 1;
+char tournament_names[128][128];
+char tournament_names_len = 0;
 
 typedef struct entry {
 	char len_name;
@@ -370,6 +372,8 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
  */
 char* update_players(char* bracket_file_path) {
 
+	/* Set to 0 since the bracket is beginning and no names are stored */
+	tournament_names_len = 0;
 	FILE *bracket_file = fopen(bracket_file_path, "r");
 	if (bracket_file == NULL) {
 		perror("fopen (bracket_file)");
