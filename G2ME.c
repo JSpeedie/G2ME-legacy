@@ -394,20 +394,22 @@ char* update_players(char* bracket_file_path) {
 		sscanf(line, "%s %s %hhd %hhd %hhd %hhd %hd",
 			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
 
-		char already_in = 0;
-		char already_in2 = 0;
-		for (int i = 0; i < tournament_names_len; i++) {
-			/* If the name already exists in the list of entrants, don't add */
-			if (0 == strcmp(p1_name, tournament_names[i])) { already_in = 1; }
-			if (0 == strcmp(p2_name, tournament_names[i])) { already_in2 = 1; }
-		}
-		if (!already_in) {
-			strncpy(tournament_names[tournament_names_len], p1_name, MAX_NAME_LEN);
-			tournament_names_len++;
-		}
-		if (!already_in2) {
-			strncpy(tournament_names[tournament_names_len], p2_name, MAX_NAME_LEN);
-			tournament_names_len++;
+		if (calc_absent_players) {
+			char already_in = 0;
+			char already_in2 = 0;
+			for (int i = 0; i < tournament_names_len; i++) {
+				/* If the name already exists in the list of entrants, don't add */
+				if (0 == strcmp(p1_name, tournament_names[i])) { already_in = 1; }
+				if (0 == strcmp(p2_name, tournament_names[i])) { already_in2 = 1; }
+			}
+			if (!already_in) {
+				strncpy(tournament_names[tournament_names_len], p1_name, MAX_NAME_LEN);
+				tournament_names_len++;
+			}
+			if (!already_in2) {
+				strncpy(tournament_names[tournament_names_len], p2_name, MAX_NAME_LEN);
+				tournament_names_len++;
+			}
 		}
 
 		struct player p1;
