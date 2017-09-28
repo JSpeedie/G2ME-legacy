@@ -29,6 +29,26 @@ typedef struct entry {
 	short year;
 }Entry;
 
+int get_entries_in_file(char *file_path) {
+	FILE *base_file = fopen(file_path, "rb");
+	if (base_file == NULL) {
+		perror("fopen (get_entries_in_file)");
+		return;
+	}
+
+	int entries = 0;
+	/* Read entry from old file */
+	struct entry *cur_entry = malloc(sizeof(struct entry));
+	/* While the function is still able to read entries from the old file */
+	while (0 == read_entry(base_file, cur_entry)) {
+		entries++;
+	}
+	free(cur_entry);
+	fclose(base_file);
+
+	return entries;
+}
+
 /** Returns the offset within a player file at which the last entry begins.
  *
  * \param '*file_path' a string of the file path of a player file for the
@@ -397,7 +417,7 @@ void adjust_absent_players(char* player_list) {
 			print_entry(latest_ent);
 			did_not_compete(&P);
 			/* Only need to change entry RD since that's all Step 6 changes */
-			latest_ent.RD = P.__rd;
+			latest_ent.RD = getRd(&P);
 			/* Change qualities of the entry to reflect that it was not a
 			 * real set, but a did_not_compete */
 			strcpy(latest_ent.opp_name, "-");
@@ -560,27 +580,56 @@ void refactor_file(char *file_path) {
 		append_entry_to_file(cur_entry, new_name);
 	}
 	free(cur_entry);
+	fclose(base_file);
+}
+
+void remove_line_from_file(char *file_path) {
+	FILE *base_file = fopen(file_path, "rb");
+	if (base_file == NULL) {
+		perror("fopen (remove_line_from_file)");
+		return;
+	}
+
+	int lines_to_remove = 1;
+	int entries = get_entries_in_file(file_path);
+	int entries_read = 0;
+	/* Read entry from old file */
+	struct entry *cur_entry = malloc(sizeof(struct entry));
+	char new_file_name[MAX_NAME_LEN + 1] = strcat(".", cur_entry->name);
+	/* While the function is still able to read entries from the old file */
+	while (0 == read_entry(base_file, cur_entry) && entries_read < (entries - lines_to_remove)) {
+		entries_read++;
+		/* write new entry in new file as we get each old entry */
+		append_entry_to_file(cur_entry, new_file_name);
+	}
+	/* Delete original file */
+	remove(file_path);
+	/* Copy temp file to original file path */
+	rename(new_file_name, file_path);
+	free(cur_entry);
+	fclose(base_file);
 }
 
 int main(int argc, char **argv) {
 	int opt;
 	struct option opt_table[] = {
-		{ "use-games",	no_argument,	NULL,	'g' },
+		{ "use-games",		no_argument,		NULL,	'g' },
 		/* Output given player file in human readable form */
-		{ "human",		required_argument,	NULL,	'h' },
+		{ "human",			required_argument,	NULL,	'h' },
 		/* Output last entry in given player file in human readable form */
-		{ "last-entry",	required_argument,	NULL,	'l' },
+		{ "last-entry",		required_argument,	NULL,	'l' },
 		/* Add (or create if necessary) a player entry/player entry file
 		 * from user input */
-		{ "add-entry",	required_argument,	NULL,	'a' },
+		{ "add-entry",		required_argument,	NULL,	'a' },
 		/* Run through a given bracket file making the necessary updates
 		 * to the glicko2 scores */
-		{ "bracket",	required_argument,	NULL,	'b' },
+		{ "bracket",		required_argument,	NULL,	'b' },
 		/* Output a file with a sorted list of players and their ratings */
-		{ "power-rating",required_argument,	NULL,	'p' },
-		{ "refactor",	required_argument,	NULL,	'r' },
-		{ "weight",		required_argument,	NULL,	'w' },
-		{ "P",		required_argument,	NULL,	'P' },
+		{ "power-rating",	required_argument,	NULL,	'p' },
+		{ "refactor",		required_argument,	NULL,	'r' },
+		{ "weight",			required_argument,	NULL,	'w' },
+		{ "P",				required_argument,	NULL,	'P' },
+		{ "remove-line",	required_argument,	NULL,	'x' },
 		{ 0, 0, 0, 0 }
 	};
 
@@ -614,6 +663,9 @@ int main(int argc, char **argv) {
 			case 'P':
 				calc_absent_players = 1;
 				strncpy(player_list_file, optarg, sizeof(player_list_file) - 1);
+				break;
+			case 'x':
+				remove_line_from_file(optarg);
 				break;
 		}
 	}
