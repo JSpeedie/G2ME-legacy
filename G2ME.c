@@ -375,7 +375,7 @@ void adjust_absent_players(char* player_list) {
 
 	/* Iterate through list of all the players the system manager wants
 	 * to track */
-	while (fgets(line, sizeof(line), players)) {
+	while (fgets(line, sizeof(line), player_file)) {
 		/* Reset variable to assume player did not compete */
 		did_not_comp = 1;
 		/* Replace newline with null terminator */
@@ -392,7 +392,7 @@ void adjust_absent_players(char* player_list) {
 		if (did_not_comp) {
 			printf("player did not compete: %s\n", line);
 			struct player P;
-			struct entry latest_ent = read_last_entry(line)
+			struct entry latest_ent = read_last_entry(line);
 			init_player_from_entry(&P, &latest_ent);
 			print_entry(latest_ent);
 			did_not_compete(&P);
@@ -400,7 +400,7 @@ void adjust_absent_players(char* player_list) {
 			latest_ent.RD = P.__rd;
 			/* Change qualities of the entry to reflect that it was not a
 			 * real set, but a did_not_compete */
-			latest_ent.opp_name = "-";
+			strcpy(latest_ent.opp_name, "-");
 			latest_ent.len_opp_name = strlen(latest_ent.opp_name);
 			latest_ent.gc = 0;
 			latest_ent.opp_gc = 0;
@@ -422,10 +422,9 @@ void adjust_absent_players(char* player_list) {
  * \param '*bracket_file_path' the file path of a bracket file which, on
  *     each line has the format of "[p1_name] [p2_name] [p1_game_count]
  *     [p2_game_count] [day] [month] [year]"
- * \return a pointer to a list of strings containing names of every player
- *     that attended the tournament
+ * \return void
  */
-char* update_players(char* bracket_file_path) {
+void update_players(char* bracket_file_path) {
 
 	/* Set to 0 since the bracket is beginning and no names are stored */
 	tournament_names_len = 0;
@@ -581,11 +580,12 @@ int main(int argc, char **argv) {
 		{ "power-rating",required_argument,	NULL,	'p' },
 		{ "refactor",	required_argument,	NULL,	'r' },
 		{ "weight",		required_argument,	NULL,	'w' },
+		{ "P",		required_argument,	NULL,	'P' },
 		{ 0, 0, 0, 0 }
 	};
 
 	while ((opt = getopt_long(argc, argv, \
-		"gh:l:a:b:p:r:w:", opt_table, NULL)) != -1) {
+		"gh:l:a:b:p:r:w:P:", opt_table, NULL)) != -1) {
 		switch (opt) {
 			case 'g':
 				use_games = 1;
@@ -611,7 +611,7 @@ int main(int argc, char **argv) {
 			case 'w':
 				outcome_weight = strtod(optarg, NULL);
 				break;
-			case 'P'
+			case 'P':
 				calc_absent_players = 1;
 				strncpy(player_list_file, optarg, sizeof(player_list_file) - 1);
 				break;
