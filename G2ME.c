@@ -8,6 +8,7 @@
 #define MAX_NAME_LEN 128
 
 char use_games = 0;
+char calc_absent_players = 0;
 double outcome_weight = 1;
 
 typedef struct entry {
@@ -364,9 +365,10 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
  * \param '*bracket_file_path' the file path of a bracket file which, on
  *     each line has the format of "[p1_name] [p2_name] [p1_game_count]
  *     [p2_game_count] [day] [month] [year]"
- * \return void
+ * \return a pointer to a list of strings containing names of every player
+ *     that attended the tournament
  */
-void update_players(char* bracket_file_path) {
+char* update_players(char* bracket_file_path) {
 
 	FILE *bracket_file = fopen(bracket_file_path, "r");
 	if (bracket_file == NULL) {
@@ -387,6 +389,22 @@ void update_players(char* bracket_file_path) {
 		/* Read data from one line of bracket file into all the variables */
 		sscanf(line, "%s %s %hhd %hhd %hhd %hhd %hd",
 			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
+
+		char already_in = 0;
+		char already_in2 = 0;
+		for (int i = 0; i < tournament_names_len; i++) {
+			/* If the name already exists in the list of entrants, don't add */
+			if (0 == strcmp(p1_name, tournament_names[i])) { already_in = 1; }
+			if (0 == strcmp(p2_name, tournament_names[i])) { already_in2 = 1; }
+		}
+		if (!already_in) {
+			strncpy(tournament_names[tournament_names_len], p1_name, MAX_NAME_LEN);
+			tournament_names_len++;
+		}
+		if (!already_in2) {
+			strncpy(tournament_names[tournament_names_len], p2_name, MAX_NAME_LEN);
+			tournament_names_len++;
+		}
 
 		struct player p1;
 		struct player p2;
@@ -521,6 +539,9 @@ int main(int argc, char **argv) {
 				break;
 			case 'w':
 				outcome_weight = strtod(optarg, NULL);
+				break;
+			case 'P'
+				calc_absent_players = 1;
 				break;
 		}
 	}
