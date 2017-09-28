@@ -8,6 +8,7 @@
 #define MAX_NAME_LEN 128
 
 char use_games = 0;
+char player_list_file[256];
 char calc_absent_players = 0;
 double outcome_weight = 1;
 char tournament_names[128][128];
@@ -360,6 +361,60 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	return;
 }
 
+void adjust_absent_players(char* player_list) {
+	FILE *player_file = fopen(player_list, "r");
+	if (player_file == NULL) {
+		perror("fopen (adjust_absent_players)");
+		return;
+	}
+
+	char line[256];
+	char did_not_comp = 1;
+	/* get list of player names that did not compete
+	 * apply step 6 to them and append to player file */
+
+	/* Iterate through list of all the players the system manager wants
+	 * to track */
+	while (fgets(line, sizeof(line), players)) {
+		/* Reset variable to assume player did not compete */
+		did_not_comp = 1;
+		/* Replace newline with null terminator */
+		*strchr(line, '\n') = '\0';
+		for (int i = 0; i < tournament_names_len; i++) {
+			/* If the one of the player who the system manager wants to track
+			 * is found in the list of competitors at the tourney */
+			if (0 == strcmp(line, tournament_names[i])) {
+				did_not_comp = 0;
+				break;
+			}
+		}
+
+		if (did_not_comp) {
+			printf("player did not compete: %s\n", line);
+			struct player P;
+			struct entry latest_ent = read_last_entry(line)
+			init_player_from_entry(&P, &latest_ent);
+			print_entry(latest_ent);
+			did_not_compete(&P);
+			/* Only need to change entry RD since that's all Step 6 changes */
+			latest_ent.RD = P.__rd;
+			/* Change qualities of the entry to reflect that it was not a
+			 * real set, but a did_not_compete */
+			latest_ent.opp_name = "-";
+			latest_ent.len_opp_name = strlen(latest_ent.opp_name);
+			latest_ent.gc = 0;
+			latest_ent.opp_gc = 0;
+			latest_ent.day = 0;
+			latest_ent.month = 0;
+			latest_ent.year = 0;
+			print_entry(latest_ent);
+			append_entry_to_file(&latest_ent, line);
+		}
+	}
+
+	fclose(player_file);
+}
+
 /** Takes a bracket file and updates the ratings of all the players
  * mentioned in the bracket file as well as those specified in TODO another
  * file to account for inactivity.
@@ -399,8 +454,14 @@ char* update_players(char* bracket_file_path) {
 			char already_in2 = 0;
 			for (int i = 0; i < tournament_names_len; i++) {
 				/* If the name already exists in the list of entrants, don't add */
-				if (0 == strcmp(p1_name, tournament_names[i])) { already_in = 1; }
-				if (0 == strcmp(p2_name, tournament_names[i])) { already_in2 = 1; }
+				if (0 == strcmp(p1_name, tournament_names[i])) {
+					already_in = 1;
+					break;
+				}
+				if (0 == strcmp(p2_name, tournament_names[i])) {
+					already_in2 = 1;
+					break;
+				}
 			}
 			if (!already_in) {
 				strncpy(tournament_names[tournament_names_len], p1_name, MAX_NAME_LEN);
@@ -435,8 +496,12 @@ char* update_players(char* bracket_file_path) {
 		}
 	}
 
-	// Print out everyones before and after with a (+/- change here)
+	// TODO: maybe: Print out everyones before and after with a (+/- change here)
 	fclose(bracket_file);
+
+	if (calc_absent_players) {
+		adjust_absent_players(player_list_file);
+	}
 }
 
 /** Creates a file listing the player's glicko details specified by user
@@ -548,6 +613,7 @@ int main(int argc, char **argv) {
 				break;
 			case 'P'
 				calc_absent_players = 1;
+				strncpy(player_list_file, optarg, sizeof(player_list_file) - 1);
 				break;
 		}
 	}
