@@ -33,7 +33,7 @@ int get_entries_in_file(char *file_path) {
 	FILE *base_file = fopen(file_path, "rb");
 	if (base_file == NULL) {
 		perror("fopen (get_entries_in_file)");
-		return;
+		return -1;
 	}
 
 	int entries = 0;
@@ -595,7 +595,11 @@ void remove_line_from_file(char *file_path) {
 	int entries_read = 0;
 	/* Read entry from old file */
 	struct entry *cur_entry = malloc(sizeof(struct entry));
-	char new_file_name[MAX_NAME_LEN + 1] = strcat(".", cur_entry->name);
+	char new_file_name[MAX_NAME_LEN + 1];
+	memset(new_file_name, 0, sizeof(new_file_name));
+	strncat(new_file_name, ".", sizeof(new_file_name) - 1);
+	strncat(new_file_name, file_path, sizeof(new_file_name) - 2);
+	printf("new file name %s\n", new_file_name);
 	/* While the function is still able to read entries from the old file */
 	while (0 == read_entry(base_file, cur_entry) && entries_read < (entries - lines_to_remove)) {
 		entries_read++;
@@ -634,7 +638,7 @@ int main(int argc, char **argv) {
 	};
 
 	while ((opt = getopt_long(argc, argv, \
-		"gh:l:a:b:p:r:w:P:", opt_table, NULL)) != -1) {
+		"gh:l:a:b:p:r:w:P:x:", opt_table, NULL)) != -1) {
 		switch (opt) {
 			case 'g':
 				use_games = 1;
