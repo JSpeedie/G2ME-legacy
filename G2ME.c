@@ -611,7 +611,7 @@ void generate_ratings_file(char* file_path) {
 	return;
 }
 
-void refactor_file(char *file_path) {
+int refactor_file(char *file_path) {
 	char new_name[MAX_NAME_LEN];
 	printf("New player name: ");
 	scanf("%s", new_name);
@@ -619,14 +619,17 @@ void refactor_file(char *file_path) {
 	FILE *base_file = fopen(file_path, "ab+");
 	if (base_file == NULL) {
 		perror("fopen (refactor_file)");
-		return;
+		return -1;
 	}
 
 	/* Read entry from old file */
 	struct entry *cur_entry = malloc(sizeof(struct entry));
-	int ret = 0;
+	/* Read the starter data in the file */
+	if (1 != fread(cur_entry->len_name, sizeof(char), 1, base_file)) { return -2; }
+	if (cur_entry->len_name
+		!= fread(cur_entry->name, sizeof(char), cur_entry->len_name, base_file)) { return -3; }
 	/* While the function is still able to read entries from the old file */
-	while (0 == (ret = read_entry(base_file, cur_entry))) {
+	while (0 == read_entry(base_file, cur_entry)) {
 		/* Update entry information to have the new name */
 		strncpy(cur_entry->name, new_name, MAX_NAME_LEN - 1);
 		cur_entry->len_name = strlen(new_name);
