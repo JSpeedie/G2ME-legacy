@@ -166,24 +166,25 @@ int append_entry_to_file(struct entry* E, char* file_path) {
 }
 
 /** Appends a pr entry (the name and glicko2 data for a player) to a given
- * file.
+ * file. Returns an int representing success.
  *
  * \param '*E' the struct entry to append to the pr file
  * \param '*file_path' the file path for the pr file
- * \return void
+ * \return 0 upon success, negative number on failure.
  */
-void append_pr_entry_to_file(struct entry* E, char* file_path) {
+int append_pr_entry_to_file(struct entry* E, char* file_path) {
 	FILE *entry_file = fopen(file_path, "a+");
 	if (entry_file == NULL) {
 		perror("fopen (append_pr_entry_to_file)");
-		return;
+		return -1;
 	}
 	if (fprintf(entry_file, "%s %.1lf %.2lf %.8lf\n", E->name, E->rating, E->RD, E->vol) < 0) {
 		perror("fprintf");
+		return -2;
 	}
 
 	fclose(entry_file);
-	return;
+	return 0;
 }
 
 /** Appends an entry created from user input to a file.
