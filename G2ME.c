@@ -42,8 +42,10 @@ int get_entries_in_file(char *file_path) {
 	char len_of_name;
 	char name[MAX_NAME_LEN];
 	/* Read the starter data in the file */
-	fread(&len_of_name, sizeof(char), 1, base_file);
-	fread(name, sizeof(char), len_of_name, base_file);
+	if (1 != fread(cur_entry->len_name, sizeof(char), 1, base_file)) { return -2; }
+	if (cur_entry->len_name
+		!= fread(cur_entry->name, sizeof(char), cur_entry->len_name, base_file)) { return -3; }
+
 	/* While the function is still able to read entries from the old file */
 	while (0 == read_entry(base_file, cur_entry)) {
 		entries++;
@@ -657,6 +659,10 @@ void remove_line_from_file(char *file_path) {
 	memset(new_file_name, 0, sizeof(new_file_name));
 	strncat(new_file_name, ".", sizeof(new_file_name) - 1);
 	strncat(new_file_name, file_path, sizeof(new_file_name) - 2);
+	/* Read the starter data in the file */
+	if (1 != fread(cur_entry->len_name, sizeof(char), 1, base_file)) { return -2; }
+	if (cur_entry->len_name
+		!= fread(cur_entry->name, sizeof(char), cur_entry->len_name, base_file)) { return -3; }
 	/* While the function is still able to read entries from the old file */
 	while (0 == read_entry(base_file, cur_entry) && entries_read < (entries - lines_to_remove)) {
 		entries_read++;
