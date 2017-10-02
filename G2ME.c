@@ -68,21 +68,28 @@ long int get_last_entry_offset(char* file_path) {
 		return 0;
 	}
 
+	/* Read entry from old file */
+	struct entry *cur_entry = malloc(sizeof(struct entry));
 	char len_of_name;
+	char name[MAX_NAME_LEN];
+	/* Read the starter data in the file */
+	fread(&len_of_name, sizeof(char), 1, base_file);
+	fread(name, sizeof(char), len_of_name, base_file);
+
 	char len_of_opp_name;
 	long int last_entry_offset = ftell(entry_file);
 
-	while (0 != fread(&len_of_name, sizeof(char), 1, entry_file)) {
+	while (0 != fread(&len_of_opp_name, sizeof(char), 1, entry_file)) {
 
-		if (0 == fread(&len_of_opp_name, sizeof(char), 1, entry_file)) {
-			break;
-		}
-
+		/* = chars for the current opponent name, the 3 glicko doubles, the 4
+		 * chars for the 2 game counts, the day and month and the one short
+		 * for the year */
 		long int size_of_current_entry =
-			len_of_name + len_of_opp_name + (3 * sizeof(double)) + (4 * sizeof(char)) + sizeof(short);
+			(1 * sizeof(char)) + len_of_opp_name + (3 * sizeof(double)) +
+			(4 * sizeof(char)) + sizeof(short);
 		fseek(entry_file, size_of_current_entry, SEEK_CUR);
 
-		last_entry_offset = ftell(entry_file) - size_of_current_entry - (2 * sizeof(char));
+		last_entry_offset = ftell(entry_file) - size_of_current_entry;
 	}
 
 	fclose(entry_file);
