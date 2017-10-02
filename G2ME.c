@@ -12,22 +12,24 @@ char player_list_file[256];
 char calc_absent_players = 0;
 double outcome_weight = 1;
 char tournament_names[128][128];
-char tournament_names_len = 0;
+unsigned char tournament_names_len = 0;
 
 typedef struct entry {
-	char len_name;
-	char len_opp_name;
+	unsigned char len_name;
+	unsigned char len_opp_name;
 	char name[MAX_NAME_LEN];
 	char opp_name[MAX_NAME_LEN];
 	double rating;
 	double RD;
 	double vol;
-	char gc;
-	char opp_gc;
-	char day;
-	char month;
+	unsigned char gc;
+	unsigned char opp_gc;
+	unsigned char day;
+	unsigned char month;
 	short year;
 }Entry;
+
+int read_entry(FILE *, struct entry *);
 
 int get_entries_in_file(char *file_path) {
 	FILE *base_file = fopen(file_path, "rb");
@@ -39,10 +41,8 @@ int get_entries_in_file(char *file_path) {
 	int entries = 0;
 	/* Read entry from old file */
 	struct entry *cur_entry = malloc(sizeof(struct entry));
-	char len_of_name;
-	char name[MAX_NAME_LEN];
 	/* Read the starter data in the file */
-	if (1 != fread(cur_entry->len_name, sizeof(char), 1, base_file)) { return -2; }
+	if (1 != fread(&cur_entry->len_name, sizeof(char), 1, base_file)) { return -2; }
 	if (cur_entry->len_name
 		!= fread(cur_entry->name, sizeof(char), cur_entry->len_name, base_file)) { return -3; }
 
@@ -71,12 +71,11 @@ long int get_last_entry_offset(char* file_path) {
 	}
 
 	/* Read entry from old file */
-	struct entry *cur_entry = malloc(sizeof(struct entry));
 	char len_of_name;
 	char name[MAX_NAME_LEN];
 	/* Read the starter data in the file */
-	fread(&len_of_name, sizeof(char), 1, base_file);
-	fread(name, sizeof(char), len_of_name, base_file);
+	fread(&len_of_name, sizeof(char), 1, entry_file);
+	fread(name, sizeof(char), len_of_name, entry_file);
 
 	char len_of_opp_name;
 	long int last_entry_offset = ftell(entry_file);
@@ -129,15 +128,17 @@ int append_entry_to_file(struct entry* E, char* file_path) {
 
 	char len_name = strlen(E->name);
 	char len_opp_name = strlen(E->opp_name);
+	/* If the file did not exist */
+	char existed = access(file_path, R_OK) != -1;
 
-	/* If the file did not exist, write the starter file data */
-	if (access(file_path, R_OK | W_OK) == -1) {
-		/* Open file for appending */
-		FILE *entry_file = fopen(file_path, "ab+");
-		if (entry_file == NULL) {
-			perror("fopen (append_entry_to_file)");
-			return -1;
-		}
+	/* Open file for appending */
+	FILE *entry_file = fopen(file_path, "ab+");
+	if (entry_file == NULL) {
+		perror("fopen (append_entry_to_file)");
+		return -1;
+	}
+
+	if (!existed) {
 		if (1 != fwrite(&len_name, sizeof(char), 1, entry_file)) { return -2; }
 		if (strlen(E->name)
 			!= fwrite(E->name, sizeof(char), strlen(E->name), entry_file)) {
@@ -236,7 +237,7 @@ int read_start_from_file(char *file_path, struct entry *E) {
 	}
 
 	/* Read the starter data in the file */
-	if (1 != fread(E->len_name, sizeof(char), 1, entry_file)) { return -2; }
+	if (1 != fread(&E->len_name, sizeof(char), 1, entry_file)) { return -2; }
 	if (E->len_name != fread(E->name, sizeof(char), E->len_name, entry_file)) { return -3; }
 
 	fclose(entry_file);
@@ -287,12 +288,12 @@ int print_player_file(char* file_path) {
 	char len_of_name;
 	char name[MAX_NAME_LEN];
 	/* Read the starter data in the file */
-	if (1 != fread(&len_of_name, sizeof(char), 1, base_file)) { return -2; }
-	if (len_of_name != fread(name, sizeof(char), len_of_name, base_file)) { return -3; }
+	if (1 != fread(&len_of_name, sizeof(char), 1, p_file)) { return -2; }
+	if (len_of_name != fread(name, sizeof(char), len_of_name, p_file)) { return -3; }
 
 	struct entry line;
 	line.len_name = len_of_name;
-	line.name = name;
+	strncpy(line.name, name, MAX_NAME_LEN);
 
 	while (read_entry(p_file, &line) == 0) {
 		print_entry(line);
@@ -627,7 +628,7 @@ int refactor_file(char *file_path) {
 	/* Read entry from old file */
 	struct entry *cur_entry = malloc(sizeof(struct entry));
 	/* Read the starter data in the file */
-	if (1 != fread(cur_entry->len_name, sizeof(char), 1, base_file)) { return -2; }
+	if (1 != fread(&cur_entry->len_name, sizeof(char), 1, base_file)) { return -2; }
 	if (cur_entry->len_name
 		!= fread(cur_entry->name, sizeof(char), cur_entry->len_name, base_file)) { return -3; }
 	/* While the function is still able to read entries from the old file */
@@ -641,13 +642,14 @@ int refactor_file(char *file_path) {
 	}
 	free(cur_entry);
 	fclose(base_file);
+	return 0;
 }
 
-void remove_line_from_file(char *file_path) {
+int remove_line_from_file(char *file_path) {
 	FILE *base_file = fopen(file_path, "rb");
 	if (base_file == NULL) {
 		perror("fopen (remove_line_from_file)");
-		return;
+		return -1;
 	}
 
 	int lines_to_remove = 1;
@@ -660,7 +662,7 @@ void remove_line_from_file(char *file_path) {
 	strncat(new_file_name, ".", sizeof(new_file_name) - 1);
 	strncat(new_file_name, file_path, sizeof(new_file_name) - 2);
 	/* Read the starter data in the file */
-	if (1 != fread(cur_entry->len_name, sizeof(char), 1, base_file)) { return -2; }
+	if (1 != fread(&cur_entry->len_name, sizeof(char), 1, base_file)) { return -2; }
 	if (cur_entry->len_name
 		!= fread(cur_entry->name, sizeof(char), cur_entry->len_name, base_file)) { return -3; }
 	/* While the function is still able to read entries from the old file */
@@ -675,6 +677,7 @@ void remove_line_from_file(char *file_path) {
 	rename(new_file_name, file_path);
 	free(cur_entry);
 	fclose(base_file);
+	return 0;
 }
 
 int main(int argc, char **argv) {
