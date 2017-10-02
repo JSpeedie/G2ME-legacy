@@ -115,39 +115,54 @@ void clear_file(char* file) {
 	return;
 }
 
-/** Appends an entry to a given player file.
+/** Appends an entry to a given player file and return an int representing
+ * whether the function succeeded or not.
  *
  * \param '*E' the struct entry to be appended
  * \param '*file_path' the file path of the player file
- * \return void
+ * \return int that is 0 upon the function succeeding and negative upon
+ *     any sort of failure.
  */
-void append_entry_to_file(struct entry* E, char* file_path) {
-	FILE *entry_file = fopen(file_path, "ab+");
-	if (entry_file == NULL) {
-		perror("fopen (append_entry_to_file)");
-		return;
-	}
-	// TODO find nice way to check all fwrite calls
-	/* Write lengths of names */
+int append_entry_to_file(struct entry* E, char* file_path) {
+
 	char len_name = strlen(E->name);
 	char len_opp_name = strlen(E->opp_name);
-	fwrite(&len_name, sizeof(char), 1, entry_file);
-	fwrite(&len_opp_name, sizeof(char), 1, entry_file);
-	/* Write names */
-	fwrite(E->name, sizeof(char), strlen(E->name), entry_file);
-	fwrite(E->opp_name, sizeof(char), strlen(E->opp_name), entry_file);
+
+	/* If the file did not exist, write the starter file data */
+	if (access(file_path, R_OK | W_OK) == -1) {
+		/* Open file for appending */
+		FILE *entry_file = fopen(file_path, "ab+");
+		if (entry_file == NULL) {
+			perror("fopen (append_entry_to_file)");
+			return -1;
+		}
+		if (1 != fwrite(&len_name, sizeof(char), 1, entry_file)) { return -2; }
+		if (strlen(E->name)
+			!= fwrite(E->name, sizeof(char), strlen(E->name), entry_file)) {
+			return -3;
+		}
+	}
+
+	/* Write length of opp name and opp name */
+	if (1 != fwrite(&len_opp_name, sizeof(char), 1, entry_file)) { return -4; }
+	if (strlen(E->opp_name)
+		!= fwrite(E->opp_name, sizeof(char), strlen(E->opp_name), entry_file)) {
+			return -5;
+	}
 	/* Write glicko data */
-	fwrite(&E->rating, sizeof(double), 1, entry_file);
-	fwrite(&E->RD, sizeof(double), 1, entry_file);
-	fwrite(&E->vol, sizeof(double), 1, entry_file);
+	if (1 != fwrite(&E->rating, sizeof(double), 1, entry_file)) { return -6; }
+	if (1 != fwrite(&E->RD, sizeof(double), 1, entry_file)) { return -7; }
+	if (1 != fwrite(&E->vol, sizeof(double), 1, entry_file)) { return -8; }
 	/* Write game counts */
-	fwrite(&E->gc, sizeof(char), 1, entry_file);
-	fwrite(&E->opp_gc, sizeof(char), 1, entry_file);
+	if (1 != fwrite(&E->gc, sizeof(char), 1, entry_file)) { return -9; }
+	if (1 != fwrite(&E->opp_gc, sizeof(char), 1, entry_file)) { return -10; }
 	/* Write date data */
-	fwrite(&E->day, sizeof(char), 1, entry_file);
-	fwrite(&E->month, sizeof(char), 1, entry_file);
-	fwrite(&E->year, sizeof(short), 1, entry_file);
+	if (1 != fwrite(&E->day, sizeof(char), 1, entry_file)) { return -11; }
+	if (1 != fwrite(&E->month, sizeof(char), 1, entry_file)) { return -12; }
+	if (1 != fwrite(&E->year, sizeof(short), 1, entry_file)) { return -13; }
+
 	fclose(entry_file);
+	return 0;
 }
 
 /** Appends a pr entry (the name and glicko2 data for a player) to a given
