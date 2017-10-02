@@ -29,7 +29,32 @@ typedef struct entry {
 	short year;
 }Entry;
 
-int read_entry(FILE *, struct entry *);
+/** Reads contents of a player file to a struct entry. Returns 0 upon success,
+ * and a negative number upon failure. Function expects that starter data
+ * has already been passed and that the FILE is on an entry
+ *
+ * \param '*f' the file being read
+ * \param '*E' the struct entry to store an entry found in the file too
+ * \return 0 upon success, or a negative number upon failure.
+ */
+int read_entry(FILE *f, struct entry *E) {
+	if (0 == fread(&E->len_opp_name, sizeof(char), 1, f)) { return -1; }
+	/* Read player names */
+	if (0 == fread(E->opp_name, sizeof(char), E->len_opp_name, f)) { return -2; }
+	/* Add null terminators */
+	E->name[E->len_name] = '\0';
+	E->opp_name[E->len_opp_name] = '\0';
+	if (0 == fread(&E->rating, sizeof(double), 1, f)) { return -3; }
+	if (0 == fread(&E->RD, sizeof(double), 1, f)) { return -4; }
+	if (0 == fread(&E->vol, sizeof(double), 1, f)) { return -5; }
+	if (0 == fread(&E->gc, sizeof(char), 1, f)) { return -6; }
+	if (0 == fread(&E->opp_gc, sizeof(char), 1, f)) { return -7; }
+	if (0 == fread(&E->day, sizeof(char), 1, f)) { return -8; }
+	if (0 == fread(&E->month, sizeof(char), 1, f)) { return -9; }
+	if (0 == fread(&E->year, sizeof(short), 1, f)) { return -10; }
+
+	return 0;
+}
 
 int get_entries_in_file(char *file_path) {
 	FILE *base_file = fopen(file_path, "rb");
@@ -86,11 +111,12 @@ long int get_last_entry_offset(char* file_path) {
 		 * chars for the 2 game counts, the day and month and the one short
 		 * for the year */
 		long int size_of_current_entry =
-			(1 * sizeof(char)) + len_of_opp_name + (3 * sizeof(double)) +
-			(4 * sizeof(char)) + sizeof(short);
+			len_of_opp_name + (3 * sizeof(double))
+			+ (4 * sizeof(char)) + sizeof(short);
 		fseek(entry_file, size_of_current_entry, SEEK_CUR);
 
-		last_entry_offset = ftell(entry_file) - size_of_current_entry;
+		last_entry_offset =
+			ftell(entry_file) - size_of_current_entry - (1 * sizeof(char));
 	}
 
 	fclose(entry_file);
@@ -239,34 +265,9 @@ int read_start_from_file(char *file_path, struct entry *E) {
 	/* Read the starter data in the file */
 	if (1 != fread(&E->len_name, sizeof(char), 1, entry_file)) { return -2; }
 	if (E->len_name != fread(E->name, sizeof(char), E->len_name, entry_file)) { return -3; }
+	E->name[E->len_name] = '\0';
 
 	fclose(entry_file);
-	return 0;
-}
-/** Reads contents of a player file to a struct entry. Returns 0 upon success,
- * and a negative number upon failure. Function expects that starter data
- * has already been passed and that the FILE is on an entry
- *
- * \param '*f' the file being read
- * \param '*E' the struct entry to store an entry found in the file too
- * \return 0 upon success, or a negative number upon failure.
- */
-int read_entry(FILE *f, struct entry *E) {
-	if (0 == fread(&E->len_opp_name, sizeof(char), 1, f)) { return -1; }
-	/* Read player names */
-	if (0 == fread(E->opp_name, sizeof(char), E->len_opp_name, f)) { return -2; }
-	/* Add null terminators */
-	E->name[E->len_name] = '\0';
-	E->opp_name[E->len_opp_name] = '\0';
-	if (0 == fread(&E->rating, sizeof(double), 1, f)) { return -3; }
-	if (0 == fread(&E->RD, sizeof(double), 1, f)) { return -4; }
-	if (0 == fread(&E->vol, sizeof(double), 1, f)) { return -5; }
-	if (0 == fread(&E->gc, sizeof(char), 1, f)) { return -6; }
-	if (0 == fread(&E->opp_gc, sizeof(char), 1, f)) { return -7; }
-	if (0 == fread(&E->day, sizeof(char), 1, f)) { return -8; }
-	if (0 == fread(&E->month, sizeof(char), 1, f)) { return -9; }
-	if (0 == fread(&E->year, sizeof(short), 1, f)) { return -10; }
-
 	return 0;
 }
 
@@ -483,7 +484,6 @@ void adjust_absent_players(char* player_list) {
 				latest_ent.day = 0;
 				latest_ent.month = 0;
 				latest_ent.year = 0;
-				print_entry(latest_ent);
 				append_entry_to_file(&latest_ent, line);
 			}
 			/* If they do not then they have never competed, so skip them */
