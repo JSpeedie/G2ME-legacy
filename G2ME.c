@@ -39,6 +39,11 @@ int get_entries_in_file(char *file_path) {
 	int entries = 0;
 	/* Read entry from old file */
 	struct entry *cur_entry = malloc(sizeof(struct entry));
+	char len_of_name;
+	char name[MAX_NAME_LEN];
+	/* Read the starter data in the file */
+	fread(&len_of_name, sizeof(char), 1, base_file);
+	fread(name, sizeof(char), len_of_name, base_file);
 	/* While the function is still able to read entries from the old file */
 	while (0 == read_entry(base_file, cur_entry)) {
 		entries++;
