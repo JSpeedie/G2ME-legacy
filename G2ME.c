@@ -226,29 +226,28 @@ void print_entry(struct entry E) {
 }
 
 /** Reads contents of a player file to a struct entry. Returns 0 upon success,
- * and a negative number upon failure.
+ * and a negative number upon failure. Function expects that starter data
+ * has already been passed and that the FILE is on an entry
  *
  * \param '*f' the file being read
  * \param '*E' the struct entry to store an entry found in the file too
  * \return 0 upon success, or a negative number upon failure.
  */
 int read_entry(FILE *f, struct entry *E) {
-	if (0 == fread(&E->len_name, sizeof(char), 1, f)) { return -1; }
-	if (0 == fread(&E->len_opp_name, sizeof(char), 1, f)) { return -2; }
+	if (0 == fread(&E->len_opp_name, sizeof(char), 1, f)) { return -1; }
 	/* Read player names */
-	if (0 == fread(E->name, sizeof(char), E->len_name, f)) { return -3; }
-	if (0 == fread(E->opp_name, sizeof(char), E->len_opp_name, f)) { return -4; }
+	if (0 == fread(E->opp_name, sizeof(char), E->len_opp_name, f)) { return -2; }
 	/* Add null terminators */
 	E->name[E->len_name] = '\0';
 	E->opp_name[E->len_opp_name] = '\0';
-	if (0 == fread(&E->rating, sizeof(double), 1, f)) { return -5; }
-	if (0 == fread(&E->RD, sizeof(double), 1, f)) { return -6; }
-	if (0 == fread(&E->vol, sizeof(double), 1, f)) { return -7; }
-	if (0 == fread(&E->gc, sizeof(char), 1, f)) { return -8; }
-	if (0 == fread(&E->opp_gc, sizeof(char), 1, f)) { return -9; }
-	if (0 == fread(&E->day, sizeof(char), 1, f)) { return -10; }
-	if (0 == fread(&E->month, sizeof(char), 1, f)) { return -11; }
-	if (0 == fread(&E->year, sizeof(short), 1, f)) { return -12; }
+	if (0 == fread(&E->rating, sizeof(double), 1, f)) { return -3; }
+	if (0 == fread(&E->RD, sizeof(double), 1, f)) { return -4; }
+	if (0 == fread(&E->vol, sizeof(double), 1, f)) { return -5; }
+	if (0 == fread(&E->gc, sizeof(char), 1, f)) { return -6; }
+	if (0 == fread(&E->opp_gc, sizeof(char), 1, f)) { return -7; }
+	if (0 == fread(&E->day, sizeof(char), 1, f)) { return -8; }
+	if (0 == fread(&E->month, sizeof(char), 1, f)) { return -9; }
+	if (0 == fread(&E->year, sizeof(short), 1, f)) { return -10; }
 
 	return 0;
 }
@@ -260,20 +259,28 @@ int read_entry(FILE *f, struct entry *E) {
  * \return void
  */
 void print_player_file(char* file_path) {
-	FILE *p_file = fopen(file_path, "rb+");
+	/* Open file for reading */
+	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
 		perror("fopen (print_player_file)");
-		return;
+		return -1;
 	}
 
+	char len_of_name;
+	char name[MAX_NAME_LEN];
+	/* Read the starter data in the file */
+	if (1 != fread(&len_of_name, sizeof(char), 1, base_file)) { return -2; }
+	if (len_of_name != fread(name, sizeof(char), len_of_name, base_file)) { return -3; }
+
 	struct entry line;
+	line.len_name = len_of_name;
+	line.name = name;
 
 	while (read_entry(p_file, &line) == 0) {
 		print_entry(line);
 	}
 
 	fclose(p_file);
-
 	return;
 }
 
