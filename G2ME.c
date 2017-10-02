@@ -225,6 +225,21 @@ void print_entry(struct entry E) {
 		E.len_name, E.len_opp_name, E.name, E.opp_name, E.rating, E.RD, E.vol, E.gc, E.opp_gc, date);
 }
 
+int read_start_from_file(char *file_path, struct entry *E) {
+	/* Open file for appending */
+	FILE *entry_file = fopen(file_path, "rb");
+	if (entry_file == NULL) {
+		perror("fopen (read_start_from_file)");
+		return -1;
+	}
+
+	/* Read the starter data in the file */
+	if (1 != fread(E->len_name, sizeof(char), 1, entry_file)) { return -2; }
+	if (E->len_name != fread(E->name, sizeof(char), E->len_name, entry_file)) { return -3; }
+
+	fclose(entry_file);
+	return 0;
+}
 /** Reads contents of a player file to a struct entry. Returns 0 upon success,
  * and a negative number upon failure. Function expects that starter data
  * has already been passed and that the FILE is on an entry
@@ -256,9 +271,10 @@ int read_entry(FILE *f, struct entry *E) {
  * on a new line.
  *
  * \param '*file_path' the file path of the player file to be read
- * \return void
+ * \return 0 if the function succeeded and a negative number if there was
+ *     a failure.
  */
-void print_player_file(char* file_path) {
+int print_player_file(char* file_path) {
 	/* Open file for reading */
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
@@ -281,7 +297,7 @@ void print_player_file(char* file_path) {
 	}
 
 	fclose(p_file);
-	return;
+	return 0;
 }
 
 /** Creates a struct entry from the last entry found in a player file.
@@ -298,6 +314,8 @@ struct entry read_last_entry(char* file_path) {
 		return line;
 	}
 
+	/* Read the player's name from the file */
+	read_start_from_file(file_path, &line);
 	/* Set file position to be at the latest entry for that player */
 	long int offset = get_last_entry_offset(file_path);
 	fseek(p_file, offset, SEEK_SET);
