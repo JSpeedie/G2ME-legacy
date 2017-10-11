@@ -223,9 +223,9 @@ In terms of bytes,
 to find the next entry, we must know the full size in bytes of the current
 entry)
 2. The same applies for player 2
-3. `sizeof(double).` bytes representing player-1's rating
-4. `sizeof(double).` bytes representing the player-1's RD
-4. `sizeof(double).` bytes representing the player-1's volatility
+3. `sizeof(double)` bytes representing player-1's rating
+4. `sizeof(double)` bytes representing the player-1's RD
+4. `sizeof(double)` bytes representing the player-1's volatility
 5. `sizeof(char)` the player-1's game count
 6. `sizeof(char)` the player-2's game count
 7. `sizeof(char)` the day
