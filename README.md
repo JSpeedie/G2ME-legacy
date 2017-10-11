@@ -170,24 +170,26 @@ a volatility pr/consistency pr.
 ## The Player File Format
 
 In case someone wants to reverse-engineer the player files or fork this and
-write the player files in a different format, currently it has each entry as
-`[len_p1_name][len_p2_name][p1_name][p2_name][p1_rating_after][p1_RD_after][p1_vol_after][p1_game_count][p2_game_count][day][month][year]`
-In terms of bytes,
+write the player files in a different format, currently it has the first
+few bytes as:
 1. `sizeof(char)` the length of the player-1's name
-2. `sizeof(char)` the length of the player-2's name
+2. `len_p1_name` bytes are the characters in the first players name.
+After that it takes the repeated form of:
+`[len_p2_name][p2_name][p1_rating_after][p1_RD_after][p1_vol_after][p1_game_count][p2_game_count][day][month][year]`
+In terms of bytes,
+1. `sizeof(char)` the length of the player-2's name
 (these are included because there are no new lines, so in order
 to find the next entry, we must know the full size in bytes of the current
 entry)
-3. `len_p1_name` bytes are the characters in the first players name.
-4. The same applies for player 2
-5. `sizeof(double).` bytes representing player-1's rating
-6. `sizeof(double).` bytes representing the player-1's RD
-6. `sizeof(double).` bytes representing the player-1's volatility
-7. `sizeof(char)` the player-1's game count
-8. `sizeof(char)` the player-2's game count
-9. `sizeof(char)` the day
-10. `sizeof(char)` the month
-11. `sizeof(short)` bytes are the year.
+2. The same applies for player 2
+3. `sizeof(double).` bytes representing player-1's rating
+4. `sizeof(double).` bytes representing the player-1's RD
+4. `sizeof(double).` bytes representing the player-1's volatility
+5. `sizeof(char)` the player-1's game count
+6. `sizeof(char)` the player-2's game count
+7. `sizeof(char)` the day
+8. `sizeof(char)` the month
+9. `sizeof(short)` bytes are the year.
 This design allows for names containing spaces (although the bracket file
 format does not), but more importantly, high precision doubles with minimal file
 sizes. Also it's really cool :)
