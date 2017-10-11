@@ -213,9 +213,11 @@ write the player files in a different format, currently it has the first
 few bytes as:
 1. `sizeof(char)` the length of the player-1's name
 2. `len_p1_name` bytes are the characters in the first players name.
+
 After that it takes the repeated form of:
 `[len_p2_name][p2_name][p1_rating_after][p1_RD_after][p1_vol_after][p1_game_count][p2_game_count][day][month][year]`
 In terms of bytes,
+
 1. `sizeof(char)` the length of the player-2's name
 (these are included because there are no new lines, so in order
 to find the next entry, we must know the full size in bytes of the current
