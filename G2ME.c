@@ -699,7 +699,7 @@ int main(int argc, char **argv) {
 		{ "refactor",		required_argument,	NULL,	'r' },
 		{ "weight",			required_argument,	NULL,	'w' },
 		{ "P",				required_argument,	NULL,	'P' },
-		{ "remove-line",	required_argument,	NULL,	'x' },
+		{ "remove-entries",	required_argument,	NULL,	'x' },
 		{ 0, 0, 0, 0 }
 	};
 
