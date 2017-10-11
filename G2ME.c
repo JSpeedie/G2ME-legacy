@@ -56,6 +56,12 @@ int read_entry(FILE *f, struct entry *E) {
 	return 0;
 }
 
+/** Reads a player file at the given file path and returns the number
+ * of entries contained in that file.
+ *
+ * \param '*file_path' the file path of the file to be read.
+ * \return 0 upon success, or a negative number upon failure.
+ */
 int get_entries_in_file(char *file_path) {
 	FILE *base_file = fopen(file_path, "rb");
 	if (base_file == NULL) {
@@ -254,6 +260,12 @@ void print_entry(struct entry E) {
 		E.len_name, E.len_opp_name, E.name, E.opp_name, E.rating, E.RD, E.vol, E.gc, E.opp_gc, date);
 }
 
+/** Reads a player file at the given file path, reads the "Player 1"
+ * data into the given entry parameter.
+ *
+ * \param '*file_path' the file path of the file to be read.
+ * \return 0 upon success, or a negative number upon failure.
+ */
 int read_start_from_file(char *file_path, struct entry *E) {
 	/* Open file for appending */
 	FILE *entry_file = fopen(file_path, "rb");
@@ -438,6 +450,13 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	return;
 }
 
+/** Takes a file path representing a file containing a list of file paths
+ * to player files. All players who did not compete but are in the list,
+ * and adjusts their Glicko2 data.
+ *
+ * \param '*player_list' the file path of the player list file.
+ * \return void.
+ */
 void adjust_absent_players(char* player_list) {
 	FILE *player_file = fopen(player_list, "r");
 	if (player_file == NULL) {
@@ -614,6 +633,12 @@ void generate_ratings_file(char* file_path) {
 	return;
 }
 
+/** Takes a file path of a player file, prompts the user for the new name,
+ * and renames Player 1 to the new name.
+ *
+ * \param '*file_path' the file path of the player file.
+ * \return 0 upon success, a negative number upon failure.
+ */
 int refactor_file(char *file_path) {
 	char new_name[MAX_NAME_LEN];
 	printf("New player name: ");
@@ -645,6 +670,11 @@ int refactor_file(char *file_path) {
 	return 0;
 }
 
+/** Takes a file path of a player file, and removes the last entry in it.
+ *
+ * \param '*file_path' the file path of the player file.
+ * \return 0 upon success, a negative number upon failure.
+ */
 int remove_line_from_file(char *file_path) {
 	FILE *base_file = fopen(file_path, "rb");
 	if (base_file == NULL) {

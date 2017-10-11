@@ -198,7 +198,7 @@ sizes. Also it's really cool :)
 
 ## TODO
 
-* Write the man pages
+* Write examples for README
 * Clean up glicko2.c to meet code conventions (line length, doc string,
 no TODOs)
 * Remove TODOs in G2ME.c, make sure invalid input/error checking is sound
