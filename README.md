@@ -12,7 +12,7 @@
 	* [The 'h' flag](#the-h-flag)
 	* [The 'l' flag](#the-l-flag)
 	* [The 'p' flag](#the-p-flag)
-	* [The 'P' flag](#the-P-flag)
+	* [The 'P' flag](#the-p-flag-1)
 	* [The 'r' flag](#the-r-flag)
 	* [The 'w' flag](#the-w-flag)
 	* [The 'x' flag](#the-x-flag)
