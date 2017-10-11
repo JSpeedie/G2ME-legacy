@@ -713,28 +713,28 @@ int remove_line_from_file(char *file_path) {
 int main(int argc, char **argv) {
 	int opt;
 	struct option opt_table[] = {
-		{ "use-games",		no_argument,		NULL,	'g' },
-		/* Output given player file in human readable form */
-		{ "human",			required_argument,	NULL,	'h' },
-		/* Output last entry in given player file in human readable form */
-		{ "last-entry",		required_argument,	NULL,	'l' },
 		/* Add (or create if necessary) a player entry/player entry file
 		 * from user input */
 		{ "add-entry",		required_argument,	NULL,	'a' },
 		/* Run through a given bracket file making the necessary updates
 		 * to the glicko2 scores */
 		{ "bracket",		required_argument,	NULL,	'b' },
+		{ "use-games",		no_argument,		NULL,	'g' },
+		/* Output given player file in human readable form */
+		{ "human",			required_argument,	NULL,	'h' },
+		/* Output last entry in given player file in human readable form */
+		{ "last-entry",		required_argument,	NULL,	'l' },
 		/* Output a file with a sorted list of players and their ratings */
 		{ "power-rating",	required_argument,	NULL,	'p' },
+		{ "P",				required_argument,	NULL,	'P' },
 		{ "refactor",		required_argument,	NULL,	'r' },
 		{ "weight",			required_argument,	NULL,	'w' },
-		{ "P",				required_argument,	NULL,	'P' },
 		{ "remove-entries",	required_argument,	NULL,	'x' },
 		{ 0, 0, 0, 0 }
 	};
 
 	while ((opt = getopt_long(argc, argv, \
-		"gh:l:a:b:p:r:w:P:x:", opt_table, NULL)) != -1) {
+		"a:b:gh:l:p:P:r:w:x:", opt_table, NULL)) != -1) {
 		switch (opt) {
 			case 'g':
 				use_games = 1;

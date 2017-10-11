@@ -12,6 +12,10 @@
 	* [The 'h' flag](#the-h-flag)
 	* [The 'l' flag](#the-l-flag)
 	* [The 'p' flag](#the-p-flag)
+	* [The 'P' flag](#the-P-flag)
+	* [The 'r' flag](#the-r-flag)
+	* [The 'w' flag](#the-w-flag)
+	* [The 'x' flag](#the-x-flag)
 * [The Glicko2 System Explained](#the-glicko2-system-explained)
 * [The Player File Format](#the-player-file-format)
 
@@ -143,6 +147,41 @@ Isaiah
 Santos
 Andrew
 ```
+
+### The 'P' flag
+
+`G2ME -P pr -b bracket.br`
+
+The P flag is to be used before the `-b` flag. It makes the system adjust
+player's data if they were not present in the given bracket. It takes the same
+format as the pr file as it is a player list file. For example:
+
+```
+Julian
+Isaiah
+James
+```
+
+### The 'r' flag
+
+`G2ME -r Julian`
+
+The r flag takes a player file, prompts the user for a new name and changes
+the player file's Player 1 data to have the new name.
+
+### The 'w' flag
+
+`G2ME -w 0.5 -b bracket.br`
+
+This flag requires a following `-b` flag call as it affects how the bracket
+will affect player's Glicko2 data. This flag multiplies the change in a
+player's Glicko2 data after a set/game by the given value.
+
+### The 'x' flag
+
+`G2ME -x Julian`
+
+This flag will remove the last entry in the given player file.
 
 
 
