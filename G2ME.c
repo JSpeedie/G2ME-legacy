@@ -617,6 +617,26 @@ void update_players(char* bracket_file_path) {
 	}
 }
 
+void sort_pr_entry_array(struct entry *pr_entries, int pr_entries_size) {
+	// sort such that the first element has the highest rating and every
+	// subsequent entry has a strictly equal or lower rating
+
+	int cur_highest_index;
+	struct entry swap;
+
+	for (int i = 0; i < pr_entries_size; i++) {
+		cur_highest_index = i;
+		for (int j = i; j < pr_entries_size; j++) {
+			if (pr_entries[j].rating > pr_entries[cur_highest_index].rating) {
+				cur_highest_index = j;
+			}
+		}
+		swap = pr_entries[i];
+		pr_entries[i] = pr_entries[cur_highest_index];
+		pr_entries[cur_highest_index] = swap;
+	}
+}
+
 /** Creates a file listing the player's glicko details at the location
  * 'output_file_path'.
  *
@@ -636,16 +656,29 @@ void generate_ratings_file(char* file_path, char* output_file_path) {
 	clear_file(output_file_path);
 
 	char line[256];
+	int pr_entries_size = 0;
+	/* Create a starting point, 128 person, pr entry array */
+	struct entry *players_pr_entries = malloc(sizeof(struct entry) * 128);
 	struct entry temp;
 
 	while (fgets(line, sizeof(line), players)) {
+		// TODO: realloc if over 128 players
 		/* Replace newline with null terminator */
 		*strchr(line, '\n') = '\0';
 		/* If the player file was able to be read properly... */
 		if (0 == read_last_entry(line, &temp)) {
-			/* ...add the player data to the ratings file */
-			append_pr_entry_to_file(&temp, output_file_path);
+			/* ...add the player data to the player pr entry array*/
+			players_pr_entries[pr_entries_size] = temp;
+			pr_entries_size++;
 		}
+	}
+
+	// TODO; sort pr entry list
+	sort_pr_entry_array(players_pr_entries, pr_entries_size);
+
+	// TODO: loop through array and append entries to file
+	for (int i = 0; i < pr_entries_size; i++) {
+		append_pr_entry_to_file(&players_pr_entries[i], output_file_path);
 	}
 
 	fclose(players);
