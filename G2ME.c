@@ -1,4 +1,5 @@
 #include <getopt.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -617,23 +618,67 @@ void update_players(char* bracket_file_path) {
 	}
 }
 
-void sort_pr_entry_array(struct entry *pr_entries, int pr_entries_size) {
-	// sort such that the first element has the highest rating and every
-	// subsequent entry has a strictly equal or lower rating
+void merge(struct entry *first_array, int first_length, \
+	struct entry *second_array, int second_length, struct entry *output_array) {
 
-	int cur_highest_index;
-	struct entry swap;
+	int first_index = 0;
+	int second_index = 0;
+	int final_index = 0;
 
-	for (int i = 0; i < pr_entries_size; i++) {
-		cur_highest_index = i;
-		for (int j = i; j < pr_entries_size; j++) {
-			if (pr_entries[j].rating > pr_entries[cur_highest_index].rating) {
-				cur_highest_index = j;
-			}
+	while (first_index < first_length && second_index < second_length) {
+		/* If the next element in the first array is greater than the second... */
+		if (first_array[first_index].rating >= second_array[second_index].rating) {
+			/* Add the first array element to the final array */
+			output_array[final_index] = first_array[first_index];
+			first_index++;
+		} else {
+			/* Add the second array element to the final array */
+			output_array[final_index] = second_array[second_index];
+			second_index++;
 		}
-		swap = pr_entries[i];
-		pr_entries[i] = pr_entries[cur_highest_index];
-		pr_entries[cur_highest_index] = swap;
+		final_index++;
+	}
+	int elements_to_add = first_length - first_index;
+	/* When one side array has been added to the output array before the
+	 * other has been fully added */
+	for (int i = 0; i < elements_to_add; i++) {
+		output_array[final_index] = first_array[first_index];
+		first_index++;
+		final_index++;
+	}
+	elements_to_add = second_length - second_index;
+	for (int i = 0; i < elements_to_add; i++) {
+		output_array[final_index] = second_array[second_index];
+		second_index++;
+		final_index++;
+	}
+}
+
+void merge_sort_pr_entry_array(struct entry *pr_entries, int array_size) {
+	if (array_size <= 1) {
+		return;
+	} else if (array_size == 2) {
+		if (pr_entries[0].rating < pr_entries[1].rating) {
+			struct entry swap = pr_entries[0];
+			pr_entries[0] = pr_entries[1];
+			pr_entries[1] = swap;
+		} else {
+			return;
+		}
+	} else {
+		/* split into 2 calls and recurse */
+		int middle_index = (int) floor(array_size / 2.00);
+		int len_sec_half = (int) ceil(array_size / 2.00);
+		merge_sort_pr_entry_array(pr_entries, middle_index);
+		merge_sort_pr_entry_array(&pr_entries[middle_index], len_sec_half);
+		/* merge 2 resulting arrays */
+		struct entry ret[array_size];
+		merge(pr_entries, middle_index, &pr_entries[middle_index], len_sec_half, &ret[0]);
+		/* Copy merged array contents into original array */
+		for (int i = 0; i < array_size; i++) {
+			pr_entries[i] = ret[i];
+		}
+		return;
 	}
 }
 
@@ -673,10 +718,9 @@ void generate_ratings_file(char* file_path, char* output_file_path) {
 		}
 	}
 
-	// TODO; sort pr entry list
-	sort_pr_entry_array(players_pr_entries, pr_entries_size);
-
-	// TODO: loop through array and append entries to file
+	/* Sort entries in the list by rating into non-increasing order */
+	merge_sort_pr_entry_array(players_pr_entries, pr_entries_size);
+	/* Append each entry pr file */
 	for (int i = 0; i < pr_entries_size; i++) {
 		append_pr_entry_to_file(&players_pr_entries[i], output_file_path);
 	}
