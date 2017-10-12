@@ -31,6 +31,8 @@ typedef struct entry {
 	short year;
 }Entry;
 
+struct entry temp;
+
 /** Reads contents of a player file to a struct entry. Returns 0 upon success,
  * and a negative number upon failure. Function expects that starter data
  * has already been passed and that the FILE is on an entry
@@ -318,29 +320,30 @@ int print_player_file(char* file_path) {
 	return 0;
 }
 
-/** Creates a struct entry from the last entry found in a player file.
+/** Modifies a struct entry to be that of the last entry found in a player file.
  *
  * \param '*file_path' the file path of the player file to be read
- * \return a struct entry representing the last entry in the file
+ * \param '*ret' a struct entry pointer to have the data read into.
+ * \return 0 upon success, a negative int upon failure.
  */
-struct entry read_last_entry(char* file_path) {
-	struct entry line;
+int read_last_entry(char* file_path, struct entry *ret) {
 	/* Open files for reading contents */
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
 		perror("fopen (read_last_entry)");
-		return line;
+		/* If the file could not be read for any reason, return accordingly */
+		return -1;
 	}
 
 	/* Read the player's name from the file */
-	read_start_from_file(file_path, &line);
+	read_start_from_file(file_path, ret);
 	/* Set file position to be at the latest entry for that player */
 	long int offset = get_last_entry_offset(file_path);
 	fseek(p_file, offset, SEEK_SET);
-	read_entry(p_file, &line);
+	read_entry(p_file, ret);
 	fclose(p_file);
 
-	return line;
+	return 0;
 }
 
 /** Initializes a struct player based off of the information found in a
@@ -419,8 +422,12 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 		p1->vol = 0.06;
 	} else {
 		/* Read latest entries into usable data */
-		struct entry p1_latest = read_last_entry(p1_name);
-		init_player_from_entry(p1, &p1_latest);
+		struct entry p1_latest;
+		if (0 == read_last_entry(p1_name, &p1_latest)) {
+			init_player_from_entry(p1, &p1_latest);
+		} else {
+			perror("read_last_entry (update_player_on_outcome)");
+		}
 	}
 	/* If the file does not exist, init the player struct to defaults */
 	if (access(p2_name, R_OK | W_OK) == -1) {
@@ -429,8 +436,12 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 		p2->vol = 0.06;
 	} else {
 		/* Read latest entries into usable data */
-		struct entry p2_latest = read_last_entry(p2_name);
-		init_player_from_entry(p2, &p2_latest);
+		struct entry p2_latest;
+		if (0 == read_last_entry(p2_name, &p2_latest)) {
+			init_player_from_entry(p2, &p2_latest);
+		} else {
+			perror("read_last_entry (update_player_on_outcome)");
+		}
 	}
 
 	p1->_tau = 0.5;
@@ -491,21 +502,25 @@ void adjust_absent_players(char* player_list) {
 			/* If the player who did not compete has a player file */
 			if (access(line, R_OK | W_OK) != -1) {
 				struct player P;
-				struct entry latest_ent = read_last_entry(line);
-				init_player_from_entry(&P, &latest_ent);
-				did_not_compete(&P);
-				/* Only need to change entry RD since that's all Step 6 changes */
-				latest_ent.RD = getRd(&P);
-				/* Change qualities of the entry to reflect that it was not a
-				 * real set, but a did_not_compete */
-				strcpy(latest_ent.opp_name, "-");
-				latest_ent.len_opp_name = strlen(latest_ent.opp_name);
-				latest_ent.gc = 0;
-				latest_ent.opp_gc = 0;
-				latest_ent.day = 0;
-				latest_ent.month = 0;
-				latest_ent.year = 0;
-				append_entry_to_file(&latest_ent, line);
+				struct entry latest_ent;
+				if (0 == read_last_entry(line, &latest_ent)) {
+					init_player_from_entry(&P, &latest_ent);
+					did_not_compete(&P);
+					/* Only need to change entry RD since that's all Step 6 changes */
+					latest_ent.RD = getRd(&P);
+					/* Change qualities of the entry to reflect that it was not a
+					 * real set, but a did_not_compete */
+					strcpy(latest_ent.opp_name, "-");
+					latest_ent.len_opp_name = strlen(latest_ent.opp_name);
+					latest_ent.gc = 0;
+					latest_ent.opp_gc = 0;
+					latest_ent.day = 0;
+					latest_ent.month = 0;
+					latest_ent.year = 0;
+					append_entry_to_file(&latest_ent, line);
+				}
+			} else {
+				perror("read_last_entry (adjust_absent_players)");
 			}
 			/* If they do not then they have never competed, so skip them */
 		}
@@ -626,8 +641,11 @@ void generate_ratings_file(char* file_path, char* output_file_path) {
 	while (fgets(line, sizeof(line), players)) {
 		/* Replace newline with null terminator */
 		*strchr(line, '\n') = '\0';
-		temp = read_last_entry(line);
-		append_pr_entry_to_file(&temp, output_file_path);
+		/* If the player file was able to be read properly... */
+		if (0 == read_last_entry(line, &temp)) {
+			/* ...add the player data to the ratings file */
+			append_pr_entry_to_file(&temp, output_file_path);
+		}
 	}
 
 	fclose(players);
@@ -745,7 +763,9 @@ int main(int argc, char **argv) {
 				print_player_file(optarg);
 				break;
 			case 'l':
-				print_entry(read_last_entry(optarg));
+				if (0 == read_last_entry(optarg, &temp)) {
+					print_entry(temp);
+				}
 				break;
 			case 'a':
 				write_entry_from_input(optarg);
