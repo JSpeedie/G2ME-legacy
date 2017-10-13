@@ -26,7 +26,7 @@ G2ME: G2ME.c $(DEP)
 
 install: $(BIN)
 	@mkdir -p ${DESTDIR}${PREFIX}/bin
-	@cp -f $(BIN) ${DESTDIR}${PREFIX}/bin
+	@mv -f $(BIN) ${DESTDIR}${PREFIX}/bin
 	@chmod 755 ${DESTDIR}${PREFIX}/bin/G2ME
 	@mkdir -p $(MANPREFIX)/man1/
 	@cp -f $(MAN) $(MANPREFIX)/man1/
