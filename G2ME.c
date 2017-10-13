@@ -212,13 +212,17 @@ int append_entry_to_file(struct entry* E, char* file_path) {
  * \param '*file_path' the file path for the pr file
  * \return 0 upon success, negative number on failure.
  */
-int append_pr_entry_to_file(struct entry* E, char* file_path) {
+int append_pr_entry_to_file(struct entry* E, char* file_path, \
+	int longest_name_length) {
+
 	FILE *entry_file = fopen(file_path, "a+");
 	if (entry_file == NULL) {
 		perror("fopen (append_pr_entry_to_file)");
 		return -1;
 	}
-	if (fprintf(entry_file, "%s %.1lf %.2lf %.8lf\n", E->name, E->rating, E->RD, E->vol) < 0) {
+	if (fprintf(entry_file, "%*s %.1lf %.2lf %.8lf\n", \
+		longest_name_length, E->name, E->rating, E->RD, E->vol) < 0) {
+
 		perror("fprintf");
 		return -2;
 	}
@@ -718,9 +722,17 @@ void generate_ratings_file(char* file_path, char* output_file_path) {
 
 	/* Sort entries in the list by rating into non-increasing order */
 	merge_sort_pr_entry_array(players_pr_entries, pr_entries_size);
+	/* Get the longest name on the pr */
+	int longest_name_length = 0;
+	for (int i = 0; i < pr_entries_size; i++) {
+		if (longest_name_length < players_pr_entries[i].len_name) {
+			longest_name_length = players_pr_entries[i].len_name;
+		}
+	}
 	/* Append each entry pr file */
 	for (int i = 0; i < pr_entries_size; i++) {
-		append_pr_entry_to_file(&players_pr_entries[i], output_file_path);
+		append_pr_entry_to_file(&players_pr_entries[i], output_file_path, \
+			longest_name_length);
 	}
 
 	fclose(players);
