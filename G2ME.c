@@ -220,7 +220,7 @@ int append_pr_entry_to_file(struct entry* E, char* file_path, \
 		perror("fopen (append_pr_entry_to_file)");
 		return -1;
 	}
-	if (fprintf(entry_file, "%*s %.1lf %.2lf %.8lf\n", \
+	if (fprintf(entry_file, "%*s %6.1lf %6.2lf %10.8lf\n", \
 		longest_name_length, E->name, E->rating, E->RD, E->vol) < 0) {
 
 		perror("fprintf");
