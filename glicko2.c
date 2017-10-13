@@ -112,15 +112,6 @@ void update_player(struct player *P,
 	double *rating_list, int rating_list_size,
 	double *RD_list, double *outcome_list) {
 
-	double adjusted_ratings[rating_list_size];
-	double adjusted_RD[rating_list_size];
-
-	// Convert the rating and rating deviation values for internal use.
-	for (int i = 0; i < rating_list_size; i++) {
-		adjusted_ratings[i] = (rating_list[i] - 1500) / 173.7178;
-		adjusted_RD[i] = RD_list[i] / 173.7178;
-	}
-
 	double v = _v(P, rating_list, rating_list_size, RD_list);
 	P->vol = _newVol(P, rating_list, rating_list_size, RD_list, outcome_list, v);
 	_preRatingRD(P);

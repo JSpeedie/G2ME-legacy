@@ -520,8 +520,6 @@ void adjust_absent_players(char* player_list) {
 					latest_ent.year = 0;
 					append_entry_to_file(&latest_ent, line);
 				}
-			} else {
-				perror("read_last_entry (adjust_absent_players)");
 			}
 			/* If they do not then they have never competed, so skip them */
 		}
