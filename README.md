@@ -8,7 +8,7 @@
 * [Usage](#usage)
 	* [The 'a' flag](#the-a-flag)
 	* [The 'b' flag](#the-b-flag)
-	* [The 'b' flag](#the-b-flag-1)
+	* [The 'B' flag](#the-b-flag-1)
 	* [The 'd' flag](#the-d-flag)
 	* [The 'g' flag](#the-g-flag)
 	* [The 'h' flag](#the-h-flag)
