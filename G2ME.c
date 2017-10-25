@@ -3,10 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include "glicko2.h"
 
 #define MAX_NAME_LEN 128
+#define MAX_FILE_PATH_LEN 256
 
 char use_games = 0;
 char player_list_file[256];
@@ -16,6 +19,7 @@ char tournament_names[128][128];
 unsigned char tournament_names_len = 0;
 char pr_list_file_path[128];
 char o_generate_pr = 0;
+char *player_dir = ".players/";
 
 typedef struct entry {
 	unsigned char len_name;
@@ -33,6 +37,26 @@ typedef struct entry {
 }Entry;
 
 struct entry temp;
+
+char *file_path_with_player_dir(char *s) {
+	int new_path_size = sizeof(char) * (MAX_FILE_PATH_LEN - MAX_NAME_LEN);
+	char *new_path = malloc(new_path_size);
+	/* 0 all elements in the new string */
+	memset(new_path, 0, new_path_size);
+
+	/* Copy the player directory file path into the return string */
+	strncpy(new_path, player_dir, new_path_size - 1);
+	/* If the last character in the player directory path is not a '/' */
+	if (new_path[strlen(new_path) - 1] != '/') {
+		/* Append a '/' */
+		new_path[strlen(new_path)] = '/';
+	}
+
+	/* Append the player file to the player dir file path */
+	strncat(new_path, s, new_path_size - strlen(new_path) - 1);
+
+	return new_path;
+}
 
 /** Reads contents of a player file to a struct entry. Returns 0 upon success,
  * and a negative number upon failure. Function expects that starter data
@@ -171,6 +195,7 @@ int append_entry_to_file(struct entry* E, char* file_path) {
 	/* Open file for appending */
 	FILE *entry_file = fopen(file_path, "ab+");
 	if (entry_file == NULL) {
+		printf("append = %s\n", file_path);
 		perror("fopen (append_entry_to_file)");
 		return -1;
 	}
@@ -245,6 +270,7 @@ void write_entry_from_input(char* file_path) {
 		&input_entry.RD, &input_entry.vol, &input_entry.gc,
 		&input_entry.opp_gc, &input_entry.day, &input_entry.month,
 		&input_entry.year);
+	// TODO: make this use player dir?
 	append_entry_to_file(&input_entry, file_path);
 }
 
@@ -335,6 +361,7 @@ int read_last_entry(char* file_path, struct entry *ret) {
 	/* Open files for reading contents */
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
+		printf("read last %s\n", file_path);
 		perror("fopen (read_last_entry)");
 		/* If the file could not be read for any reason, return accordingly */
 		return -1;
@@ -420,29 +447,31 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	struct player* p1, struct player* p2, double* p1_gc, double* p2_gc,
 	char day, char month, short year) {
 
+	char *full_p1_path = file_path_with_player_dir(p1_name);
+	char *full_p2_path = file_path_with_player_dir(p2_name);
 	/* If the file does not exist, init the player struct to defaults */
-	if (access(p1_name, R_OK | W_OK) == -1) {
+	if (access(full_p1_path, R_OK | W_OK) == -1) {
 		setRating(p1, 1500.0);
 		setRd(p1, 350.0);
 		p1->vol = 0.06;
 	} else {
 		/* Read latest entries into usable data */
 		struct entry p1_latest;
-		if (0 == read_last_entry(p1_name, &p1_latest)) {
+		if (0 == read_last_entry(full_p1_path, &p1_latest)) {
 			init_player_from_entry(p1, &p1_latest);
 		} else {
 			perror("read_last_entry (update_player_on_outcome)");
 		}
 	}
 	/* If the file does not exist, init the player struct to defaults */
-	if (access(p2_name, R_OK | W_OK) == -1) {
+	if (access(full_p2_path, R_OK | W_OK) == -1) {
 		setRating(p2, 1500.0);
 		setRd(p2, 350.0);
 		p2->vol = 0.06;
 	} else {
 		/* Read latest entries into usable data */
 		struct entry p2_latest;
-		if (0 == read_last_entry(p2_name, &p2_latest)) {
+		if (0 == read_last_entry(full_p2_path, &p2_latest)) {
 			init_player_from_entry(p2, &p2_latest);
 		} else {
 			perror("read_last_entry (update_player_on_outcome)");
@@ -463,7 +492,10 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	new_p1.vol = p1->vol + ((new_p1.vol - p1->vol) * outcome_weight);
 	struct entry p1_new_entry =
 		create_entry(&new_p1, p1_name, p2_name, *p1_gc, *p2_gc, day, month, year);
-	append_entry_to_file(&p1_new_entry, p1_name);
+	append_entry_to_file(&p1_new_entry, full_p1_path);
+
+	free(full_p1_path);
+	free(full_p2_path);
 
 	return;
 }
@@ -505,10 +537,10 @@ void adjust_absent_players(char* player_list) {
 
 		if (did_not_comp) {
 			/* If the player who did not compete has a player file */
-			if (access(line, R_OK | W_OK) != -1) {
+			if (access(file_path_with_player_dir(line), R_OK | W_OK) != -1) {
 				struct player P;
 				struct entry latest_ent;
-				if (0 == read_last_entry(line, &latest_ent)) {
+				if (0 == read_last_entry(file_path_with_player_dir(line), &latest_ent)) {
 					init_player_from_entry(&P, &latest_ent);
 					did_not_compete(&P);
 					/* Only need to change entry RD since that's all Step 6 changes */
@@ -522,7 +554,7 @@ void adjust_absent_players(char* player_list) {
 					latest_ent.day = 0;
 					latest_ent.month = 0;
 					latest_ent.year = 0;
-					append_entry_to_file(&latest_ent, line);
+					append_entry_to_file(&latest_ent, file_path_with_player_dir(line));
 				}
 			}
 			/* If they do not then they have never competed, so skip them */
@@ -731,12 +763,14 @@ void generate_ratings_file(char* file_path, char* output_file_path) {
 		// TODO: realloc if over 128 players
 		/* Replace newline with null terminator */
 		*strchr(line, '\n') = '\0';
+		char *full_player_path = file_path_with_player_dir(line);
 		/* If the player file was able to be read properly... */
-		if (0 == read_last_entry(line, &temp)) {
+		if (0 == read_last_entry(full_player_path, &temp)) {
 			/* ...add the player data to the player pr entry array*/
 			players_pr_entries[pr_entries_size] = temp;
 			pr_entries_size++;
 		}
+		free(full_player_path);
 	}
 
 	/* Sort entries in the list by rating into non-increasing order */
@@ -853,7 +887,7 @@ int main(int argc, char **argv) {
 		/* Output a file with a sorted list of players and their ratings */
 		{ "power-rating",	required_argument,	NULL,	'p' },
 		{ "P",				required_argument,	NULL,	'P' },
-		{ "output",				required_argument,	NULL,	'o' },
+		{ "output",			required_argument,	NULL,	'o' },
 		{ "refactor",		required_argument,	NULL,	'r' },
 		{ "weight",			required_argument,	NULL,	'w' },
 		{ "remove-entries",	required_argument,	NULL,	'x' },
@@ -862,20 +896,23 @@ int main(int argc, char **argv) {
 
 	while ((opt = getopt_long(argc, argv, \
 		"a:b:B:gh:l:p:P:o:r:w:x:", opt_table, NULL)) != -1) {
+		if (opt == 'h') {
+			char *full_player_path = file_path_with_player_dir(optarg);
+			print_player_file(full_player_path);
+			free(full_player_path);
+		} else if (opt == 'l') {
+			char *full_player_path = file_path_with_player_dir(optarg);
+			if (0 == read_last_entry(full_player_path, &temp)) {
+				print_entry(temp);
+			}
+			free(full_player_path);
+		}
 		switch (opt) {
 			case 'g':
 				use_games = 1;
 				break;
-			case 'h':
-				print_player_file(optarg);
-				break;
-			case 'l':
-				if (0 == read_last_entry(optarg, &temp)) {
-					print_entry(temp);
-				}
-				break;
 			case 'a':
-				write_entry_from_input(optarg);
+				write_entry_from_input(file_path_with_player_dir(optarg));
 				break;
 			case 'b':
 				update_players(optarg);
@@ -888,7 +925,7 @@ int main(int argc, char **argv) {
 				strncpy(pr_list_file_path, optarg, sizeof(pr_list_file_path) - 1);
 				break;
 			case 'r':
-				refactor_file(optarg);
+				refactor_file(file_path_with_player_dir(optarg));
 				break;
 			case 'w':
 				outcome_weight = strtod(optarg, NULL);
@@ -898,10 +935,11 @@ int main(int argc, char **argv) {
 				strncpy(player_list_file, optarg, sizeof(player_list_file) - 1);
 				break;
 			case 'x':
-				remove_line_from_file(optarg);
+				remove_line_from_file(file_path_with_player_dir(optarg));
 				break;
 			case 'o':
 				if (o_generate_pr) {
+					// TODO: transform FUNCTION for player dir
 					generate_ratings_file(pr_list_file_path, optarg);
 					/* The pr has been generated,
 					 * o is no longer set to make one */
