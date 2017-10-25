@@ -8,6 +8,7 @@
 * [Usage](#usage)
 	* [The 'a' flag](#the-a-flag)
 	* [The 'b' flag](#the-b-flag)
+	* [The 'b' flag](#the-b-flag-1)
 	* [The 'g' flag](#the-g-flag)
 	* [The 'h' flag](#the-h-flag)
 	* [The 'l' flag](#the-l-flag)
@@ -88,6 +89,30 @@ Jon Jonah 3 1 1 1 2017
 Steven Andrew 3 2 1 1 2017
 Isaiah Santos 3 0 1 1 2017
 Ron Julian 4 3 1 1 2017
+```
+
+### The 'B' flag
+
+`G2ME -B season.sea`
+
+This flag takes one input, a bracket list file. You aren't restricted by the
+extension, but the program expects every line to be of the format
+
+`[file_path_to_a_bracket_file]`
+
+It expects each line to be a valid file path for which it will run
+the bracket, updating all the player data. Essentially, for each line
+*l* in the argument to `-B` as `-b *l*`.
+
+An example file
+
+```
+TSE1.br
+TSE2.br
+TT1.br
+TT2.br
+TSE3.br
+TT3.br
 ```
 
 ### The 'g' flag
