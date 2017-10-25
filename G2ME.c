@@ -1,4 +1,5 @@
 #include <getopt.h>
+#include <libgen.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -195,7 +196,6 @@ int append_entry_to_file(struct entry* E, char* file_path) {
 	/* Open file for appending */
 	FILE *entry_file = fopen(file_path, "ab+");
 	if (entry_file == NULL) {
-		printf("append = %s\n", file_path);
 		perror("fopen (append_entry_to_file)");
 		return -1;
 	}
@@ -802,6 +802,7 @@ int refactor_file(char *file_path) {
 	char new_name[MAX_NAME_LEN];
 	printf("New player name: ");
 	scanf("%s", new_name);
+	char *full_new_name_path = file_path_with_player_dir(new_name);
 
 	FILE *base_file = fopen(file_path, "ab+");
 	if (base_file == NULL) {
@@ -819,12 +820,13 @@ int refactor_file(char *file_path) {
 	while (0 == read_entry(base_file, cur_entry)) {
 		/* Update entry information to have the new name */
 		strncpy(cur_entry->name, new_name, MAX_NAME_LEN - 1);
-		cur_entry->len_name = strlen(new_name);
+		cur_entry->len_name = strlen(full_new_name_path);
 
 		// write new entry in new file as we get each old entry
-		append_entry_to_file(cur_entry, new_name);
+		append_entry_to_file(cur_entry, full_new_name_path);
 	}
 	free(cur_entry);
+	free(full_new_name_path);
 	fclose(base_file);
 	return 0;
 }
@@ -840,6 +842,12 @@ int remove_line_from_file(char *file_path) {
 		perror("fopen (remove_line_from_file)");
 		return -1;
 	}
+	char dir[strlen(file_path) + 1];
+	char base[strlen(file_path) + 1];
+	memset(dir, 0, sizeof(dir));
+	memset(base, 0, sizeof(base));
+	strncpy(dir, file_path, sizeof(dir) - 1);
+	strncpy(base, file_path, sizeof(base) - 1);
 
 	int lines_to_remove = 1;
 	int entries = get_entries_in_file(file_path);
@@ -848,8 +856,12 @@ int remove_line_from_file(char *file_path) {
 	struct entry *cur_entry = malloc(sizeof(struct entry));
 	char new_file_name[MAX_NAME_LEN + 1];
 	memset(new_file_name, 0, sizeof(new_file_name));
-	strncat(new_file_name, ".", sizeof(new_file_name) - 1);
-	strncat(new_file_name, file_path, sizeof(new_file_name) - 2);
+	/* Add the full path up to the file */
+	strncat(new_file_name, dirname(dir), sizeof(new_file_name) - 1);
+	strncat(new_file_name, "/", sizeof(new_file_name) - strlen(new_file_name) - 1);
+	/* Add the temp file */
+	strncat(new_file_name, ".", sizeof(new_file_name) - strlen(new_file_name) - 1);
+	strncat(new_file_name, basename(base), sizeof(new_file_name) - strlen(new_file_name) - 1);
 	/* Read the starter data in the file */
 	if (1 != fread(&cur_entry->len_name, sizeof(char), 1, base_file)) { return -2; }
 	if (cur_entry->len_name
@@ -906,11 +918,17 @@ int main(int argc, char **argv) {
 				print_entry(temp);
 			}
 			free(full_player_path);
+		} else if (opt == 'r') {
+			char *full_player_path = file_path_with_player_dir(optarg);
+			refactor_file(full_player_path);
+			free(full_player_path);
+		} else if (opt == 'x') {
+			char *full_player_path = file_path_with_player_dir(optarg);
+			remove_line_from_file(full_player_path);
+			free(full_player_path);
 		}
+
 		switch (opt) {
-			case 'g':
-				use_games = 1;
-				break;
 			case 'a':
 				write_entry_from_input(file_path_with_player_dir(optarg));
 				break;
@@ -920,12 +938,12 @@ int main(int argc, char **argv) {
 			case 'B':
 				run_brackets(optarg);
 				break;
+			case 'g':
+				use_games = 1;
+				break;
 			case 'p':
 				o_generate_pr = 1;
 				strncpy(pr_list_file_path, optarg, sizeof(pr_list_file_path) - 1);
-				break;
-			case 'r':
-				refactor_file(file_path_with_player_dir(optarg));
 				break;
 			case 'w':
 				outcome_weight = strtod(optarg, NULL);
@@ -934,12 +952,8 @@ int main(int argc, char **argv) {
 				calc_absent_players = 1;
 				strncpy(player_list_file, optarg, sizeof(player_list_file) - 1);
 				break;
-			case 'x':
-				remove_line_from_file(file_path_with_player_dir(optarg));
-				break;
 			case 'o':
 				if (o_generate_pr) {
-					// TODO: transform FUNCTION for player dir
 					generate_ratings_file(pr_list_file_path, optarg);
 					/* The pr has been generated,
 					 * o is no longer set to make one */
