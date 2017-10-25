@@ -620,6 +620,25 @@ void update_players(char* bracket_file_path) {
 	}
 }
 
+void run_brackets(char *bracket_list_file_path) {
+	FILE *bracket_list_file = fopen(bracket_list_file_path, "r");
+	if (bracket_list_file == NULL) {
+		perror("fopen (run_brackets)");
+		return;
+	}
+
+	char line[256];
+
+	while (fgets(line, sizeof(line), bracket_list_file)) {
+		printf("running %s", line);
+		*strchr(line, '\n') = '\0';
+		update_players(line);
+	}
+
+	fclose(bracket_list_file);
+}
+
+
 void merge(struct entry *first_array, int first_length, \
 	struct entry *second_array, int second_length, struct entry *output_array) {
 
@@ -825,6 +844,7 @@ int main(int argc, char **argv) {
 		/* Run through a given bracket file making the necessary updates
 		 * to the glicko2 scores */
 		{ "bracket",		required_argument,	NULL,	'b' },
+		{ "brackets",		required_argument,	NULL,	'B' },
 		{ "use-games",		no_argument,		NULL,	'g' },
 		/* Output given player file in human readable form */
 		{ "human",			required_argument,	NULL,	'h' },
@@ -841,7 +861,7 @@ int main(int argc, char **argv) {
 	};
 
 	while ((opt = getopt_long(argc, argv, \
-		"a:b:gh:l:p:P:o:r:w:x:", opt_table, NULL)) != -1) {
+		"a:b:B:gh:l:p:P:o:r:w:x:", opt_table, NULL)) != -1) {
 		switch (opt) {
 			case 'g':
 				use_games = 1;
@@ -859,6 +879,9 @@ int main(int argc, char **argv) {
 				break;
 			case 'b':
 				update_players(optarg);
+				break;
+			case 'B':
+				run_brackets(optarg);
 				break;
 			case 'p':
 				o_generate_pr = 1;
