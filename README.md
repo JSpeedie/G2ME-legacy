@@ -9,6 +9,7 @@
 	* [The 'a' flag](#the-a-flag)
 	* [The 'b' flag](#the-b-flag)
 	* [The 'b' flag](#the-b-flag-1)
+	* [The 'd' flag](#the-d-flag)
 	* [The 'g' flag](#the-g-flag)
 	* [The 'h' flag](#the-h-flag)
 	* [The 'l' flag](#the-l-flag)
@@ -90,6 +91,17 @@ Steven Andrew 3 2 1 1 2017
 Isaiah Santos 3 0 1 1 2017
 Ron Julian 4 3 1 1 2017
 ```
+
+### The 'd' flag
+
+`G2ME -d players/here/ -b test.br`
+
+This flag takes one input, a directory file path.
+This is where the program will attempt to access, and store player files in.
+Useful for keeping the working directory clean or for working on player files
+stored on another storage device. By default, if you don't specify the `-d`
+flag, the default player directory file path will be `./.players/`. An example
+full player file path would be `/home/me/G2ME/.players/JohnSmith`.
 
 ### The 'B' flag
 
