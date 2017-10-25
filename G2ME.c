@@ -20,7 +20,7 @@ char tournament_names[128][128];
 unsigned char tournament_names_len = 0;
 char pr_list_file_path[128];
 char o_generate_pr = 0;
-char *player_dir = ".players/";
+char player_dir[MAX_FILE_PATH_LEN];
 
 typedef struct entry {
 	unsigned char len_name;
@@ -193,6 +193,7 @@ int append_entry_to_file(struct entry* E, char* file_path) {
 	/* If the file did not exist */
 	char existed = access(file_path, R_OK) != -1;
 
+	printf("appending to %s\n", file_path);
 	/* Open file for appending */
 	FILE *entry_file = fopen(file_path, "ab+");
 	if (entry_file == NULL) {
@@ -891,6 +892,7 @@ int main(int argc, char **argv) {
 		 * to the glicko2 scores */
 		{ "bracket",		required_argument,	NULL,	'b' },
 		{ "brackets",		required_argument,	NULL,	'B' },
+		{ "player-dir",		required_argument,	NULL,	'd' },
 		{ "use-games",		no_argument,		NULL,	'g' },
 		/* Output given player file in human readable form */
 		{ "human",			required_argument,	NULL,	'h' },
@@ -906,9 +908,16 @@ int main(int argc, char **argv) {
 		{ 0, 0, 0, 0 }
 	};
 
+	/* Initialize the player directory default file path */
+	memset(player_dir, 0, sizeof(player_dir));
+	strncpy(player_dir, ".players/", sizeof(player_dir) - 1);
+
 	while ((opt = getopt_long(argc, argv, \
-		"a:b:B:gh:l:p:P:o:r:w:x:", opt_table, NULL)) != -1) {
-		if (opt == 'h') {
+		"a:b:B:d:gh:l:p:P:o:r:w:x:", opt_table, NULL)) != -1) {
+		if (opt == 'd') {
+			memset(player_dir, 0, sizeof(player_dir));
+			strncpy(player_dir, optarg, sizeof(player_dir) - 1);
+		} else if (opt == 'h') {
 			char *full_player_path = file_path_with_player_dir(optarg);
 			print_player_file(full_player_path);
 			free(full_player_path);
