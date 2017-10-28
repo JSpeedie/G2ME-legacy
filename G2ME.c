@@ -193,7 +193,6 @@ int append_entry_to_file(struct entry* E, char* file_path) {
 	/* If the file did not exist */
 	char existed = access(file_path, R_OK) != -1;
 
-	printf("appending to %s\n", file_path);
 	/* Open file for appending */
 	FILE *entry_file = fopen(file_path, "ab+");
 	if (entry_file == NULL) {
