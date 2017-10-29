@@ -907,21 +907,14 @@ void merge_player_records(struct record *first_array, int first_length, \
 	int final_index = 0;
 
 	while (first_index < first_length && second_index < second_length) {
-		int n_data_1 = first_array[first_index].wins \
-			+ first_array[first_index].ties \
-			+ first_array[first_index].losses;
-		int n_data_2 = second_array[second_index].wins \
-			+ second_array[second_index].ties \
-			+ second_array[second_index].losses;
-		/* If the next element in the first array is greater than the second... */
-		if (n_data_1 >= n_data_2) {
-			/* Add the first array element to the final array */
-			output_array[final_index] = first_array[first_index];
-			first_index++;
-		} else {
-			/* Add the second array element to the final array */
+		/* If the second name is < the first name */
+		if (strcmp(second_array[second_index].opp_name, first_array[first_index].opp_name) < 0) {
 			output_array[final_index] = second_array[second_index];
 			second_index++;
+		/* If the first name is < the second name */
+		} else {
+			output_array[final_index] = first_array[first_index];
+			first_index++;
 		}
 		final_index++;
 	}
@@ -947,10 +940,9 @@ void merge_sort_player_records(struct record *records, int array_size) {
 	if (array_size <= 1) {
 		return;
 	} else if (array_size == 2) {
-		int n_data_1 = records[0].wins + records[0].ties + records[0].losses;
-		int n_data_2 = records[1].wins + records[1].ties + records[1].losses;
-		/* If there is less data on the first player */
-		if (n_data_1 < n_data_2) {
+		/* If there is less data on the first player or if there is equal
+		 * data, but the second name < first name */
+		if (strcmp(records[1].opp_name, records[0].opp_name) < 0) {
 			struct record swap;
 			/* Save data from first player to swap variables */
 			swap = records[0];
@@ -972,12 +964,8 @@ void merge_sort_player_records(struct record *records, int array_size) {
 		merge_player_records(records, middle_index, \
 			&records[middle_index], len_sec_half, ret);
 		/* Copy merged array contents into original array */
-		//printf("after merge\n");
 		for (int i = 0; i < array_size; i++) {
 			records[i] = ret[i];
-/*			printf("%s vs %s = %d-%d-%d\n", \
-				records[i].name, records[i].opp_name, \
-				records[i].wins, records[i].ties, records[i].losses);*/
 		}
 		return;
 	}
