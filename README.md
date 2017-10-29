@@ -158,6 +158,16 @@ Stands for Output-File-in-**H**uman-Readable-Form. Often used to output a file
 and use various shell commands to parse data for things such as
 "Record Against *x-player*" or "Sets Played".
 
+Example output (from command above):
+
+```
+6  5 Julian Tevon   1662.310895 290.318965 0.06000000 1-0 7/9/2017
+6  7 Julian Brandon 1550.807603 247.839530 0.05999946 0-1 7/9/2017
+6  6 Julian Andrew  1619.956428 222.219311 0.05999863 1-0 7/9/2017
+6  6 Julian Joseph  1521.504774 197.077763 0.05999878 0-1 7/9/2017
+6  6 Julian Steven  1575.019885 180.159166 0.05999780 1-0 7/9/2017
+```
+
 ### The 'l' flag
 
 `G2ME -l Julian`
