@@ -22,7 +22,7 @@ char *WHITE = "\x1B[37m";
 
 
 char use_games = 0;
-char colour_output = 0;
+char colour_output = 1;
 char player_list_file[256];
 char calc_absent_players = 0;
 double outcome_weight = 1;
@@ -46,6 +46,14 @@ typedef struct entry {
 	unsigned char month;
 	short year;
 }Entry;
+
+typedef struct record {
+	char name[MAX_NAME_LEN];
+	char opp_name[MAX_NAME_LEN];
+	unsigned char wins;
+	unsigned char ties;
+	unsigned char losses;
+}Record;
 
 struct entry temp;
 
@@ -891,6 +899,90 @@ int remove_line_from_file(char *file_path) {
 	return 0;
 }
 
+void merge_player_records(struct record *first_array, int first_length, \
+	struct record *second_array, int second_length, struct record *output_array) {
+
+	int first_index = 0;
+	int second_index = 0;
+	int final_index = 0;
+
+	while (first_index < first_length && second_index < second_length) {
+		int n_data_1 = first_array[first_index].wins \
+			+ first_array[first_index].ties \
+			+ first_array[first_index].losses;
+		int n_data_2 = second_array[second_index].wins \
+			+ second_array[second_index].ties \
+			+ second_array[second_index].losses;
+		/* If the next element in the first array is greater than the second... */
+		if (n_data_1 >= n_data_2) {
+			/* Add the first array element to the final array */
+			output_array[final_index] = first_array[first_index];
+			first_index++;
+		} else {
+			/* Add the second array element to the final array */
+			output_array[final_index] = second_array[second_index];
+			second_index++;
+		}
+		final_index++;
+	}
+	int elements_to_add = first_length - first_index;
+	/* When one side array has been added to the output array before the
+	 * other has been fully added */
+	for (int i = 0; i < elements_to_add; i++) {
+		/* Add the first array element to the final array */
+		output_array[final_index] = first_array[first_index];
+		first_index++;
+		final_index++;
+	}
+	elements_to_add = second_length - second_index;
+	for (int i = 0; i < elements_to_add; i++) {
+		/* Add the second array element to the final array */
+		output_array[final_index] = second_array[second_index];
+		second_index++;
+		final_index++;
+	}
+}
+
+void merge_sort_player_records(struct record *records, int array_size) {
+	if (array_size <= 1) {
+		return;
+	} else if (array_size == 2) {
+		int n_data_1 = records[0].wins + records[0].ties + records[0].losses;
+		int n_data_2 = records[1].wins + records[1].ties + records[1].losses;
+		/* If there is less data on the first player */
+		if (n_data_1 < n_data_2) {
+			struct record swap;
+			/* Save data from first player to swap variables */
+			swap = records[0];
+			/* Put second player data in first player spot */
+			records[0] = records[1];
+			/* Put first player (swap) data in second player spot */
+			records[1] = swap;
+		} else {
+			return;
+		}
+	} else {
+		/* split into 2 calls and recurse */
+		int middle_index = (int) floor(array_size / 2.00);
+		int len_sec_half = (int) ceil(array_size / 2.00);
+		merge_sort_player_records(records, middle_index);
+		merge_sort_player_records(&records[middle_index], len_sec_half);
+		/* merge 2 resulting arrays */
+		struct record ret[array_size];
+		merge_player_records(records, middle_index, \
+			&records[middle_index], len_sec_half, ret);
+		/* Copy merged array contents into original array */
+		//printf("after merge\n");
+		for (int i = 0; i < array_size; i++) {
+			records[i] = ret[i];
+/*			printf("%s vs %s = %d-%d-%d\n", \
+				records[i].name, records[i].opp_name, \
+				records[i].wins, records[i].ties, records[i].losses);*/
+		}
+		return;
+	}
+}
+
 int print_player_records(char *file_path) {
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
@@ -900,54 +992,60 @@ int print_player_records(char *file_path) {
 
 	char len_of_name;
 	char name[MAX_NAME_LEN];
+	memset(name, 0, sizeof(name));
 	/* Read the starter data in the file */
 	if (1 != fread(&len_of_name, sizeof(char), 1, p_file)) { return -2; }
 	if (len_of_name != fread(name, sizeof(char), len_of_name, p_file)) { return -3; }
 
-	char names[128][MAX_NAME_LEN];
-	// 3 for 0 to be wins, 1 to be ties and 2 to be losses
-	char set_count[128][3];
+	struct record records[128];
 	int found_name = 0;
-	int num_names = 0;
+	int num_rec = 0;
 	struct entry ent;
 	ent.len_name = len_of_name;
 	strncpy(ent.name, name, MAX_NAME_LEN);
 
 	while (read_entry(p_file, &ent) == 0) {
 		found_name = 0;
-		for (int i = 0; i < num_names; i++) {
-			if (0 == strcmp(ent.opp_name, names[i])) {
+		for (int i = 0; i < num_rec; i++) {
+			if (0 == strcmp(ent.opp_name, records[i].opp_name)) {
 				found_name = 1;
-				if (ent.gc > ent.opp_gc) set_count[i][0] += 1;
-				else if (ent.gc == ent.opp_gc) set_count[i][1] += 1;
-				else if (ent.gc < ent.opp_gc) set_count[i][2] += 1;
+				if (ent.gc > ent.opp_gc) records[i].wins += 1;
+				else if (ent.gc == ent.opp_gc) records[i].ties += 1;
+				else if (ent.gc < ent.opp_gc) records[i].losses += 1;
 			}
 		}
 		if (found_name == 0) {
-			strncpy(names[num_names], ent.opp_name, MAX_NAME_LEN - 1);
-			if (ent.gc > ent.opp_gc) set_count[num_names][0] += 1;
-			else if (ent.gc == ent.opp_gc) set_count[num_names][1] += 1;
-			else if (ent.gc < ent.opp_gc) set_count[num_names][2] += 1;
-			num_names++;
+			strncpy(records[num_rec].name, ent.name, MAX_NAME_LEN);
+			strncpy(records[num_rec].opp_name, ent.opp_name, MAX_NAME_LEN);
+			if (ent.gc > ent.opp_gc) records[num_rec].wins += 1;
+			else if (ent.gc == ent.opp_gc) records[num_rec].ties += 1;
+			else if (ent.gc < ent.opp_gc) records[num_rec].losses += 1;
+			num_rec++;
 		}
 	}
 
-	for (int i = 0; i < num_names; i++) {
+	merge_sort_player_records(&(records[0]), num_rec);
+
+	for (int i = 0; i < num_rec; i++) {
 		if (colour_output == 1) {
 			/* If the player has a winning record */
-			if (set_count[i][0] > set_count[i][2]) {
-				printf("%s vs %s%s%s = %d-%d-%d\n", name, GREEN, names[i], NORMAL, \
-					set_count[i][0], set_count[i][1], set_count[i][2]);
-			} else if (set_count[i][0] < set_count[i][2]) {
-				printf("%s vs %s%s%s = %d-%d-%d\n", name, RED, names[i], NORMAL, \
-					set_count[i][0], set_count[i][1], set_count[i][2]);
+			if (records[i].wins > records[i].losses) {
+				printf("%s vs %s%s%s = %d-%d-%d\n", \
+					records[i].name, GREEN, records[i].opp_name, NORMAL, \
+					records[i].wins, records[i].ties, records[i].losses);
+			} else if (records[i].wins < records[i].losses) {
+				printf("%s vs %s%s%s = %d-%d-%d\n", \
+					records[i].name, RED, records[i].opp_name, NORMAL, \
+					records[i].wins, records[i].ties, records[i].losses);
 			} else {
-				printf("%s vs %s = %d-%d-%d\n", name, names[i], \
-					set_count[i][0], set_count[i][1], set_count[i][2]);
+				printf("%s vs %s = %d-%d-%d\n", \
+					records[i].name, records[i].opp_name, \
+					records[i].wins, records[i].ties, records[i].losses);
 			}
 		} else {
-			printf("%s vs %s = %d-%d-%d\n", name, names[i], \
-				set_count[i][0], set_count[i][1], set_count[i][2]);
+			printf("%s vs %s = %d-%d-%d\n", \
+				records[i].name, records[i].opp_name, \
+				records[i].wins, records[i].ties, records[i].losses);
 		}
 	}
 
