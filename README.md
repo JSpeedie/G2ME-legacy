@@ -259,7 +259,8 @@ Julian vs John = 4-0-0
 
 This flag requires a following `-b` flag call as it affects how the bracket
 will affect player's Glicko2 data. This flag multiplies the change in a
-player's Glicko2 data after a set/game by the given value.
+player's Glicko2 data after a set/game by the given value. **This flag is
+not recommended for use.**
 
 ### The 'x' flag
 
@@ -323,7 +324,7 @@ sizes. Also it's really cool :)
 
 ## TODO
 
-* Write examples for README
+* Write examples for README and man pages
 * Clean up glicko2.c to meet code conventions (line length, doc string,
 no TODOs)
 * Remove TODOs in G2ME.c, make sure invalid input/error checking is sound
