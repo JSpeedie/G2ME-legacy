@@ -313,6 +313,24 @@ void print_entry(struct entry E) {
 		E.len_name, E.len_opp_name, E.name, E.opp_name, E.rating, E.RD, E.vol, E.gc, E.opp_gc, date);
 }
 
+/** Prints a string representation of a struct entry to stdout
+ *
+ * \param 'E' the struct entry to print
+ * \param 'longest_name' the length in characters to print the opponent
+ *     name in/with.
+ */
+void print_entry_name(struct entry E, int longest_nl, int longest_opp_nl, \
+	int longest_name, int longest_rating, int longest_RD, int longest_vol) {
+	/* Process date data into one string */
+	char date[32];
+	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
+
+	printf("%*d %*d %-10s %-*s %*lf %*lf %*.*lf %d-%d %s\n", \
+		longest_nl, E.len_name, longest_opp_nl, E.len_opp_name, \
+		E.name, longest_name, E.opp_name, longest_rating, E.rating, \
+		longest_RD, E.RD, longest_vol, longest_vol-2, E.vol, E.gc, E.opp_gc, date);
+}
+
 /** Reads a player file at the given file path, reads the "Player 1"
  * data into the given entry parameter.
  *
@@ -360,9 +378,40 @@ int print_player_file(char* file_path) {
 	struct entry line;
 	line.len_name = len_of_name;
 	strncpy(line.name, name, MAX_NAME_LEN);
+	int longest_name = 0;
+	char temp[64];
+	memset(temp, 0, sizeof(temp));
+	int longest_nl = 0;
+	int longest_opp_nl = 0;
+	int longest_rating = 0;
+	int longest_RD = 0;
+	int longest_vol = 0;
+
+	/* Get the longest lengths of the parts of an entry in string form */
+	while (read_entry(p_file, &line) == 0) {
+		sprintf(temp, "%d", line.len_name);
+		if (strlen(line.opp_name) > longest_name) {
+			longest_name = strlen(line.opp_name);
+		}
+		if (strlen(temp) > longest_nl) longest_nl = strlen(temp);
+		sprintf(temp, "%d", line.len_opp_name);
+		if (strlen(temp) > longest_opp_nl) longest_opp_nl = strlen(temp);
+		sprintf(temp, "%lf", line.rating);
+		if (strlen(temp) > longest_rating) longest_rating = strlen(temp);
+		sprintf(temp, "%lf", line.RD);
+		if (strlen(temp) > longest_RD) longest_RD = strlen(temp);
+		sprintf(temp, "%10.8lf", line.vol);
+		if (strlen(temp) > longest_vol) longest_vol = strlen(temp);
+	}
+
+	fseek(p_file, 0, SEEK_SET);
+	/* Read the starter data in the file */
+	if (1 != fread(&len_of_name, sizeof(char), 1, p_file)) { return -2; }
+	if (len_of_name != fread(name, sizeof(char), len_of_name, p_file)) { return -3; }
 
 	while (read_entry(p_file, &line) == 0) {
-		print_entry(line);
+		print_entry_name(line, longest_nl, longest_opp_nl, longest_name, \
+			longest_rating, longest_RD, longest_vol);
 	}
 
 	fclose(p_file);
