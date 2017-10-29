@@ -13,9 +13,12 @@
 	* [The 'g' flag](#the-g-flag)
 	* [The 'h' flag](#the-h-flag)
 	* [The 'l' flag](#the-l-flag)
+	* [The 'n' flag](#the-n-flag)
 	* [The 'p' flag](#the-p-flag)
 	* [The 'P' flag](#the-p-flag-1)
+	* [The 'o' flag](#the-o-flag)
 	* [The 'r' flag](#the-r-flag)
+	* [The 'R' flag](#the-r-flag-1)
 	* [The 'w' flag](#the-w-flag)
 	* [The 'x' flag](#the-x-flag)
 * [The Glicko2 System Explained](#the-glicko2-system-explained)
@@ -162,14 +165,19 @@ and use various shell commands to parse data for things such as
 Stands for Output-**L**ast-Line. Not really useful except for debugging. Same
 as `-h` except it's only the last line.
 
+### The 'n' flag
+
+`G2ME -n -R Julian`
+
+Stands for **n**o-colour. By default, G2ME will colour certain inputs to make
+interpretation easier. This flag disables that.
+
 ### The 'p' flag
 
 `G2ME -p pr`
 
-This flag makes G2ME output a file containing all the players listed in `pr`
-with their glicko ratings, RDs, and volatility. This is generally used after
-several tournaments to create a finalized ranking. The file format of the file
-input (`pr` in this case) has each and every line to be a valid file path to
+This flag is used in conjunction with the o flag to output a pr. This flag
+takes an input of a player list file where each line is a file path to
 a player file created by G2ME.
 
 An example input file:
@@ -199,12 +207,51 @@ Isaiah
 James
 ```
 
+### The 'o' flag
+
+`G2ME -p pr -o 2017pr`
+
+The o flag is to be used in conjunction with the p flag. The o flag takes an
+argument of a file path where a pr written. When the 2 flags are used together,
+G2ME outputs a sorted list of all the players listed in the file specified by
+`-p` into the file specified by `-o`. Basically it generates the pr list.
+
+Example output (aka `2017pr` after running the command above):
+
+```
+   Jon  2160.2  98.7  0.05998749
+ Jonah  1906.8  88.7  0.05998407
+Isaiah  1872.1  83.5  0.05998309
+  Josh  1817.3  93.5  0.05998337
+Julian  1661.6  76.1  0.05997865
+ Bilal  1657.9  78.0  0.05999001
+ Kriss  1579.7  92.1  0.05998392
+```
+
 ### The 'r' flag
 
 `G2ME -r Julian`
 
 The r flag takes a player file, prompts the user for a new name and changes
 the player file's Player 1 data to have the new name.
+
+### The 'R' flag
+
+`G2ME -R Julian`
+
+The R flag takes a player file, and prints the set or game (if you used
+the `-g` flag to run the brackets) counts for the given player against
+every player they have played that the system knows about. Most useful
+for getting stats for commentary or for smack talking :^].
+
+Example output:
+
+```
+Julian vs Jon = 0-0-3
+Julian vs Theo = 9-0-0
+Julian vs Bilal = 1-0-3
+Julian vs John = 4-0-0
+```
 
 ### The 'w' flag
 
