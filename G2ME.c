@@ -11,8 +11,18 @@
 
 #define MAX_NAME_LEN 128
 #define MAX_FILE_PATH_LEN 256
+char *NORMAL = "\x1B[0m";
+char *RED = "\x1B[31m";
+char *GREEN = "\x1B[32m";
+char *YELLOW = "\x1B[33m";
+char *BLUE = "\x1B[34m";
+char *MAGENTA = "\x1B[35m";
+char *CYAN = "\x1B[36m";
+char *WHITE = "\x1B[37m";
+
 
 char use_games = 0;
+char colour_output = 0;
 char player_list_file[256];
 char calc_absent_players = 0;
 double outcome_weight = 1;
@@ -881,6 +891,70 @@ int remove_line_from_file(char *file_path) {
 	return 0;
 }
 
+int print_player_records(char *file_path) {
+	FILE *p_file = fopen(file_path, "rb");
+	if (p_file == NULL) {
+		perror("fopen (print_player_records)");
+		return -1;
+	}
+
+	char len_of_name;
+	char name[MAX_NAME_LEN];
+	/* Read the starter data in the file */
+	if (1 != fread(&len_of_name, sizeof(char), 1, p_file)) { return -2; }
+	if (len_of_name != fread(name, sizeof(char), len_of_name, p_file)) { return -3; }
+
+	char names[128][MAX_NAME_LEN];
+	// 3 for 0 to be wins, 1 to be ties and 2 to be losses
+	char set_count[128][3];
+	int found_name = 0;
+	int num_names = 0;
+	struct entry ent;
+	ent.len_name = len_of_name;
+	strncpy(ent.name, name, MAX_NAME_LEN);
+
+	while (read_entry(p_file, &ent) == 0) {
+		found_name = 0;
+		for (int i = 0; i < num_names; i++) {
+			if (0 == strcmp(ent.opp_name, names[i])) {
+				found_name = 1;
+				if (ent.gc > ent.opp_gc) set_count[i][0] += 1;
+				else if (ent.gc == ent.opp_gc) set_count[i][1] += 1;
+				else if (ent.gc < ent.opp_gc) set_count[i][2] += 1;
+			}
+		}
+		if (found_name == 0) {
+			strncpy(names[num_names], ent.opp_name, MAX_NAME_LEN - 1);
+			if (ent.gc > ent.opp_gc) set_count[num_names][0] += 1;
+			else if (ent.gc == ent.opp_gc) set_count[num_names][1] += 1;
+			else if (ent.gc < ent.opp_gc) set_count[num_names][2] += 1;
+			num_names++;
+		}
+	}
+
+	for (int i = 0; i < num_names; i++) {
+		if (colour_output == 1) {
+			/* If the player has a winning record */
+			if (set_count[i][0] > set_count[i][2]) {
+				printf("%s vs %s%s%s = %d-%d-%d\n", name, GREEN, names[i], NORMAL, \
+					set_count[i][0], set_count[i][1], set_count[i][2]);
+			} else if (set_count[i][0] < set_count[i][2]) {
+				printf("%s vs %s%s%s = %d-%d-%d\n", name, RED, names[i], NORMAL, \
+					set_count[i][0], set_count[i][1], set_count[i][2]);
+			} else {
+				printf("%s vs %s = %d-%d-%d\n", name, names[i], \
+					set_count[i][0], set_count[i][1], set_count[i][2]);
+			}
+		} else {
+			printf("%s vs %s = %d-%d-%d\n", name, names[i], \
+				set_count[i][0], set_count[i][1], set_count[i][2]);
+		}
+	}
+
+	fclose(p_file);
+	return 0;
+}
+
 int main(int argc, char **argv) {
 	int opt;
 	struct option opt_table[] = {
@@ -902,6 +976,7 @@ int main(int argc, char **argv) {
 		{ "P",				required_argument,	NULL,	'P' },
 		{ "output",			required_argument,	NULL,	'o' },
 		{ "refactor",		required_argument,	NULL,	'r' },
+		{ "records",		required_argument,	NULL,	'R' },
 		{ "weight",			required_argument,	NULL,	'w' },
 		{ "remove-entries",	required_argument,	NULL,	'x' },
 		{ 0, 0, 0, 0 }
@@ -912,7 +987,7 @@ int main(int argc, char **argv) {
 	strncpy(player_dir, ".players/", sizeof(player_dir) - 1);
 
 	while ((opt = getopt_long(argc, argv, \
-		"a:b:B:d:gh:l:p:P:o:r:w:x:", opt_table, NULL)) != -1) {
+		"a:b:B:d:gh:l:p:P:o:r:R:w:x:", opt_table, NULL)) != -1) {
 		if (opt == 'd') {
 			memset(player_dir, 0, sizeof(player_dir));
 			strncpy(player_dir, optarg, sizeof(player_dir) - 1);
@@ -929,6 +1004,10 @@ int main(int argc, char **argv) {
 		} else if (opt == 'r') {
 			char *full_player_path = file_path_with_player_dir(optarg);
 			refactor_file(full_player_path);
+			free(full_player_path);
+		} else if (opt == 'R') {
+			char *full_player_path = file_path_with_player_dir(optarg);
+			print_player_records(full_player_path);
 			free(full_player_path);
 		} else if (opt == 'x') {
 			char *full_player_path = file_path_with_player_dir(optarg);
