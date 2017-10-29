@@ -971,6 +971,7 @@ int main(int argc, char **argv) {
 		{ "human",			required_argument,	NULL,	'h' },
 		/* Output last entry in given player file in human readable form */
 		{ "last-entry",		required_argument,	NULL,	'l' },
+		{ "no-colour",		required_argument,	NULL,	'n' },
 		/* Output a file with a sorted list of players and their ratings */
 		{ "power-rating",	required_argument,	NULL,	'p' },
 		{ "P",				required_argument,	NULL,	'P' },
@@ -987,7 +988,7 @@ int main(int argc, char **argv) {
 	strncpy(player_dir, ".players/", sizeof(player_dir) - 1);
 
 	while ((opt = getopt_long(argc, argv, \
-		"a:b:B:d:gh:l:p:P:o:r:R:w:x:", opt_table, NULL)) != -1) {
+		"a:b:B:d:gh:l:np:P:o:r:R:w:x:", opt_table, NULL)) != -1) {
 		if (opt == 'd') {
 			memset(player_dir, 0, sizeof(player_dir));
 			strncpy(player_dir, optarg, sizeof(player_dir) - 1);
@@ -1027,6 +1028,9 @@ int main(int argc, char **argv) {
 				break;
 			case 'g':
 				use_games = 1;
+				break;
+			case 'n':
+				colour_output = 0;
 				break;
 			case 'p':
 				o_generate_pr = 1;
