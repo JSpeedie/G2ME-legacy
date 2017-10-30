@@ -1,4 +1,4 @@
-date=$(wget http://challonge.com/potatoes123 -q -O - \
+date=$(wget $1 -q -O - \
 	| grep -o "[0-9]\{4\}-[0-9]\{1,2\}-[0-9]\{1,2\}" | head -n 1 \
 	| sort | sed "s/-/ /g" | awk '{print $3, $2, $1}')
 
