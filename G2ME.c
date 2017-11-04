@@ -14,6 +14,7 @@
 #define DEF_VOL 0.06
 #define DEF_RATING 1500.0
 #define DEF_RD 350.0
+#define DEF_TAU 0.5
 
 char *NORMAL = "\x1B[0m";
 char *RED = "\x1B[31m";
@@ -548,8 +549,8 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 		}
 	}
 
-	p1->_tau = 0.5;
-	p2->_tau = 0.5;
+	p1->_tau = DEF_TAU;
+	p2->_tau = DEF_TAU;
 
 	struct player new_p1 = *p1;
 	struct player new_p2 = *p2;
@@ -700,10 +701,12 @@ void update_players(char* bracket_file_path) {
 			p2_out = 0;
 			for (int i = 0; i < p1_gc; i++) {
 				update_player_on_outcome(p1_name, p2_name, &p1, &p2, &p1_out, &p2_out, day, month, year);
+				update_player_on_outcome(p2_name, p1_name, &p2, &p1, &p2_out, &p1_out, day, month, year);
 			}
 			p1_out = 0;
 			p2_out = 1;
 			for (int i = 0; i < p2_gc; i++) {
+				update_player_on_outcome(p1_name, p2_name, &p1, &p2, &p1_out, &p2_out, day, month, year);
 				update_player_on_outcome(p2_name, p1_name, &p2, &p1, &p2_out, &p1_out, day, month, year);
 			}
 		} else {
