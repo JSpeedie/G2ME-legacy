@@ -11,6 +11,10 @@
 
 #define MAX_NAME_LEN 128
 #define MAX_FILE_PATH_LEN 256
+#define DEF_VOL 0.06
+#define DEF_RATING 1500.0
+#define DEF_RD 350.0
+
 char *NORMAL = "\x1B[0m";
 char *RED = "\x1B[31m";
 char *GREEN = "\x1B[32m";
@@ -19,7 +23,6 @@ char *BLUE = "\x1B[34m";
 char *MAGENTA = "\x1B[35m";
 char *CYAN = "\x1B[36m";
 char *WHITE = "\x1B[37m";
-
 
 char use_games = 0;
 char colour_output = 1;
@@ -518,9 +521,9 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	char *full_p2_path = file_path_with_player_dir(p2_name);
 	/* If the file does not exist, init the player struct to defaults */
 	if (access(full_p1_path, R_OK | W_OK) == -1) {
-		setRating(p1, 1500.0);
-		setRd(p1, 350.0);
-		p1->vol = 0.06;
+		setRating(p1, DEF_RATING);
+		setRd(p1, DEF_RD);
+		p1->vol = DEF_VOL;
 	} else {
 		/* Read latest entries into usable data */
 		struct entry p1_latest;
@@ -532,9 +535,9 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	}
 	/* If the file does not exist, init the player struct to defaults */
 	if (access(full_p2_path, R_OK | W_OK) == -1) {
-		setRating(p2, 1500.0);
-		setRd(p2, 350.0);
-		p2->vol = 0.06;
+		setRating(p2, DEF_RATING);
+		setRd(p2, DEF_RD);
+		p2->vol = DEF_VOL;
 	} else {
 		/* Read latest entries into usable data */
 		struct entry p2_latest;
@@ -729,8 +732,12 @@ void run_brackets(char *bracket_list_file_path) {
 	char line[256];
 
 	while (fgets(line, sizeof(line), bracket_list_file)) {
-		printf("running %s", line);
 		*strchr(line, '\n') = '\0';
+		if (use_games == 1) {
+			printf("running %s using games\n", line);
+		} else {
+			printf("running %s\n", line);
+		}
 		update_players(line);
 	}
 
