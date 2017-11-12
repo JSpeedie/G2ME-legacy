@@ -107,7 +107,7 @@ extension, but the program expects every line to be of the format
 
 It expects each line to be a valid file path for which it will run
 the bracket, updating all the player data. Essentially, for each line
-`l` in the argument to `-B` as `-b l`.
+`l` in file given by `-B`, G2ME will run `-b l`.
 
 An example file
 
