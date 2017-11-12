@@ -346,16 +346,17 @@ void print_entry(struct entry E) {
  *     name in/with.
  */
 void print_entry_name(struct entry E, int longest_nl, int longest_opp_nl, \
-	int longest_name, int longest_rating, int longest_RD, int longest_vol) {
+	int longest_name, int longest_rating, int longest_RD, int longest_vol, \
+	int longest_date) {
 	/* Process date data into one string */
 	char date[32];
 	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
 
-	printf("%*d %*d %-10s %-*s %*lf %*lf %*.*lf %d-%d %s %s\n", \
+	printf("%*d %*d %-10s %-*s %*lf %*lf %*.*lf %d-%d %-*s %s\n", \
 		longest_nl, E.len_name, longest_opp_nl, E.len_opp_name, \
 		E.name, longest_name, E.opp_name, longest_rating, E.rating, \
 		longest_RD, E.RD, longest_vol, longest_vol-2, E.vol, E.gc, E.opp_gc, \
-		date, E.t_name);
+		longest_date, date, E.t_name);
 }
 
 /** Reads a player file at the given file path, reads the "Player 1"
@@ -413,6 +414,7 @@ int print_player_file(char* file_path) {
 	int longest_rating = 0;
 	int longest_RD = 0;
 	int longest_vol = 0;
+	int longest_date = 0;
 
 	/* Get the longest lengths of the parts of an entry in string form */
 	while (read_entry(p_file, &line) == 0) {
@@ -429,6 +431,8 @@ int print_player_file(char* file_path) {
 		if (strlen(temp) > longest_RD) longest_RD = strlen(temp);
 		sprintf(temp, "%10.8lf", line.vol);
 		if (strlen(temp) > longest_vol) longest_vol = strlen(temp);
+		sprintf(temp, "%d/%d/%d", line.day, line.month, line.year);
+		if (strlen(temp) > longest_date) longest_date = strlen(temp);
 	}
 
 	fseek(p_file, 0, SEEK_SET);
@@ -438,7 +442,7 @@ int print_player_file(char* file_path) {
 
 	while (read_entry(p_file, &line) == 0) {
 		print_entry_name(line, longest_nl, longest_opp_nl, longest_name, \
-			longest_rating, longest_RD, longest_vol);
+			longest_rating, longest_RD, longest_vol, longest_date);
 	}
 
 	fclose(p_file);
