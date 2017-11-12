@@ -604,9 +604,10 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
  * and adjusts their Glicko2 data.
  *
  * \param '*player_list' the file path of the player list file.
+ * \param '*t_name' a string containing the name of the tournament.
  * \return void.
  */
-void adjust_absent_players(char* player_list) {
+void adjust_absent_players(char* player_list, char* t_name) {
 	FILE *player_file = fopen(player_list, "r");
 	if (player_file == NULL) {
 		perror("fopen (adjust_absent_players)");
@@ -653,7 +654,8 @@ void adjust_absent_players(char* player_list) {
 					latest_ent.day = 0;
 					latest_ent.month = 0;
 					latest_ent.year = 0;
-					strcpy(latest_ent.t_name, "-");
+					strncpy(latest_ent.t_name, t_name, MAX_NAME_LEN - 1);
+					latest_ent.t_name[strlen(latest_ent.t_name)] = '\0';
 					latest_ent.len_t_name = strlen(latest_ent.t_name);
 					append_entry_to_file(&latest_ent, file_path_with_player_dir(line));
 				}
@@ -754,7 +756,7 @@ void update_players(char* bracket_file_path) {
 	fclose(bracket_file);
 
 	if (calc_absent_players) {
-		adjust_absent_players(player_list_file);
+		adjust_absent_players(player_list_file, t_name);
 	}
 }
 
