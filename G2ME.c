@@ -612,7 +612,9 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
  * \param '*t_name' a string containing the name of the tournament.
  * \return void.
  */
-void adjust_absent_players(char* player_list, char* t_name) {
+void adjust_absent_players(char* player_list, char day, char month, \
+	short year, char* t_name) {
+
 	FILE *player_file = fopen(player_list, "r");
 	if (player_file == NULL) {
 		perror("fopen (adjust_absent_players)");
@@ -656,9 +658,9 @@ void adjust_absent_players(char* player_list, char* t_name) {
 					latest_ent.len_opp_name = strlen(latest_ent.opp_name);
 					latest_ent.gc = 0;
 					latest_ent.opp_gc = 0;
-					latest_ent.day = 0;
-					latest_ent.month = 0;
-					latest_ent.year = 0;
+					latest_ent.day = day;
+					latest_ent.month = month;
+					latest_ent.year = year;
 					strncpy(latest_ent.t_name, t_name, MAX_NAME_LEN - 1);
 					latest_ent.t_name[strlen(latest_ent.t_name)] = '\0';
 					latest_ent.len_t_name = strlen(latest_ent.t_name);
@@ -761,7 +763,7 @@ void update_players(char* bracket_file_path) {
 	fclose(bracket_file);
 
 	if (calc_absent_players) {
-		adjust_absent_players(player_list_file, t_name);
+		adjust_absent_players(player_list_file, day, month, year, t_name);
 	}
 }
 
