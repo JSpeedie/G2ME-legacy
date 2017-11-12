@@ -1138,6 +1138,7 @@ int main(int argc, char **argv) {
 		 * to the glicko2 scores */
 		{ "bracket",		required_argument,	NULL,	'b' },
 		{ "brackets",		required_argument,	NULL,	'B' },
+		{ "count-outcomes",	required_argument,	NULL,	'c' },
 		{ "player-dir",		required_argument,	NULL,	'd' },
 		{ "use-games",		no_argument,		NULL,	'g' },
 		/* Output given player file in human readable form */
