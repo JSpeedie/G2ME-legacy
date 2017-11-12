@@ -9,6 +9,7 @@
 	* [The 'a' flag](#the-a-flag)
 	* [The 'b' flag](#the-b-flag)
 	* [The 'B' flag](#the-b-flag-1)
+	* [The 'c' flag](#the-c-flag)
 	* [The 'd' flag](#the-d-flag)
 	* [The 'g' flag](#the-g-flag)
 	* [The 'h' flag](#the-h-flag)
@@ -95,17 +96,6 @@ Isaiah Santos 3 0 1 1 2017
 Ron Julian 4 3 1 1 2017
 ```
 
-### The 'd' flag
-
-`G2ME -d players/here/ -b test.br`
-
-This flag takes one input, a directory file path.
-This is where the program will attempt to access, and store player files in.
-Useful for keeping the working directory clean or for working on player files
-stored on another storage device. By default, if you don't specify the `-d`
-flag, the default player directory file path will be `./.players/`. An example
-full player file path would be `/home/me/G2ME/.players/JohnSmith`.
-
 ### The 'B' flag
 
 `G2ME -B season.sea`
@@ -129,6 +119,28 @@ TT2.br
 TSE3.br
 TT3.br
 ```
+
+### The 'c' flag
+
+`G2ME -c JohnSmith`
+
+This flag takes one input, a player file path. G2ME will then output
+the number of non-RD adjustment entries that player has. The purpose of this
+is to try to get a grasp of how much data the system has on the player.
+If this flag outputs a higher number for one player than another it does not
+necessarily mean that it has more data on the one with the higher number,
+however.
+
+### The 'd' flag
+
+`G2ME -d players/here/ -b test.br`
+
+This flag takes one input, a directory file path.
+This is where the program will attempt to access, and store player files in.
+Useful for keeping the working directory clean or for working on player files
+stored on another storage device. By default, if you don't specify the `-d`
+flag, the default player directory file path will be `./.players/`. An example
+full player file path would be `/home/me/G2ME/.players/JohnSmith`.
 
 ### The 'g' flag
 
