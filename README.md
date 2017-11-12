@@ -14,9 +14,9 @@
 	* [The 'h' flag](#the-h-flag)
 	* [The 'l' flag](#the-l-flag)
 	* [The 'n' flag](#the-n-flag)
+	* [The 'o' flag](#the-o-flag)
 	* [The 'p' flag](#the-p-flag)
 	* [The 'P' flag](#the-p-flag-1)
-	* [The 'o' flag](#the-o-flag)
 	* [The 'r' flag](#the-r-flag)
 	* [The 'R' flag](#the-r-flag-1)
 	* [The 'w' flag](#the-w-flag)
@@ -182,6 +182,27 @@ as `-h` except it's only the last line.
 Stands for **n**o-colour. By default, G2ME will colour certain inputs to make
 interpretation easier. This flag disables that.
 
+### The 'o' flag
+
+`G2ME -p pr -o 2017pr`
+
+The o flag is to be used in conjunction with the p flag. The o flag takes an
+argument of a file path where a pr written. When the 2 flags are used together,
+G2ME outputs a sorted list of all the players listed in the file specified by
+`-p` into the file specified by `-o`. Basically it generates the pr list.
+
+Example output (aka `2017pr` after running the command above):
+
+```
+   Jon  2160.2  98.7  0.05998749
+ Jonah  1906.8  88.7  0.05998407
+Isaiah  1872.1  83.5  0.05998309
+  Josh  1817.3  93.5  0.05998337
+Julian  1661.6  76.1  0.05997865
+ Bilal  1657.9  78.0  0.05999001
+ Kriss  1579.7  92.1  0.05998392
+```
+
 ### The 'p' flag
 
 `G2ME -p pr`
@@ -215,27 +236,6 @@ format as the pr file as it is a player list file. For example:
 Julian
 Isaiah
 James
-```
-
-### The 'o' flag
-
-`G2ME -p pr -o 2017pr`
-
-The o flag is to be used in conjunction with the p flag. The o flag takes an
-argument of a file path where a pr written. When the 2 flags are used together,
-G2ME outputs a sorted list of all the players listed in the file specified by
-`-p` into the file specified by `-o`. Basically it generates the pr list.
-
-Example output (aka `2017pr` after running the command above):
-
-```
-   Jon  2160.2  98.7  0.05998749
- Jonah  1906.8  88.7  0.05998407
-Isaiah  1872.1  83.5  0.05998309
-  Josh  1817.3  93.5  0.05998337
-Julian  1661.6  76.1  0.05997865
- Bilal  1657.9  78.0  0.05999001
- Kriss  1579.7  92.1  0.05998392
 ```
 
 ### The 'r' flag

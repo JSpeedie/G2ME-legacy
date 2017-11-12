@@ -1117,10 +1117,10 @@ int main(int argc, char **argv) {
 		/* Output last entry in given player file in human readable form */
 		{ "last-entry",		required_argument,	NULL,	'l' },
 		{ "no-colour",		required_argument,	NULL,	'n' },
+		{ "output",			required_argument,	NULL,	'o' },
 		/* Output a file with a sorted list of players and their ratings */
 		{ "power-rating",	required_argument,	NULL,	'p' },
 		{ "P",				required_argument,	NULL,	'P' },
-		{ "output",			required_argument,	NULL,	'o' },
 		{ "refactor",		required_argument,	NULL,	'r' },
 		{ "records",		required_argument,	NULL,	'R' },
 		{ "weight",			required_argument,	NULL,	'w' },
@@ -1133,7 +1133,7 @@ int main(int argc, char **argv) {
 	strncpy(player_dir, ".players/", sizeof(player_dir) - 1);
 
 	while ((opt = getopt_long(argc, argv, \
-		"a:b:B:d:gh:l:np:P:o:r:R:w:x:", opt_table, NULL)) != -1) {
+		"a:b:B:d:gh:l:no:p:P:r:R:w:x:", opt_table, NULL)) != -1) {
 		if (opt == 'd') {
 			memset(player_dir, 0, sizeof(player_dir));
 			strncpy(player_dir, optarg, sizeof(player_dir) - 1);
