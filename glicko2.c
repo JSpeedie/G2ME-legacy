@@ -108,8 +108,8 @@ void _preRatingRD(struct player* P) {
  *     for a '*P' loss
  * \return modifies the given struct player '*P', returns void
  */
-void update_player(struct player *P,
-	double *rating_list, int rating_list_size,
+void update_player(struct player *P, \
+	double *rating_list, int rating_list_size, \
 	double *RD_list, double *outcome_list) {
 
 	double v = _v(P, rating_list, rating_list_size, RD_list);
@@ -140,7 +140,7 @@ void update_player(struct player *P,
  * \param // TODO fill out this param
  * \return a double representing '*P's new volatility
  */
-double _newVol(struct player* P, double *rating_list, int rating_list_size,
+double _newVol(struct player* P, double *rating_list, int rating_list_size, \
 	double *RD_list, double *outcome_list, double v) {
 
 	double delta = _delta(P, rating_list, rating_list_size, RD_list, outcome_list, v);

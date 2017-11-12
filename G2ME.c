@@ -49,6 +49,8 @@ typedef struct entry {
 	unsigned char day;
 	unsigned char month;
 	short year;
+	unsigned char len_t_name;
+	char t_name[MAX_NAME_LEN];
 }Entry;
 
 typedef struct record {
@@ -91,10 +93,9 @@ char *file_path_with_player_dir(char *s) {
  */
 int read_entry(FILE *f, struct entry *E) {
 	if (0 == fread(&E->len_opp_name, sizeof(char), 1, f)) { return -1; }
-	/* Read player names */
+	// Read player names
 	if (0 == fread(E->opp_name, sizeof(char), E->len_opp_name, f)) { return -2; }
-	/* Add null terminators */
-	E->name[E->len_name] = '\0';
+	// Add null terminator
 	E->opp_name[E->len_opp_name] = '\0';
 	if (0 == fread(&E->rating, sizeof(double), 1, f)) { return -3; }
 	if (0 == fread(&E->RD, sizeof(double), 1, f)) { return -4; }
@@ -104,6 +105,10 @@ int read_entry(FILE *f, struct entry *E) {
 	if (0 == fread(&E->day, sizeof(char), 1, f)) { return -8; }
 	if (0 == fread(&E->month, sizeof(char), 1, f)) { return -9; }
 	if (0 == fread(&E->year, sizeof(short), 1, f)) { return -10; }
+	if (0 == fread(&E->len_t_name, sizeof(char), 1, f)) { return -11; }
+	if (0 == fread(E->t_name, sizeof(char), E->len_t_name, f)) { return -12; }
+	// Add null terminator
+	E->t_name[E->len_t_name] = '\0';
 
 	return 0;
 }
@@ -161,6 +166,7 @@ long int get_last_entry_offset(char* file_path) {
 	fread(name, sizeof(char), len_of_name, entry_file);
 
 	char len_of_opp_name;
+	char len_of_t;
 	long int last_entry_offset = ftell(entry_file);
 
 	while (0 != fread(&len_of_opp_name, sizeof(char), 1, entry_file)) {
@@ -172,9 +178,18 @@ long int get_last_entry_offset(char* file_path) {
 			len_of_opp_name + (3 * sizeof(double))
 			+ (4 * sizeof(char)) + sizeof(short);
 		fseek(entry_file, size_of_current_entry, SEEK_CUR);
+		// Read tournament name
+		fread(&len_of_t, sizeof(char), 1, entry_file);
+		long int size_of_t_data = len_of_t;
+		size_of_current_entry += size_of_t_data;
+		fseek(entry_file, size_of_t_data, SEEK_CUR);
 
+		// return the offset as the current position (which should be at
+		// the beginning of the tournament name) - the size of the entry
+		// (aka what it has read so far) - the 2 chars which were not counted
+		// (the length of opp_name and the length of the bracket name)
 		last_entry_offset =
-			ftell(entry_file) - size_of_current_entry - (1 * sizeof(char));
+			ftell(entry_file) - size_of_current_entry - (2 * sizeof(char));
 	}
 
 	fclose(entry_file);
@@ -212,6 +227,7 @@ int append_entry_to_file(struct entry* E, char* file_path) {
 
 	char len_name = strlen(E->name);
 	char len_opp_name = strlen(E->opp_name);
+	char len_t_name = strlen(E->t_name);
 	/* If the file did not exist */
 	char existed = access(file_path, R_OK) != -1;
 
@@ -247,6 +263,11 @@ int append_entry_to_file(struct entry* E, char* file_path) {
 	if (1 != fwrite(&E->day, sizeof(char), 1, entry_file)) { return -11; }
 	if (1 != fwrite(&E->month, sizeof(char), 1, entry_file)) { return -12; }
 	if (1 != fwrite(&E->year, sizeof(short), 1, entry_file)) { return -13; }
+	if (1 != fwrite(&len_t_name, sizeof(char), 1, entry_file)) { return -14; }
+	if (strlen(E->t_name)
+		!= fwrite(E->t_name, sizeof(char), strlen(E->t_name), entry_file)) {
+			return -15;
+	}
 
 	fclose(entry_file);
 	return 0;
@@ -287,11 +308,11 @@ void write_entry_from_input(char* file_path) {
 	printf("[Name] [Opp] [Rating] [RD] [Vol] [gc] [opp gc] [day] [month] [year]: ");
 
 	struct entry input_entry;
-	scanf("%s %s %lf %lf %lf %hhd %hhd %hhd %hhd %hd",
+	scanf("%s %s %lf %lf %lf %hhd %hhd %hhd %hhd %hd %s",
 		input_entry.name, input_entry.opp_name, &input_entry.rating,
 		&input_entry.RD, &input_entry.vol, &input_entry.gc,
 		&input_entry.opp_gc, &input_entry.day, &input_entry.month,
-		&input_entry.year);
+		&input_entry.year, input_entry.t_name);
 	// TODO: make this use player dir?
 	append_entry_to_file(&input_entry, file_path);
 }
@@ -313,8 +334,9 @@ void print_entry(struct entry E) {
 	char date[32];
 	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
 
-	printf("%d %d %-10s %-10s %16.14lf %16.14lf %16.14lf %d-%d %s\n", \
-		E.len_name, E.len_opp_name, E.name, E.opp_name, E.rating, E.RD, E.vol, E.gc, E.opp_gc, date);
+	printf("%d %d %-10s %-10s %16.14lf %16.14lf %16.14lf %d-%d %s %d %-10s\n", \
+		E.len_name, E.len_opp_name, E.name, E.opp_name, E.rating, E.RD, \
+		E.vol, E.gc, E.opp_gc, date, E.len_t_name, E.t_name);
 }
 
 /** Prints a string representation of a struct entry to stdout
@@ -329,10 +351,11 @@ void print_entry_name(struct entry E, int longest_nl, int longest_opp_nl, \
 	char date[32];
 	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
 
-	printf("%*d %*d %-10s %-*s %*lf %*lf %*.*lf %d-%d %s\n", \
+	printf("%*d %*d %-10s %-*s %*lf %*lf %*.*lf %d-%d %s %s\n", \
 		longest_nl, E.len_name, longest_opp_nl, E.len_opp_name, \
 		E.name, longest_name, E.opp_name, longest_rating, E.rating, \
-		longest_RD, E.RD, longest_vol, longest_vol-2, E.vol, E.gc, E.opp_gc, date);
+		longest_RD, E.RD, longest_vol, longest_vol-2, E.vol, E.gc, E.opp_gc, \
+		date, E.t_name);
 }
 
 /** Reads a player file at the given file path, reads the "Player 1"
@@ -432,7 +455,6 @@ int read_last_entry(char* file_path, struct entry *ret) {
 	/* Open files for reading contents */
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
-		printf("read last %s\n", file_path);
 		perror("fopen (read_last_entry)");
 		/* If the file could not be read for any reason, return accordingly */
 		return -1;
@@ -474,10 +496,12 @@ void init_player_from_entry(struct player* P, struct entry* E) {
  * \param 'day' a char representing the day of the month the set was played on
  * \param 'month' a char representing the month the set was played in
  * \param 'year' a short representing the year the set was played in
+ * \param 't_name' a string containing the name of the tournament this
+ *     outcome took place at.
  * \return a struct entry containing all that information
  */
 struct entry create_entry(struct player* P, char* name, char* opp_name,
-	char gc, char opp_gc, char day, char month, short year) {
+	char gc, char opp_gc, char day, char month, short year, char* t_name) {
 
 	struct entry ret;
 	ret.len_name = strlen(name);
@@ -492,6 +516,8 @@ struct entry create_entry(struct player* P, char* name, char* opp_name,
 	ret.day = day;
 	ret.month = month;
 	ret.year = year;
+	ret.len_t_name = strlen(t_name);
+	strncpy(ret.t_name, t_name, sizeof(ret.t_name));
 
 	return ret;
 }
@@ -512,11 +538,13 @@ struct entry create_entry(struct player* P, char* name, char* opp_name,
  * \param 'day' a char representing the day of the month the set was played on
  * \param 'month' a char representing the month the set was played in
  * \param 'year' a short representing the year the set was played in
+ * \param 't_name' a string containing the name of the tournament this outcome
+ *     took place at.
  * \return void
  */
 void update_player_on_outcome(char* p1_name, char* p2_name,
 	struct player* p1, struct player* p2, double* p1_gc, double* p2_gc,
-	char day, char month, short year) {
+	char day, char month, short year, char* t_name) {
 
 	char *full_p1_path = file_path_with_player_dir(p1_name);
 	char *full_p2_path = file_path_with_player_dir(p2_name);
@@ -562,7 +590,7 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	new_p1.__rd = p1->__rd + ((new_p1.__rd - p1->__rd) * outcome_weight);
 	new_p1.vol = p1->vol + ((new_p1.vol - p1->vol) * outcome_weight);
 	struct entry p1_new_entry =
-		create_entry(&new_p1, p1_name, p2_name, *p1_gc, *p2_gc, day, month, year);
+		create_entry(&new_p1, p1_name, p2_name, *p1_gc, *p2_gc, day, month, year, t_name);
 	append_entry_to_file(&p1_new_entry, full_p1_path);
 
 	free(full_p1_path);
@@ -625,6 +653,8 @@ void adjust_absent_players(char* player_list) {
 					latest_ent.day = 0;
 					latest_ent.month = 0;
 					latest_ent.year = 0;
+					strcpy(latest_ent.t_name, "-");
+					latest_ent.len_t_name = strlen(latest_ent.t_name);
 					append_entry_to_file(&latest_ent, file_path_with_player_dir(line));
 				}
 			}
@@ -662,6 +692,9 @@ void update_players(char* bracket_file_path) {
 	char day;
 	char month;
 	short year;
+	char t_name[MAX_NAME_LEN];
+	memset(t_name, 0, sizeof(t_name));
+	strncpy(t_name, basename(bracket_file_path), sizeof(t_name));
 
 	while (fgets(line, sizeof(line), bracket_file)) {
 		/* Read data from one line of bracket file into all the variables */
@@ -700,20 +733,20 @@ void update_players(char* bracket_file_path) {
 			p1_out = 1;
 			p2_out = 0;
 			for (int i = 0; i < p1_gc; i++) {
-				update_player_on_outcome(p1_name, p2_name, &p1, &p2, &p1_out, &p2_out, day, month, year);
-				update_player_on_outcome(p2_name, p1_name, &p2, &p1, &p2_out, &p1_out, day, month, year);
+				update_player_on_outcome(p1_name, p2_name, &p1, &p2, &p1_out, &p2_out, day, month, year, t_name);
+				update_player_on_outcome(p2_name, p1_name, &p2, &p1, &p2_out, &p1_out, day, month, year, t_name);
 			}
 			p1_out = 0;
 			p2_out = 1;
 			for (int i = 0; i < p2_gc; i++) {
-				update_player_on_outcome(p1_name, p2_name, &p1, &p2, &p1_out, &p2_out, day, month, year);
-				update_player_on_outcome(p2_name, p1_name, &p2, &p1, &p2_out, &p1_out, day, month, year);
+				update_player_on_outcome(p1_name, p2_name, &p1, &p2, &p1_out, &p2_out, day, month, year, t_name);
+				update_player_on_outcome(p2_name, p1_name, &p2, &p1, &p2_out, &p1_out, day, month, year, t_name);
 			}
 		} else {
 			p1_out = p1_gc > p2_gc;
 			p2_out = p1_gc < p2_gc;
-			update_player_on_outcome(p1_name, p2_name, &p1, &p2, &p1_out, &p2_out, day, month, year);
-			update_player_on_outcome(p2_name, p1_name, &p2, &p1, &p2_out, &p1_out, day, month, year);
+			update_player_on_outcome(p1_name, p2_name, &p1, &p2, &p1_out, &p2_out, day, month, year, t_name);
+			update_player_on_outcome(p2_name, p1_name, &p2, &p1, &p2_out, &p1_out, day, month, year, t_name);
 		}
 	}
 
@@ -1125,6 +1158,7 @@ int get_player_outcome_count(char *file_path) {
 		}
 	}
 
+	fclose(p_file);
 	return num_outcomes;
 }
 
