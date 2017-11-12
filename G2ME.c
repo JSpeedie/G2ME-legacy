@@ -95,7 +95,8 @@ int read_entry(FILE *f, struct entry *E) {
 	if (0 == fread(&E->len_opp_name, sizeof(char), 1, f)) { return -1; }
 	// Read player names
 	if (0 == fread(E->opp_name, sizeof(char), E->len_opp_name, f)) { return -2; }
-	// Add null terminator
+	// Add null terminators
+	E->name[E->len_name] = '\0';
 	E->opp_name[E->len_opp_name] = '\0';
 	if (0 == fread(&E->rating, sizeof(double), 1, f)) { return -3; }
 	if (0 == fread(&E->RD, sizeof(double), 1, f)) { return -4; }
