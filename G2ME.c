@@ -1,3 +1,4 @@
+#include <dirent.h>
 #include <getopt.h>
 #include <libgen.h>
 #include <math.h>
@@ -920,6 +921,59 @@ void generate_ratings_file(char* file_path, char* output_file_path) {
 	return;
 }
 
+void generate_ratings_file_full(char* output_file_path) {
+	DIR *p_dir;
+	struct dirent *entry;
+	if ((p_dir = opendir(player_dir)) != NULL) {
+		clear_file(output_file_path);
+
+		int pr_entries_size = 0;
+		// Create a starting point, 128 person, pr entry array
+		// TODO: reallocate if larger is needed
+		struct entry *players_pr_entries = malloc(sizeof(struct entry) * 128);
+		struct entry temp;
+
+		while ((entry = readdir(p_dir)) != NULL) {
+			// Make sure it doesn't count directories
+			if (entry->d_type != DT_DIR) {
+				// TODO: realloc if over 128 players
+				char *full_player_path = file_path_with_player_dir(entry->d_name);
+				/* If the player file was able to be read properly... */
+				if (0 == read_last_entry(full_player_path, &temp)) {
+					int num_events;
+					get_player_attended(full_player_path, &num_events);
+					// If the player attended the minimum number of events
+					if (num_events >= pr_minimum_events) {
+						/* ...add the player data to the player pr entry array*/
+						players_pr_entries[pr_entries_size] = temp;
+						pr_entries_size++;
+					}
+				}
+				free(full_player_path);
+			}
+		}
+		closedir(p_dir);
+		/* Sort entries in the list by rating into non-increasing order */
+		merge_sort_pr_entry_array(players_pr_entries, pr_entries_size);
+		/* Get the longest name on the pr */
+		int longest_name_length = 0;
+		for (int i = 0; i < pr_entries_size; i++) {
+			if (longest_name_length < players_pr_entries[i].len_name) {
+				longest_name_length = players_pr_entries[i].len_name;
+			}
+		}
+		/* Append each entry pr file */
+		for (int i = 0; i < pr_entries_size; i++) {
+			append_pr_entry_to_file(&players_pr_entries[i], output_file_path, \
+				longest_name_length);
+		}
+		return;
+	} else {
+		perror("opendir (generate_ratings_file_full)");
+		return;
+	}
+}
+
 /** Takes a file path of a player file, prompts the user for the new name,
  * and renames Player 1 to the new name.
  *
@@ -1339,6 +1393,8 @@ int main(int argc, char **argv) {
 					/* The pr has been generated,
 					 * o is no longer set to make one */
 					o_generate_pr = 0;
+				} else {
+					generate_ratings_file_full(optarg);
 				}
 				break;
 		}
