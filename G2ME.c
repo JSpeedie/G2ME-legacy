@@ -4,9 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
+
 #include "glicko2.h"
 
 #define MAX_NAME_LEN 128
@@ -26,6 +27,7 @@ char *CYAN = "\x1B[36m";
 char *WHITE = "\x1B[37m";
 
 char use_games = 0;
+int pr_minimum_events = 0;
 char colour_output = 1;
 char player_list_file[256];
 char calc_absent_players = 0;
@@ -62,6 +64,8 @@ typedef struct record {
 }Record;
 
 struct entry temp;
+
+char *get_player_attended(char *, int *);
 
 char *file_path_with_player_dir(char *s) {
 	int new_path_size = sizeof(char) * (MAX_FILE_PATH_LEN - MAX_NAME_LEN);
@@ -885,9 +889,14 @@ void generate_ratings_file(char* file_path, char* output_file_path) {
 		char *full_player_path = file_path_with_player_dir(line);
 		/* If the player file was able to be read properly... */
 		if (0 == read_last_entry(full_player_path, &temp)) {
-			/* ...add the player data to the player pr entry array*/
-			players_pr_entries[pr_entries_size] = temp;
-			pr_entries_size++;
+			int num_events;
+			get_player_attended(full_player_path, &num_events);
+			// If the player attended the minimum number of events
+			if (num_events >= pr_minimum_events) {
+				/* ...add the player data to the player pr entry array*/
+				players_pr_entries[pr_entries_size] = temp;
+				pr_entries_size++;
+			}
 		}
 		free(full_player_path);
 	}
@@ -1237,6 +1246,7 @@ int main(int argc, char **argv) {
 		{ "human",			required_argument,	NULL,	'h' },
 		/* Output last entry in given player file in human readable form */
 		{ "last-entry",		required_argument,	NULL,	'l' },
+		{ "min-events",		required_argument,	NULL,	'm' },
 		{ "no-colour",		required_argument,	NULL,	'n' },
 		{ "output",			required_argument,	NULL,	'o' },
 		/* Output a file with a sorted list of players and their ratings */
@@ -1254,7 +1264,7 @@ int main(int argc, char **argv) {
 	strncpy(player_dir, ".players/", sizeof(player_dir) - 1);
 
 	while ((opt = getopt_long(argc, argv, \
-		"a:A:b:B:c:d:gh:l:no:p:P:r:R:w:x:", opt_table, NULL)) != -1) {
+		"a:A:b:B:c:d:gh:l:m:no:p:P:r:R:w:x:", opt_table, NULL)) != -1) {
 		if (opt == 'A') {
 			int count;
 			char *full_player_path = file_path_with_player_dir(optarg);
@@ -1305,6 +1315,9 @@ int main(int argc, char **argv) {
 				break;
 			case 'g':
 				use_games = 1;
+				break;
+			case 'm':
+				pr_minimum_events = atoi(optarg);
 				break;
 			case 'n':
 				colour_output = 0;

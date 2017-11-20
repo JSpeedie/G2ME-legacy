@@ -15,6 +15,7 @@
 	* [The 'g' flag](#the-g-flag)
 	* [The 'h' flag](#the-h-flag)
 	* [The 'l' flag](#the-l-flag)
+	* [The 'm' flag](#the-m-flag)
 	* [The 'n' flag](#the-n-flag)
 	* [The 'o' flag](#the-o-flag)
 	* [The 'p' flag](#the-p-flag)
@@ -204,6 +205,13 @@ Example output (from command above):
 
 Stands for Output-**L**ast-Line. Not really useful except for debugging. Same
 as `-h` except it's only the last line.
+
+### The 'm' flag
+
+`G2ME -p pr -m 3 -o prForPlayersWhoAttendedAtLeast3Events`
+
+Stands for **m**inimum events attended. Useful for outputting a meaningful pr
+that won't have the people who only showed up once or twice.
 
 ### The 'n' flag
 
