@@ -222,23 +222,31 @@ interpretation easier. This flag disables that.
 
 ### The 'o' flag
 
-`G2ME -p pr -o 2017pr`
+```
+G2ME -p pr -o 2017pr
+G2ME -o 2017pr
+```
 
-The o flag is to be used in conjunction with the p flag. The o flag takes an
+The o flag is usually used in conjunction with the p flag. The o flag takes an
 argument of a file path where a pr written. When the 2 flags are used together,
 G2ME outputs a sorted list of all the players listed in the file specified by
-`-p` into the file specified by `-o`. Basically it generates the pr list.
+`-p` into the file specified by `-o`. It can be used without the `-p` flag
+which will make it output a pr containing all players in `player_dir`.
 
 Example output (aka `2017pr` after running the command above):
 
 ```
-   Jon  2160.2  98.7  0.05998749
- Jonah  1906.8  88.7  0.05998407
-Isaiah  1872.1  83.5  0.05998309
-  Josh  1817.3  93.5  0.05998337
-Julian  1661.6  76.1  0.05997865
- Bilal  1657.9  78.0  0.05999001
- Kriss  1579.7  92.1  0.05998392
+   Jon  2119.9   95.0  0.05998555
+ Jonah  1948.9   81.9  0.05997680
+Isaiah  1870.7   81.6  0.05997892
+  Josh  1800.0   90.0  0.05998035
+ Ralph  1776.5  101.5  0.05998667
+  DeZy  1770.8   90.9  0.05998575
+Julian  1719.9   69.9  0.05996194
+Edward  1695.6   86.7  0.05998215
+ Bilal  1669.7   72.6  0.05998048
+Jerome  1622.6   87.8  0.05999483
+ Kriss  1580.8   83.7  0.05997938
 ```
 
 ### The 'p' flag
