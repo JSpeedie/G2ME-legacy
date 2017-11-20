@@ -7,6 +7,7 @@
 * [Why it makes Glicko 2 Easier](#why-it-makes-glicko-2-easier)
 * [Usage](#usage)
 	* [The 'a' flag](#the-a-flag)
+	* [The 'A' flag](#the-A-flag-1)
 	* [The 'b' flag](#the-b-flag)
 	* [The 'B' flag](#the-b-flag-1)
 	* [The 'c' flag](#the-c-flag)
@@ -69,6 +70,23 @@ files as inputs and calculates the new glicko ratings for all the players.
 Takes a file path, prompts user for space-delimited entry information and then
 appends it to the given file. If you use G2ME as intended, you should never
 have to use this. Used almost exclusively for debugging and last minute fixes.
+
+### The 'A' flag
+
+`G2ME -A Julian`
+
+Takes a file path, and prints the names of all the events this player attended
+that were tracked by the system.
+
+Example output:
+
+```
+TSE1
+TSE2
+TT1
+TT2
+TSE4
+```
 
 ### The 'b' flag
 
