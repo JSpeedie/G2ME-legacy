@@ -1182,9 +1182,8 @@ char *get_player_attended(char *file_path, int *ret_count) {
 	char name[MAX_NAME_LEN];
 	// TODO: make this reallocate if needed etc.
 	char *tourneys = calloc(128 * MAX_NAME_LEN, sizeof(char));
-	int tourneys_so_far = 0;
+	long tourneys_so_far = 0;
 	char in_tourneys = 0;
-	long num_attended = 0;
 	struct entry cur_entry;
 	memset(name, 0, sizeof(name));
 	/* Read the starter data in the file */
@@ -1193,6 +1192,7 @@ char *get_player_attended(char *file_path, int *ret_count) {
 
 
 	while (read_entry(p_file, &cur_entry) == 0) {
+		in_tourneys = 0;
 		for (int i = 0; i < tourneys_so_far; i++) {
 			// If this tourney has already been recorded
 			if (strcmp(cur_entry.t_name, tourneys + i * MAX_NAME_LEN) == 0) {
@@ -1206,12 +1206,13 @@ char *get_player_attended(char *file_path, int *ret_count) {
 			tourneys_so_far++;
 		}
 	}
+	*ret_count = tourneys_so_far;
 
 	fclose(p_file);
 	return tourneys;
 }
 
-int print_player_attended(char *attended, int count) {
+void print_player_attended(char *attended, int count) {
 	// Print names of all tournaments attended by the player
 	for (int i = 0; i < count; i++) {
 		printf("%s\n", attended + i * MAX_NAME_LEN);
