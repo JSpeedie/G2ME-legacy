@@ -1171,33 +1171,51 @@ int get_player_outcome_count(char *file_path) {
 	return num_outcomes;
 }
 
-int get_player_attended_count(char *file_path) {
+char *get_player_attended(char *file_path, int *ret_count) {
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
-		perror("fopen (get_player_outcome_count)");
-		return -1;
+		perror("fopen (get_player_attended_count)");
+		return NULL;
 	}
 
 	char len_of_name;
 	char name[MAX_NAME_LEN];
-	long num_outcomes = 0;
+	// TODO: make this reallocate if needed etc.
+	char *tourneys = calloc(128 * MAX_NAME_LEN, sizeof(char));
+	int tourneys_so_far = 0;
+	char in_tourneys = 0;
+	long num_attended = 0;
 	struct entry cur_entry;
 	memset(name, 0, sizeof(name));
 	/* Read the starter data in the file */
-	if (1 != fread(&len_of_name, sizeof(char), 1, p_file)) { return -2; }
-	if (len_of_name != fread(name, sizeof(char), len_of_name, p_file)) { return -3; }
+	if (1 != fread(&len_of_name, sizeof(char), 1, p_file)) { return NULL; }
+	if (len_of_name != fread(name, sizeof(char), len_of_name, p_file)) { return NULL; }
 
 
 	while (read_entry(p_file, &cur_entry) == 0) {
-		// If the entry was NOT an RD adjustment due to absense
-		if (strcmp(cur_entry.opp_name, "-") != 0 && !(cur_entry.gc == 0 \
-			&& cur_entry.opp_gc == 0)) {
-			num_outcomes++;
+		for (int i = 0; i < tourneys_so_far; i++) {
+			// If this tourney has already been recorded
+			if (strcmp(cur_entry.t_name, tourneys + i * MAX_NAME_LEN) == 0) {
+				in_tourneys = 1;
+			}
+		}
+		// If this tournament has been recorded as attended and the opponent
+		// wasn't the system making an RD adjustment
+		if (in_tourneys == 0 && strcmp(cur_entry.opp_name, "-") != 0) {
+			strncpy(tourneys + tourneys_so_far * MAX_NAME_LEN, cur_entry.t_name, MAX_NAME_LEN - 1);
+			tourneys_so_far++;
 		}
 	}
 
 	fclose(p_file);
-	return num_outcomes;
+	return tourneys;
+}
+
+int print_player_attended(char *attended, int count) {
+	// Print names of all tournaments attended by the player
+	for (int i = 0; i < count; i++) {
+		printf("%s\n", attended + i * MAX_NAME_LEN);
+	}
 }
 
 int main(int argc, char **argv) {
@@ -1237,10 +1255,13 @@ int main(int argc, char **argv) {
 	while ((opt = getopt_long(argc, argv, \
 		"a:A:b:B:c:d:gh:l:no:p:P:r:R:w:x:", opt_table, NULL)) != -1) {
 		if (opt == 'A') {
+			int count;
 			char *full_player_path = file_path_with_player_dir(optarg);
-			printf("%d\n", get_player_attended_count(full_player_path));
+			char *attended = get_player_attended(full_player_path, &count);
+			print_player_attended(attended, count);
 			free(full_player_path);
-		if (opt == 'c') {
+			free(attended);
+		} else if (opt == 'c') {
 			char *full_player_path = file_path_with_player_dir(optarg);
 			printf("%d\n", get_player_outcome_count(full_player_path));
 			free(full_player_path);
