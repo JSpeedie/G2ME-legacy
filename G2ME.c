@@ -1171,12 +1171,42 @@ int get_player_outcome_count(char *file_path) {
 	return num_outcomes;
 }
 
+int get_player_attended_count(char *file_path) {
+	FILE *p_file = fopen(file_path, "rb");
+	if (p_file == NULL) {
+		perror("fopen (get_player_outcome_count)");
+		return -1;
+	}
+
+	char len_of_name;
+	char name[MAX_NAME_LEN];
+	long num_outcomes = 0;
+	struct entry cur_entry;
+	memset(name, 0, sizeof(name));
+	/* Read the starter data in the file */
+	if (1 != fread(&len_of_name, sizeof(char), 1, p_file)) { return -2; }
+	if (len_of_name != fread(name, sizeof(char), len_of_name, p_file)) { return -3; }
+
+
+	while (read_entry(p_file, &cur_entry) == 0) {
+		// If the entry was NOT an RD adjustment due to absense
+		if (strcmp(cur_entry.opp_name, "-") != 0 && !(cur_entry.gc == 0 \
+			&& cur_entry.opp_gc == 0)) {
+			num_outcomes++;
+		}
+	}
+
+	fclose(p_file);
+	return num_outcomes;
+}
+
 int main(int argc, char **argv) {
 	int opt;
 	struct option opt_table[] = {
 		/* Add (or create if necessary) a player entry/player entry file
 		 * from user input */
 		{ "add-entry",		required_argument,	NULL,	'a' },
+		{ "events-attended",required_argument,	NULL,	'A' },
 		/* Run through a given bracket file making the necessary updates
 		 * to the glicko2 scores */
 		{ "bracket",		required_argument,	NULL,	'b' },
@@ -1205,7 +1235,11 @@ int main(int argc, char **argv) {
 	strncpy(player_dir, ".players/", sizeof(player_dir) - 1);
 
 	while ((opt = getopt_long(argc, argv, \
-		"a:b:B:c:d:gh:l:no:p:P:r:R:w:x:", opt_table, NULL)) != -1) {
+		"a:A:b:B:c:d:gh:l:no:p:P:r:R:w:x:", opt_table, NULL)) != -1) {
+		if (opt == 'A') {
+			char *full_player_path = file_path_with_player_dir(optarg);
+			printf("%d\n", get_player_attended_count(full_player_path));
+			free(full_player_path);
 		if (opt == 'c') {
 			char *full_player_path = file_path_with_player_dir(optarg);
 			printf("%d\n", get_player_outcome_count(full_player_path));
