@@ -1179,26 +1179,23 @@ int print_player_records(char *file_path) {
 	merge_sort_player_records(&(records[0]), num_rec);
 
 	for (int i = 0; i < num_rec; i++) {
+		char* output_colour_player = NORMAL;
 		if (colour_output == 1) {
-			/* If the player has a winning record */
+			// If the player has a winning record
 			if (records[i].wins > records[i].losses) {
-				printf("%s vs %s%s%s = %d-%d-%d\n", \
-					records[i].name, GREEN, records[i].opp_name, NORMAL, \
-					records[i].wins, records[i].ties, records[i].losses);
+				output_colour_player = GREEN;
+			// If the player has a losing record
 			} else if (records[i].wins < records[i].losses) {
-				printf("%s vs %s%s%s = %d-%d-%d\n", \
-					records[i].name, RED, records[i].opp_name, NORMAL, \
-					records[i].wins, records[i].ties, records[i].losses);
+				output_colour_player = RED;
+			// If the player has a tied record
 			} else {
-				printf("%s vs %s = %d-%d-%d\n", \
-					records[i].name, records[i].opp_name, \
-					records[i].wins, records[i].ties, records[i].losses);
+				output_colour_player = YELLOW;
 			}
-		} else {
-			printf("%s vs %s = %d-%d-%d\n", \
-				records[i].name, records[i].opp_name, \
-				records[i].wins, records[i].ties, records[i].losses);
 		}
+
+		printf("%s vs %s%s%s = %d-%d-%d\n", \
+			records[i].name, output_colour_player, records[i].opp_name, \
+			NORMAL, records[i].wins, records[i].ties, records[i].losses);
 	}
 
 	fclose(p_file);
