@@ -1345,6 +1345,17 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	return 0;
 }
 
+int longest_name(char *players, int array_len) {
+	int ret = 0;
+	for (int i = 0; i < array_len; i++) {
+		if (strlen(&players[MAX_NAME_LEN * i]) > ret) {
+			ret = strlen(&players[MAX_NAME_LEN * i]);
+		}
+	}
+
+	return ret;
+}
+
 void print_matchup_table(void) {
 	// Print a table showing the matchup data for all players stored in the
 	// system (aka the player directory)
@@ -1352,16 +1363,18 @@ void print_matchup_table(void) {
 	// Get a list of all players tracked by the system to allow for proper
 	// column and row titles
 	int num_players = 0;
-	int space_between_columns = 4;
+	int space_between_columns = 3;
 	// TODO: better size allocation
 	char *players = malloc(MAX_NAME_LEN * 128);
 	players_in_player_dir(players, &num_players);
+	int longest_n = longest_name(players, num_players);
 	// 'num_players + 1' to accomodate one player per row and an extra row
 	// for the column titles
 	char output[num_players + 1][1024];
 	// Empty the first line of output
 	memset(output[0], 0, 1024);
-	snprintf(output[0], 30, "%*s%*s", 30, "", space_between_columns, "");
+	snprintf(output[0], longest_n + space_between_columns, "%*s", \
+		longest_n + space_between_columns, "");
 	// Format column titles for output
 	for (int i = 0; i < num_players; i++) {
 		// Make column width to be the length of the column title (the name)
@@ -1375,8 +1388,8 @@ void print_matchup_table(void) {
 	if ((p_dir = opendir(player_dir)) != NULL) {
 		for (int i = 0; i < num_players; i++) {
 			// Add row title
-			snprintf(output[i + 1], 30, "%25s%*s", \
-				&players[i * MAX_NAME_LEN], space_between_columns, "");
+			snprintf(output[i + 1], longest_n + space_between_columns, "%*s%*s", \
+				longest_n, &players[i * MAX_NAME_LEN], space_between_columns, "");
 			// TODO: get records against each player in 'players'
 			for (int j = 0; j < num_players; j++) {
 				struct record temp_rec;
