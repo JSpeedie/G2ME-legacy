@@ -1279,6 +1279,131 @@ void print_player_attended(char *attended, int count) {
 	}
 }
 
+char *players_in_player_dir(char *players, int *num) {
+	DIR *p_dir;
+	struct dirent *entry;
+
+	if ((p_dir = opendir(player_dir)) != NULL) {
+		*num = 0;
+		while ((entry = readdir(p_dir)) != NULL) {
+			// Make sure it doesn't count directories
+			if (entry->d_type != DT_DIR) {
+				int num_events;
+				char *full_player_path = file_path_with_player_dir(entry->d_name);
+				get_player_attended(full_player_path, &num_events);
+				// If the player attended the minimum number of events
+				if (num_events >= pr_minimum_events) {
+					strncpy(&players[MAX_NAME_LEN * *(num)], entry->d_name, MAX_NAME_LEN);
+					// Add null terminator to each name
+					players[MAX_NAME_LEN * (*(num) + 1)] = '\0';
+					*num = *(num) + 1;
+				}
+				free(full_player_path);
+			}
+		}
+		closedir(p_dir);
+	}
+	return players;
+}
+
+int get_record(char *player1, char *player2, struct record *ret) {
+	char *full_player1_path = file_path_with_player_dir(player1);
+	FILE *p_file = fopen(full_player1_path, "rb");
+	free(full_player1_path);
+	if (p_file == NULL) {
+		perror("fopen (get_record)");
+		return -1;
+	}
+
+	char len_of_name;
+	char name[MAX_NAME_LEN];
+	memset(name, 0, sizeof(name));
+	/* Read the starter data in the file */
+	if (1 != fread(&len_of_name, sizeof(char), 1, p_file)) { return -2; }
+	if (len_of_name != fread(name, sizeof(char), len_of_name, p_file)) { return -3; }
+
+	strncpy(ret->name, name, MAX_NAME_LEN - 1);
+	// TODO: actually get player2 name from their file. '*player2' is just a file name
+	strncpy(ret->opp_name, player2, MAX_NAME_LEN - 1);
+	ret->wins = 0;
+	ret->losses = 0;
+	ret->ties = 0;
+	struct entry ent;
+	ent.len_name = len_of_name;
+	strncpy(ent.name, name, MAX_NAME_LEN);
+
+	while (read_entry(p_file, &ent) == 0) {
+		// If the opponent for the given entry is the player of interest
+		if (0 == strcmp(ent.opp_name, player2)) {
+			if (ent.gc > ent.opp_gc) ret->wins += 1;
+			else if (ent.gc == ent.opp_gc) ret->ties += 1;
+			else if (ent.gc < ent.opp_gc) ret->losses += 1;
+		}
+	}
+	fclose(p_file);
+
+	return 0;
+}
+
+void print_matchup_table(void) {
+	// Print a table showing the matchup data for all players stored in the
+	// system (aka the player directory)
+	DIR *p_dir;
+	// Get a list of all players tracked by the system to allow for proper
+	// column and row titles
+	int num_players = 0;
+	int space_between_columns = 4;
+	// TODO: better size allocation
+	char *players = malloc(MAX_NAME_LEN * 128);
+	players_in_player_dir(players, &num_players);
+	// 'num_players + 1' to accomodate one player per row and an extra row
+	// for the column titles
+	char output[num_players + 1][1024];
+	// Empty the first line of output
+	memset(output[0], 0, 1024);
+	snprintf(output[0], 30, "%*s%*s", 30, "", space_between_columns, "");
+	// Format column titles for output
+	for (int i = 0; i < num_players; i++) {
+		// Make column width to be the length of the column title (the name)
+		int col_width = strlen(&players[i * MAX_NAME_LEN]) + space_between_columns;
+		char col[col_width];
+		snprintf(col, col_width, "%-*s", col_width, &players[i * MAX_NAME_LEN]);
+		strcat(output[0], col);
+	}
+	printf("%s\n", output[0]);
+
+	if ((p_dir = opendir(player_dir)) != NULL) {
+		for (int i = 0; i < num_players; i++) {
+			// Add row title
+			snprintf(output[i + 1], 30, "%25s%*s", \
+				&players[i * MAX_NAME_LEN], space_between_columns, "");
+			// TODO: get records against each player in 'players'
+			for (int j = 0; j < num_players; j++) {
+				struct record temp_rec;
+				get_record(&players[i * MAX_NAME_LEN], \
+					&players[j * MAX_NAME_LEN], &temp_rec);
+				// Make column width to be the length of the column title
+				// plus a space character on each side
+				char col[strlen(&players[j * MAX_NAME_LEN]) + space_between_columns];
+				snprintf(col, sizeof(col), "%d-%d-%-20d", \
+					temp_rec.wins, temp_rec.ties, temp_rec.losses);
+				// If the player has no data against a given opponent,
+				// print "-"
+				if (temp_rec.wins == 0 && temp_rec.ties == 0 \
+					&& temp_rec.losses == 0) {
+					snprintf(col, sizeof(col), "-%-24s", "");
+				}
+				strcat(output[i + 1], col);
+			}
+			printf("%s\n", output[i + 1]);
+		}
+		closedir(p_dir);
+	} else {
+		perror("opendir (print_matchup_table)");
+		return;
+	}
+}
+
 int main(int argc, char **argv) {
 	int opt;
 	struct option opt_table[] = {
@@ -1298,6 +1423,7 @@ int main(int argc, char **argv) {
 		/* Output last entry in given player file in human readable form */
 		{ "last-entry",		required_argument,	NULL,	'l' },
 		{ "min-events",		required_argument,	NULL,	'm' },
+		{ "matchup-table",	required_argument,	NULL,	'M' },
 		{ "no-colour",		required_argument,	NULL,	'n' },
 		{ "output",			required_argument,	NULL,	'o' },
 		/* Output a file with a sorted list of players and their ratings */
@@ -1315,7 +1441,7 @@ int main(int argc, char **argv) {
 	strncpy(player_dir, ".players/", sizeof(player_dir) - 1);
 
 	while ((opt = getopt_long(argc, argv, \
-		"a:A:b:B:c:d:gh:l:m:no:p:P:r:R:w:x:", opt_table, NULL)) != -1) {
+		"a:A:b:B:c:d:gh:l:m:Mno:p:P:r:R:w:x:", opt_table, NULL)) != -1) {
 		if (opt == 'A') {
 			int count;
 			char *full_player_path = file_path_with_player_dir(optarg);
@@ -1346,6 +1472,7 @@ int main(int argc, char **argv) {
 			free(full_player_path);
 		} else if (opt == 'R') {
 			char *full_player_path = file_path_with_player_dir(optarg);
+			printf("optarg = %s\n", optarg);
 			print_player_records(full_player_path);
 			free(full_player_path);
 		} else if (opt == 'x') {
@@ -1369,6 +1496,9 @@ int main(int argc, char **argv) {
 				break;
 			case 'm':
 				pr_minimum_events = atoi(optarg);
+				break;
+			case 'M':
+				print_matchup_table();
 				break;
 			case 'n':
 				colour_output = 0;
