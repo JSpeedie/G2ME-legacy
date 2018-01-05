@@ -17,6 +17,7 @@
 	* [The 'l' flag](#the-l-flag)
 	* [The 'm' flag](#the-m-flag)
 	* [The 'n' flag](#the-n-flag)
+	* [The 'N' flag](#the-n-flag-1)
 	* [The 'o' flag](#the-o-flag)
 	* [The 'p' flag](#the-p-flag)
 	* [The 'P' flag](#the-p-flag-1)
@@ -247,6 +248,13 @@ that won't have the people who only showed up once or twice.
 
 Stands for **n**o-colour. By default, G2ME will colour certain inputs to make
 interpretation easier. This flag disables that.
+
+### The 'N' flag
+
+When printing record data, instead of the standard:
+"**[wins]**-**[ties]**-**[losses]**", `G2ME` will print
+"**[wins]**-**[losses]**" to accomodate users who participate in an event
+that can never have ties.
 
 ### The 'o' flag
 
