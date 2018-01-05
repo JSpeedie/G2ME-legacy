@@ -1417,6 +1417,62 @@ void print_matchup_table(void) {
 	}
 }
 
+void print_matchup_table_csv(void) {
+	// Print a table showing the matchup data for all players stored in the
+	// system (aka the player directory)
+	DIR *p_dir;
+	// Get a list of all players tracked by the system to allow for proper
+	// column and row titles
+	int num_players = 0;
+	// TODO: better size allocation
+	char *players = malloc(MAX_NAME_LEN * 128);
+	players_in_player_dir(players, &num_players);
+	// 'num_players + 1' to accomodate one player per row and an extra row
+	// for the column titles
+	char output[num_players + 1][1024];
+	// Empty the first line of output
+	memset(output[0], 0, 1024);
+	// Topmost, leftmost cell should be empty
+	sprintf(output[0], ",");
+	// Fill in column titles with player names + a comma delimiter
+	for (int i = 0; i < num_players; i++) {
+		strncat(output[0], &players[i * MAX_NAME_LEN], 1024 - 1 - strlen(output[0]));
+		strncat(output[0], ",", 1024 - 1 - strlen(output[0]));
+	}
+	printf("%s\n", output[0]);
+
+	if ((p_dir = opendir(player_dir)) != NULL) {
+		for (int i = 0; i < num_players; i++) {
+			// Add row title
+			sprintf(output[i + 1], "%s,", &players[i * MAX_NAME_LEN]);
+			// TODO: get records against each player in 'players'
+			for (int j = 0; j < num_players; j++) {
+				struct record temp_rec;
+				get_record(&players[i * MAX_NAME_LEN], \
+					&players[j * MAX_NAME_LEN], &temp_rec);
+				// Make column width to be the length of the column title
+				// plus a space character on each side
+				// TODO:change to accomodate large records
+				char col[strlen(&players[j * MAX_NAME_LEN])];
+				snprintf(col, sizeof(col), "%d-%d-%d,", \
+					temp_rec.wins, temp_rec.ties, temp_rec.losses);
+				// If the player has no data against a given opponent,
+				// print "-"
+				if (temp_rec.wins == 0 && temp_rec.ties == 0 \
+					&& temp_rec.losses == 0) {
+					snprintf(col, sizeof(col), "-,");
+				}
+				strcat(output[i + 1], col);
+			}
+			printf("%s\n", output[i + 1]);
+		}
+		closedir(p_dir);
+	} else {
+		perror("opendir (print_matchup_table_csv)");
+		return;
+	}
+}
+
 int main(int argc, char **argv) {
 	int opt;
 	struct option opt_table[] = {
@@ -1429,6 +1485,7 @@ int main(int argc, char **argv) {
 		{ "bracket",		required_argument,	NULL,	'b' },
 		{ "brackets",		required_argument,	NULL,	'B' },
 		{ "count-outcomes",	required_argument,	NULL,	'c' },
+		{ "matchup-csv",	required_argument,	NULL,	'C' },
 		{ "player-dir",		required_argument,	NULL,	'd' },
 		{ "use-games",		no_argument,		NULL,	'g' },
 		/* Output given player file in human readable form */
@@ -1454,7 +1511,7 @@ int main(int argc, char **argv) {
 	strncpy(player_dir, ".players/", sizeof(player_dir) - 1);
 
 	while ((opt = getopt_long(argc, argv, \
-		"a:A:b:B:c:d:gh:l:m:Mno:p:P:r:R:w:x:", opt_table, NULL)) != -1) {
+		"a:A:b:B:c:Cd:gh:l:m:Mno:p:P:r:R:w:x:", opt_table, NULL)) != -1) {
 		if (opt == 'A') {
 			int count;
 			char *full_player_path = file_path_with_player_dir(optarg);
@@ -1500,6 +1557,9 @@ int main(int argc, char **argv) {
 				break;
 			case 'b':
 				update_players(optarg);
+				break;
+			case 'C':
+				print_matchup_table_csv();
 				break;
 			case 'B':
 				run_brackets(optarg);
