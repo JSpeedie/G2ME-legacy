@@ -150,6 +150,39 @@ If this flag outputs a higher number for one player than another it does not
 necessarily mean that it has more data on the one with the higher number,
 however.
 
+### The 'C' flag
+Takes no arguments. Outputs a csv-style "spreadsheet" of player matchup data.
+Useful for turning the data into a spreadsheet or for use with spreadsheet
+software. Like `-M`, it is compatible with the `-m` flag. Therefore you can
+limit the output to only include players who have attended a specified number
+of events.
+
+The data is read left to right. For instance, in the example below, we find
+that Julian has 3 wins, 0 ties and 0 losses to Ash, has beaten Bilal 3 times,
+tied 0 times and lost 4 times.
+
+```$ G2ME -m 8 -C
+,Bilal,Ash,Andrew,Julian,
+Bilal,-,2-0-0,3-0-0,4-0-3,
+Ash,0-0-2,-,1-0-1,0-0-3,
+Andrew,0-0-3,1-0-1,-,0-0-3,
+Julian,3-0-4,3-0-0,3-0-0,-,
+```
+
+which in a spreadsheet takes the form of:
+
++--------+-------+-------+--------+--------+
+|        | Bilal | Ash   | Andrew | Julian |
++--------+-------+-------+--------+--------+
+| Bilal  | -     | 2-0-0 | 3-0-0  | 4-0-3  |
++--------+-------+-------+--------+--------+
+| Ash    | 0-0-2 | -     | 1-0-1  | 0-0-3  |
++--------+-------+-------+--------+--------+
+| Andrew | 0-0-3 | 1-0-1 | -      | 0-0-3  |
++--------+-------+-------+--------+--------+
+| Julian | 3-0-4 | 3-0-0 | 3-0-0  | -      |
++--------+-------+-------+--------+--------+
+
 ### The 'd' flag
 
 `G2ME -d players/here/ -b test.br`
