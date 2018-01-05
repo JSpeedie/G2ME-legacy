@@ -30,6 +30,7 @@ char *WHITE = "\x1B[37m";
 char use_games = 0;
 int pr_minimum_events = 0;
 char colour_output = 1;
+char print_ties = 1;
 char player_list_file[256];
 char calc_absent_players = 0;
 double outcome_weight = 1;
@@ -1193,9 +1194,16 @@ int print_player_records(char *file_path) {
 			}
 		}
 
-		printf("%s vs %s%s%s = %d-%d-%d\n", \
-			records[i].name, output_colour_player, records[i].opp_name, \
-			NORMAL, records[i].wins, records[i].ties, records[i].losses);
+		// If the user wants ties to be printed
+		if (print_ties == 1) {
+			printf("%s vs %s%s%s = %d-%d-%d\n", \
+				records[i].name, output_colour_player, records[i].opp_name, \
+				NORMAL, records[i].wins, records[i].ties, records[i].losses);
+		} else {
+			printf("%s vs %s%s%s = %d-%d\n", \
+				records[i].name, output_colour_player, records[i].opp_name, \
+				NORMAL, records[i].wins, records[i].losses);
+		}
 	}
 
 	fclose(p_file);
@@ -1398,8 +1406,14 @@ void print_matchup_table(void) {
 				// Make column width to be the length of the column title
 				// plus a space character on each side
 				char col[strlen(&players[j * MAX_NAME_LEN]) + space_between_columns];
-				snprintf(col, sizeof(col), "%d-%d-%-20d", \
-					temp_rec.wins, temp_rec.ties, temp_rec.losses);
+				// If the user wants ties to be printed
+				if (print_ties == 1) {
+					 snprintf(col, sizeof(col), "%d-%d-%-20d", \
+					 	temp_rec.wins, temp_rec.ties, temp_rec.losses);
+				} else {
+					 snprintf(col, sizeof(col), "%d-%-20d", \
+					 	temp_rec.wins, temp_rec.losses);
+				}
 				// If the player has no data against a given opponent,
 				// print "-"
 				if (temp_rec.wins == 0 && temp_rec.ties == 0 \
@@ -1454,8 +1468,14 @@ void print_matchup_table_csv(void) {
 				// plus a space character on each side
 				// TODO:change to accomodate large records
 				char col[30];
-				snprintf(col, sizeof(col), "%d-%d-%d,", \
-					temp_rec.wins, temp_rec.ties, temp_rec.losses);
+				// If the user wants ties to be printed
+				if (print_ties == 1) {
+					 snprintf(col, sizeof(col), "%d-%d-%-20d", \
+					 	temp_rec.wins, temp_rec.ties, temp_rec.losses);
+				} else {
+					 snprintf(col, sizeof(col), "%d-%-20d", \
+					 	temp_rec.wins, temp_rec.losses);
+				}
 				// If the player has no data against a given opponent,
 				// print "-"
 				if (temp_rec.wins == 0 && temp_rec.ties == 0 \
@@ -1495,6 +1515,7 @@ int main(int argc, char **argv) {
 		{ "min-events",		required_argument,	NULL,	'm' },
 		{ "matchup-table",	required_argument,	NULL,	'M' },
 		{ "no-colour",		required_argument,	NULL,	'n' },
+		{ "no-ties",		required_argument,	NULL,	'N' },
 		{ "output",			required_argument,	NULL,	'o' },
 		/* Output a file with a sorted list of players and their ratings */
 		{ "power-rating",	required_argument,	NULL,	'p' },
@@ -1511,7 +1532,7 @@ int main(int argc, char **argv) {
 	strncpy(player_dir, ".players/", sizeof(player_dir) - 1);
 
 	while ((opt = getopt_long(argc, argv, \
-		"a:A:b:B:c:Cd:gh:l:m:Mno:p:P:r:R:w:x:", opt_table, NULL)) != -1) {
+		"a:A:b:B:c:Cd:gh:l:m:MnNo:p:P:r:R:w:x:", opt_table, NULL)) != -1) {
 		if (opt == 'A') {
 			int count;
 			char *full_player_path = file_path_with_player_dir(optarg);
@@ -1575,6 +1596,9 @@ int main(int argc, char **argv) {
 				break;
 			case 'n':
 				colour_output = 0;
+				break;
+			case 'N':
+				print_ties = 0;
 				break;
 			case 'p':
 				o_generate_pr = 1;
