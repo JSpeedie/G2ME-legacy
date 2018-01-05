@@ -164,7 +164,8 @@ The data is read left to right. For instance, in the example below, we find
 that Julian has 3 wins, 0 ties and 0 losses to Ash, has beaten Bilal 3 times,
 tied 0 times and lost 4 times.
 
-```$ G2ME -m 8 -C
+```
+$ G2ME -m 8 -C
 ,Bilal,Ash,Andrew,Julian,
 Bilal,-,2-0-0,3-0-0,4-0-3,
 Ash,0-0-2,-,1-0-1,0-0-3,
