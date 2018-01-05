@@ -1453,7 +1453,7 @@ void print_matchup_table_csv(void) {
 				// Make column width to be the length of the column title
 				// plus a space character on each side
 				// TODO:change to accomodate large records
-				char col[strlen(&players[j * MAX_NAME_LEN])];
+				char col[30];
 				snprintf(col, sizeof(col), "%d-%d-%d,", \
 					temp_rec.wins, temp_rec.ties, temp_rec.losses);
 				// If the player has no data against a given opponent,
