@@ -11,6 +11,7 @@
 	* [The 'b' flag](#the-b-flag)
 	* [The 'B' flag](#the-b-flag-1)
 	* [The 'c' flag](#the-c-flag)
+	* [The 'C' flag](#the-c-flag-1)
 	* [The 'd' flag](#the-d-flag)
 	* [The 'g' flag](#the-g-flag)
 	* [The 'h' flag](#the-h-flag)
@@ -152,6 +153,7 @@ necessarily mean that it has more data on the one with the higher number,
 however.
 
 ### The 'C' flag
+
 Takes no arguments. Outputs a csv-style "spreadsheet" of player matchup data.
 Useful for turning the data into a spreadsheet or for use with spreadsheet
 software. Like `-M`, it is compatible with the `-m` flag. Therefore you can
