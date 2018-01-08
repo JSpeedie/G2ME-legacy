@@ -17,6 +17,7 @@
 	* [The 'h' flag](#the-h-flag)
 	* [The 'l' flag](#the-l-flag)
 	* [The 'm' flag](#the-m-flag)
+	* [The 'M' flag](#the-m-flag-1)
 	* [The 'n' flag](#the-n-flag)
 	* [The 'N' flag](#the-n-flag-1)
 	* [The 'o' flag](#the-o-flag)
@@ -244,6 +245,24 @@ as `-h` except it's only the last line.
 
 Stands for **m**inimum events attended. Useful for outputting a meaningful pr
 that won't have the people who only showed up once or twice.
+
+### The 'M' flag
+
+`G2ME -m 8 -M`
+
+Stands for **m**atchup table. Can be used on it's own and requires no arguments.
+Outputs the matchups records of all the players in the system, possible
+filtered with the `-m` flag.
+
+Example output:
+
+```
+        Ash    Bilal  Jonah  Julian
+Ash     -      0-0-2  -      0-0-3
+Bilal   2-0-0  -      0-0-2  4-0-3
+Jonah   -      2-0-0  -      4-0-0
+Julian  3-0-0  3-0-4  0-0-4  -
+```
 
 ### The 'n' flag
 
