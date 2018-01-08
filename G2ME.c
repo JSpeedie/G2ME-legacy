@@ -1306,6 +1306,40 @@ char *players_in_player_dir(char *players, int *num) {
 	return players;
 }
 
+char *players_in_player_dir_lexio(char *players, int *num) {
+	DIR *p_dir;
+	struct dirent *entry;
+
+	if ((p_dir = opendir(player_dir)) != NULL) {
+		*num = 0;
+		while ((entry = readdir(p_dir)) != NULL) {
+			// Make sure it doesn't count directories
+			if (entry->d_type != DT_DIR) {
+				int num_events;
+				char *full_player_path = file_path_with_player_dir(entry->d_name);
+				get_player_attended(full_player_path, &num_events);
+				// If the player attended the minimum number of events
+				if (num_events >= pr_minimum_events) {
+					int i = MAX_NAME_LEN * (*(num) - 1);
+					// Find the right index to insert the name at
+					while (strcmp(&players[i], entry->d_name) > 0 && i >= 0) {
+						// Move later-occuring name further in the array
+						strncpy(&players[i + MAX_NAME_LEN], &players[i], MAX_NAME_LEN);
+						i -= MAX_NAME_LEN;
+					}
+					strncpy(&players[i + MAX_NAME_LEN], entry->d_name, MAX_NAME_LEN);
+					// Add null terminator to each name
+					players[MAX_NAME_LEN * (*(num) + 1)] = '\0';
+					*num = *(num) + 1;
+				}
+				free(full_player_path);
+			}
+		}
+		closedir(p_dir);
+	}
+	return players;
+}
+
 int get_record(char *player1, char *player2, struct record *ret) {
 	char *full_player1_path = file_path_with_player_dir(player1);
 	FILE *p_file = fopen(full_player1_path, "rb");
@@ -1366,7 +1400,7 @@ void print_matchup_table(void) {
 	int space_between_columns = 3;
 	// TODO: better size allocation
 	char *players = malloc(MAX_NAME_LEN * 128);
-	players_in_player_dir(players, &num_players);
+	players_in_player_dir_lexio(players, &num_players);
 	int longest_n = longest_name(players, num_players);
 	// 'num_players + 1' to accomodate one player per row and an extra row
 	// for the column titles
@@ -1426,7 +1460,7 @@ void print_matchup_table_csv(void) {
 	int num_players = 0;
 	// TODO: better size allocation
 	char *players = malloc(MAX_NAME_LEN * 128);
-	players_in_player_dir(players, &num_players);
+	players_in_player_dir_lexio(players, &num_players);
 	// 'num_players + 1' to accomodate one player per row and an extra row
 	// for the column titles
 	char output[num_players + 1][1024];
@@ -1542,7 +1576,6 @@ int main(int argc, char **argv) {
 			free(full_player_path);
 		} else if (opt == 'R') {
 			char *full_player_path = file_path_with_player_dir(optarg);
-			printf("optarg = %s\n", optarg);
 			print_player_records(full_player_path);
 			free(full_player_path);
 		} else if (opt == 'x') {
