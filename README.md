@@ -56,12 +56,16 @@ improvement (glicko) of elo from chess.
 
 ## Why it makes Glicko 2 Easier
 
-The issue with the current implementations of glicko provided is that they are
-just some classes and functions. This code saves player data in binary files
-(to reduce storage costs since they store every change in rating), takes bracket
-files as inputs and calculates the new glicko ratings for all the players.
+This is a complete implementation of glicko. This code saves player data
+in binary files (to reduce storage costs since they store every change in
+rating), takes bracket files (or even season files) as inputs and
+calculates the new glicko ratings for all the players. It also has features
+for outputting this data in meaningful ways such as a list of players from
+highest to lowest rating, being able to view a players records against
+all other players in the system or even a full table of record/matchup data.
 
-*It makes it very easy to simulate a tournament for glicko ratings*
+*G2ME makes it very easy to track players using Glicko 2 and very easy make use
+of the data stored by the program*
 
 
 
@@ -150,8 +154,8 @@ This flag takes one input, a player file path. G2ME will then output
 the number of non-RD adjustment entries that player has. The purpose of this
 is to try to get a grasp of how much data the system has on the player.
 If this flag outputs a higher number for one player than another it does not
-necessarily mean that it has more data on the one with the higher number,
-however.
+necessarily mean that it has more accurate data on the one with the
+higher number, however.
 
 ### The 'C' flag
 
@@ -225,11 +229,11 @@ and use various shell commands to parse data for things such as
 Example output (from command above):
 
 ```
-6  5 Julian Tevon   1662.310895 290.318965 0.06000000 1-0 7/9/2017
-6  7 Julian Brandon 1550.807603 247.839530 0.05999946 0-1 7/9/2017
-6  6 Julian Andrew  1619.956428 222.219311 0.05999863 1-0 7/9/2017
-6  6 Julian Joseph  1521.504774 197.077763 0.05999878 0-1 7/9/2017
-6  6 Julian Steven  1575.019885 180.159166 0.05999780 1-0 7/9/2017
+6 5 Julian Mirza   1698.808178  69.268885 0.05995995 0-1 24/11/2017 TT7
+6 5 Julian Jonah   1694.130205  69.290619 0.05995868 0-1 1/12/2017  TT8
+6 6 Julian Andrew  1698.867790  69.303009 0.05995740 1-0 1/12/2017  TT8
+6 6 Julian Edward  1710.739430  68.800311 0.05995651 1-0 1/12/2017  TT8
+6 5 Julian Mirza   1700.316507  68.359335 0.05995538 0-1 1/12/2017  TT8
 ```
 
 ### The 'l' flag
@@ -285,11 +289,12 @@ G2ME -p pr -o 2017pr
 G2ME -o 2017pr
 ```
 
-The o flag is usually used in conjunction with the p flag. The o flag takes an
-argument of a file path where a pr written. When the 2 flags are used together,
-G2ME outputs a sorted list of all the players listed in the file specified by
-`-p` into the file specified by `-o`. It can be used without the `-p` flag
-which will make it output a pr containing all players in `player_dir`.
+Stands for **o**utput-path. The `-o` flag is usually used in conjunction
+with the `-p` flag. Takes an argument of a file path where a pr is to be
+written. When the 2 flags are used together, `G2ME` outputs a sorted list of
+all the players listed in the file specified by `-p` into the file specified
+by `-o`. It can be used without the `-p` flag which will make it output a pr
+containing all players in `player_dir`.
 
 Example output (aka `2017pr` after running the command above):
 
@@ -311,9 +316,9 @@ Jerome  1622.6   87.8  0.05999483
 
 `G2ME -p pr`
 
-This flag is used in conjunction with the o flag to output a pr. This flag
+This flag is used in conjunction with the `-o` flag to output a pr. This flag
 takes an input of a player list file where each line is a file path to
-a player file created by G2ME.
+a player file created by `G2ME`.
 
 An example input file:
 
@@ -332,7 +337,7 @@ Andrew
 
 `G2ME -P pr -b bracket.br`
 
-The P flag is to be used before the `-b` flag. It makes the system adjust
+The `-P` flag is to be used before the `-b` flag. It makes the system adjust
 player's data if they were not present in the given bracket. It takes the same
 format as the pr file as it is a player list file. For example:
 
@@ -342,18 +347,23 @@ Isaiah
 James
 ```
 
+Now when doing the Glicko 2 calculations, if `Julian`, `Isaiah`, or `James`
+did not attend a given event, they will receive the absence punishment which
+in Glicko 2 terms means a function is applied to their rd that raises it
+slightly.
+
 ### The 'r' flag
 
 `G2ME -r Julian`
 
-The r flag takes a player file, prompts the user for a new name and changes
+The `-r` flag takes a player file, prompts the user for a new name and changes
 the player file's Player 1 data to have the new name.
 
 ### The 'R' flag
 
 `G2ME -R Julian`
 
-The R flag takes a player file, and prints the set or game (if you used
+The `-R` flag takes a player file, and prints the set or game (if you used
 the `-g` flag to run the brackets) counts for the given player against
 every player they have played that the system knows about. Most useful
 for getting stats for commentary or for smack talking :^].
