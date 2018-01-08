@@ -11,12 +11,14 @@
 	* [The 'b' flag](#the-b-flag)
 	* [The 'B' flag](#the-b-flag-1)
 	* [The 'c' flag](#the-c-flag)
+	* [The 'C' flag](#the-c-flag-1)
 	* [The 'd' flag](#the-d-flag)
 	* [The 'g' flag](#the-g-flag)
 	* [The 'h' flag](#the-h-flag)
 	* [The 'l' flag](#the-l-flag)
 	* [The 'm' flag](#the-m-flag)
 	* [The 'n' flag](#the-n-flag)
+	* [The 'N' flag](#the-n-flag-1)
 	* [The 'o' flag](#the-o-flag)
 	* [The 'p' flag](#the-p-flag)
 	* [The 'P' flag](#the-p-flag-1)
@@ -151,6 +153,7 @@ necessarily mean that it has more data on the one with the higher number,
 however.
 
 ### The 'C' flag
+
 Takes no arguments. Outputs a csv-style "spreadsheet" of player matchup data.
 Useful for turning the data into a spreadsheet or for use with spreadsheet
 software. Like `-M`, it is compatible with the `-m` flag. Therefore you can
@@ -161,7 +164,8 @@ The data is read left to right. For instance, in the example below, we find
 that Julian has 3 wins, 0 ties and 0 losses to Ash, has beaten Bilal 3 times,
 tied 0 times and lost 4 times.
 
-```$ G2ME -m 8 -C
+```
+$ G2ME -m 8 -C
 ,Bilal,Ash,Andrew,Julian,
 Bilal,-,2-0-0,3-0-0,4-0-3,
 Ash,0-0-2,-,1-0-1,0-0-3,
@@ -173,10 +177,10 @@ which in a spreadsheet takes the form of:
 
 |        | Bilal | Ash   | Andrew | Julian |
 |:-------|:-----:|:-----:|:------:|:------:|
-| Bilal  | -     | 2-0-0 | 3-0-0  | 4-0-3  |
-| Ash    | 0-0-2 | -     | 1-0-1  | 0-0-3  |
-| Andrew | 0-0-3 | 1-0-1 | -      | 0-0-3  |
-| Julian | 3-0-4 | 3-0-0 | 3-0-0  | -      |
+| **Bilal**  | -     | 2-0-0 | 3-0-0  | 4-0-3  |
+| **Ash**    | 0-0-2 | -     | 1-0-1  | 0-0-3  |
+| **Andrew** | 0-0-3 | 1-0-1 | -      | 0-0-3  |
+| **Julian** | 3-0-4 | 3-0-0 | 3-0-0  | -      |
 
 ### The 'd' flag
 
@@ -247,6 +251,13 @@ that won't have the people who only showed up once or twice.
 
 Stands for **n**o-colour. By default, G2ME will colour certain inputs to make
 interpretation easier. This flag disables that.
+
+### The 'N' flag
+
+When printing record data, instead of the standard:
+"**[wins]**-**[ties]**-**[losses]**", `G2ME` will print
+"**[wins]**-**[losses]**" to accomodate users who participate in an event
+that can never have ties.
 
 ### The 'o' flag
 
