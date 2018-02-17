@@ -422,37 +422,33 @@ write the player files in a different format, currently it has the first
 few bytes as:
 1. `sizeof(char)` the length of the player-1's name
 2. `len_p1_name` bytes are the characters in the first players name.
+3. `sizeof(short)` the number of opponents in this players record
+4. repeated strings ending in `\0` representing the opponent names,
+in order
+4. `sizeof(short)` the number of tournaments in this players record
+5. repeated strings ending in `\0` representing the tournament names,
+in order
 
 After that it takes the repeated form of:
-`[len_p2_name][p2_name][p1_rating_after][p1_RD_after][p1_vol_after][p1_game_count][p2_game_count][day][month][year][len_event_name][event_name]`
+`[p2_id][p1_rating_after][p1_RD_after][p1_vol_after][p1_game_count][p2_game_count][day][month][year][event_id]`
 In terms of bytes,
 
-1. `sizeof(char)` the length of the player-2's name
-(these are included because there are no new lines, so in order
-to find the next entry, we must know the full size in bytes of the current
-entry)
-2. The same applies for player 2
-3. `sizeof(double)` bytes representing player-1's rating
-4. `sizeof(double)` bytes representing the player-1's RD
-4. `sizeof(double)` bytes representing the player-1's volatility
-5. `sizeof(char)` the player-1's game count
-6. `sizeof(char)` the player-2's game count
-7. `sizeof(char)` the day
-8. `sizeof(char)` the month
-9. `sizeof(short)` bytes are the year.
-10. `sizeof(char)` the length of the event's name
-(these are included because there are no new lines, so in order
-to find the next entry, we must know the full size in bytes of the current
-entry)
-11. `len_event_name` bytes are the characters in the event's name.
-This design allows for names containing spaces (although the bracket file
-format does not), but more importantly, high precision doubles with minimal file
-sizes. Also it's really cool :)
+1. `sizeof(short)` bytes representing the player 2 id
+2. `sizeof(double)` bytes representing player-1's rating
+3. `sizeof(double)` bytes representing the player-1's RD
+3. `sizeof(double)` bytes representing the player-1's volatility
+4. `sizeof(char)` the player-1's game count
+5. `sizeof(char)` the player-2's game count
+6. `sizeof(char)` the day
+7. `sizeof(char)` the month
+8. `sizeof(short)` bytes are the year.
+9. `sizeof(short)` the event id
 
 
 
 ## TODO
 
+* fix `-a`, `-r`, `-x` (causes core dump)
 * Write examples for README and man pages
 * Clean up glicko2.c to meet code conventions (line length, doc string,
 no TODOs)
