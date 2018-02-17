@@ -64,7 +64,7 @@ for outputting this data in meaningful ways such as a list of players from
 highest to lowest rating, being able to view a players records against
 all other players in the system or even a full table of record/matchup data.
 
-*G2ME makes it very easy to track players using Glicko 2 and very easy make use
+*G2ME makes it easy to track players using Glicko 2 and easy make use
 of the data stored by the program*
 
 
@@ -101,7 +101,7 @@ TSE4
 `G2ME -b test.br`
 
 This flag takes one input, a bracket file. You aren't restricted by the
-extension, but the program expects every line to be of the format
+extension, but the program expects every line to be of the format:
 
 `[player1Name] [player2Name] [player1GameCount] [player2Gamecount] [day] [month] [year]`
 
@@ -109,10 +109,10 @@ It expects for `player1Name` and `player2Name` to be a valid file paths
 which it will later read to find the players latest glicko data.
 G2ME will either attempt to read the file `player1Name` or upon finding
 it does not exist, initialize it to the default values (which set the
-player at 1500 350 0.06 (Note that this entry will never be in any player
-file as they only store changes)).
+player at 1500 350 0.06 (Note that this default value entry will never
+appear in any player file as they only store changes)).
 
-An example file
+An example bracket file:
 
 ```
 Bilal Julian 0 3 1 1 2017
@@ -132,8 +132,13 @@ extension, but the program expects every line to be of the format
 `[file_path_to_a_bracket_file]`
 
 It expects each line to be a valid file path for which it will run
-the bracket, updating all the player data. Essentially, for each line
-`l` in file given by `-B`, G2ME will run `-b l`.
+the bracket, updating all the player data. For our example, in pseudo code
+it looks like:
+
+```
+for line $i in season.sea
+	G2ME -b $i
+```
 
 An example file
 
@@ -161,7 +166,7 @@ higher number, however.
 
 Takes no arguments. Outputs a csv-style "spreadsheet" of player matchup data.
 Useful for turning the data into a spreadsheet or for use with spreadsheet
-software. Like `-M`, it is compatible with the `-m` flag. Therefore you can
+software. Like `-M`, it is compatible with the `-m` flag, so you can
 limit the output to only include players who have attended a specified number
 of events.
 
@@ -206,25 +211,26 @@ The `g` flag tells G2ME to calculate the glicko ratings on a per-game basis.
 
 If not set, the default is to calculate on a by-set basis. This means if the
 set count is 3-2, 7-0 or 2-1, glicko only sees this as 1 win for the first
-player. The reasoning behind this is that some people sand bag so they can
-lose some games because they were messing around, but they usually never let
-it cost them the set. Because of this, I believe set count is a good measure,
-but it has its downsides. For instance, it takes more than a few games to get enough data to
+player. The default was chosen to avoid giving glicko points to wins that
+in the scheme of things, would never amount to anything. The best player
+in the system not trying and losing one game, but winning the set
+probably should not give the other player points, but the choice is left
+to the user. There are some downsides with this choice however. For instance,
+it takes more than a few games to get enough data to
 accurately rate a player and there's no disparity between a player who always
 goes 3-2 against someone and a player who always goes 3-0 against the same
-someone.
+person.
 
 It is up to the user of G2ME to decide which they want to use but I advise
-using the g flag only when you have few tournaments with lots of large sets
+using the `-g` flag only if you have few tournaments with lots of large sets
 (best of 5s or 7s).
 
 ### The 'h' flag
 
 `G2ME -h Julian`
 
-Stands for Output-File-in-**H**uman-Readable-Form. Often used to output a file
-and use various shell commands to parse data for things such as
-"Record Against *x-player*" or "Sets Played".
+Stands for Output-File-in-**H**uman-Readable-Form. Can be used with shell
+commands for data parsing.
 
 Example output (from command above):
 
@@ -248,14 +254,15 @@ as `-h` except it's only the last line.
 `G2ME -p pr -m 3 -o prForPlayersWhoAttendedAtLeast3Events`
 
 Stands for **m**inimum events attended. Useful for outputting a meaningful pr
-that won't have the people who only showed up once or twice.
+that won't have the people who only showed up once or twice. Useless flag
+unless used with another flag that makes use of it such as `-o` or `-M`.
 
 ### The 'M' flag
 
 `G2ME -m 8 -M`
 
-Stands for **m**atchup table. Can be used on it's own and requires no arguments.
-Outputs the matchups records of all the players in the system, possible
+Stands for **M**atchup table. Can be used on its own and requires no arguments.
+Outputs the matchups records of all the players in the system, possibly
 filtered with the `-m` flag.
 
 Example output:
@@ -278,7 +285,7 @@ interpretation easier. This flag disables that.
 ### The 'N' flag
 
 When printing record data, instead of the standard:
-"**[wins]**-**[ties]**-**[losses]**", `G2ME` will print
+"**[wins]**-**[ties]**-**[losses]**", if this flag is used, `G2ME` will print
 "**[wins]**-**[losses]**" to accomodate users who participate in an event
 that can never have ties.
 
@@ -289,8 +296,10 @@ G2ME -p pr -o 2017pr
 G2ME -o 2017pr
 ```
 
-Stands for **o**utput-path. The `-o` flag is usually used in conjunction
-with the `-p` flag. Takes an argument of a file path where a pr is to be
+Stands for **o**utput-path. The `-o` flag can be used in conjunction
+with the `-p` flag to, for instance, filter out players in the system who
+are not eligible to be on the pr. Takes an argument of a file path where a
+pr is to be
 written. When the 2 flags are used together, `G2ME` outputs a sorted list of
 all the players listed in the file specified by `-p` into the file specified
 by `-o`. It can be used without the `-p` flag which will make it output a pr
@@ -431,7 +440,7 @@ in order
 
 After that it takes the repeated form of:
 `[p2_id][p1_rating_after][p1_RD_after][p1_vol_after][p1_game_count][p2_game_count][day][month][year][event_id]`
-In terms of bytes,
+In terms of bytes:
 
 1. `sizeof(short)` bytes representing the player 2 id
 2. `sizeof(double)` bytes representing player-1's rating
