@@ -457,7 +457,7 @@ In terms of bytes:
 
 ## TODO
 
-* fix `-r`, `-x` (causes core dump)
+* fix `-x` (causes core dump)
 * Write examples for README and man pages
 * Clean up glicko2.c to meet code conventions (line length, doc string,
 no TODOs)

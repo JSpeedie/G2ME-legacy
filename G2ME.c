@@ -1386,7 +1386,8 @@ void generate_ratings_file_full(char* output_file_path) {
 }
 
 /** Takes a file path of a player file, prompts the user for the new name,
- * and renames Player 1 to the new name.
+ * and renames Player 1 to the new name. Note that this does not rename
+ * the file itself which may create errors unless fixed.
  *
  * \param '*file_path' the file path of the player file.
  * \return 0 upon success, a negative number upon failure.
@@ -1395,29 +1396,64 @@ int refactor_file(char *file_path) {
 	char new_name[MAX_NAME_LEN];
 	printf("New player name: ");
 	scanf("%s", new_name);
-	char *full_new_name_path = file_path_with_player_dir(new_name);
+	/* Read entry from old file */
+	struct entry cur_entry;
+	read_start_from_file(file_path, &cur_entry);
+	strncpy(&(cur_entry.name[0]), new_name, MAX_NAME_LEN);
+	cur_entry.len_name = strlen(cur_entry.name);
+	printf("new name %s\n", cur_entry.name);
+	/* Get the name for the temp file TODO what if .[original name] already exists? */
+	char dir[strlen(file_path) + 1];
+	char base[strlen(file_path) + 1];
+	memset(dir, 0, sizeof(dir));
+	memset(base, 0, sizeof(base));
+	strncpy(dir, file_path, sizeof(dir) - 1);
+	strncpy(base, file_path, sizeof(base) - 1);
 
-	FILE *base_file = fopen(file_path, "ab+");
+	char new_file_name[MAX_NAME_LEN + 1];
+	memset(new_file_name, 0, sizeof(new_file_name));
+	/* Add the full path up to the file */
+	strncat(new_file_name, dirname(dir), sizeof(new_file_name) - 1);
+	strncat(new_file_name, "/", sizeof(new_file_name) - strlen(new_file_name) - 1);
+	/* Add the temp file */
+	strncat(new_file_name, ".", sizeof(new_file_name) - strlen(new_file_name) - 1);
+	strncat(new_file_name, basename(base), sizeof(new_file_name) - strlen(new_file_name) - 1);
+
+	FILE *base_file = fopen(file_path, "rb");
 	if (base_file == NULL) {
 		perror("fopen (refactor_file)");
 		return -1;
 	}
-
-	/* Read entry from old file */
-	struct entry *cur_entry = malloc(sizeof(struct entry));
-	read_start_from_file(file_path, cur_entry);
-	/* While the function is still able to read entries from the old file */
-	while (0 == read_entry(base_file, cur_entry)) {
-		/* Update entry information to have the new name */
-		strncpy(cur_entry->name, new_name, MAX_NAME_LEN - 1);
-		cur_entry->len_name = strlen(full_new_name_path);
-
-		// write new entry in new file as we get each old entry
-		append_entry_to_file(cur_entry, full_new_name_path);
+	FILE *new_file = fopen(new_file_name, "wb+");
+	if (new_file == NULL) {
+		perror("fopen (refactor_file)");
+		return -2;
 	}
-	free(cur_entry);
-	free(full_new_name_path);
+
+	/* Read old data */
+	char temp;
+	char temp_name[MAX_NAME_LEN];
+	if (1 != fread(&temp, sizeof(char), 1, base_file)) return -3;
+	if (temp != \
+		fread(&temp_name, sizeof(char), temp, base_file)) return -4;
+	/* Write the new name info to the temp file */
+	if (1 != fwrite(&(cur_entry.len_name), sizeof(char), 1, new_file)) return -5;
+	if (cur_entry.len_name != \
+		fwrite(&(cur_entry.name[0]), sizeof(char), cur_entry.len_name, new_file)) return -6;
+	/* Write the tournament data an entry data (aka every other byte in the
+	 * file, in order) into the temp file */
+	char read;
+	while (!feof(base_file)) {
+		if (1 == fread(&read, sizeof(char), 1, base_file)) {
+			if (1 != fwrite(&read, sizeof(char), 1, new_file)) return -7;
+		}
+	}
+	fclose(new_file);
 	fclose(base_file);
+	/* Delete original file */
+	remove(file_path);
+	/* Copy temp file to original file path */
+	rename(new_file_name, file_path);
 	return 0;
 }
 
