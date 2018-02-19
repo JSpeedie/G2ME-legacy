@@ -1490,6 +1490,9 @@ int remove_line_from_file(char *file_path) {
 	strncat(new_file_name, basename(base), sizeof(new_file_name) - strlen(new_file_name) - 1);
 	/* Read the starter data in the file */
 	read_start_from_file(file_path, cur_entry);
+	/* Get to the entries and begin reading them */
+	fseek(base_file, 0, SEEK_SET);
+	get_to_entries_in_file(base_file);
 	/* While the function is still able to read entries from the old file */
 	while (0 == read_entry(base_file, cur_entry) && entries_read < (entries - lines_to_remove)) {
 		entries_read++;
