@@ -766,11 +766,11 @@ void print_entry_name(struct entry E, int longest_nl, int longest_opp_nl, \
 	char date[32];
 	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
 
-	printf("%*d %*d %-10s %-*s %*lf %*lf %*.*lf %d-%d %-*s %s\n", \
+	printf("%*d %*d %-*s %-*s %*lf %*lf %*.*lf %d-%d %-*s %s\n", \
 		longest_nl, E.len_name, longest_opp_nl, E.len_opp_name, \
-		E.name, longest_name, E.opp_name, longest_rating, E.rating, \
-		longest_RD, E.RD, longest_vol, longest_vol-2, E.vol, E.gc, E.opp_gc, \
-		longest_date, date, E.t_name);
+		E.len_name, E.name, longest_name, E.opp_name, longest_rating, \
+		E.rating, longest_RD, E.RD, longest_vol, longest_vol-2, E.vol, \
+		E.gc, E.opp_gc, longest_date, date, E.t_name);
 }
 
 /** Reads a player file at the given file path, reads the "Player 1"
