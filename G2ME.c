@@ -714,9 +714,9 @@ int append_pr_entry_to_file(struct entry* E, char* file_path, \
  * \param '*file_path' the file path that you want to append the entry to
  * \return void
  */
-// TODO change to work with new struct and t name
 void write_entry_from_input(char* file_path) {
-	printf("[Name] [Opp] [Rating] [RD] [Vol] [gc] [opp gc] [day] [month] [year]: ");
+	printf("[name] [opp_name] [rating] [RD] [vol] [gc] [opp_gc] [day] [month] [year] [t_name]: ");
+	char *full_path = file_path_with_player_dir(file_path);
 
 	struct entry input_entry;
 	scanf("%s %s %lf %lf %lf %hhd %hhd %hhd %hhd %hd %s",
@@ -724,8 +724,11 @@ void write_entry_from_input(char* file_path) {
 		&input_entry.RD, &input_entry.vol, &input_entry.gc,
 		&input_entry.opp_gc, &input_entry.day, &input_entry.month,
 		&input_entry.year, input_entry.t_name);
-	// TODO: make this use player dir?
+	input_entry.len_name = strlen(input_entry.name);
+	input_entry.len_opp_name = strlen(input_entry.opp_name);
+	input_entry.len_t_name = strlen(input_entry.t_name);
 	append_entry_to_file(&input_entry, file_path);
+	free(full_path);
 }
 
 /** Prints a string representation of a struct player to stdout
