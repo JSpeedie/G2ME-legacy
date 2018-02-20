@@ -17,6 +17,8 @@
 #define DEF_RATING 1500.0
 #define DEF_RD 350.0
 #define DEF_TAU 0.5
+#define REALLOC_PR_ENTRIES_INC 4
+#define SIZE_PR_ENTRY 128
 
 char *NORMAL = "\x1B[0m";
 char *RED = "\x1B[31m";
@@ -31,12 +33,13 @@ char use_games = 0;
 int pr_minimum_events = 0;
 char colour_output = 1;
 char print_ties = 1;
-char player_list_file[256];
+char player_list_file[MAX_FILE_PATH_LEN];
 char calc_absent_players = 0;
 double outcome_weight = 1;
+/* TODO: make it dynamically realloc */
 char tournament_names[128][128];
 unsigned char tournament_names_len = 0;
-char pr_list_file_path[128];
+char pr_list_file_path[MAX_FILE_PATH_LEN];
 char o_generate_pr = 0;
 char player_dir[MAX_FILE_PATH_LEN];
 
@@ -1022,7 +1025,7 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 
 /** Takes a file path representing a file containing a list of file paths
  * to player files. All players who did not compete but are in the list,
- * and adjusts their Glicko2 data.
+ * get their Glicko2 data adjusted.
  *
  * \param '*player_list' the file path of the player list file.
  * \param '*t_name' a string containing the name of the tournament.
@@ -1130,7 +1133,8 @@ void update_players(char* bracket_file_path) {
 			char already_in = 0;
 			char already_in2 = 0;
 			for (int i = 0; i < tournament_names_len; i++) {
-				/* If the name already exists in the list of entrants, don't add */
+				/* If the name already exists in the list of entrants,
+				 * don't add */
 				if (0 == strcmp(p1_name, tournament_names[i])) {
 					already_in = 1;
 					break;
@@ -1141,11 +1145,13 @@ void update_players(char* bracket_file_path) {
 				}
 			}
 			if (!already_in) {
-				strncpy(tournament_names[tournament_names_len], p1_name, MAX_NAME_LEN);
+				strncpy(tournament_names[tournament_names_len], \
+					p1_name, MAX_NAME_LEN);
 				tournament_names_len++;
 			}
 			if (!already_in2) {
-				strncpy(tournament_names[tournament_names_len], p2_name, MAX_NAME_LEN);
+				strncpy(tournament_names[tournament_names_len], \
+					p2_name, MAX_NAME_LEN);
 				tournament_names_len++;
 			}
 		}
@@ -1158,20 +1164,26 @@ void update_players(char* bracket_file_path) {
 			p1_out = 1;
 			p2_out = 0;
 			for (int i = 0; i < p1_gc; i++) {
-				update_player_on_outcome(p1_name, p2_name, &p1, &p2, &p1_out, &p2_out, day, month, year, t_name);
-				update_player_on_outcome(p2_name, p1_name, &p2, &p1, &p2_out, &p1_out, day, month, year, t_name);
+				update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
+					&p1_out, &p2_out, day, month, year, t_name);
+				update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
+					&p2_out, &p1_out, day, month, year, t_name);
 			}
 			p1_out = 0;
 			p2_out = 1;
 			for (int i = 0; i < p2_gc; i++) {
-				update_player_on_outcome(p1_name, p2_name, &p1, &p2, &p1_out, &p2_out, day, month, year, t_name);
-				update_player_on_outcome(p2_name, p1_name, &p2, &p1, &p2_out, &p1_out, day, month, year, t_name);
+				update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
+					&p1_out, &p2_out, day, month, year, t_name);
+				update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
+					&p2_out, &p1_out, day, month, year, t_name);
 			}
 		} else {
 			p1_out = p1_gc > p2_gc;
 			p2_out = p1_gc < p2_gc;
-			update_player_on_outcome(p1_name, p2_name, &p1, &p2, &p1_out, &p2_out, day, month, year, t_name);
-			update_player_on_outcome(p2_name, p1_name, &p2, &p1, &p2_out, &p1_out, day, month, year, t_name);
+			update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
+				&p1_out, &p2_out, day, month, year, t_name);
+			update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
+				&p2_out, &p1_out, day, month, year, t_name);
 		}
 	}
 
@@ -1279,23 +1291,27 @@ void merge_sort_pr_entry_array(struct entry *pr_entries, int array_size) {
  *     file.
  * \return void
  */
-void generate_ratings_file(char* file_path, char* output_file_path) {
+int generate_ratings_file(char* file_path, char* output_file_path) {
 	FILE *players = fopen(file_path, "r");
 	if (players == NULL) {
 		perror("fopen (generate_ratings_file)");
-		return;
+		return -1;
 	}
 
 	clear_file(output_file_path);
 
-	char line[256];
-	int pr_entries_size = 0;
-	/* Create a starting point, 128 person, pr entry array */
-	struct entry *players_pr_entries = malloc(sizeof(struct entry) * 128);
+	/* Player list file is a series of names followed by newlines '\n'
+	 * therefore the longest line that should be supported should be the
+	 * longest name */
+	char line[MAX_NAME_LEN];
+	int pr_entries_num = 0;
+	/* Create a starting point pr entry array */
+	int pr_entries_size = SIZE_PR_ENTRY;
+	struct entry *players_pr_entries = \
+		malloc(sizeof(struct entry) * pr_entries_size);
 	struct entry temp;
 
 	while (fgets(line, sizeof(line), players)) {
-		// TODO: realloc if over 128 players
 		/* Replace newline with null terminator */
 		*strchr(line, '\n') = '\0';
 		char *full_player_path = file_path_with_player_dir(line);
@@ -1305,49 +1321,62 @@ void generate_ratings_file(char* file_path, char* output_file_path) {
 			get_player_attended(full_player_path, &num_events);
 			// If the player attended the minimum number of events
 			if (num_events >= pr_minimum_events) {
+				/* If there is no space to add this pr entry, reallocate */
+				if (pr_entries_num + 1 > pr_entries_size) {
+					pr_entries_size += REALLOC_PR_ENTRIES_INC;
+					players_pr_entries = realloc(players_pr_entries, \
+						sizeof(struct entry) * pr_entries_size);
+					if (players_pr_entries == NULL) {
+						perror("realloc (generate_ratings_file)");
+						return -2;
+					}
+				}
 				/* ...add the player data to the player pr entry array*/
-				players_pr_entries[pr_entries_size] = temp;
-				pr_entries_size++;
+				players_pr_entries[pr_entries_num] = temp;
+				pr_entries_num++;
 			}
 		}
 		free(full_player_path);
 	}
 
 	/* Sort entries in the list by rating into non-increasing order */
-	merge_sort_pr_entry_array(players_pr_entries, pr_entries_size);
+	merge_sort_pr_entry_array(players_pr_entries, pr_entries_num);
 	/* Get the longest name on the pr */
 	int longest_name_length = 0;
-	for (int i = 0; i < pr_entries_size; i++) {
+	for (int i = 0; i < pr_entries_num; i++) {
 		if (longest_name_length < players_pr_entries[i].len_name) {
 			longest_name_length = players_pr_entries[i].len_name;
 		}
 	}
 	/* Append each entry pr file */
-	for (int i = 0; i < pr_entries_size; i++) {
+	for (int i = 0; i < pr_entries_num; i++) {
 		append_pr_entry_to_file(&players_pr_entries[i], output_file_path, \
 			longest_name_length);
 	}
 
 	fclose(players);
-	return;
+	return 0;
 }
 
-void generate_ratings_file_full(char* output_file_path) {
+int generate_ratings_file_full(char* output_file_path) {
 	DIR *p_dir;
 	struct dirent *entry;
 	if ((p_dir = opendir(player_dir)) != NULL) {
 		clear_file(output_file_path);
 
-		int pr_entries_size = 0;
-		// Create a starting point, 128 person, pr entry array
-		// TODO: reallocate if larger is needed
-		struct entry *players_pr_entries = malloc(sizeof(struct entry) * 128);
+		/* Player list file is a series of names followed by newlines '\n'
+		 * therefore the longest line that should be supported should be the
+		 * longest name */
+		int pr_entries_num = 0;
+		/* Create a starting point pr entry array */
+		int pr_entries_size = SIZE_PR_ENTRY;
+		struct entry *players_pr_entries = \
+			malloc(sizeof(struct entry) * pr_entries_size);
 		struct entry temp;
 
 		while ((entry = readdir(p_dir)) != NULL) {
 			// Make sure it doesn't count directories
 			if (entry->d_type != DT_DIR) {
-				// TODO: realloc if over 128 players
 				char *full_player_path = file_path_with_player_dir(entry->d_name);
 				/* If the player file was able to be read properly... */
 				if (0 == read_last_entry(full_player_path, &temp)) {
@@ -1355,9 +1384,21 @@ void generate_ratings_file_full(char* output_file_path) {
 					get_player_attended(full_player_path, &num_events);
 					// If the player attended the minimum number of events
 					if (num_events >= pr_minimum_events) {
-						/* ...add the player data to the player pr entry array*/
-						players_pr_entries[pr_entries_size] = temp;
-						pr_entries_size++;
+						/* If there is no space to add this pr entry,
+						 * reallocate */
+						if (pr_entries_num + 1 > pr_entries_size) {
+							pr_entries_size += REALLOC_PR_ENTRIES_INC;
+							players_pr_entries = realloc(players_pr_entries, \
+								sizeof(struct entry) * pr_entries_size);
+							if (players_pr_entries == NULL) {
+								perror("realloc (generate_ratings_file)");
+								return -2;
+							}
+						}
+						/* ...add the player data to the player
+						 * pr entry array */
+						players_pr_entries[pr_entries_num] = temp;
+						pr_entries_num++;
 					}
 				}
 				free(full_player_path);
@@ -1365,23 +1406,23 @@ void generate_ratings_file_full(char* output_file_path) {
 		}
 		closedir(p_dir);
 		/* Sort entries in the list by rating into non-increasing order */
-		merge_sort_pr_entry_array(players_pr_entries, pr_entries_size);
+		merge_sort_pr_entry_array(players_pr_entries, pr_entries_num);
 		/* Get the longest name on the pr */
 		int longest_name_length = 0;
-		for (int i = 0; i < pr_entries_size; i++) {
+		for (int i = 0; i < pr_entries_num; i++) {
 			if (longest_name_length < players_pr_entries[i].len_name) {
 				longest_name_length = players_pr_entries[i].len_name;
 			}
 		}
 		/* Append each entry pr file */
-		for (int i = 0; i < pr_entries_size; i++) {
-			append_pr_entry_to_file(&players_pr_entries[i], output_file_path, \
-				longest_name_length);
+		for (int i = 0; i < pr_entries_num; i++) {
+			append_pr_entry_to_file(&players_pr_entries[i], \
+				output_file_path, longest_name_length);
 		}
-		return;
+		return 0;
 	} else {
 		perror("opendir (generate_ratings_file_full)");
-		return;
+		return -1;
 	}
 }
 
@@ -1678,41 +1719,71 @@ int get_player_outcome_count(char *file_path) {
 	return num_outcomes;
 }
 
+/** Takes a file path to a player file and a pointer to an integer.
+ * Returns an array of all the names of the tournaments the player
+ * has attended that weren't RD adjustments (or NULL) and modifies '*ret_count'
+ * to be the number of elements in that array.
+ *
+ * \param '*file_path' the player file to read
+ * \param '*ret_count' the integer to modify to contain the number of
+ *     tournaments attended by the player
+ * \return upon success, a pointer to a char array containing the names of the
+ *     tournaments attended by the player that MUST BE FREED LATER. Upon
+ *     failure, it returns a pointer to NULL.
+ */
 char *get_player_attended(char *file_path, int *ret_count) {
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
-		perror("fopen (get_player_attended_count)");
+		perror("fopen (get_player_attended)");
 		return NULL;
 	}
 
-	// TODO: make this reallocate if needed etc.
-	char *tourneys = calloc(128 * MAX_NAME_LEN, sizeof(char));
-	long tourneys_so_far = 0;
+	char len_of_name;
+	char name[MAX_NAME_LEN];
+	long tourneys_size = SIZE_PR_ENTRY;
+	long tourneys_num = 0;
+	char *tourneys = calloc(SIZE_PR_ENTRY * MAX_NAME_LEN, sizeof(char));
 	char in_tourneys = 0;
 	struct entry cur_entry;
+	memset(name, 0, sizeof(name));
 	/* Read the starter data in the file */
-	read_start_from_file(file_path, &cur_entry);
-	/* Go back to beginning of entries for reading */
+	if (1 != fread(&len_of_name, sizeof(char), 1, p_file)) return NULL;
+	if (len_of_name != fread(name, sizeof(char), len_of_name, p_file)) {
+		return NULL;
+	}
+	/* Get to the entries in the file and start reading them */
 	fseek(p_file, 0, SEEK_SET);
 	get_to_entries_in_file(p_file);
 
 	while (read_entry(p_file, &cur_entry) == 0) {
 		in_tourneys = 0;
-		/* Check if the tourney is already in the list */
-		for (int i = 0; i < tourneys_so_far; i++) {
-			// If this tourney has already been recorded
+		/* Check if the tournament that entry was from
+		 * is already in the array */
+		for (int i = 0; i < tourneys_num; i++) {
 			if (strcmp(cur_entry.t_name, tourneys + i * MAX_NAME_LEN) == 0) {
 				in_tourneys = 1;
 			}
 		}
-		// If this tournament has been recorded as attended and the opponent
-		// wasn't the system making an RD adjustment
+		/* If this tournament wasn't in the array, and the opponent was
+		 * actually a system RD adjustment, add it to the array */
 		if (in_tourneys == 0 && strcmp(cur_entry.opp_name, "-") != 0) {
-			strncpy(tourneys + tourneys_so_far * MAX_NAME_LEN, cur_entry.t_name, MAX_NAME_LEN - 1);
-			tourneys_so_far++;
+			/* If there is no space to add this tournament, reallocate */
+			if (tourneys_num + 1 > tourneys_size) {
+				tourneys_size += REALLOC_PR_ENTRIES_INC;
+				tourneys = realloc(tourneys, \
+					SIZE_PR_ENTRY * MAX_NAME_LEN * sizeof(char));
+				if (tourneys == NULL) {
+					perror("realloc (get_player_attended)");
+					return NULL;
+				}
+			}
+			/* Add the tournament to the array */
+			strncpy(tourneys + tourneys_num * MAX_NAME_LEN, \
+				cur_entry.t_name, MAX_NAME_LEN);
+			tourneys_num++;
 		}
 	}
-	*ret_count = tourneys_so_far;
+	*ret_count = tourneys_num;
 
 	fclose(p_file);
 	return tourneys;
@@ -1755,6 +1826,8 @@ char *players_in_player_dir(char *players, int *num) {
 char *players_in_player_dir_lexio(char *players, int *num) {
 	DIR *p_dir;
 	struct dirent *entry;
+	// TODO reallocate '*players' if necessary make it required that
+	// '*players' is a pointer made by a calloc or malloc call
 
 	if ((p_dir = opendir(player_dir)) != NULL) {
 		*num = 0;
@@ -1864,7 +1937,6 @@ void print_matchup_table(void) {
 			// Add row title
 			snprintf(output[i + 1], longest_n + space_between_columns, "%*s%*s", \
 				longest_n, &players[i * MAX_NAME_LEN], space_between_columns, "");
-			// TODO: get records against each player in 'players'
 			for (int j = 0; j < num_players; j++) {
 				struct record temp_rec;
 				get_record(&players[i * MAX_NAME_LEN], \
@@ -1897,6 +1969,7 @@ void print_matchup_table(void) {
 	}
 }
 
+// TODO clean up these functions. Less hard numbers and shorter code
 void print_matchup_table_csv(void) {
 	// Print a table showing the matchup data for all players stored in the
 	// system (aka the player directory)
@@ -1925,7 +1998,6 @@ void print_matchup_table_csv(void) {
 		for (int i = 0; i < num_players; i++) {
 			// Add row title
 			sprintf(output[i + 1], "%s,", &players[i * MAX_NAME_LEN]);
-			// TODO: get records against each player in 'players'
 			for (int j = 0; j < num_players; j++) {
 				struct record temp_rec;
 				get_record(&players[i * MAX_NAME_LEN], \
