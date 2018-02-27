@@ -35,7 +35,8 @@ int pr_minimum_events = 0;
 char colour_output = 1;
 char print_ties = 1;
 char player_list_file[MAX_FILE_PATH_LEN];
-char calc_absent_players = 0;
+char calc_absent_players = 1;
+char calc_absent_players_with_file = 0;
 double outcome_weight = 1;
 /* TODO: make it dynamically realloc */
 char tournament_names[128][128];
@@ -1024,6 +1025,90 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	return;
 }
 
+/** All players whose last entry is not for the event of 't_name'
+ * get their Glicko2 data adjusted. Unless their last RD adjustment
+ * was within the same day.
+ *
+ * \param 'day' a char representing the day of the tournament
+ * \param 'month' a char representing the month of the tournament
+ * \param 'year' a char representing the year of the tournament
+ * \param '*t_name' a string containing the name of the tournament.
+ * \return void.
+ */
+void adjust_absent_players_no_file(char day, char month, \
+	short year, char* t_name) {
+
+	char did_not_comp = 1;
+	DIR *p_dir;
+	struct dirent *entry;
+	// TODO: maybe not here but create .players directory if it doesn't exist?
+	/* If the directory could not be accessed, print error and return */
+	if ((p_dir = opendir(player_dir)) == NULL) {
+		perror("opendir (adjust_absent_players_no_file)");
+		return;
+	}
+
+	/* Get list of player names that did not compete
+	 * apply step 6 to them and append to player file */
+	while ((entry = readdir(p_dir)) != NULL) {
+		/* If the directory item is a directory, skip */
+		if (entry->d_type == DT_DIR) continue;
+
+		/* Reset variable to assume player did not compete */
+		did_not_comp = 1;
+		for (int i = 0; i < tournament_names_len; i++) {
+			/* If the one of the player who the system manager wants to track
+			 * is found in the list of competitors at the tourney */
+			if (0 == strcmp(entry->d_name, tournament_names[i])) {
+				did_not_comp = 0;
+				break;
+			}
+		}
+
+		if (did_not_comp) {
+			/* If the player who did not compete has a player file */
+			if (access(file_path_with_player_dir(entry->d_name), \
+				R_OK | W_OK) != -1) {
+
+				struct player P;
+				struct entry latest_ent;
+				if (0 == \
+					read_last_entry(file_path_with_player_dir(entry->d_name), \
+					&latest_ent)) {
+
+					/* If this adjustment is taking place on a different
+					 * day from their last entry */
+					if (latest_ent.day != day || latest_ent.month != month \
+						|| latest_ent.year != year) {
+
+						init_player_from_entry(&P, &latest_ent);
+						did_not_compete(&P);
+						/* Only need to change entry RD since that's all
+						 * Step 6 changes */
+						latest_ent.RD = getRd(&P);
+						/* Change qualities of the entry to reflect
+						 * that it was not a real set, but a
+						 * did_not_compete */
+						strcpy(latest_ent.opp_name, "-");
+						latest_ent.len_opp_name = strlen(latest_ent.opp_name);
+						latest_ent.gc = 0;
+						latest_ent.opp_gc = 0;
+						latest_ent.day = day;
+						latest_ent.month = month;
+						latest_ent.year = year;
+						strncpy(latest_ent.t_name, t_name, MAX_NAME_LEN - 1);
+						latest_ent.t_name[strlen(latest_ent.t_name)] = '\0';
+						latest_ent.len_t_name = strlen(latest_ent.t_name);
+						append_entry_to_file(&latest_ent, \
+							file_path_with_player_dir(entry->d_name));
+					}
+				}
+			}
+			/* If they do not then they have never competed, so skip them */
+		}
+	}
+	closedir(p_dir);
+}
 /** Takes a file path representing a file containing a list of file paths
  * to player files. All players who did not compete but are in the list,
  * get their Glicko2 data adjusted. Unless their last RD adjustment
@@ -1142,7 +1227,7 @@ void update_players(char* bracket_file_path) {
 		sscanf(line, "%s %s %hhd %hhd %hhd %hhd %hd",
 			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
 
-		if (calc_absent_players) {
+		if (calc_absent_players_with_file || calc_absent_players == 1) {
 			char already_in = 0;
 			char already_in2 = 0;
 			for (int i = 0; i < tournament_names_len; i++) {
@@ -1203,7 +1288,10 @@ void update_players(char* bracket_file_path) {
 	// TODO: maybe: Print out everyones before and after with a (+/- change here)
 	fclose(bracket_file);
 
-	if (calc_absent_players) {
+	if (calc_absent_players == 1) {
+		adjust_absent_players_no_file(day, month, year, t_name);
+	}
+	else if (calc_absent_players_with_file) {
 		adjust_absent_players(player_list_file, day, month, year, t_name);
 	}
 }
@@ -2067,6 +2155,9 @@ int reset_players(void) {
 int main(int argc, char **argv) {
 	int opt;
 	struct option opt_table[] = {
+		/* Don't make RD adjustments for players absent
+		 * from some tournaments */
+		{ "no-adjustment",	no_argument,		NULL,	'0' },
 		/* Add (or create if necessary) a player entry/player entry file
 		 * from user input */
 		{ "add-entry",		required_argument,	NULL,	'a' },
@@ -2105,7 +2196,7 @@ int main(int argc, char **argv) {
 	strncpy(player_dir, ".players/", sizeof(player_dir) - 1);
 
 	while ((opt = getopt_long(argc, argv, \
-		"a:A:b:B:c:Cd:gh:kl:m:MnNo:p:P:r:R:w:x:", opt_table, NULL)) != -1) {
+		"0a:A:b:B:c:Cd:gh:kl:m:MnNo:p:P:r:R:w:x:", opt_table, NULL)) != -1) {
 		if (opt == 'A') {
 			int count;
 			char *full_player_path = file_path_with_player_dir(optarg);
@@ -2145,6 +2236,9 @@ int main(int argc, char **argv) {
 		}
 
 		switch (opt) {
+			case '0':
+				calc_absent_players = 0;
+				break;
 			case 'a':
 				write_entry_from_input(file_path_with_player_dir(optarg));
 				break;
@@ -2185,7 +2279,7 @@ int main(int argc, char **argv) {
 				outcome_weight = strtod(optarg, NULL);
 				break;
 			case 'P':
-				calc_absent_players = 1;
+				calc_absent_players_with_file = 1;
 				strncpy(player_list_file, optarg, sizeof(player_list_file) - 1);
 				break;
 			case 'o':
