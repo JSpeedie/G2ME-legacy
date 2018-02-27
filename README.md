@@ -545,7 +545,9 @@ In terms of bytes:
 
 ## TODO
 
-* Write examples for README and man pages
+* Write examples for man pages, finish examples for README
+* Add option for user to set time period where a player receives
+no RD adjustments for missing events (default 1 or 2 weeks?)
 * Clean up glicko2.c to meet code conventions (line length, doc string,
 no TODOs)
 * Remove TODOs in G2ME.c, make sure invalid input/error checking is sound
