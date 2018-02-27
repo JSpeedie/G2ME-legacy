@@ -1,4 +1,4 @@
-# Table of Contents
+<details><summary># Table of Contents</summary><p>
 
 * [Technical Description](#technical-description)
 * [Examples](#examples)
@@ -32,6 +32,7 @@
 	* [The 'x' flag](#the-x-flag)
 * [The Glicko2 System Explained](#the-glicko2-system-explained)
 * [The Player File Format](#the-player-file-format)
+</p></details>
 
 
 
