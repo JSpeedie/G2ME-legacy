@@ -1,4 +1,4 @@
-<details><summary># Table of Contents</summary><p>
+<details><summary><h1>Table of Contents</h1></summary><p>
 
 * [Technical Description](#technical-description)
 * [Examples](#examples)
