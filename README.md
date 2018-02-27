@@ -108,7 +108,7 @@ TSE4
 
 ### The 'b' flag
 
-`G2ME -b test.br`
+`G2ME -b test`
 
 This flag takes one input, a bracket file. You aren't restricted by the
 extension, but the program expects every line to be of the format:
@@ -153,12 +153,12 @@ for line $i in season.sea
 An example file
 
 ```
-TSE1.br
-TSE2.br
-TT1.br
-TT2.br
-TSE3.br
-TT3.br
+TSE1
+TSE2
+TT1
+TT2
+TSE3
+TT3
 ```
 
 ### The 'c' flag
@@ -204,7 +204,7 @@ which in a spreadsheet takes the form of:
 
 ### The 'd' flag
 
-`G2ME -d players/here/ -b test.br`
+`G2ME -d players/here/ -b test`
 
 This flag takes one input, a directory file path.
 This is where the program will attempt to access, and store player files in.
@@ -215,7 +215,7 @@ full player file path would be `/home/me/G2ME/.players/JohnSmith`.
 
 ### The 'g' flag
 
-`G2ME -g -b test.br`
+`G2ME -g -b test`
 
 The `g` flag tells G2ME to calculate the glicko ratings on a per-game basis.
 
@@ -361,7 +361,7 @@ Andrew
 
 ### The 'P' flag
 
-`G2ME -P pr -b bracket.br`
+`G2ME -P pr -b bracket`
 
 The `-P` flag is to be used before the `-b` flag. It makes the system adjust
 player's data if they were not present in the given bracket. It takes the same
@@ -405,7 +405,7 @@ Julian vs John = 4-0-0
 
 ### The 'w' flag
 
-`G2ME -w 0.5 -b bracket.br`
+`G2ME -w 0.5 -b bracket`
 
 This flag requires a following `-b` flag call as it affects how the bracket
 will affect player's Glicko2 data. This flag multiplies the change in a
