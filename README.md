@@ -5,6 +5,7 @@
 * [Purpose](#purpose)
 * [What it is](#what-it-is)
 * [Why it makes Glicko 2 Easier](#why-it-makes-glicko-2-easier)
+* [Example Walkthrough](#example-walkthrough)
 * [Usage](#usage)
 	* [The '0' flag](#the-0-flag)
 	* [The 'a' flag](#the-a-flag)
@@ -68,6 +69,64 @@ all other players in the system or even a full table of record/matchup data.
 
 *G2ME makes it easy to track players using Glicko 2 and easy make use
 of the data stored by the program*
+
+
+
+##
+
+To start using this program, the first step is to create a the player directory.
+
+```
+mkdir .players
+```
+
+Second, you need to create a bracket file. For instance, a single elimination
+tournament of 4 players could look like this:
+
+```
+TheBestPlayer ABadPlayer 3 0 1 1 2018
+AGoodPlayer AnOkayPlayer 3 1 1 1 2018
+TheBestPlayer AGoodPlayer 3 2 1 1 2018
+```
+
+For this example, let's call this file `ExampleBracket`. Depending on how
+you want the data calculated, you have several ways of continuing. For the
+example, let's assume you want RD adjustments for absence.
+
+```
+$ G2ME -b ExampleBracket
+```
+
+The Glicko2 data is now stored in 4 files found in `.players/`
+
+```
+$ ls -1 .players
+TheBestPlayer
+AGoodPlayer
+AnOkayPlayer
+ABadPlayer
+```
+
+From here you can interact with the data as you want. Common operations are:
+
+* Printing player info in a human readable form
+
+```
+$ G2ME -h TheBestPlayer
+13 10 TheBestPlayer ABadPlayer  1662.310895 290.318965 0.06000000 1-0 1/1/2018 ExampleBracket
+13 11 TheBestPlayer AGoodPlayer 1791.934554 247.463282 0.05999983 1-0 1/1/2018 ExampleBracket
+```
+
+* Creating a pr of all the players in the system
+
+```
+$ G2ME -o temp
+$ cat temp
+TheBestPlayer  1791.9  247.5  0.05999983
+  AGoodPlayer  1564.6  245.8  0.05999914
+ AnOkayPlayer  1383.4  286.9  0.05999919
+   ABadPlayer  1383.4  286.9  0.05999919
+```
 
 
 
