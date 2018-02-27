@@ -1074,7 +1074,7 @@ void adjust_absent_players(char* player_list, char day, char month, \
 					/* If this adjustment is taking place on a different
 					 * day from their last entry */
 					if (latest_ent.day != day || latest_ent.month != month \
-						latest_ent.year != year) {
+						|| latest_ent.year != year) {
 
 						init_player_from_entry(&P, &latest_ent);
 						did_not_compete(&P);
