@@ -74,7 +74,7 @@ of the data stored by the program*
 
 ##
 
-To start using this program, the first step is to create a the player directory.
+To start using this program, the first step is to create the player directory.
 
 ```
 mkdir .players
@@ -126,6 +126,17 @@ TheBestPlayer  1791.9  247.5  0.05999983
   AGoodPlayer  1564.6  245.8  0.05999914
  AnOkayPlayer  1383.4  286.9  0.05999919
    ABadPlayer  1383.4  286.9  0.05999919
+```
+
+* Print matchup data for all the players in the system
+
+```
+$ G2ME -M
+               ABadPlayer  AGoodPlayer  AnOkayPlayer  TheBestPlayer
+   ABadPlayer  -           -            -             0-0-1
+  AGoodPlayer  -           -            1-0-0         0-0-1
+ AnOkayPlayer  -           0-0-1        -             -
+TheBestPlayer  1-0-0       1-0-0        -             -
 ```
 
 

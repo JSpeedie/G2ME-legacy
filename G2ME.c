@@ -1961,12 +1961,12 @@ char *players_in_player_dir_lexio(char *players, int *num) {
 }
 
 int get_record(char *player1, char *player2, struct record *ret) {
-	char *full_player1_path = file_path_with_player_dir(player1);
 
+	char *full_player1_path = file_path_with_player_dir(player1);
 	/* Read the starter data in the file */
 	struct entry ent;
 	read_start_from_file(full_player1_path, &ent);
-	free(full_player1_path);
+	//printf("full_player1_path: \"%s\"\n", full_player1_path);
 
 	FILE *p_file = fopen(full_player1_path, "rb");
 	if (p_file == NULL) {
@@ -1980,6 +1980,13 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	ret->losses = 0;
 	ret->ties = 0;
 
+	/* Get to the entries in the player file */
+	int r = get_to_entries_in_file(p_file);
+	if (r != 0) {
+		perror("get_record (get_to_entries_in_file)");
+		return -2;
+	}
+
 	while (read_entry(p_file, &ent) == 0) {
 		// If the opponent for the given entry is the player of interest
 		if (0 == strcmp(ent.opp_name, player2)) {
@@ -1988,6 +1995,7 @@ int get_record(char *player1, char *player2, struct record *ret) {
 			else if (ent.gc < ent.opp_gc) ret->losses += 1;
 		}
 	}
+	free(full_player1_path);
 	fclose(p_file);
 
 	return 0;
@@ -2040,6 +2048,7 @@ void print_matchup_table(void) {
 				longest_n, &players[i * MAX_NAME_LEN], space_between_columns, "");
 			for (int j = 0; j < num_players; j++) {
 				struct record temp_rec;
+	//printf("print_matchup_table: \"%s\"\n", &players[i * MAX_NAME_LEN]);
 				get_record(&players[i * MAX_NAME_LEN], \
 					&players[j * MAX_NAME_LEN], &temp_rec);
 				// Make column width to be the length of the column title
