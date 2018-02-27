@@ -6,6 +6,7 @@
 * [What it is](#what-it-is)
 * [Why it makes Glicko 2 Easier](#why-it-makes-glicko-2-easier)
 * [Usage](#usage)
+	* [The '0' flag](#the-0-flag)
 	* [The 'a' flag](#the-a-flag)
 	* [The 'A' flag](#the-A-flag-1)
 	* [The 'b' flag](#the-b-flag)
@@ -71,6 +72,14 @@ of the data stored by the program*
 
 
 ## Usage
+
+### The '0' flag
+
+`G2ME -0 -B 2017FallSeason.sea`
+
+Takes no arguments. Players no longer have their RD adjusted for missing
+an event. Default behaviour is to apply Step 6 of the Glicko2 Formula
+to each player that misses an event.
 
 ### The 'a' flag
 
