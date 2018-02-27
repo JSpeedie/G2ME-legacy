@@ -72,7 +72,7 @@ of the data stored by the program*
 
 
 
-##
+## Example Walkthrough
 
 To start using this program, the first step is to create the player directory.
 
