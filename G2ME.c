@@ -1025,7 +1025,8 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 
 /** Takes a file path representing a file containing a list of file paths
  * to player files. All players who did not compete but are in the list,
- * get their Glicko2 data adjusted.
+ * get their Glicko2 data adjusted. Unless their last RD adjustment
+ * was within the same day.
  *
  * \param '*player_list' the file path of the player list file.
  * \param '*t_name' a string containing the name of the tournament.
@@ -1066,24 +1067,35 @@ void adjust_absent_players(char* player_list, char day, char month, \
 			if (access(file_path_with_player_dir(line), R_OK | W_OK) != -1) {
 				struct player P;
 				struct entry latest_ent;
-				if (0 == read_last_entry(file_path_with_player_dir(line), &latest_ent)) {
-					init_player_from_entry(&P, &latest_ent);
-					did_not_compete(&P);
-					/* Only need to change entry RD since that's all Step 6 changes */
-					latest_ent.RD = getRd(&P);
-					/* Change qualities of the entry to reflect that it was not a
-					 * real set, but a did_not_compete */
-					strcpy(latest_ent.opp_name, "-");
-					latest_ent.len_opp_name = strlen(latest_ent.opp_name);
-					latest_ent.gc = 0;
-					latest_ent.opp_gc = 0;
-					latest_ent.day = day;
-					latest_ent.month = month;
-					latest_ent.year = year;
-					strncpy(latest_ent.t_name, t_name, MAX_NAME_LEN - 1);
-					latest_ent.t_name[strlen(latest_ent.t_name)] = '\0';
-					latest_ent.len_t_name = strlen(latest_ent.t_name);
-					append_entry_to_file(&latest_ent, file_path_with_player_dir(line));
+				if (0 == \
+					read_last_entry(file_path_with_player_dir(line), \
+					&latest_ent)) {
+
+					/* If this adjustment is taking place on a different
+					 * day from their last entry */
+					if (latest_ent.day != day || latest_ent.month != month \
+						latest_ent.year != year) {
+
+						init_player_from_entry(&P, &latest_ent);
+						did_not_compete(&P);
+						/* Only need to change entry RD since that's all
+						 * Step 6 changes */
+						latest_ent.RD = getRd(&P);
+						/* Change qualities of the entry to reflect that it was
+						 * not a real set, but a did_not_compete */
+						strcpy(latest_ent.opp_name, "-");
+						latest_ent.len_opp_name = strlen(latest_ent.opp_name);
+						latest_ent.gc = 0;
+						latest_ent.opp_gc = 0;
+						latest_ent.day = day;
+						latest_ent.month = month;
+						latest_ent.year = year;
+						strncpy(latest_ent.t_name, t_name, MAX_NAME_LEN - 1);
+						latest_ent.t_name[strlen(latest_ent.t_name)] = '\0';
+						latest_ent.len_t_name = strlen(latest_ent.t_name);
+						append_entry_to_file(&latest_ent, \
+							file_path_with_player_dir(line));
+					}
 				}
 			}
 			/* If they do not then they have never competed, so skip them */
