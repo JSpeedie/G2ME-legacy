@@ -145,9 +145,7 @@ TheBestPlayer  1-0-0       1-0-0        -             -
 
 ## Usage
 
-### The '0' flag
-
-<details><summary>...</summary><p>
+<details><summary> The '0' flag</summary><p>
 
 `G2ME -0 -B 2017FallSeason.sea`
 
@@ -157,9 +155,7 @@ to each player that misses an event.
 
 </p></details>
 
-### The 'a' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'a' flag</summary><p>
 
 `G2ME -a Julian`
 
@@ -169,9 +165,7 @@ have to use this. Used almost exclusively for debugging and last minute fixes.
 
 </p></details>
 
-### The 'A' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'A' flag</summary><p>
 
 `G2ME -A Julian`
 
@@ -190,9 +184,7 @@ TSE4
 
 </p></details>
 
-### The 'b' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'b' flag</summary><p>
 
 `G2ME -b test`
 
@@ -220,9 +212,7 @@ Ron Julian 4 3 1 1 2017
 
 </p></details>
 
-### The 'B' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'B' flag</summary><p>
 
 `G2ME -B season.sea`
 
@@ -253,9 +243,7 @@ TT3
 
 </p></details>
 
-### The 'c' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'c' flag</summary><p>
 
 `G2ME -c JohnSmith`
 
@@ -268,9 +256,7 @@ higher number, however.
 
 </p></details>
 
-### The 'C' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'C' flag</summary><p>
 
 Takes no arguments. Outputs a csv-style "spreadsheet" of player matchup data.
 Useful for turning the data into a spreadsheet or for use with spreadsheet
@@ -302,9 +288,7 @@ which in a spreadsheet takes the form of:
 
 </p></details>
 
-### The 'd' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'd' flag</summary><p>
 
 `G2ME -d players/here/ -b test`
 
@@ -317,9 +301,7 @@ full player file path would be `/home/me/G2ME/.players/JohnSmith`.
 
 </p></details>
 
-### The 'g' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'g' flag</summary><p>
 
 `G2ME -g -b test`
 
@@ -343,9 +325,7 @@ using the `-g` flag only if you have few tournaments with lots of large sets
 
 </p></details>
 
-### The 'h' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'h' flag</summary><p>
 
 `G2ME -h Julian`
 
@@ -364,9 +344,7 @@ Example output (from command above):
 
 </p></details>
 
-### The 'k' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'k' flag</summary><p>
 
 Takes no arguments. By default, `G2ME` deletes every file in `player_dir`
 removing the usual step of `$ rm .players/*`, but if you want to run
@@ -375,9 +353,7 @@ from deleting all the files.
 
 </p></details>
 
-### The 'l' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'l' flag</summary><p>
 
 `G2ME -l Julian`
 
@@ -386,9 +362,7 @@ as `-h` except it's only the last line.
 
 </p></details>
 
-### The 'm' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'm' flag</summary><p>
 
 `G2ME -p pr -m 3 -o prForPlayersWhoAttendedAtLeast3Events`
 
@@ -398,9 +372,7 @@ unless used with another flag that makes use of it such as `-o` or `-M`.
 
 </p></details>
 
-### The 'M' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'M' flag</summary><p>
 
 `G2ME -m 8 -M`
 
@@ -420,9 +392,7 @@ Julian  3-0-0  3-0-4  0-0-4  -
 
 </p></details>
 
-### The 'n' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'n' flag</summary><p>
 
 `G2ME -n -R Julian`
 
@@ -431,9 +401,7 @@ interpretation easier. This flag disables that.
 
 </p></details>
 
-### The 'N' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'N' flag</summary><p>
 
 When printing record data, instead of the standard:
 "**[wins]**-**[ties]**-**[losses]**", if this flag is used, `G2ME` will print
@@ -442,9 +410,7 @@ that can never have ties.
 
 </p></details>
 
-### The 'o' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'o' flag</summary><p>
 
 ```
 G2ME -p pr -o 2017pr
@@ -478,9 +444,7 @@ Jerome  1622.6   87.8  0.05999483
 
 </p></details>
 
-### The 'p' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'p' flag</summary><p>
 
 `G2ME -p pr`
 
@@ -503,9 +467,7 @@ Andrew
 
 </p></details>
 
-### The 'P' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'P' flag</summary><p>
 
 `G2ME -P pr -b bracket`
 
@@ -526,9 +488,7 @@ slightly.
 
 </p></details>
 
-### The 'r' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'r' flag</summary><p>
 
 `G2ME -r Julian`
 
@@ -537,9 +497,7 @@ the player file's Player 1 data to have the new name.
 
 </p></details>
 
-### The 'R' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'R' flag</summary><p>
 
 `G2ME -R Julian`
 
@@ -559,9 +517,7 @@ Julian vs John = 4-0-0
 
 </p></details>
 
-### The 'w' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'w' flag</summary><p>
 
 `G2ME -w 0.5 -b bracket`
 
@@ -572,9 +528,7 @@ not recommended for use.**
 
 </p></details>
 
-### The 'x' flag
-
-<details><summary>...</summary><p>
+<details><summary> The 'x' flag</summary><p>
 
 `G2ME -x Julian`
 
