@@ -15,6 +15,7 @@
 	* [The 'd' flag](#the-d-flag)
 	* [The 'g' flag](#the-g-flag)
 	* [The 'h' flag](#the-h-flag)
+	* [The 'k' flag](#the-k-flag)
 	* [The 'l' flag](#the-l-flag)
 	* [The 'm' flag](#the-m-flag)
 	* [The 'M' flag](#the-m-flag-1)
@@ -241,6 +242,13 @@ Example output (from command above):
 6 6 Julian Edward  1710.739430  68.800311 0.05995651 1-0 1/12/2017  TT8
 6 5 Julian Mirza   1700.316507  68.359335 0.05995538 0-1 1/12/2017  TT8
 ```
+
+### The 'k' flag
+
+Takes no arguments. By default, `G2ME` deletes every file in `player_dir`
+removing the usual step of `$ rm .players/*`, but if you want to run
+consecutive brackets/bracket file, you can use this flag to prevent `G2ME`
+from deleting all the files.
 
 ### The 'l' flag
 
