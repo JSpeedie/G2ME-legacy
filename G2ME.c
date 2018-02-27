@@ -30,6 +30,7 @@ char *CYAN = "\x1B[36m";
 char *WHITE = "\x1B[37m";
 
 char use_games = 0;
+char keep_players = 0;
 int pr_minimum_events = 0;
 char colour_output = 1;
 char print_ties = 1;
@@ -2043,6 +2044,26 @@ void print_matchup_table_csv(void) {
 	}
 }
 
+int reset_players(void) {
+	DIR *p_dir;
+	struct dirent *entry;
+	if ((p_dir = opendir(player_dir)) != NULL) {
+		while ((entry = readdir(p_dir)) != NULL) {
+			// Make sure it doesn't count directories
+			if (entry->d_type != DT_DIR) {
+				char *full_player_path = file_path_with_player_dir(entry->d_name);
+				remove(full_player_path);
+				free(full_player_path);
+			}
+		}
+		closedir(p_dir);
+		return 0;
+	} else {
+		perror("opendir (reset_players)");
+		return -1;
+	}
+}
+
 int main(int argc, char **argv) {
 	int opt;
 	struct option opt_table[] = {
@@ -2060,6 +2081,8 @@ int main(int argc, char **argv) {
 		{ "use-games",		no_argument,		NULL,	'g' },
 		/* Output given player file in human readable form */
 		{ "human",			required_argument,	NULL,	'h' },
+		/* Don't delete the player files when running a new bracket */
+		{ "keep-players",	no_argument,		NULL,	'k' },
 		/* Output last entry in given player file in human readable form */
 		{ "last-entry",		required_argument,	NULL,	'l' },
 		{ "min-events",		required_argument,	NULL,	'm' },
@@ -2082,7 +2105,7 @@ int main(int argc, char **argv) {
 	strncpy(player_dir, ".players/", sizeof(player_dir) - 1);
 
 	while ((opt = getopt_long(argc, argv, \
-		"a:A:b:B:c:Cd:gh:l:m:MnNo:p:P:r:R:w:x:", opt_table, NULL)) != -1) {
+		"a:A:b:B:c:Cd:gh:kl:m:MnNo:p:P:r:R:w:x:", opt_table, NULL)) != -1) {
 		if (opt == 'A') {
 			int count;
 			char *full_player_path = file_path_with_player_dir(optarg);
@@ -2126,16 +2149,21 @@ int main(int argc, char **argv) {
 				write_entry_from_input(file_path_with_player_dir(optarg));
 				break;
 			case 'b':
+				if (keep_players == 0) reset_players();
 				update_players(optarg);
 				break;
 			case 'C':
 				print_matchup_table_csv();
 				break;
 			case 'B':
+				if (keep_players == 0) reset_players();
 				run_brackets(optarg);
 				break;
 			case 'g':
 				use_games = 1;
+				break;
+			case 'k':
+				keep_players = 1;
 				break;
 			case 'm':
 				pr_minimum_events = atoi(optarg);
