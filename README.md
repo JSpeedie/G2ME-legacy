@@ -145,9 +145,9 @@ TheBestPlayer  1-0-0       1-0-0        -             -
 
 ## Usage
 
-<details><summary>...</summary><p>
-
 ### The '0' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -0 -B 2017FallSeason.sea`
 
@@ -155,7 +155,11 @@ Takes no arguments. Players no longer have their RD adjusted for missing
 an event. Default behaviour is to apply Step 6 of the Glicko2 Formula
 to each player that misses an event.
 
+</p></details>
+
 ### The 'a' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -a Julian`
 
@@ -163,7 +167,11 @@ Takes a file path, prompts user for space-delimited entry information and then
 appends it to the given file. If you use G2ME as intended, you should never
 have to use this. Used almost exclusively for debugging and last minute fixes.
 
+</p></details>
+
 ### The 'A' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -A Julian`
 
@@ -180,7 +188,11 @@ TT2
 TSE4
 ```
 
+</p></details>
+
 ### The 'b' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -b test`
 
@@ -206,7 +218,11 @@ Isaiah Santos 3 0 1 1 2017
 Ron Julian 4 3 1 1 2017
 ```
 
+</p></details>
+
 ### The 'B' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -B season.sea`
 
@@ -235,7 +251,11 @@ TSE3
 TT3
 ```
 
+</p></details>
+
 ### The 'c' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -c JohnSmith`
 
@@ -246,7 +266,11 @@ If this flag outputs a higher number for one player than another it does not
 necessarily mean that it has more accurate data on the one with the
 higher number, however.
 
+</p></details>
+
 ### The 'C' flag
+
+<details><summary>...</summary><p>
 
 Takes no arguments. Outputs a csv-style "spreadsheet" of player matchup data.
 Useful for turning the data into a spreadsheet or for use with spreadsheet
@@ -276,7 +300,11 @@ which in a spreadsheet takes the form of:
 | **Andrew** | 0-0-3 | 1-0-1 | -      | 0-0-3  |
 | **Julian** | 3-0-4 | 3-0-0 | 3-0-0  | -      |
 
+</p></details>
+
 ### The 'd' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -d players/here/ -b test`
 
@@ -287,7 +315,11 @@ stored on another storage device. By default, if you don't specify the `-d`
 flag, the default player directory file path will be `./.players/`. An example
 full player file path would be `/home/me/G2ME/.players/JohnSmith`.
 
+</p></details>
+
 ### The 'g' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -g -b test`
 
@@ -309,7 +341,11 @@ It is up to the user of G2ME to decide which they want to use but I advise
 using the `-g` flag only if you have few tournaments with lots of large sets
 (best of 5s or 7s).
 
+</p></details>
+
 ### The 'h' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -h Julian`
 
@@ -326,21 +362,33 @@ Example output (from command above):
 6 5 Julian Mirza   1700.316507  68.359335 0.05995538 0-1 1/12/2017  TT8
 ```
 
+</p></details>
+
 ### The 'k' flag
+
+<details><summary>...</summary><p>
 
 Takes no arguments. By default, `G2ME` deletes every file in `player_dir`
 removing the usual step of `$ rm .players/*`, but if you want to run
 consecutive brackets/bracket file, you can use this flag to prevent `G2ME`
 from deleting all the files.
 
+</p></details>
+
 ### The 'l' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -l Julian`
 
 Stands for Output-**L**ast-Line. Not really useful except for debugging. Same
 as `-h` except it's only the last line.
 
+</p></details>
+
 ### The 'm' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -p pr -m 3 -o prForPlayersWhoAttendedAtLeast3Events`
 
@@ -348,7 +396,11 @@ Stands for **m**inimum events attended. Useful for outputting a meaningful pr
 that won't have the people who only showed up once or twice. Useless flag
 unless used with another flag that makes use of it such as `-o` or `-M`.
 
+</p></details>
+
 ### The 'M' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -m 8 -M`
 
@@ -366,21 +418,33 @@ Jonah   -      2-0-0  -      4-0-0
 Julian  3-0-0  3-0-4  0-0-4  -
 ```
 
+</p></details>
+
 ### The 'n' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -n -R Julian`
 
 Stands for **n**o-colour. By default, G2ME will colour certain inputs to make
 interpretation easier. This flag disables that.
 
+</p></details>
+
 ### The 'N' flag
+
+<details><summary>...</summary><p>
 
 When printing record data, instead of the standard:
 "**[wins]**-**[ties]**-**[losses]**", if this flag is used, `G2ME` will print
 "**[wins]**-**[losses]**" to accomodate users who participate in an event
 that can never have ties.
 
+</p></details>
+
 ### The 'o' flag
+
+<details><summary>...</summary><p>
 
 ```
 G2ME -p pr -o 2017pr
@@ -412,7 +476,11 @@ Jerome  1622.6   87.8  0.05999483
  Kriss  1580.8   83.7  0.05997938
 ```
 
+</p></details>
+
 ### The 'p' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -p pr`
 
@@ -433,7 +501,11 @@ Santos
 Andrew
 ```
 
+</p></details>
+
 ### The 'P' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -P pr -b bracket`
 
@@ -452,14 +524,22 @@ did not attend a given event, they will receive the absence punishment which
 in Glicko 2 terms means a function is applied to their rd that raises it
 slightly.
 
+</p></details>
+
 ### The 'r' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -r Julian`
 
 The `-r` flag takes a player file, prompts the user for a new name and changes
 the player file's Player 1 data to have the new name.
 
+</p></details>
+
 ### The 'R' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -R Julian`
 
@@ -477,7 +557,11 @@ Julian vs Bilal = 1-0-3
 Julian vs John = 4-0-0
 ```
 
+</p></details>
+
 ### The 'w' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -w 0.5 -b bracket`
 
@@ -486,7 +570,11 @@ will affect player's Glicko2 data. This flag multiplies the change in a
 player's Glicko2 data after a set/game by the given value. **This flag is
 not recommended for use.**
 
+</p></details>
+
 ### The 'x' flag
+
+<details><summary>...</summary><p>
 
 `G2ME -x Julian`
 
