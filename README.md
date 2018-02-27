@@ -1,4 +1,5 @@
-<details><summary><h1>Table of Contents</h1></summary><p>
+# Table of Contents
+<details><summary>...</summary><p>
 
 * [Technical Description](#technical-description)
 * [Examples](#examples)
@@ -144,6 +145,7 @@ TheBestPlayer  1-0-0       1-0-0        -             -
 
 ## Usage
 
+<details><summary>...</summary><p>
 ### The '0' flag
 
 `G2ME -0 -B 2017FallSeason.sea`
@@ -488,6 +490,7 @@ not recommended for use.**
 `G2ME -x Julian`
 
 This flag will remove the last entry in the given player file.
+</p></details>
 
 
 
