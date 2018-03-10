@@ -29,6 +29,7 @@ char *MAGENTA = "\x1B[35m";
 char *CYAN = "\x1B[36m";
 char *WHITE = "\x1B[37m";
 
+char verbose = 0;
 char use_games = 0;
 char keep_players = 0;
 int pr_minimum_events = 0;
@@ -75,6 +76,7 @@ typedef struct record {
 struct entry temp;
 
 char *get_player_attended(char *, int *);
+int get_player_outcome_count(char *);
 
 char *file_path_with_player_dir(char *s) {
 	int new_path_size = sizeof(char) * (MAX_FILE_PATH_LEN - MAX_NAME_LEN);
@@ -707,6 +709,43 @@ int append_pr_entry_to_file(struct entry* E, char* file_path, \
 		longest_name_length, E->name, E->rating, E->RD, E->vol) < 0) {
 
 		perror("fprintf");
+		return -3;
+	}
+
+	fclose(entry_file);
+	return 0;
+}
+
+/** Appends a pr entry (the name and glicko2 data for a player) to a given
+ * file. Returns an int representing success.
+ *
+ * \param '*E' the struct entry to append to the pr file
+ * \param '*file_path' the file path for the pr file
+ * \return 0 upon success, negative number on failure.
+ */
+int append_pr_entry_to_file_verbose(struct entry* E, char* file_path, \
+	int longest_name_length, int longest_attended_count, \
+	int longest_outcome_count) {
+
+	FILE *entry_file = fopen(file_path, "a+");
+	if (entry_file == NULL) {
+		perror("fopen (append_pr_entry_to_file_verbose)");
+		return -1;
+	}
+
+	char *full_player_path = file_path_with_player_dir(E->name);
+	int attended_count;
+	get_player_attended(full_player_path, &attended_count);
+	int outcome_count = get_player_outcome_count(full_player_path);
+	free(full_player_path);
+
+	/* If unable to write to the file */
+	if (fprintf(entry_file, "%*s  %6.1lf  %5.1lf  %10.8lf  %*d  %*d\n", \
+		longest_name_length, E->name, E->rating, E->RD, E->vol, \
+		longest_attended_count, attended_count, \
+		longest_outcome_count, outcome_count) < 0) {
+
+		perror("fprintf (append_pr_entry_to_file_verbose)");
 		return -2;
 	}
 
@@ -1406,6 +1445,9 @@ int generate_ratings_file(char* file_path, char* output_file_path) {
 	 * longest name */
 	char line[MAX_NAME_LEN];
 	int pr_entries_num = 0;
+	int longest_name_length = 0;
+	int longest_attended = 0;
+	int longest_outcomes = 0;
 	/* Create a starting point pr entry array */
 	int pr_entries_size = SIZE_PR_ENTRY;
 	struct entry *players_pr_entries = \
@@ -1420,6 +1462,9 @@ int generate_ratings_file(char* file_path, char* output_file_path) {
 		if (0 == read_last_entry(full_player_path, &temp)) {
 			int num_events;
 			get_player_attended(full_player_path, &num_events);
+			if (longest_attended < num_events) longest_attended = num_events;
+			int num_outcomes = get_player_outcome_count(full_player_path);
+			if (longest_outcomes < num_outcomes) longest_outcomes = num_outcomes;
 			// If the player attended the minimum number of events
 			if (num_events >= pr_minimum_events) {
 				/* If there is no space to add this pr entry, reallocate */
@@ -1443,16 +1488,30 @@ int generate_ratings_file(char* file_path, char* output_file_path) {
 	/* Sort entries in the list by rating into non-increasing order */
 	merge_sort_pr_entry_array(players_pr_entries, pr_entries_num);
 	/* Get the longest name on the pr */
-	int longest_name_length = 0;
 	for (int i = 0; i < pr_entries_num; i++) {
 		if (longest_name_length < players_pr_entries[i].len_name) {
 			longest_name_length = players_pr_entries[i].len_name;
 		}
 	}
+	/* Store how long in characters the longest_attended count would take
+	 * in longest_attended */
+	char string_rep[128];
+	sprintf(string_rep, "%d", longest_attended);
+	longest_attended = strlen(string_rep);
+	/* Store how long in characters the longest_attended count would take
+	 * in longest_attended */
+	sprintf(string_rep, "%d", longest_outcomes);
+	longest_outcomes = strlen(string_rep);
 	/* Append each entry pr file */
 	for (int i = 0; i < pr_entries_num; i++) {
-		append_pr_entry_to_file(&players_pr_entries[i], output_file_path, \
-			longest_name_length);
+		if (verbose == 1) {
+			append_pr_entry_to_file_verbose(&players_pr_entries[i], \
+				output_file_path, longest_name_length, longest_attended, \
+				longest_outcomes);
+		} else {
+			append_pr_entry_to_file(&players_pr_entries[i], output_file_path, \
+				longest_name_length);
+		}
 	}
 
 	fclose(players);
@@ -1469,6 +1528,9 @@ int generate_ratings_file_full(char* output_file_path) {
 		 * therefore the longest line that should be supported should be the
 		 * longest name */
 		int pr_entries_num = 0;
+		int longest_name_length = 0;
+		int longest_attended = 0;
+		int longest_outcomes = 0;
 		/* Create a starting point pr entry array */
 		int pr_entries_size = SIZE_PR_ENTRY;
 		struct entry *players_pr_entries = \
@@ -1482,6 +1544,10 @@ int generate_ratings_file_full(char* output_file_path) {
 				/* If the player file was able to be read properly... */
 				if (0 == read_last_entry(full_player_path, &temp)) {
 					int num_events;
+					get_player_attended(full_player_path, &num_events);
+					if (longest_attended < num_events) longest_attended = num_events;
+					int num_outcomes = get_player_outcome_count(full_player_path);
+					if (longest_outcomes < num_outcomes) longest_outcomes = num_outcomes;
 					get_player_attended(full_player_path, &num_events);
 					// If the player attended the minimum number of events
 					if (num_events >= pr_minimum_events) {
@@ -1509,16 +1575,30 @@ int generate_ratings_file_full(char* output_file_path) {
 		/* Sort entries in the list by rating into non-increasing order */
 		merge_sort_pr_entry_array(players_pr_entries, pr_entries_num);
 		/* Get the longest name on the pr */
-		int longest_name_length = 0;
 		for (int i = 0; i < pr_entries_num; i++) {
 			if (longest_name_length < players_pr_entries[i].len_name) {
 				longest_name_length = players_pr_entries[i].len_name;
 			}
 		}
+		/* Store how long in characters the longest_attended count would take
+		 * in longest_attended */
+		char string_rep[128];
+		sprintf(string_rep, "%d", longest_attended);
+		longest_attended = strlen(string_rep);
+		/* Store how long in characters the longest_attended count would take
+		 * in longest_attended */
+		sprintf(string_rep, "%d", longest_outcomes);
+		longest_outcomes = strlen(string_rep);
 		/* Append each entry pr file */
 		for (int i = 0; i < pr_entries_num; i++) {
-			append_pr_entry_to_file(&players_pr_entries[i], \
-				output_file_path, longest_name_length);
+			if (verbose == 1) {
+				append_pr_entry_to_file_verbose(&players_pr_entries[i], \
+					output_file_path, longest_name_length, longest_attended, \
+					longest_outcomes);
+			} else {
+				append_pr_entry_to_file(&players_pr_entries[i], output_file_path, \
+					longest_name_length);
+			}
 		}
 		return 0;
 	} else {
@@ -2186,6 +2266,7 @@ int main(int argc, char **argv) {
 		{ "P",				required_argument,	NULL,	'P' },
 		{ "refactor",		required_argument,	NULL,	'r' },
 		{ "records",		required_argument,	NULL,	'R' },
+		{ "verbose",		no_argument,		NULL,	'v' },
 		{ "weight",			required_argument,	NULL,	'w' },
 		{ "remove-entries",	required_argument,	NULL,	'x' },
 		{ 0, 0, 0, 0 }
@@ -2196,7 +2277,7 @@ int main(int argc, char **argv) {
 	strncpy(player_dir, ".players/", sizeof(player_dir) - 1);
 
 	while ((opt = getopt_long(argc, argv, \
-		"0a:A:b:B:c:Cd:gh:kl:m:MnNo:p:P:r:R:w:x:", opt_table, NULL)) != -1) {
+		"0a:A:b:B:c:Cd:gh:kl:m:MnNo:p:P:r:R:vw:x:", opt_table, NULL)) != -1) {
 		if (opt == 'A') {
 			int count;
 			char *full_player_path = file_path_with_player_dir(optarg);
@@ -2291,6 +2372,9 @@ int main(int argc, char **argv) {
 				} else {
 					generate_ratings_file_full(optarg);
 				}
+				break;
+			case 'v':
+				verbose = 1;
 				break;
 		}
 	}
