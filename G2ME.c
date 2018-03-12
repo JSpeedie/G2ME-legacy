@@ -77,6 +77,7 @@ struct entry temp;
 
 char *get_player_attended(char *, int *);
 int get_player_outcome_count(char *);
+double get_gecko_change_since_last_event(char *);
 
 char *file_path_with_player_dir(char *s) {
 	int new_path_size = sizeof(char) * (MAX_FILE_PATH_LEN - MAX_NAME_LEN);
@@ -725,7 +726,7 @@ int append_pr_entry_to_file(struct entry* E, char* file_path, \
  */
 int append_pr_entry_to_file_verbose(struct entry* E, char* file_path, \
 	int longest_name_length, int longest_attended_count, \
-	int longest_outcome_count) {
+	int longest_outcome_count, int longest_gecko_change) {
 
 	FILE *entry_file = fopen(file_path, "a+");
 	if (entry_file == NULL) {
@@ -737,16 +738,36 @@ int append_pr_entry_to_file_verbose(struct entry* E, char* file_path, \
 	int attended_count;
 	get_player_attended(full_player_path, &attended_count);
 	int outcome_count = get_player_outcome_count(full_player_path);
+	double gecko_change = get_gecko_change_since_last_event(full_player_path);
+	char gecko_change_string[longest_gecko_change + 2];
+	if (gecko_change < 0) {
+		sprintf(gecko_change_string, "%-5.1lf", gecko_change);
+	} else {
+		sprintf(gecko_change_string, "%c%-5.1lf", '+', gecko_change);
+	}
 	free(full_player_path);
 
-	/* If unable to write to the file */
-	if (fprintf(entry_file, "%*s  %6.1lf  %5.1lf  %10.8lf  %*d  %*d\n", \
-		longest_name_length, E->name, E->rating, E->RD, E->vol, \
-		longest_attended_count, attended_count, \
-		longest_outcome_count, outcome_count) < 0) {
+	if (attended_count <= 1) {
+		/* If unable to write to the file */
+		if (fprintf(entry_file, "%*s  %6.1lf  %5.1lf  %10.8lf  %*d  %*d\n", \
+			longest_name_length, E->name, E->rating, E->RD, E->vol, \
+			longest_attended_count, attended_count, \
+			longest_outcome_count, outcome_count) < 0) {
 
-		perror("fprintf (append_pr_entry_to_file_verbose)");
-		return -2;
+			perror("fprintf (append_pr_entry_to_file_verbose)");
+			return -2;
+		}
+	} else {
+		/* If unable to write to the file */
+		if (fprintf(entry_file, "%*s  %6.1lf  %5.1lf  %10.8lf  %*d  %*d  %s\n", \
+			longest_name_length, E->name, E->rating, E->RD, E->vol, \
+			longest_attended_count, attended_count, \
+			longest_outcome_count, outcome_count, \
+			gecko_change_string) < 0) {
+
+			perror("fprintf (append_pr_entry_to_file_verbose)");
+			return -3;
+		}
 	}
 
 	fclose(entry_file);
@@ -921,7 +942,10 @@ int read_last_entry(char* file_path, struct entry *ret) {
 	}
 
 	/* Read the player's name from the file */
-	read_start_from_file(file_path, ret);
+	if (0 != read_start_from_file(file_path, ret)) {
+		perror("read_start_from_file (read_last_entry)");
+		return -2;
+	}
 	/* Set file position to be at the latest entry for that player */
 	long int offset = get_last_entry_offset(file_path);
 	fseek(p_file, offset, SEEK_SET);
@@ -1448,6 +1472,7 @@ int generate_ratings_file(char* file_path, char* output_file_path) {
 	int longest_name_length = 0;
 	int longest_attended = 0;
 	int longest_outcomes = 0;
+	double longest_gecko_change = 0;
 	/* Create a starting point pr entry array */
 	int pr_entries_size = SIZE_PR_ENTRY;
 	struct entry *players_pr_entries = \
@@ -1464,7 +1489,14 @@ int generate_ratings_file(char* file_path, char* output_file_path) {
 			get_player_attended(full_player_path, &num_events);
 			if (longest_attended < num_events) longest_attended = num_events;
 			int num_outcomes = get_player_outcome_count(full_player_path);
-			if (longest_outcomes < num_outcomes) longest_outcomes = num_outcomes;
+			if (longest_outcomes < num_outcomes) {
+				longest_outcomes = num_outcomes;
+			}
+			double num_gecko_change = \
+				get_gecko_change_since_last_event(full_player_path);
+			if (abs(longest_gecko_change) < abs(num_gecko_change)) {
+				longest_gecko_change = num_gecko_change;
+			}
 			// If the player attended the minimum number of events
 			if (num_events >= pr_minimum_events) {
 				/* If there is no space to add this pr entry, reallocate */
@@ -1502,12 +1534,16 @@ int generate_ratings_file(char* file_path, char* output_file_path) {
 	 * in longest_attended */
 	sprintf(string_rep, "%d", longest_outcomes);
 	longest_outcomes = strlen(string_rep);
+	/* Store how long in characters the longest_gecko_change count would take
+	 * in longest_gecko_change */
+	sprintf(string_rep, "%5.1f", longest_gecko_change);
+	longest_gecko_change = strlen(string_rep);
 	/* Append each entry pr file */
 	for (int i = 0; i < pr_entries_num; i++) {
 		if (verbose == 1) {
 			append_pr_entry_to_file_verbose(&players_pr_entries[i], \
 				output_file_path, longest_name_length, longest_attended, \
-				longest_outcomes);
+				longest_outcomes, longest_gecko_change);
 		} else {
 			append_pr_entry_to_file(&players_pr_entries[i], output_file_path, \
 				longest_name_length);
@@ -1531,6 +1567,7 @@ int generate_ratings_file_full(char* output_file_path) {
 		int longest_name_length = 0;
 		int longest_attended = 0;
 		int longest_outcomes = 0;
+		double longest_gecko_change = 0;
 		/* Create a starting point pr entry array */
 		int pr_entries_size = SIZE_PR_ENTRY;
 		struct entry *players_pr_entries = \
@@ -1547,8 +1584,14 @@ int generate_ratings_file_full(char* output_file_path) {
 					get_player_attended(full_player_path, &num_events);
 					if (longest_attended < num_events) longest_attended = num_events;
 					int num_outcomes = get_player_outcome_count(full_player_path);
-					if (longest_outcomes < num_outcomes) longest_outcomes = num_outcomes;
-					get_player_attended(full_player_path, &num_events);
+					if (longest_outcomes < num_outcomes) {
+						longest_outcomes = num_outcomes;
+					}
+					double num_gecko_change = \
+						get_gecko_change_since_last_event(full_player_path);
+					if (abs(longest_gecko_change) < abs(num_gecko_change)) {
+						longest_gecko_change = num_gecko_change;
+					}
 					// If the player attended the minimum number of events
 					if (num_events >= pr_minimum_events) {
 						/* If there is no space to add this pr entry,
@@ -1567,6 +1610,8 @@ int generate_ratings_file_full(char* output_file_path) {
 						players_pr_entries[pr_entries_num] = temp;
 						pr_entries_num++;
 					}
+				} else {
+					return -3;
 				}
 				free(full_player_path);
 			}
@@ -1589,12 +1634,16 @@ int generate_ratings_file_full(char* output_file_path) {
 		 * in longest_attended */
 		sprintf(string_rep, "%d", longest_outcomes);
 		longest_outcomes = strlen(string_rep);
+		/* Store how long in characters the longest_gecko_change count would take
+		 * in longest_gecko_change */
+		sprintf(string_rep, "%5.1f", longest_gecko_change);
+		int longest_gecko_change_int = strlen(string_rep);
 		/* Append each entry pr file */
 		for (int i = 0; i < pr_entries_num; i++) {
 			if (verbose == 1) {
 				append_pr_entry_to_file_verbose(&players_pr_entries[i], \
 					output_file_path, longest_name_length, longest_attended, \
-					longest_outcomes);
+					longest_outcomes, longest_gecko_change_int);
 			} else {
 				append_pr_entry_to_file(&players_pr_entries[i], output_file_path, \
 					longest_name_length);
@@ -2230,6 +2279,39 @@ int reset_players(void) {
 		perror("opendir (reset_players)");
 		return -1;
 	}
+}
+
+double get_gecko_change_since_last_event(char* file_path) {
+	FILE *p_file = fopen(file_path, "rb");
+	if (p_file == NULL) {
+		perror("fopen (get_gecko_change_since_last_event)");
+		return 0;
+	}
+
+	double ret = 0;
+	get_to_entries_in_file(p_file);
+	struct entry second_last_entry;
+	struct entry last_entry;
+	second_last_entry.rating = 0;
+	last_entry.rating = 0;
+	int tournament_count;
+	char *tournament_list = get_player_attended(file_path, &tournament_count);
+
+	while (0 == read_entry(p_file, &last_entry)) {
+		if (0 == strcmp(last_entry.t_name, tournament_list + (tournament_count - 1) * MAX_NAME_LEN)) {
+			break;
+		}
+		second_last_entry = last_entry;
+	}
+	print_entry(second_last_entry);
+	fclose(p_file);
+
+	if (0 == read_last_entry(file_path, &last_entry)) {
+		print_entry(last_entry);
+		ret = last_entry.rating - second_last_entry.rating;
+	}
+	free(tournament_list);
+	return ret;
 }
 
 int main(int argc, char **argv) {
