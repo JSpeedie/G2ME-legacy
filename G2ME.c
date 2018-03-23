@@ -843,14 +843,23 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 
 	/* Process date data into one string */
 	char date[32];
+	char temp[64];
 	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
+	// TODO: fix magic number thing
+	sprintf(temp, "%.4lf", E.rating);
+	unsigned int rating_length = strlen(temp);
+	sprintf(temp, "%.4lf", E.RD);
+	unsigned int rd_length = strlen(temp);
+	sprintf(temp, "%.8lf", E.vol);
+	unsigned int vol_length = strlen(temp);
 
-	printf("%*d  %*d  %-*s  %*d  %-*s  %*lf  %*lf  %*.*lf  %d-%d" \
+	printf("%*d  %*d  %-*s  %*d  %-*s  %*s%.4lf  %*s%.4lf  %*s%.8lf  %d-%d" \
 		"  %-*s  %d  %s\n", \
 		longest_nl, E.len_name, longest_opp_nl, E.len_opp_name, \
 		E.len_name, E.name, longest_opp_id, E.opp_id, longest_name, \
-		E.opp_name, longest_rating, E.rating, longest_RD, E.RD, longest_vol, \
-		longest_vol-2, E.vol, E.gc, E.opp_gc, longest_date, date, \
+		E.opp_name, longest_rating-rating_length, "", E.rating, \
+		longest_RD-rd_length, "", E.RD, \
+		longest_vol-vol_length, "", E.vol, E.gc, E.opp_gc, longest_date, date, \
 		E.tournament_id, E.t_name);
 }
 /** Prints a string representation of a struct entry to stdout
@@ -865,12 +874,20 @@ void print_entry_name(struct entry E, int longest_name, int longest_rating, \
 
 	/* Process date data into one string */
 	char date[32];
+	char temp[64];
 	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
+	// TODO: fix magic number thing
+	sprintf(temp, "%.1lf", E.rating);
+	unsigned int rating_length = strlen(temp);
+	sprintf(temp, "%.1lf", E.RD);
+	unsigned int rd_length = strlen(temp);
+	sprintf(temp, "%.6lf", E.vol);
+	unsigned int vol_length = strlen(temp);
 
-	printf("%s  %-*s  %*lf  %*lf  %*.*lf  %d-%d  %-*s  %s\n", \
-		E.name, longest_name, E.opp_name, longest_rating, \
-		E.rating, longest_RD, E.RD, longest_vol, longest_vol-2, E.vol, \
-		E.gc, E.opp_gc, longest_date, date, E.t_name);
+	printf("%s  %-*s  %*s%.1lf  %*s%.1lf  %*s%.6lf  %d-%d  %-*s  %s\n", \
+		E.name, longest_name, E.opp_name, longest_rating-rating_length, "", \
+		E.rating, longest_RD-rd_length, "", E.RD, longest_vol-vol_length, "", \
+		E.vol, E.gc, E.opp_gc, longest_date, date, E.t_name);
 }
 
 /** Reads a player file at the given file path, reads the "Player 1"
@@ -945,11 +962,11 @@ int print_player_file_verbose(char* file_path) {
 		if (strlen(temp) > longest_opp_nl) longest_opp_nl = strlen(temp);
 		sprintf(temp, "%d", line.opp_id);
 		if (strlen(temp) > longest_opp_id) longest_opp_id = strlen(temp);
-		sprintf(temp, "%lf", line.rating);
+		sprintf(temp, "%.4lf", line.rating);
 		if (strlen(temp) > longest_rating) longest_rating = strlen(temp);
-		sprintf(temp, "%lf", line.RD);
+		sprintf(temp, "%.4lf", line.RD);
 		if (strlen(temp) > longest_RD) longest_RD = strlen(temp);
-		sprintf(temp, "%10.8lf", line.vol);
+		sprintf(temp, "%.8lf", line.vol);
 		if (strlen(temp) > longest_vol) longest_vol = strlen(temp);
 		sprintf(temp, "%d/%d/%d", line.day, line.month, line.year);
 		if (strlen(temp) > longest_date) longest_date = strlen(temp);
@@ -1007,11 +1024,11 @@ int print_player_file(char* file_path) {
 		if (strlen(temp) > longest_nl) longest_nl = strlen(temp);
 		sprintf(temp, "%d", line.len_opp_name);
 		if (strlen(temp) > longest_opp_nl) longest_opp_nl = strlen(temp);
-		sprintf(temp, "%lf", line.rating);
+		sprintf(temp, "%.1lf", line.rating);
 		if (strlen(temp) > longest_rating) longest_rating = strlen(temp);
-		sprintf(temp, "%lf", line.RD);
+		sprintf(temp, "%.1lf", line.RD);
 		if (strlen(temp) > longest_RD) longest_RD = strlen(temp);
-		sprintf(temp, "%10.8lf", line.vol);
+		sprintf(temp, "%.6lf", line.vol);
 		if (strlen(temp) > longest_vol) longest_vol = strlen(temp);
 		sprintf(temp, "%d/%d/%d", line.day, line.month, line.year);
 		if (strlen(temp) > longest_date) longest_date = strlen(temp);
