@@ -129,7 +129,7 @@ int entry_file_contains_opponent(char *opp_name, char* file_path) {
 	unsigned short num_opp;
 	if (1 != fread(&ln, sizeof(char), 1, base_file)) return -3;
 	char name[ln];
-	if (ln != fread(&name[0], sizeof(char), ln, base_file)) return -4;
+	if ((size_t) ln != fread(&name[0], sizeof(char), ln, base_file)) return -4;
 	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) return -5;
 
 	char temp_name[MAX_NAME_LEN];
@@ -170,7 +170,8 @@ int entry_file_add_new_opponent(struct entry *E, char* file_path) {
 	memset(new_file_name, 0, sizeof(new_file_name));
 	/* Add the full path up to the file */
 	strncat(new_file_name, dirname(dir), sizeof(new_file_name) - 1);
-	strncat(new_file_name, "/", sizeof(new_file_name) - strlen(new_file_name) - 1);
+	strncat(new_file_name, "/", \
+		sizeof(new_file_name) - strlen(new_file_name) - 1);
 	/* Add the temp file */
 	strncat(new_file_name, ".", sizeof(new_file_name) - strlen(new_file_name) - 1);
 	strncat(new_file_name, basename(base), sizeof(new_file_name) - strlen(new_file_name) - 1);
@@ -192,9 +193,9 @@ int entry_file_add_new_opponent(struct entry *E, char* file_path) {
 	if (1 != fread(&ln, sizeof(char), 1, base_file)) return -3;
 	if (1 != fwrite(&ln, sizeof(char), 1, new_file)) return -4;
 	char name[ln];
-	if (ln != fread(&name[0], sizeof(char), ln, base_file)) return -5;
+	if ((size_t)ln != fread(&name[0], sizeof(char), ln, base_file)) return -5;
 	name[(int) ln] = '\0';
-	if (ln != fwrite(&name[0], sizeof(char), ln, new_file)) return -6;
+	if ((size_t)ln != fwrite(&name[0], sizeof(char), ln, new_file)) return -6;
 	/* Read number of opponents and write said number + 1 to temp file */
 	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) return -7;
 	/* Correct the opp_id (0 indexe id) */
@@ -246,7 +247,7 @@ int entry_file_contains_tournament(char *t_name, char* file_path) {
 	unsigned short num_opp, num_t;
 	if (1 != fread(&ln, sizeof(char), 1, base_file)) return -3;
 	char name[ln];
-	if (ln != fread(&name[0], sizeof(char), ln, base_file)) return -4;
+	if ((size_t) ln != fread(&name[0], sizeof(char), ln, base_file)) return -4;
 	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) return -5;
 	for (int i = 0; i < num_opp; i++) {
 		char read = '1';
@@ -316,9 +317,9 @@ int entry_file_add_new_tournament(struct entry *E, char* file_path) {
 	if (1 != fread(&ln, sizeof(char), 1, base_file)) return -3;
 	if (1 != fwrite(&ln, sizeof(char), 1, new_file)) return -4;
 	char name[ln];
-	if (ln != fread(&name[0], sizeof(char), ln, base_file)) return -5;
+	if ((size_t) ln != fread(&name[0], sizeof(char), ln, base_file)) return -5;
 	name[(int) ln] = '\0';
-	if (ln != fwrite(&name[0], sizeof(char), ln, new_file)) return -6;
+	if ((size_t) ln != fwrite(&name[0], sizeof(char), ln, new_file)) return -6;
 	/* Read number of opponents and write said number + 1 to temp file */
 	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) return -7;
 	if (1 != fwrite(&num_opp, sizeof(short), 1, new_file)) return -8;
@@ -379,7 +380,7 @@ int entry_get_name_from_id(FILE *f, struct entry *E) {
 	fseek(f, 0, SEEK_SET);
 	if (1 != fread(&ln, sizeof(char), 1, f)) return -1;
 	char name[ln];
-	if (ln != fread(&name[0], sizeof(char), ln, f)) return -2;
+	if ((size_t) ln != fread(&name[0], sizeof(char), ln, f)) return -2;
 	name[(int) ln] = '\0';
 	char temp[MAX_NAME_LEN];
 	/* Read number of opponents */
@@ -418,7 +419,7 @@ int entry_get_tournament_name_from_id(FILE *f, struct entry *E) {
 	fseek(f, 0, SEEK_SET);
 	if (1 != fread(&ln, sizeof(char), 1, f)) return -1;
 	char name[ln];
-	if (ln != fread(&name[0], sizeof(char), ln, f)) return -2;
+	if ((size_t) ln != fread(&name[0], sizeof(char), ln, f)) return -2;
 	name[(int) ln] = '\0';
 	char temp[MAX_NAME_LEN];
 	/* Read number of opponents */
@@ -509,7 +510,7 @@ int get_to_entries_in_file(FILE *base_file) {
 		return -1;
 	}
 	char name[ln];
-	if (ln != fread(&name[0], sizeof(char), ln, base_file)) {
+	if ((size_t) ln != fread(&name[0], sizeof(char), ln, base_file)) {
 		return -2;
 	}
 	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) {
@@ -739,13 +740,17 @@ int append_pr_entry_to_file(struct entry* E, char* file_path, \
 /** Appends a pr entry (the name and glicko2 data for a player) to a given
  * file. Returns an int representing success.
  *
+ * Difference with verbosity: Adds 3 columns: Events attended,
+ * outcomes gone through, and glicko rating change since last event.
+ * Changes with verbosity: Adds more decimals to output of glicko variables.
+ *
  * \param '*E' the struct entry to append to the pr file
  * \param '*file_path' the file path for the pr file
  * \return 0 upon success, negative number on failure.
  */
 int append_pr_entry_to_file_verbose(struct entry* E, char* file_path, \
 	int longest_name_length, int longest_attended_count, \
-	int longest_outcome_count, int longest_glicko_change) {
+	int longest_outcome_count) {
 
 	FILE *entry_file = fopen(file_path, "a+");
 	if (entry_file == NULL) {
@@ -758,22 +763,21 @@ int append_pr_entry_to_file_verbose(struct entry* E, char* file_path, \
 	get_player_attended(full_player_path, &attended_count);
 	int outcome_count = get_player_outcome_count(full_player_path);
 	double glicko_change = get_glicko_change_since_last_event(full_player_path);
-	char glicko_change_string[longest_glicko_change + 2];
-	/* Not using '%5.1lf' could be considered risky since
-	 * 'longest_glicko_change' is calculated using that format but there is
-	 * usually never a change more than 100 or so, let alone 10000. */
-	if (glicko_change < 0) {
-		sprintf(glicko_change_string, "%.1lf", glicko_change);
-	} else {
-		sprintf(glicko_change_string, "%c%.1lf", '+', glicko_change);
-	}
 	free(full_player_path);
+	char temp[MAX_NAME_LEN];
+	// TODO: fix magic number thing
+	sprintf(temp, "%4.3lf", E->rating);
+	unsigned int rating_length = strlen(temp);
+	sprintf(temp, "%3.3lf", E->RD);
+	unsigned int rd_length = strlen(temp);
 
 	/* <= 0.0001 to handle double rounding errors */
-	if (abs(glicko_change) <= 0.0001) {
+	if (fabs(glicko_change) <= 0.0001) {
 		/* If unable to write to the file */
-		if (fprintf(entry_file, "%*s  %6.1lf  %5.1lf  %10.8lf  %*d  %*d\n", \
-			longest_name_length, E->name, E->rating, E->RD, E->vol, \
+		// TODO: remove magic numbers 7 and 6
+		if (fprintf(entry_file, "%*s  %*s%4.3lf  %*s%3.3lf  %10.8lf  %*d  %*d\n", \
+			longest_name_length, E->name, 8-rating_length, "", \
+			E->rating, 7-rd_length, "", E->RD, E->vol, \
 			longest_attended_count, attended_count, \
 			longest_outcome_count, outcome_count) < 0) {
 
@@ -782,11 +786,12 @@ int append_pr_entry_to_file_verbose(struct entry* E, char* file_path, \
 		}
 	} else {
 		/* If unable to write to the file */
-		if (fprintf(entry_file, "%*s  %6.1lf  %5.1lf  %10.8lf  %*d  %*d  %s\n", \
-			longest_name_length, E->name, E->rating, E->RD, E->vol, \
+		if (fprintf(entry_file, "%*s  %*s%4.3lf  %*s%3.3lf  %10.8lf  %*d  %*d  %+5.1lf\n", \
+			longest_name_length, E->name, 8-rating_length, "",
+			E->rating, 7-rd_length, "", E->RD, E->vol, \
 			longest_attended_count, attended_count, \
 			longest_outcome_count, outcome_count, \
-			glicko_change_string) < 0) {
+			glicko_change) < 0) {
 
 			perror("fprintf (append_pr_entry_to_file_verbose)");
 			return -3;
@@ -906,15 +911,15 @@ int print_player_file(char* file_path) {
 		return -1;
 	}
 
-	int longest_name = 0;
+	unsigned long int longest_name = 0;
 	char temp[64];
 	memset(temp, 0, sizeof(temp));
-	int longest_nl = 0;
-	int longest_opp_nl = 0;
-	int longest_rating = 0;
-	int longest_RD = 0;
-	int longest_vol = 0;
-	int longest_date = 0;
+	unsigned long int longest_nl = 0;
+	unsigned long int longest_opp_nl = 0;
+	unsigned long int longest_rating = 0;
+	unsigned long int longest_RD = 0;
+	unsigned long int longest_vol = 0;
+	unsigned long int longest_date = 0;
 
 	fseek(p_file, 0, SEEK_SET);
 	get_to_entries_in_file(p_file);
@@ -1517,7 +1522,7 @@ int generate_ratings_file(char* file_path, char* output_file_path) {
 			}
 			double num_glicko_change = \
 				get_glicko_change_since_last_event(full_player_path);
-			if (abs(longest_glicko_change) < abs(num_glicko_change)) {
+			if (fabs(longest_glicko_change) < fabs(num_glicko_change)) {
 				longest_glicko_change = num_glicko_change;
 			}
 			// If the player attended the minimum number of events
@@ -1557,16 +1562,12 @@ int generate_ratings_file(char* file_path, char* output_file_path) {
 	 * in longest_attended */
 	sprintf(string_rep, "%d", longest_outcomes);
 	longest_outcomes = strlen(string_rep);
-	/* Store how long in characters the longest_glicko_change count would take
-	 * in longest_glicko_change */
-	sprintf(string_rep, "%5.1f", longest_glicko_change);
-	longest_glicko_change = strlen(string_rep);
 	/* Append each entry pr file */
 	for (int i = 0; i < pr_entries_num; i++) {
 		if (verbose == 1) {
 			append_pr_entry_to_file_verbose(&players_pr_entries[i], \
 				output_file_path, longest_name_length, longest_attended, \
-				longest_outcomes, longest_glicko_change);
+				longest_outcomes);
 		} else {
 			append_pr_entry_to_file(&players_pr_entries[i], output_file_path, \
 				longest_name_length);
@@ -1612,7 +1613,7 @@ int generate_ratings_file_full(char* output_file_path) {
 					}
 					double num_glicko_change = \
 						get_glicko_change_since_last_event(full_player_path);
-					if (abs(longest_glicko_change) < abs(num_glicko_change)) {
+					if (fabs(longest_glicko_change) < fabs(num_glicko_change)) {
 						longest_glicko_change = num_glicko_change;
 					}
 					// If the player attended the minimum number of events
@@ -1660,13 +1661,12 @@ int generate_ratings_file_full(char* output_file_path) {
 		/* Store how long in characters the longest_glicko_change count would take
 		 * in longest_glicko_change */
 		sprintf(string_rep, "%5.1f", longest_glicko_change);
-		int longest_glicko_change_int = strlen(string_rep);
 		/* Append each entry pr file */
 		for (int i = 0; i < pr_entries_num; i++) {
 			if (verbose == 1) {
 				append_pr_entry_to_file_verbose(&players_pr_entries[i], \
 					output_file_path, longest_name_length, longest_attended, \
-					longest_outcomes, longest_glicko_change_int);
+					longest_outcomes);
 			} else {
 				append_pr_entry_to_file(&players_pr_entries[i], output_file_path, \
 					longest_name_length);
@@ -1728,7 +1728,7 @@ int refactor_file(char *file_path) {
 	char temp;
 	char temp_name[MAX_NAME_LEN];
 	if (1 != fread(&temp, sizeof(char), 1, base_file)) return -3;
-	if (temp != \
+	if ((size_t) temp !=													\
 		fread(&temp_name, sizeof(char), temp, base_file)) return -4;
 	/* Write the new name info to the temp file */
 	if (1 != fwrite(&(cur_entry.len_name), sizeof(char), 1, new_file)) return -5;
@@ -2001,7 +2001,9 @@ char *get_player_attended(char *file_path, int *ret_count) {
 	memset(name, 0, sizeof(name));
 	/* Read the starter data in the file */
 	if (1 != fread(&len_of_name, sizeof(char), 1, p_file)) return NULL;
-	if (len_of_name != fread(name, sizeof(char), len_of_name, p_file)) {
+	if ((size_t) len_of_name
+		!= fread(name, sizeof(char), len_of_name, p_file)) {
+
 		return NULL;
 	}
 	/* Get to the entries in the file and start reading them */
@@ -2059,11 +2061,13 @@ char *players_in_player_dir(char *players, int *num) {
 			// Make sure it doesn't count directories
 			if (entry->d_type != DT_DIR) {
 				int num_events;
-				char *full_player_path = file_path_with_player_dir(entry->d_name);
+				char *full_player_path = \
+					file_path_with_player_dir(entry->d_name);
 				get_player_attended(full_player_path, &num_events);
 				// If the player attended the minimum number of events
 				if (num_events >= pr_minimum_events) {
-					strncpy(&players[MAX_NAME_LEN * *(num)], entry->d_name, MAX_NAME_LEN);
+					strncpy(&players[MAX_NAME_LEN * *(num)], entry->d_name, \
+						MAX_NAME_LEN);
 					// Add null terminator to each name
 					players[MAX_NAME_LEN * (*(num) + 1)] = '\0';
 					*num = *(num) + 1;
@@ -2088,7 +2092,8 @@ char *players_in_player_dir_lexio(char *players, int *num) {
 			// Make sure it doesn't count directories
 			if (entry->d_type != DT_DIR) {
 				int num_events;
-				char *full_player_path = file_path_with_player_dir(entry->d_name);
+				char *full_player_path = \
+					file_path_with_player_dir(entry->d_name);
 				get_player_attended(full_player_path, &num_events);
 				// If the player attended the minimum number of events
 				if (num_events >= pr_minimum_events) {
@@ -2096,10 +2101,12 @@ char *players_in_player_dir_lexio(char *players, int *num) {
 					// Find the right index to insert the name at
 					while (strcmp(&players[i], entry->d_name) > 0 && i >= 0) {
 						// Move later-occuring name further in the array
-						strncpy(&players[i + MAX_NAME_LEN], &players[i], MAX_NAME_LEN);
+						strncpy(&players[i + MAX_NAME_LEN], &players[i], \
+							MAX_NAME_LEN);
 						i -= MAX_NAME_LEN;
 					}
-					strncpy(&players[i + MAX_NAME_LEN], entry->d_name, MAX_NAME_LEN);
+					strncpy(&players[i + MAX_NAME_LEN], entry->d_name, \
+						MAX_NAME_LEN);
 					// Add null terminator to each name
 					players[MAX_NAME_LEN * (*(num) + 1)] = '\0';
 					*num = *(num) + 1;
@@ -2126,7 +2133,8 @@ int get_record(char *player1, char *player2, struct record *ret) {
 		return -1;
 	}
 	strncpy(ret->name, ent.name, MAX_NAME_LEN);
-	// TODO: actually get player2 name from their file. '*player2' is just a file name
+	// TODO: actually get player2 name from their file.
+	// '*player2' is just a file name
 	strncpy(ret->opp_name, player2, MAX_NAME_LEN);
 	ret->wins = 0;
 	ret->losses = 0;
@@ -2153,8 +2161,8 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	return 0;
 }
 
-int longest_name(char *players, int array_len) {
-	int ret = 0;
+unsigned long int longest_name(char *players, int array_len) {
+	unsigned long int ret = 0;
 	for (int i = 0; i < array_len; i++) {
 		if (strlen(&players[MAX_NAME_LEN * i]) > ret) {
 			ret = strlen(&players[MAX_NAME_LEN * i]);
@@ -2186,7 +2194,8 @@ void print_matchup_table(void) {
 	// Format column titles for output
 	for (int i = 0; i < num_players; i++) {
 		// Make column width to be the length of the column title (the name)
-		int col_width = strlen(&players[i * MAX_NAME_LEN]) + space_between_columns;
+		int col_width = strlen(&players[i * MAX_NAME_LEN]) \
+			+ space_between_columns;
 		char col[col_width];
 		snprintf(col, col_width, "%-*s", col_width, &players[i * MAX_NAME_LEN]);
 		strcat(output[0], col);
@@ -2196,16 +2205,17 @@ void print_matchup_table(void) {
 	if ((p_dir = opendir(player_dir)) != NULL) {
 		for (int i = 0; i < num_players; i++) {
 			// Add row title
-			snprintf(output[i + 1], longest_n + space_between_columns, "%*s%*s", \
-				longest_n, &players[i * MAX_NAME_LEN], space_between_columns, "");
+			snprintf(output[i + 1], longest_n + space_between_columns, \
+				"%*s%*s", longest_n, &players[i * MAX_NAME_LEN], \
+				space_between_columns, "");
 			for (int j = 0; j < num_players; j++) {
 				struct record temp_rec;
-	//printf("print_matchup_table: \"%s\"\n", &players[i * MAX_NAME_LEN]);
 				get_record(&players[i * MAX_NAME_LEN], \
 					&players[j * MAX_NAME_LEN], &temp_rec);
 				// Make column width to be the length of the column title
 				// plus a space character on each side
-				char col[strlen(&players[j * MAX_NAME_LEN]) + space_between_columns];
+				char col[strlen(&players[j * MAX_NAME_LEN]) \
+					+ space_between_columns];
 				// If the user wants ties to be printed
 				if (print_ties == 1) {
 					 snprintf(col, sizeof(col), "%d-%d-%-20d", \
@@ -2251,7 +2261,8 @@ void print_matchup_table_csv(void) {
 	sprintf(output[0], ",");
 	// Fill in column titles with player names + a comma delimiter
 	for (int i = 0; i < num_players; i++) {
-		strncat(output[0], &players[i * MAX_NAME_LEN], 1024 - 1 - strlen(output[0]));
+		strncat(output[0], &players[i * MAX_NAME_LEN], \
+			1024 - 1 - strlen(output[0]));
 		strncat(output[0], ",", 1024 - 1 - strlen(output[0]));
 	}
 	printf("%s\n", output[0]);
@@ -2300,7 +2311,8 @@ int reset_players(void) {
 		while ((entry = readdir(p_dir)) != NULL) {
 			// Make sure it doesn't count directories
 			if (entry->d_type != DT_DIR) {
-				char *full_player_path = file_path_with_player_dir(entry->d_name);
+				char *full_player_path = \
+					file_path_with_player_dir(entry->d_name);
 				remove(full_player_path);
 				free(full_player_path);
 			}
@@ -2477,7 +2489,8 @@ int main(int argc, char **argv) {
 				break;
 			case 'p':
 				o_generate_pr = 1;
-				strncpy(pr_list_file_path, optarg, sizeof(pr_list_file_path) - 1);
+				strncpy(pr_list_file_path, optarg, \
+					sizeof(pr_list_file_path) - 1);
 				break;
 			case 'w':
 				outcome_weight = strtod(optarg, NULL);
