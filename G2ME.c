@@ -79,25 +79,6 @@ char *get_player_attended(char *, int *);
 int get_player_outcome_count(char *);
 double get_glicko_change_since_last_event(char *);
 
-void copy_struct_entry(struct entry *dest, struct entry *src) {
-	dest->opp_id = src->opp_id;
-	dest->tournament_id = src->tournament_id;
-	dest->len_name = src->len_name;
-	dest->len_opp_name = src->len_opp_name;
-	strncpy(dest->name, src->name, MAX_NAME_LEN);
-	strncpy(dest->opp_name, src->opp_name, MAX_NAME_LEN);
-	dest->rating = src->rating;
-	dest->RD = src->RD;
-	dest->vol = src->vol;
-	dest->gc = src->gc;
-	dest->opp_gc = src->opp_gc;
-	dest->day = src->day;
-	dest->month = src->month;
-	dest->year = src->year;
-	dest->len_t_name = src->len_t_name;
-	strncpy(dest->t_name, src->t_name, MAX_NAME_LEN);
-}
-
 char *file_path_with_player_dir(char *s) {
 	int new_path_size = sizeof(char) * (MAX_FILE_PATH_LEN - MAX_NAME_LEN);
 	char *new_path = malloc(new_path_size);
@@ -841,27 +822,53 @@ void print_entry(struct entry E) {
 	char date[32];
 	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
 
-	printf("%d %d %-10s %-10s %16.14lf %16.14lf %16.14lf %d-%d %s %d %-10s\n", \
+	printf("%d  %d  %-10s  %-10s  %16.14lf  %16.14lf  %16.14lf" \
+		"%d-%d  %s  %d  %-10s\n",  \
 		E.len_name, E.len_opp_name, E.name, E.opp_name, E.rating, E.RD, \
 		E.vol, E.gc, E.opp_gc, date, E.len_t_name, E.t_name);
 }
 
 /** Prints a string representation of a struct entry to stdout
  *
+ * Difference with verbosity: Now outputs all variables of the
+ * 'struct entry' including 'len_name', 'opp_name', and 't_name'
+
  * \param 'E' the struct entry to print
  * \param 'longest_name' the length in characters to print the opponent
  *     name in/with.
  */
-void print_entry_name(struct entry E, int longest_nl, int longest_opp_nl, \
-	int longest_name, int longest_rating, int longest_RD, int longest_vol, \
-	int longest_date) {
+void print_entry_name_verbose(struct entry E, int longest_nl, \
+	int longest_opp_nl, int longest_opp_id, int longest_name, \
+	int longest_rating, int longest_RD, int longest_vol, int longest_date) {
+
 	/* Process date data into one string */
 	char date[32];
 	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
 
-	printf("%*d %*d %-*s %-*s %*lf %*lf %*.*lf %d-%d %-*s %s\n", \
+	printf("%*d  %*d  %-*s  %*d  %-*s  %*lf  %*lf  %*.*lf  %d-%d" \
+		"  %-*s  %d  %s\n", \
 		longest_nl, E.len_name, longest_opp_nl, E.len_opp_name, \
-		E.len_name, E.name, longest_name, E.opp_name, longest_rating, \
+		E.len_name, E.name, longest_opp_id, E.opp_id, longest_name, \
+		E.opp_name, longest_rating, E.rating, longest_RD, E.RD, longest_vol, \
+		longest_vol-2, E.vol, E.gc, E.opp_gc, longest_date, date, \
+		E.tournament_id, E.t_name);
+}
+/** Prints a string representation of a struct entry to stdout
+ *
+ * \param 'E' the struct entry to print
+ * \param 'longest_name' the length in characters to print the opponent
+ *     name in/with.
+ */
+
+void print_entry_name(struct entry E, int longest_name, int longest_rating, \
+	int longest_RD, int longest_vol, int longest_date) {
+
+	/* Process date data into one string */
+	char date[32];
+	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
+
+	printf("%s  %-*s  %*lf  %*lf  %*.*lf  %d-%d  %-*s  %s\n", \
+		E.name, longest_name, E.opp_name, longest_rating, \
 		E.rating, longest_RD, E.RD, longest_vol, longest_vol-2, E.vol, \
 		E.gc, E.opp_gc, longest_date, date, E.t_name);
 }
@@ -890,6 +897,74 @@ int read_start_from_file(char *file_path, struct entry *E) {
 	E->name[E->len_name] = '\0';
 
 	fclose(entry_file);
+	return 0;
+}
+
+/** Prints all the contents of a player file to stdout with each entry
+ * on a new line.
+ *
+ * Difference with verbosity: Now outputs all variables of the
+ * 'struct entry' including 'len_name', 'opp_name', and 't_name'
+ *
+ * \param '*file_path' the file path of the player file to be read
+ * \return 0 if the function succeeded and a negative number if there was
+ *     a failure.
+ */
+int print_player_file_verbose(char* file_path) {
+	struct entry line;
+	read_start_from_file(file_path, &line);
+
+	/* Open file for reading */
+	FILE *p_file = fopen(file_path, "rb");
+	if (p_file == NULL) {
+		perror("fopen (print_player_file)");
+		return -1;
+	}
+
+	unsigned long int longest_name = 0;
+	char temp[64];
+	memset(temp, 0, sizeof(temp));
+	unsigned long int longest_nl = 0;
+	unsigned long int longest_opp_nl = 0;
+	unsigned long int longest_opp_id = 0;
+	unsigned long int longest_rating = 0;
+	unsigned long int longest_RD = 0;
+	unsigned long int longest_vol = 0;
+	unsigned long int longest_date = 0;
+
+	fseek(p_file, 0, SEEK_SET);
+	get_to_entries_in_file(p_file);
+	/* Get the longest lengths of the parts of an entry in string form */
+	while (read_entry(p_file, &line) == 0) {
+		if (strlen(line.opp_name) > longest_name) {
+			longest_name = strlen(line.opp_name);
+		}
+		sprintf(temp, "%d", line.len_name);
+		if (strlen(temp) > longest_nl) longest_nl = strlen(temp);
+		sprintf(temp, "%d", line.len_opp_name);
+		if (strlen(temp) > longest_opp_nl) longest_opp_nl = strlen(temp);
+		sprintf(temp, "%d", line.opp_id);
+		if (strlen(temp) > longest_opp_id) longest_opp_id = strlen(temp);
+		sprintf(temp, "%lf", line.rating);
+		if (strlen(temp) > longest_rating) longest_rating = strlen(temp);
+		sprintf(temp, "%lf", line.RD);
+		if (strlen(temp) > longest_RD) longest_RD = strlen(temp);
+		sprintf(temp, "%10.8lf", line.vol);
+		if (strlen(temp) > longest_vol) longest_vol = strlen(temp);
+		sprintf(temp, "%d/%d/%d", line.day, line.month, line.year);
+		if (strlen(temp) > longest_date) longest_date = strlen(temp);
+	}
+
+	fseek(p_file, 0, SEEK_SET);
+	get_to_entries_in_file(p_file);
+
+	while (read_entry(p_file, &line) == 0) {
+		print_entry_name_verbose(line, longest_nl, longest_opp_nl, \
+		longest_opp_id, longest_name, longest_rating, longest_RD, longest_vol, \
+		longest_date);
+	}
+
+	fclose(p_file);
 	return 0;
 }
 
@@ -946,8 +1021,8 @@ int print_player_file(char* file_path) {
 	get_to_entries_in_file(p_file);
 
 	while (read_entry(p_file, &line) == 0) {
-		print_entry_name(line, longest_nl, longest_opp_nl, longest_name, \
-			longest_rating, longest_RD, longest_vol, longest_date);
+		print_entry_name(line, longest_name, longest_rating, longest_RD, \
+			longest_vol, longest_date);
 	}
 
 	fclose(p_file);
@@ -2429,7 +2504,8 @@ int main(int argc, char **argv) {
 			strncpy(player_dir, optarg, sizeof(player_dir) - 1);
 		} else if (opt == 'h') {
 			char *full_player_path = file_path_with_player_dir(optarg);
-			print_player_file(full_player_path);
+			if (verbose == 1) print_player_file_verbose(full_player_path);
+			else print_player_file(full_player_path);
 			free(full_player_path);
 		} else if (opt == 'l') {
 			char *full_player_path = file_path_with_player_dir(optarg);
