@@ -76,7 +76,7 @@ of the data stored by the program*
 
 ## Example Walkthrough (And Installation)
 
-<details><summary>**Installation**</summary><p>
+<details><summary><bold>Installation<bold></summary><p>
 To get up and running, launch a terminal and run the following commands
 
 ```
