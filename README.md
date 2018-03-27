@@ -6,7 +6,7 @@
 * [Purpose](#purpose)
 * [What it is](#what-it-is)
 * [Why it makes Glicko 2 Easier](#why-it-makes-glicko-2-easier)
-* [Example Walkthrough (And Installation)](#example-walkthrough-and-installation)
+* [Installation and Example Walkthrough ](#installation-and-example-walkthrough)
 * [Usage](#usage)
 	* [The '0' flag](#the-0-flag)
 	* [The 'a' flag](#the-a-flag)
@@ -74,7 +74,7 @@ of the data stored by the program*
 
 
 
-## Example Walkthrough (And Installation)
+## Installation and Example Walkthrough
 
 ### Installation
 <details><summary>Click to Expand</summary><p>
@@ -94,6 +94,7 @@ directory for every `G2ME` command you run by using `-d` (which is a hassle).
 
 <br>
 
+### Example Walkthrough
 After installation, the first step is to create the player directory.
 
 ```
