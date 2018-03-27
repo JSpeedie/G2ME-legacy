@@ -74,9 +74,24 @@ of the data stored by the program*
 
 
 
-## Example Walkthrough
+## Example Walkthrough (And Installation)
 
-To start using this program, the first step is to create the player directory.
+<details><summary>Installation</summary><p>
+To get up and running, launch a terminal and run the following commands
+
+```
+$ git clone https://www.github.com/JSpeedie/G2ME G2MEGit
+$ cd G2MEGit
+$ sudo make all
+```
+
+You are now ready to follow the rest of the guide! Note that you should
+always cd into the directory containing this project before running
+any commands. You can choose not to, but you may have to specify the player
+directory for every `G2ME` command you run by using `-d` (which is a hassle).
+</p></details>
+
+After installation, the first step is to create the player directory.
 
 ```
 mkdir .players
@@ -115,8 +130,8 @@ From here you can interact with the data as you want. Common operations are:
 
 ```
 $ G2ME -h TheBestPlayer
-13 10 TheBestPlayer ABadPlayer  1662.310895 290.318965 0.06000000 1-0 1/1/2018 ExampleBracket
-13 11 TheBestPlayer AGoodPlayer 1791.934554 247.463282 0.05999983 1-0 1/1/2018 ExampleBracket
+TheBestPlayer  ABadPlayer   1662.3  290.3  0.060000  1-0  1/1/2018  ExampleBracket
+TheBestPlayer  AGoodPlayer  1791.9  247.5  0.060000  1-0  1/1/2018  ExampleBracket
 ```
 
 * Creating a pr of all the players in the system
@@ -317,11 +332,11 @@ commands for data parsing.
 Example output (from command above):
 
 ```
-6 5 Julian Mirza   1698.808178  69.268885 0.05995995 0-1 24/11/2017 TT7
-6 5 Julian Jonah   1694.130205  69.290619 0.05995868 0-1 1/12/2017  TT8
-6 6 Julian Andrew  1698.867790  69.303009 0.05995740 1-0 1/12/2017  TT8
-6 6 Julian Edward  1710.739430  68.800311 0.05995651 1-0 1/12/2017  TT8
-6 5 Julian Mirza   1700.316507  68.359335 0.05995538 0-1 1/12/2017  TT8
+Julian  Mirza    1698.8  69.3  0.059960  0-1  24/11/2017  TT7
+Julian  Jonah    1694.1  69.3  0.059959  0-1  1/12/2017   TT8
+Julian  Andrew   1698.9  69.3  0.059957  1-0  1/12/2017   TT8
+Julian  Edward   1710.7  68.8  0.059957  1-0  1/12/2017   TT8
+Julian  Mirza    1700.3  68.4  0.059955  0-1  1/12/2017   TT8
 ```
 
 ### The 'k' flag
