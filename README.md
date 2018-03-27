@@ -76,7 +76,7 @@ of the data stored by the program*
 
 ## Example Walkthrough (And Installation)
 
-<details><summary>Installation</summary><p>
+<details><summary>**Installation**</summary><p>
 To get up and running, launch a terminal and run the following commands
 
 ```
@@ -90,6 +90,7 @@ always cd into the directory containing this project before running
 any commands. You can choose not to, but you may have to specify the player
 directory for every `G2ME` command you run by using `-d` (which is a hassle).
 </p></details>
+
 
 After installation, the first step is to create the player directory.
 
