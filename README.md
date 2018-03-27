@@ -6,7 +6,7 @@
 * [Purpose](#purpose)
 * [What it is](#what-it-is)
 * [Why it makes Glicko 2 Easier](#why-it-makes-glicko-2-easier)
-* [Example Walkthrough](#example-walkthrough)
+* [Example Walkthrough (And Installation)](#example-walkthrough-and-installation)
 * [Usage](#usage)
 	* [The '0' flag](#the-0-flag)
 	* [The 'a' flag](#the-a-flag)
@@ -76,7 +76,8 @@ of the data stored by the program*
 
 ## Example Walkthrough (And Installation)
 
-<details><summary>Installation</summary><p>
+### Installation
+<details><summary>Click to Expand</summary><p>
 To get up and running, launch a terminal and run the following commands
 
 ```
