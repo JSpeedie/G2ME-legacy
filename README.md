@@ -6,7 +6,7 @@
 * [Purpose](#purpose)
 * [What it is](#what-it-is)
 * [Why it makes Glicko 2 Easier](#why-it-makes-glicko-2-easier)
-* [Installation and Example Walkthrough ](#installation-and-example-walkthrough)
+* [Installation, Example Walkthrough, and Converting Challonge Brackets](#installation-example-walkthrough-and-converting-challonge-brackets)
 * [Usage](#usage)
 	* [The '0' flag](#the-0-flag)
 	* [The 'a' flag](#the-a-flag)
@@ -74,7 +74,7 @@ of the data stored by the program*
 
 
 
-## Installation and Example Walkthrough
+## Installation, Example Walkthrough, and Converting Challonge Brackets
 
 ### Installation
 <details><summary>Click to Expand</summary><p>
@@ -85,6 +85,7 @@ $ git clone https://www.github.com/JSpeedie/G2ME G2MEGit
 $ cd G2MEGit
 $ sudo make all
 ```
+
 
 You are now ready to follow the rest of the guide! Note that you should
 always cd into the directory containing this project before running
@@ -159,6 +160,53 @@ $ G2ME -M
  AnOkayPlayer  -           0-0-1        -             -
 TheBestPlayer  1-0-0       1-0-0        -             -
 ```
+
+<br>
+
+### Converting Challonge Brackets
+<details><summary>Click to Expand</summary><p>
+One of the most useful parts of this project is that it works quite nicely
+with Challonge, the free bracket site. In this repo there is a simple
+shell script I have written that takes the url to a challonge bracket,
+and converts it into a `G2ME` compliant bracket file. Here's an example:
+
+```
+$ sh convchallonge.sh [challonge_url_here] > [output_file_here]
+```
+
+Let's take a look at what this would output for our ExampleBracket if we
+ran it on Challonge.
+
+```
+$ sh convchallonge.sh [challonge_url_here] > [output_file_here]
+$ cat [output_file_here]
+"TheBestPlayer" "ABadPlayer" 3 0 1 1 2018
+"AGoodPlayer" "AnOkayPlayer" 3 1 1 1 2018
+"TheBestPlayer" "AGoodPlayer" 3 2 1 1 2018
+```
+
+Note that it surrounds every player tag with quotations marks. It
+is recommended that you don't use player tags for storing player
+data and rather use a player's first name and last name since
+they are less prone to change. Here's what a recommended change
+could like look when completed:
+
+```
+$ vim [output_file_here]
+$ cat [output_file_here]
+JohnSmith ZachStone 3 0 1 1 2018
+AaronAardvark VictoriaSmith 3 1 1 1 2018
+JohnSmith AaronAardvark 3 2 1 1 2018
+```
+
+Challonge seemingly doesn't always get the date right. If this is
+of importance to you, make sure to double check the date when
+editing the file.
+
+Once this is all done, you're ready to continue with `G2ME`!
+If you'd like to add the data from this bracket to the existing
+player data in the system, make sure to use the `-k` flag!
+</p></details>
 
 
 
