@@ -852,15 +852,23 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 	unsigned int rd_length = strlen(temp);
 	sprintf(temp, "%.8lf", E.vol);
 	unsigned int vol_length = strlen(temp);
+	char *output_colour = NORMAL;
+	if (colour_output == 1) {
+		/* If this player won against their opponent,
+		 * Set their opponent's name colour to green.
+		 * If they lost, to red, and if they tied, to yellow */
+		output_colour = YELLOW;
+		if (E.gc > E.opp_gc) output_colour = GREEN;
+		else if (E.gc < E.opp_gc) output_colour = RED;
+	}
 
-	printf("%*d  %*d  %-*s  %*d  %-*s  %*s%.4lf  %*s%.4lf  %*s%.8lf  %d-%d" \
+	printf("%*d  %*d  %-*s  %*d  %s%-*s%s  %*s%.4lf  %*s%.4lf  %*s%.8lf  %d-%d" \
 		"  %-*s  %d  %s\n", \
 		longest_nl, E.len_name, longest_opp_nl, E.len_opp_name, \
-		E.len_name, E.name, longest_opp_id, E.opp_id, longest_name, \
-		E.opp_name, longest_rating-rating_length, "", E.rating, \
-		longest_RD-rd_length, "", E.RD, \
-		longest_vol-vol_length, "", E.vol, E.gc, E.opp_gc, longest_date, date, \
-		E.tournament_id, E.t_name);
+		E.len_name, E.name, longest_opp_id, E.opp_id, output_colour, \
+		longest_name, E.opp_name, NORMAL, longest_rating-rating_length, "", \
+		E.rating, longest_RD-rd_length, "", E.RD, longest_vol-vol_length, "", \
+		E.vol, E.gc, E.opp_gc, longest_date, date, E.tournament_id, E.t_name);
 }
 /** Prints a string representation of a struct entry to stdout
  *
@@ -883,11 +891,21 @@ void print_entry_name(struct entry E, int longest_name, int longest_rating, \
 	unsigned int rd_length = strlen(temp);
 	sprintf(temp, "%.6lf", E.vol);
 	unsigned int vol_length = strlen(temp);
+	char *output_colour = NORMAL;
+	if (colour_output == 1) {
+		/* If this player won against their opponent,
+		 * Set their opponent's name colour to green.
+		 * If they lost, to red, and if they tied, to yellow */
+		output_colour = YELLOW;
+		if (E.gc > E.opp_gc) output_colour = GREEN;
+		else if (E.gc < E.opp_gc) output_colour = RED;
+	}
 
-	printf("%s  %-*s  %*s%.1lf  %*s%.1lf  %*s%.6lf  %d-%d  %-*s  %s\n", \
-		E.name, longest_name, E.opp_name, longest_rating-rating_length, "", \
-		E.rating, longest_RD-rd_length, "", E.RD, longest_vol-vol_length, "", \
-		E.vol, E.gc, E.opp_gc, longest_date, date, E.t_name);
+	printf("%s  %s%-*s%s  %*s%.1lf  %*s%.1lf  %*s%.6lf  %d-%d  %-*s  %s\n", \
+		E.name, output_colour, longest_name, E.opp_name, NORMAL, \
+		longest_rating-rating_length, "", E.rating, longest_RD-rd_length, \
+		"", E.RD, longest_vol-vol_length, "", E.vol, E.gc, E.opp_gc, \
+		longest_date, date, E.t_name);
 }
 
 /** Reads a player file at the given file path, reads the "Player 1"
