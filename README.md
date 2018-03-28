@@ -202,7 +202,7 @@ tracks, here's how it's done.
 
 This walkthrough will discuss how to do the following:
 
-1. Get the names of the events a given player has attended
+#### 1. Get the names of the events a given player has attended
 <details><summary>Click to Expand</summary><p>
 
 ```
@@ -219,7 +219,7 @@ TSE6
 Pretty self-explanatory.
 </p></details>
 
-2. Get the number of events a given player has attended
+#### 2. Get the number of events a given player has attended
 <details><summary>Click to Expand</summary><p>
 
 ```
@@ -231,7 +231,7 @@ $ G2ME -c [player_name_here]
 Once again, pretty self-explanatory.
 </p></details>
 
-3. Output a csv-style "spreadsheet" of player matchup data
+#### 3. Output a csv-style "spreadsheet" of player matchup data
 <details><summary>Click to Expand</summary><p>
 
 ```
@@ -248,7 +248,7 @@ You can copy the output of this command and open it in something like excel
 to make a clean spreadsheet of matchup data.
 </p></details>
 
-4. Calculate Glicko2 data using game counts instead of set counts
+#### 4. Calculate Glicko2 data using game counts instead of set counts
 <details><summary>Click to Expand</summary><p>
 
 ```
@@ -262,7 +262,7 @@ most of the time, it's been found to produce less accurate results
 and it is susceptible to players sandbagging.
 </p></details>
 
-5. Output a given players full Glicko2 history
+#### 5. Output a given players full Glicko2 history
 <details><summary>Click to Expand</summary><p>
 
 ```
@@ -277,7 +277,7 @@ given outcome. In this example, TheBestPlayer's rating was 1662.3 *after*
 they won over ABadPlayer.
 </p></details>
 
-6. Create a PR of players who have attended at least *x* events
+#### 6. Create a PR of players who have attended at least *x* events
 <details><summary>Click to Expand</summary><p>
 
 ```
@@ -289,7 +289,7 @@ Same output a `-o` but only includes players who have attended
 at least *x* events.
 </p></details>
 
-7. Create a PR of a certain group of players
+#### 7. Create a PR of a certain group of players
 <details><summary>Click to Expand</summary><p>
 
 ```
@@ -305,7 +305,7 @@ Same output a `-o` but only includes players whose name matches
 one of the lines in `[filter_file_here]`.
 </p></details>
 
-8. Get a given player's matchup data/records against other players
+#### 8. Get a given player's matchup data/records against other players
 <details><summary>Click to Expand</summary><p>
 
 ```
