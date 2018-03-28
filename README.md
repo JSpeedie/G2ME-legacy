@@ -308,6 +308,8 @@ Once again, pretty self-explanatory. Just outputs a players
 record against every player they've played so far.
 </p></details>
 
+</p></details>
+
 ## Converting Challonge Brackets
 
 <details><summary>Click to Expand</summary><p>
