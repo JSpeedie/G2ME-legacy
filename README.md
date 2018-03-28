@@ -9,7 +9,7 @@
 * [Example Walkthroughs](#example-walkthroughs)
 	* [Starter Walkthrough](#starter-walkthrough)
 	* [Season Walkthrough](#season-walkthrough)
-	* [FAQ/General Usage Walkthrough](#faq-general-usage-walkthrough)
+	* [FAQ/General Usage Walkthrough](#faqgeneral-usage-walkthrough)
 * [Converting Challonge Brackets](#converting-challonge-brackets)
 * [Usage](#usage)
 	* [The '0' flag](#the-0-flag)
