@@ -14,7 +14,7 @@ CFLAGS = -Wall
 CC = gcc
 
 SRC = G2ME.c
-DEP = glicko2.c
+DEP = glicko2.c entry_file.c
 OBJ = ${SRC:.c=.o}
 BIN = ${SRC:.c=}
 MAN = $(SRC:.c=.1.gz)

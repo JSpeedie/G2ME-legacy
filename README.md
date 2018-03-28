@@ -191,6 +191,9 @@ ExampleBracket
 SecondBracket
 ThirdBracket
 $ G2ME -B ExampleSeason.sea
+running ExampleBracket
+running SecondBracket
+running ThirdBracket
 ```
 
 This becomes very useful when you have seasons with lots of events, which,
@@ -212,6 +215,12 @@ This walkthrough will discuss how to do the following:
 
 ```
 $ G2ME -B TSE1ToTSE6
+running TSE1
+running TSE2
+running TSE3
+running TSE4
+running TSE5
+running TSE6
 $ G2ME -A [player_name_here]
 TSE1
 TSE2
@@ -229,6 +238,12 @@ Pretty self-explanatory.
 
 ```
 $ G2ME -B TSE1ToTSE6
+running TSE1
+running TSE2
+running TSE3
+running TSE4
+running TSE5
+running TSE6
 $ G2ME -c [player_name_here]
 6
 ```
@@ -287,6 +302,9 @@ they won over ABadPlayer.
 
 ```
 $ G2ME -B ExampleSeason.sea
+running ExampleBracket
+running SecondBracket
+running ThirdBracket
 $ G2ME -m [x_here] -o pr_output
 ```
 
