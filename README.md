@@ -89,13 +89,11 @@ directory for every `G2ME` command you run by using `-d` (which is a hassle).
 
 ## Example Walkthroughs
 
-After installation, the first step is to create the player directory.
+### Starter Walkthrough
 
-```
-mkdir .players
-```
-
-Second, you need to create a bracket file. For instance, a single elimination
+<details><summary>Click to Expand</summary><p>
+After installation, you are ready to start using the program!
+First you need to create a bracket file. For instance, a single elimination
 tournament of 4 players could look like this:
 
 ```
@@ -153,6 +151,162 @@ $ G2ME -M
  AnOkayPlayer  -           0-0-1        -             -
 TheBestPlayer  1-0-0       1-0-0        -             -
 ```
+</p></details>
+
+### Season Walkthrough
+
+<details><summary>Click to Expand</summary><p>
+The previous walkthough is fine if you only ever want to run one small bracket,
+but if you want a season of brackets, running `G2ME -kb ...` many times
+becomes very tedious. `G2ME` has a solution however. Introducing the `-B` flag!
+The "B" may as well stand for **B**read and **B**utter because it is the flag
+you will likely use the most.
+
+Say after ExampleBracket, there were 2 more brackets SecondBracket and
+ThirdBracket. While you could run:
+
+```
+$ G2ME -b ExampleBracket
+$ G2ME -kb SecondBracket
+$ G2ME -kb ThirdBracket
+```
+
+Note the `-kb` instead of `-b` after the first `-b` call. `G2ME` by default
+deletes all player data before running a bracket. This may seem annoying,
+but it saves a lot of `rm .players/*` and since the recommended usage is
+using `-B`, it's a non-issue.
+
+The recommended way to do it is:
+
+```
+$ vim ExampleSeason.sea
+$ cat ExampleSeason.sea
+ExampleBracket
+SecondBracket
+ThirdBracket
+$ G2ME -B ExampleSeason.sea
+```
+
+This becomes very useful when you have seasons with lots of events, which,
+let's face it, is the only time you should use Glicko2 as to ensure accuracy.
+
+</p></details>
+
+### FAQ/General Usage Walkthrough
+
+<details><summary>Click to Expand</summary><p>
+If you are wondering how to actually make use of the data the system now
+tracks, here's how it's done.
+
+This walkthrough will discuss how to do the following:
+
+1. Get the names of the events a given player has attended
+<details><summary>Click to Expand</summary><p>
+```
+$ G2ME -B TSE1ToTSE6
+$ G2ME -A [player_name_here]
+TSE1
+TSE2
+TSE3
+TSE4
+TSE5
+TSE6
+```
+
+Pretty self-explanatory.
+</p></details>
+
+2. Get the number of events a given player has attended
+<details><summary>Click to Expand</summary><p>
+```
+$ G2ME -B TSE1ToTSE6
+$ G2ME -c [player_name_here]
+6
+```
+
+Once again, pretty self-explanatory.
+</p></details>
+
+3. Output a csv-style "spreadsheet" of player matchup data
+<details><summary>Click to Expand</summary><p>
+```
+$ G2ME -b ExampleBracket
+$ G2ME -C
+,ABadPlayer,AGoodPlayer,AnOkayPlayer,TheBestPlayer,
+ABadPlayer,-,-,-,0-0-1
+AGoodPlayer,-,-,1-0-0,0-0-1
+AnOkayPlayer,-,0-0-1,-,-,
+TheBestPlayer,1-0-0,1-0-0,-,-,
+```
+
+You can copy the output of this command and open it in something like excel
+to make a clean spreadsheet of matchup data.
+</p></details>
+
+4. Calculate Glicko2 data using game counts instead of set counts
+<details><summary>Click to Expand</summary><p>
+```
+$ G2ME -g -b ExampleBracket
+```
+
+Start any G2ME file-changing command (`-b`, `-B`)
+with `-g` to calculate the Glicko2 numbers using
+game counts rather than set counts. This is **NOT** recommended as
+most of the time, it's been found to produce less accurate results
+and it is susceptible to players sandbagging.
+</p></details>
+
+5. Output a given players full Glicko2 history
+<details><summary>Click to Expand</summary><p>
+```
+$ G2ME -b ExampleBracket
+$ G2ME -h TheBestPlayer
+TheBestPlayer  ABadPlayer   1662.3  290.3  0.060000  1-0  1/1/2018  ExampleBracket
+TheBestPlayer  AGoodPlayer  1791.9  247.5  0.060000  1-0  1/1/2018  ExampleBracket
+```
+
+Pretty self-explanatory. The rating numbers represent their rating after the
+given outcome. In this example, TheBestPlayer's rating was 1662.3 *after*
+they won over ABadPlayer.
+</p></details>
+
+6. Create a PR of players who have attended at least *x* events
+<details><summary>Click to Expand</summary><p>
+```
+$ G2ME -B ExampleSeason.sea
+$ G2ME -m [x_here] -o pr_output
+```
+
+Same output a `-o` but only includes players who have attended
+at least *x* events.
+</p></details>
+
+7. Create a PR of a certain group of players
+<details><summary>Click to Expand</summary><p>
+```
+$ vim [filter_file_here]
+$ cat [filter_file_here]
+TheBestPlayer
+$ G2ME -b ExampleBracket
+$ G2ME -p [filter_file_here] -o pr_output
+TheBestPlayer  1791.9  247.5  0.05999983
+```
+
+Same output a `-o` but only includes players whose name matches
+one of the lines in `[filter_file_here]`.
+</p></details>
+
+8. Get a given player's matchup data/records against other players
+<details><summary>Click to Expand</summary><p>
+```
+$ G2ME -R TheBestPlayer
+TheBestPlayer vs ABadPlayer = 1-0-0
+TheBestPlayer vs AGoodPlayer = 1-0-0
+```
+
+Once again, pretty self-explanatory. Just outputs a players
+record against every player they've played so far.
+</p></details>
 
 ## Converting Challonge Brackets
 
