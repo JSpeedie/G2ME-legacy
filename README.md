@@ -2,7 +2,6 @@
 <details><summary>Click to Expand</summary><p>
 
 * [Technical Description](#technical-description)
-* [Examples](#examples)
 * [Purpose](#purpose)
 * [What it is](#what-it-is)
 * [Why it makes Glicko 2 Easier](#why-it-makes-glicko-2-easier)
@@ -41,10 +40,6 @@
 C implementation of glicko + the real program that makes handling a glicko system with many people more manageable.
 
 
-## Examples
-\[picture of pr here\]
-
-
 ## Purpose
 
 This program was made out of necessity to make an accurate PR (Power Ranking) for the UTSC Smash Club.
@@ -74,9 +69,8 @@ of the data stored by the program*
 
 
 
-## Installation, Example Walkthrough, and Converting Challonge Brackets
+## Installation
 
-### Installation
 <details><summary>Click to Expand</summary><p>
 To get up and running, launch a terminal and run the following commands
 
@@ -93,9 +87,8 @@ any commands. You can choose not to, but you may have to specify the player
 directory for every `G2ME` command you run by using `-d` (which is a hassle).
 </p></details>
 
-<br>
+## Example Walkthroughs
 
-### Example Walkthrough
 After installation, the first step is to create the player directory.
 
 ```
@@ -161,10 +154,10 @@ $ G2ME -M
 TheBestPlayer  1-0-0       1-0-0        -             -
 ```
 
-<br>
+## Converting Challonge Brackets
 
-### Converting Challonge Brackets
 <details><summary>Click to Expand</summary><p>
+
 One of the most useful parts of this project is that it works quite nicely
 with Challonge, the free bracket site. In this repo there is a simple
 shell script I have written that takes the url to a challonge bracket,

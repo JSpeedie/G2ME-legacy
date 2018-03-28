@@ -1,4 +1,5 @@
 #include <dirent.h>
+#include <errno.h>
 #include <getopt.h>
 #include <libgen.h>
 #include <math.h>
@@ -13,10 +14,6 @@
 
 #define MAX_NAME_LEN 128
 #define MAX_FILE_PATH_LEN 256
-#define DEF_VOL 0.06
-#define DEF_RATING 1500.0
-#define DEF_RD 350.0
-#define DEF_TAU 0.5
 #define REALLOC_PR_ENTRIES_INC 4
 #define SIZE_PR_ENTRY 128
 
@@ -28,6 +25,7 @@ char *BLUE = "\x1B[34m";
 char *MAGENTA = "\x1B[35m";
 char *CYAN = "\x1B[36m";
 char *WHITE = "\x1B[37m";
+char *PLAYER_DIR = ".players/";
 
 char verbose = 0;
 char use_games = 0;
@@ -2478,6 +2476,33 @@ double get_glicko_change_since_last_event(char* file_path) {
 }
 
 int main(int argc, char **argv) {
+	/* INIT SECTION:
+	 * 1. Initialize player_dir to the file path for the player directory
+	 * 2. Check if player_dir exists
+	 */
+
+	/* 1. Initialize player_dir to the file path for the player directory */
+	memset(player_dir, 0, sizeof(player_dir));
+	strncpy(player_dir, PLAYER_DIR, sizeof(player_dir) - 1);
+
+	/* 2. Check if player_dir exists */
+	DIR *d = opendir(player_dir);
+	if (d) {
+		closedir(d);
+	}
+	/* If 'player_dir' does not exist */
+	else if (errno == ENOENT) {
+		fprintf(stderr, \
+			"G2ME: Warning: 'player_dir' did not exist, creating...\n");
+		/* If there was an error making the player_directory */
+		if (0 != mkdir(player_dir, 0700)) {
+			perror("mkdir (main)");
+		}
+	} else {
+		perror("opendir (main)");
+		return -1;
+	}
+
 	int opt;
 	struct option opt_table[] = {
 		/* Don't make RD adjustments for players absent
@@ -2516,10 +2541,6 @@ int main(int argc, char **argv) {
 		{ "remove-entries",	required_argument,	NULL,	'x' },
 		{ 0, 0, 0, 0 }
 	};
-
-	/* Initialize the player directory default file path */
-	memset(player_dir, 0, sizeof(player_dir));
-	strncpy(player_dir, ".players/", sizeof(player_dir) - 1);
 
 	while ((opt = getopt_long(argc, argv, \
 		"0a:A:b:B:c:Cd:gh:kl:m:MnNo:p:P:r:R:vw:x:", opt_table, NULL)) != -1) {

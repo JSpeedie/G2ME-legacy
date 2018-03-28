@@ -1,3 +1,8 @@
+#define DEF_VOL 0.06
+#define DEF_RATING 1500.0
+#define DEF_RD 350.0
+#define DEF_TAU 0.5
+
 typedef struct player {
 	/* The system constant, which constrains the change in
 	 * volatility over time. */
