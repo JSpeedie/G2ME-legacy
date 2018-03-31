@@ -1284,6 +1284,15 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	return 0;
 }
 
+/* Takes an array of player names, and the length of the array.
+ * Returns the maximum 'strlen' result of an element in the array.
+ *
+ * \param '*players' pointer to an array of 'MAX_NAME_LEN' * '*(num_players)'
+ *     chars.
+ * \param 'array_len' the length of the '*players' array.
+ * \return an integer representing the longest name in the array.
+ *     The longest possible return value is 'MAX_NAME_LEN'.
+ */
 unsigned long int longest_name(char *players, int array_len) {
 	unsigned long int ret = 0;
 	for (int i = 0; i < array_len; i++) {
@@ -1293,6 +1302,56 @@ unsigned long int longest_name(char *players, int array_len) {
 	}
 
 	return ret;
+}
+
+/* Takes an array of player names created with a malloc or calloc call,
+ * the length of the array, and a file path. Modifies the array
+ * to contain only player names that exist as lines in the file.
+ * changes '*num_players' accordingly.
+ *
+ * \param '*players' pointer to an array of 'MAX_NAME_LEN' * '*(num_players)'
+ *     chars.
+ * \param '*num_players' the length of the '*players' array.
+ * \param '*pr_list_file_path' the file path of a pr list file.
+ * \return an integer representing the success or failure of
+ *     this function. 0 Means sucess, negative numbers mean failure.
+ */
+int filter_player_list(char **players_pointer, int *num_players, \
+	char *pr_list_file_path) {
+
+	FILE *filter_file = fopen(pr_list_file_path, "r");
+	if (filter_file == NULL) {
+		perror("fopen (filter_player_list)");
+		return -1;
+	}
+
+	int app_ind = 0;
+	char line[MAX_NAME_LEN];
+	char *players = *(players_pointer);
+	char *filtered_players = \
+		malloc(sizeof(char) * MAX_NAME_LEN * (*num_players));
+
+	while (fgets(line, sizeof(line), filter_file)) {
+		/* Replace newline with null terminator */
+		*strchr(line, '\n') = '\0';
+
+		for (int i = 0; i < *num_players; i++) {
+			/* If the player name exists in the player list, add
+			 * it to the filtered list of players */
+			if (0 == strcmp(line, players + (i * MAX_NAME_LEN))) {
+				strncpy(filtered_players + (app_ind * MAX_NAME_LEN), line, \
+					MAX_NAME_LEN - 1);
+				app_ind++;
+			}
+		}
+	}
+
+	fclose(filter_file);
+	free(players);
+	*num_players = app_ind;
+	*players_pointer = filtered_players;
+
+	return 0;
 }
 
 void print_matchup_table(void) {
@@ -1306,6 +1365,12 @@ void print_matchup_table(void) {
 	// TODO: better size allocation
 	char *players = malloc(MAX_NAME_LEN * 128);
 	players_in_player_dir_lexio(players, &num_players);
+
+	/* Filter players to be the ones in the given '-p' flag file */
+	if (o_generate_pr == 1) {
+		filter_player_list(&players, &num_players, pr_list_file_path);
+	}
+
 	int longest_n = longest_name(players, num_players);
 	// 'num_players + 1' to accomodate one player per row and an extra row
 	// for the column titles
@@ -1375,6 +1440,12 @@ void print_matchup_table_csv(void) {
 	// TODO: better size allocation
 	char *players = malloc(MAX_NAME_LEN * 128);
 	players_in_player_dir_lexio(players, &num_players);
+
+	/* Filter players to be the ones in the given '-p' flag file */
+	if (o_generate_pr == 1) {
+		filter_player_list(&players, &num_players, pr_list_file_path);
+	}
+
 	// 'num_players + 1' to accomodate one player per row and an extra row
 	// for the column titles
 	char output[num_players + 1][1024];
