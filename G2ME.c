@@ -463,6 +463,62 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	return;
 }
 
+/* Takes a player file, some date info and an event name, and adjusts
+ * the given player's RD in their file provided it does not conflict
+ * with the date rule of no more than 1 adjustment in a day.
+ *
+ * \param '*player_file' a file path to a player entry-file
+ *     which will have their RD adjusted.
+ * \param 'day' the day of the RD adjustment
+ * \param 'month' the month of the RD adjustment
+ * \param 'year' the year of the RD adjustment
+ * \param '*t_name' the name of the event that they were absent from.
+ */
+void adjust_absent_player(char *player_file, char day, char month, short year, \
+	char *t_name) {
+
+	/* If the player who did not compete has a player file */
+	if (access(file_path_with_player_dir(player_file), \
+		R_OK | W_OK) != -1) {
+
+		struct player P;
+		struct entry latest_ent;
+		if (0 == \
+			entry_file_read_last_entry(file_path_with_player_dir(player_file), \
+			&latest_ent)) {
+
+			/* If this adjustment is taking place on a different
+			 * day from their last entry */
+			if (latest_ent.day != day || latest_ent.month != month \
+				|| latest_ent.year != year) {
+
+				init_player_from_entry(&P, &latest_ent);
+				did_not_compete(&P);
+				/* Only need to change entry RD since that's all
+				 * Step 6 changes */
+				latest_ent.RD = getRd(&P);
+				/* Change qualities of the entry to reflect
+				 * that it was not a real set, but a
+				 * did_not_compete */
+				strcpy(latest_ent.opp_name, "-");
+				latest_ent.len_opp_name = strlen(latest_ent.opp_name);
+				latest_ent.gc = 0;
+				latest_ent.opp_gc = 0;
+				latest_ent.day = day;
+				latest_ent.month = month;
+				latest_ent.year = year;
+				strncpy(latest_ent.t_name, t_name, MAX_NAME_LEN - 1);
+				latest_ent.t_name[strlen(latest_ent.t_name)] = '\0';
+				latest_ent.len_t_name = strlen(latest_ent.t_name);
+				entry_file_append_entry_to_file(&latest_ent, \
+					file_path_with_player_dir(player_file));
+			}
+		}
+	}
+	/* If they do not then they have never competed, so skip them */
+	return;
+}
+
 /** All players whose last entry is not for the event of 't_name'
  * get their Glicko2 data adjusted. Unless their last RD adjustment
  * was within the same day.
@@ -473,15 +529,12 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
  * \param '*t_name' a string containing the name of the tournament.
  * \return void.
 */
-// TODO: combine with adjust_absent_players if possible after
-//       breaking up the function.
 void adjust_absent_players_no_file(char day, char month, \
 	short year, char* t_name) {
 
 	char did_not_comp = 1;
 	DIR *p_dir;
 	struct dirent *entry;
-	// TODO: maybe not here but create .players directory if it doesn't exist?
 	/* If the directory could not be accessed, print error and return */
 	if ((p_dir = opendir(player_dir)) == NULL) {
 		perror("opendir (adjust_absent_players_no_file)");
@@ -506,49 +559,12 @@ void adjust_absent_players_no_file(char day, char month, \
 		}
 
 		if (did_not_comp) {
-			/* If the player who did not compete has a player file */
-			if (access(file_path_with_player_dir(entry->d_name), \
-				R_OK | W_OK) != -1) {
-
-				struct player P;
-				struct entry latest_ent;
-				if (0 == \
-					entry_file_read_last_entry(file_path_with_player_dir(entry->d_name), \
-					&latest_ent)) {
-
-					/* If this adjustment is taking place on a different
-					 * day from their last entry */
-					if (latest_ent.day != day || latest_ent.month != month \
-						|| latest_ent.year != year) {
-
-						init_player_from_entry(&P, &latest_ent);
-						did_not_compete(&P);
-						/* Only need to change entry RD since that's all
-						 * Step 6 changes */
-						latest_ent.RD = getRd(&P);
-						/* Change qualities of the entry to reflect
-						 * that it was not a real set, but a
-						 * did_not_compete */
-						strcpy(latest_ent.opp_name, "-");
-						latest_ent.len_opp_name = strlen(latest_ent.opp_name);
-						latest_ent.gc = 0;
-						latest_ent.opp_gc = 0;
-						latest_ent.day = day;
-						latest_ent.month = month;
-						latest_ent.year = year;
-						strncpy(latest_ent.t_name, t_name, MAX_NAME_LEN - 1);
-						latest_ent.t_name[strlen(latest_ent.t_name)] = '\0';
-						latest_ent.len_t_name = strlen(latest_ent.t_name);
-						entry_file_append_entry_to_file(&latest_ent, \
-							file_path_with_player_dir(entry->d_name));
-					}
-				}
-			}
-			/* If they do not then they have never competed, so skip them */
+			adjust_absent_player(entry->d_name, day, month, year, t_name);
 		}
 	}
 	closedir(p_dir);
 }
+
 /** Takes a file path representing a file containing a list of file paths
  * to player files. All players who did not compete but are in the list,
  * get their Glicko2 data adjusted. Unless their last RD adjustment
@@ -558,7 +574,6 @@ void adjust_absent_players_no_file(char day, char month, \
  * \param '*t_name' a string containing the name of the tournament.
  * \return void.
  */
-// TODO: Break up function.
 void adjust_absent_players(char* player_list, char day, char month, \
 	short year, char* t_name) {
 
@@ -590,42 +605,7 @@ void adjust_absent_players(char* player_list, char day, char month, \
 		}
 
 		if (did_not_comp) {
-			/* If the player who did not compete has a player file */
-			if (access(file_path_with_player_dir(line), R_OK | W_OK) != -1) {
-				struct player P;
-				struct entry latest_ent;
-				if (0 == \
-					entry_file_read_last_entry(file_path_with_player_dir(line), \
-					&latest_ent)) {
-
-					/* If this adjustment is taking place on a different
-					 * day from their last entry */
-					if (latest_ent.day != day || latest_ent.month != month \
-						|| latest_ent.year != year) {
-
-						init_player_from_entry(&P, &latest_ent);
-						did_not_compete(&P);
-						/* Only need to change entry RD since that's all
-						 * Step 6 changes */
-						latest_ent.RD = getRd(&P);
-						/* Change qualities of the entry to reflect that it was
-						 * not a real set, but a did_not_compete */
-						strcpy(latest_ent.opp_name, "-");
-						latest_ent.len_opp_name = strlen(latest_ent.opp_name);
-						latest_ent.gc = 0;
-						latest_ent.opp_gc = 0;
-						latest_ent.day = day;
-						latest_ent.month = month;
-						latest_ent.year = year;
-						strncpy(latest_ent.t_name, t_name, MAX_NAME_LEN - 1);
-						latest_ent.t_name[strlen(latest_ent.t_name)] = '\0';
-						latest_ent.len_t_name = strlen(latest_ent.t_name);
-						entry_file_append_entry_to_file(&latest_ent, \
-							file_path_with_player_dir(line));
-					}
-				}
-			}
-			/* If they do not then they have never competed, so skip them */
+			adjust_absent_player(line, day, month, year, t_name);
 		}
 	}
 
@@ -731,8 +711,7 @@ void update_players(char* bracket_file_path) {
 
 	if (calc_absent_players == 1) {
 		adjust_absent_players_no_file(day, month, year, t_name);
-	}
-	else if (calc_absent_players_with_file) {
+	} else if (calc_absent_players_with_file) {
 		adjust_absent_players(player_list_file, day, month, year, t_name);
 	}
 }
