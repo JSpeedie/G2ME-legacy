@@ -1751,9 +1751,6 @@ int main(int argc, char **argv) {
 			case 'o':
 				if (p_flag_used) {
 					generate_ratings_file(pr_list_file_path, optarg);
-					/* The pr has been generated,
-					 * o is no longer set to make one */
-					p_flag_used = 0;
 				} else {
 					generate_ratings_file_full(optarg);
 				}
