@@ -2,6 +2,7 @@
 #define MAX_FILE_PATH_LEN 256
 #define REALLOC_PR_ENTRIES_INC 4
 #define SIZE_PR_ENTRY 128
+#define LEXIO 1
 
 typedef struct entry {
 	unsigned short opp_id;

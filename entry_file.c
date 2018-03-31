@@ -19,8 +19,7 @@ double entry_file_get_glicko_change_since_last_event(char *);
 int entry_file_read_start_from_file(char *, struct entry *);
 
 int entry_file_contains_opponent(char *opp_name, char* file_path) {
-	int ret =
- -1;
+	int ret = -1;
 	FILE* base_file = fopen(file_path, "rb+");
 	if (base_file == NULL) {
 		perror("fopen (entry_file_contains_opponent)");

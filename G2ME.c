@@ -1216,36 +1216,25 @@ void print_player_attended(char *attended, int count) {
 	}
 }
 
-char *players_in_player_dir(char *players, int *num) {
-	DIR *p_dir;
-	struct dirent *entry;
-
-	if ((p_dir = opendir(player_dir)) != NULL) {
-		*num = 0;
-		while ((entry = readdir(p_dir)) != NULL) {
-			// Make sure it doesn't count directories
-			if (entry->d_type != DT_DIR) {
-				int num_events;
-				char *full_player_path = \
-					file_path_with_player_dir(entry->d_name);
-				entry_file_get_events_attended(full_player_path, &num_events);
-				// If the player attended the minimum number of events
-				if (num_events >= pr_minimum_events) {
-					strncpy(&players[MAX_NAME_LEN * *(num)], entry->d_name, \
-						MAX_NAME_LEN);
-					// Add null terminator to each name
-					players[MAX_NAME_LEN * (*(num) + 1)] = '\0';
-					*num = *(num) + 1;
-				}
-				free(full_player_path);
-			}
-		}
-		closedir(p_dir);
-	}
-	return players;
-}
-
-char *players_in_player_dir_lexio(char *players, int *num) {
+/* Takes a char pointer created by malloc or calloc and a pointer
+ * to an integer. Gets the name of every player in the player directory
+ * 'player_dir' into the array in lexiographical order. Modifies '*num'
+ * to point to the numer of elements in the array upon completion.
+ *
+ * \param '*players' a char pointer created by calloc or malloc which
+ *     will be modified to contain all the player names,
+ *     'MAX_NAME_LEN' apart and in lexiographical order.
+ * \param '*num' a int pointer that will be modified to contain
+ *     the number of player names in the array when this function
+ *     has completed.
+ * \param 'type' a char representing the type of sort the returned
+ *     array should be of. Options are 'LEXIO' for a lexiograpically
+ *     sorted array. Any value that is not 'LEXIO' will make
+ *     this function return an orderless array.
+ * \return a pointer to the return array.
+ */
+// TODO: change to check syscalls and to return int
+char *players_in_player_dir(char *players, int *num, char type) {
 	DIR *p_dir;
 	struct dirent *entry;
 	// TODO reallocate '*players' if necessary make it required that
@@ -1262,16 +1251,23 @@ char *players_in_player_dir_lexio(char *players, int *num) {
 				entry_file_get_events_attended(full_player_path, &num_events);
 				// If the player attended the minimum number of events
 				if (num_events >= pr_minimum_events) {
-					int i = MAX_NAME_LEN * (*(num) - 1);
-					// Find the right index to insert the name at
-					while (strcmp(&players[i], entry->d_name) > 0 && i >= 0) {
-						// Move later-occuring name further in the array
-						strncpy(&players[i + MAX_NAME_LEN], &players[i], \
+					if (type == LEXIO) {
+						int i = MAX_NAME_LEN * (*(num) - 1);
+						// Find the right index to insert the name at
+						while (strcmp(&players[i], entry->d_name) > 0 \
+							&& i >= 0) {
+
+							// Move later-occuring name further in the array
+							strncpy(&players[i + MAX_NAME_LEN], &players[i], \
+								MAX_NAME_LEN);
+							i -= MAX_NAME_LEN;
+						}
+						strncpy(&players[i + MAX_NAME_LEN], entry->d_name, \
 							MAX_NAME_LEN);
-						i -= MAX_NAME_LEN;
+					} else {
+						strncpy(&players[MAX_NAME_LEN * *(num)], \
+							entry->d_name, MAX_NAME_LEN);
 					}
-					strncpy(&players[i + MAX_NAME_LEN], entry->d_name, \
-						MAX_NAME_LEN);
 					// Add null terminator to each name
 					players[MAX_NAME_LEN * (*(num) + 1)] = '\0';
 					*num = *(num) + 1;
@@ -1284,6 +1280,18 @@ char *players_in_player_dir_lexio(char *players, int *num) {
 	return players;
 }
 
+/* Takes 2 entry-file file paths and a struct record, modifies the
+ * given struct record to be the first players
+ * record/head-to-head/matchup on the other player.
+ *
+ * \param '*player1' A file path to an entry-file for the first player
+ * \param '*player2' A file path to an entry-file for the second player
+ * \param '*ret' A struct record which upon the successful completion of this
+ *     function, will contain the first players record against
+ *     the second player.
+ * \return an int representing if this function succeeded or failed.
+       Negative upon failure, 0 upon success.
+ */
 int get_record(char *player1, char *player2, struct record *ret) {
 
 	char *full_player1_path = file_path_with_player_dir(player1);
@@ -1406,7 +1414,7 @@ void print_matchup_table(void) {
 	int space_between_columns = 3;
 	// TODO: better size allocation
 	char *players = malloc(MAX_NAME_LEN * 128);
-	players_in_player_dir_lexio(players, &num_players);
+	players_in_player_dir(players, &num_players, LEXIO);
 
 	/* Filter players to be the ones in the given '-p' flag file */
 	if (o_generate_pr == 1) {
@@ -1481,7 +1489,7 @@ void print_matchup_table_csv(void) {
 	int num_players = 0;
 	// TODO: better size allocation
 	char *players = malloc(MAX_NAME_LEN * 128);
-	players_in_player_dir_lexio(players, &num_players);
+	players_in_player_dir(players, &num_players, LEXIO);
 
 	/* Filter players to be the ones in the given '-p' flag file */
 	if (o_generate_pr == 1) {
@@ -1540,6 +1548,11 @@ void print_matchup_table_csv(void) {
 	}
 }
 
+/* Deletes every player file in the player directory 'player_dir'.
+ *
+ * \return an int representing if the function succeeded or not.
+ *     Negative if there was an error, 0 on success.
+ */
 int reset_players(void) {
 	DIR *p_dir;
 	struct dirent *entry;
