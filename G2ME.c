@@ -37,7 +37,7 @@ double outcome_weight = 1;
 char tournament_names[128][128];
 unsigned char tournament_names_len = 0;
 char pr_list_file_path[MAX_FILE_PATH_LEN];
-char o_generate_pr = 0;
+char p_flag_used = 0;
 char player_dir[MAX_FILE_PATH_LEN];
 
 struct entry temp;
@@ -1171,7 +1171,7 @@ int print_player_records(char *file_path) {
 		if (attended_count >= pr_minimum_events) {
 			passes_filter = 1;
 			/* Filter players to be the ones in the given '-p' flag file */
-			if (o_generate_pr == 1) {
+			if (p_flag_used == 1) {
 				passes_filter = 0;
 				FILE *filter_file = fopen(pr_list_file_path, "r");
 				if (filter_file == NULL) {
@@ -1452,7 +1452,7 @@ void print_matchup_table(void) {
 	players_in_player_dir(players, &num_players, LEXIO);
 
 	/* Filter players to be the ones in the given '-p' flag file */
-	if (o_generate_pr == 1) {
+	if (p_flag_used == 1) {
 		filter_player_list(&players, &num_players, pr_list_file_path);
 	}
 
@@ -1527,7 +1527,7 @@ void print_matchup_table_csv(void) {
 	players_in_player_dir(players, &num_players, LEXIO);
 
 	/* Filter players to be the ones in the given '-p' flag file */
-	if (o_generate_pr == 1) {
+	if (p_flag_used == 1) {
 		filter_player_list(&players, &num_players, pr_list_file_path);
 	}
 
@@ -1739,7 +1739,7 @@ int main(int argc, char **argv) {
 			case 'n': colour_output = 0; break;
 			case 'N': print_ties = 0; break;
 			case 'p':
-				o_generate_pr = 1;
+				p_flag_used = 1;
 				strncpy(pr_list_file_path, optarg, \
 					sizeof(pr_list_file_path) - 1);
 				break;
@@ -1749,11 +1749,11 @@ int main(int argc, char **argv) {
 				strncpy(player_list_file, optarg, sizeof(player_list_file) - 1);
 				break;
 			case 'o':
-				if (o_generate_pr) {
+				if (p_flag_used) {
 					generate_ratings_file(pr_list_file_path, optarg);
 					/* The pr has been generated,
 					 * o is no longer set to make one */
-					o_generate_pr = 0;
+					p_flag_used = 0;
 				} else {
 					generate_ratings_file_full(optarg);
 				}
