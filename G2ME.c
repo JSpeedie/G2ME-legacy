@@ -472,7 +472,9 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
  * \param 'year' a char representing the year of the tournament
  * \param '*t_name' a string containing the name of the tournament.
  * \return void.
- */
+*/
+// TODO: combine with adjust_absent_players if possible after
+//       breaking up the function.
 void adjust_absent_players_no_file(char day, char month, \
 	short year, char* t_name) {
 
@@ -556,6 +558,7 @@ void adjust_absent_players_no_file(char day, char month, \
  * \param '*t_name' a string containing the name of the tournament.
  * \return void.
  */
+// TODO: Break up function.
 void adjust_absent_players(char* player_list, char day, char month, \
 	short year, char* t_name) {
 
@@ -638,6 +641,7 @@ void adjust_absent_players(char* player_list, char day, char month, \
  *     [p2_game_count] [day] [month] [year]"
  * \return void
  */
+// TODO: break up function.
 void update_players(char* bracket_file_path) {
 
 	/* Set to 0 since the bracket is beginning and no names are stored */
@@ -723,7 +727,6 @@ void update_players(char* bracket_file_path) {
 		}
 	}
 
-	// TODO: maybe: Print out everyones before and after with a (+/- change here)
 	fclose(bracket_file);
 
 	if (calc_absent_players == 1) {
@@ -734,11 +737,19 @@ void update_players(char* bracket_file_path) {
 	}
 }
 
-void run_brackets(char *bracket_list_file_path) {
+/* Takes a file path to a bracket list file, for each line in the file,
+ * attempts to access a file of the name [line_in_bracket_list_file_path_file]
+ * and run the bracket.
+ *
+ * \param '*bracket_list_file_path' a file path to a bracket list file
+ * \return an int representing if the function succeeded or failed.
+ *     Negative on failure. 0 upon success.
+ */
+int run_brackets(char *bracket_list_file_path) {
 	FILE *bracket_list_file = fopen(bracket_list_file_path, "r");
 	if (bracket_list_file == NULL) {
 		perror("fopen (run_brackets)");
-		return;
+		return -1;
 	}
 
 	char line[256];
@@ -754,6 +765,7 @@ void run_brackets(char *bracket_list_file_path) {
 	}
 
 	fclose(bracket_list_file);
+	return 0;
 }
 
 void merge(struct entry *first_array, int first_length, \
@@ -829,6 +841,7 @@ void merge_sort_pr_entry_array(struct entry *pr_entries, int array_size) {
  *     file.
  * \return void
  */
+// TODO: Combine with generate_ratings_file_full once it has been divided
 int generate_ratings_file(char* file_path, char* output_file_path) {
 	FILE *players = fopen(file_path, "r");
 	if (players == NULL) {
@@ -924,7 +937,19 @@ int generate_ratings_file(char* file_path, char* output_file_path) {
 	return 0;
 }
 
-int generate_ratings_file_full(char* output_file_path) {
+/* Takes a file path, clears the contents of the file and writes
+ * player rating data for every player in the player directory
+ * 'player_dir', one line per player, for all players who pass
+ * any applicable filters.
+ *
+ * \param '*output_file_path' the file path to create the
+ *     ratings file at.
+ * \return an int representing if the function succeeded or failed.
+ *     Negative on failure, 0 upon success.
+ */
+// TODO: holy moly divide this function into it's parts. One for
+//       making the list of struct records, one for printing at least.
+int generate_ratings_file_full(char *output_file_path) {
 	DIR *p_dir;
 	struct dirent *entry;
 	if ((p_dir = opendir(player_dir)) != NULL) {
@@ -1097,6 +1122,17 @@ void merge_sort_player_records(struct record *records, int array_size) {
 	}
 }
 
+/* Takes a file path to an entry-file and prints to 'stdout' that
+ * players records against every player they have played, filtered
+ * by any applicable filters.
+ *
+ * \param '*file_path' a file path to a player entry-file.
+ * \return an int representing if this function succeeded or failed.
+ *     Negative upon failure. 0 upon success.
+ */
+// TODO: divide function into 3 subfunctions, player_passes_filters,
+//       one that gets the array of records, and one that prints the records
+// TODO: improve efficiency for checking players pass filters
 int print_player_records(char *file_path) {
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
@@ -1154,7 +1190,6 @@ int print_player_records(char *file_path) {
 				fclose(filter_file);
 			}
 		}
-		/* If a filter was not given, use every entry */
 		if (passes_filter == 1) {
 			found_name = 0;
 			for (int i = 0; i < num_rec; i++) {
@@ -1176,6 +1211,7 @@ int print_player_records(char *file_path) {
 		}
 	}
 
+	fclose(p_file);
 	merge_sort_player_records(&(records[0]), num_rec);
 
 	for (int i = 0; i < num_rec; i++) {
@@ -1205,7 +1241,6 @@ int print_player_records(char *file_path) {
 		}
 	}
 
-	fclose(p_file);
 	return 0;
 }
 
