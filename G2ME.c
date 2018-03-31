@@ -1475,10 +1475,10 @@ void print_matchup_table_csv(void) {
 				char col[30];
 				// If the user wants ties to be printed
 				if (print_ties == 1) {
-					 snprintf(col, sizeof(col), "%d-%d-%-20d", \
+					 snprintf(col, sizeof(col), "%d-%d-%d,", \
 					 	temp_rec.wins, temp_rec.ties, temp_rec.losses);
 				} else {
-					 snprintf(col, sizeof(col), "%d-%-20d", \
+					 snprintf(col, sizeof(col), "%d-%d,", \
 					 	temp_rec.wins, temp_rec.losses);
 				}
 				// If the player has no data against a given opponent,
