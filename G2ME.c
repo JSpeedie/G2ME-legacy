@@ -1107,6 +1107,8 @@ int print_player_records(char *file_path) {
 	struct record records[128];
 	int found_name = 0;
 	int num_rec = 0;
+	char in_filter = 1;
+	char line[MAX_NAME_LEN];
 	struct entry ent;
 	/* Read the starter data in the file */
 	entry_file_read_start_from_file(file_path, &ent);
@@ -1115,22 +1117,44 @@ int print_player_records(char *file_path) {
 	entry_file_get_to_entries(p_file);
 
 	while (entry_file_read_entry(p_file, &ent) == 0) {
-		found_name = 0;
-		for (int i = 0; i < num_rec; i++) {
-			if (0 == strcmp(ent.opp_name, records[i].opp_name)) {
-				found_name = 1;
-				if (ent.gc > ent.opp_gc) records[i].wins += 1;
-				else if (ent.gc == ent.opp_gc) records[i].ties += 1;
-				else if (ent.gc < ent.opp_gc) records[i].losses += 1;
+		/* Filter players to be the ones in the given '-p' flag file */
+		if (o_generate_pr == 1) {
+			in_filter = 0;
+			FILE *filter_file = fopen(pr_list_file_path, "r");
+			if (filter_file == NULL) {
+				perror("fopen (filter_player_list)");
+				return -1;
 			}
+
+			while (fgets(line, sizeof(line), filter_file)) {
+				*strchr(line, '\n') = '\0';
+				/* If the name is in the filter, mark it accordingly */
+				if (0 == strcmp(ent.opp_name, line)) {
+					in_filter = 1;
+					break;
+				}
+			}
+			fclose(filter_file);
 		}
-		if (found_name == 0) {
-			strncpy(records[num_rec].name, ent.name, MAX_NAME_LEN);
-			strncpy(records[num_rec].opp_name, ent.opp_name, MAX_NAME_LEN);
-			if (ent.gc > ent.opp_gc) records[num_rec].wins += 1;
-			else if (ent.gc == ent.opp_gc) records[num_rec].ties += 1;
-			else if (ent.gc < ent.opp_gc) records[num_rec].losses += 1;
-			num_rec++;
+		/* If a filter was not given, use every entry */
+		if (in_filter == 1) {
+			found_name = 0;
+			for (int i = 0; i < num_rec; i++) {
+				if (0 == strcmp(ent.opp_name, records[i].opp_name)) {
+					found_name = 1;
+					if (ent.gc > ent.opp_gc) records[i].wins += 1;
+					else if (ent.gc == ent.opp_gc) records[i].ties += 1;
+					else if (ent.gc < ent.opp_gc) records[i].losses += 1;
+				}
+			}
+			if (found_name == 0) {
+				strncpy(records[num_rec].name, ent.name, MAX_NAME_LEN);
+				strncpy(records[num_rec].opp_name, ent.opp_name, MAX_NAME_LEN);
+				if (ent.gc > ent.opp_gc) records[num_rec].wins += 1;
+				else if (ent.gc == ent.opp_gc) records[num_rec].ties += 1;
+				else if (ent.gc < ent.opp_gc) records[num_rec].losses += 1;
+				num_rec++;
+			}
 		}
 	}
 
