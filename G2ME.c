@@ -594,7 +594,12 @@ void adjust_absent_players(char* player_list, char day, char month, \
 		/* Reset variable to assume player did not compete */
 		did_not_comp = 1;
 		/* Replace newline with null terminator */
-		*strchr(line, '\n') = '\0';
+		char *end_of_line = strchr(line, '\n');
+		if (end_of_line == NULL) {
+			perror("strchr (filter_player_list)");
+			return;
+		}
+		*end_of_line = '\0';
 		for (int i = 0; i < tournament_names_len; i++) {
 			/* If the one of the player who the system manager wants to track
 			 * is found in the list of competitors at the tourney */
@@ -852,7 +857,12 @@ int generate_ratings_file(char* file_path, char* output_file_path) {
 
 	while (fgets(line, sizeof(line), players)) {
 		/* Replace newline with null terminator */
-		*strchr(line, '\n') = '\0';
+		char *end_of_line = strchr(line, '\n');
+		if (end_of_line == NULL) {
+			perror("strchr (generate_ratings_file)");
+			return -2;
+		}
+		*end_of_line = '\0';
 		char *full_player_path = file_path_with_player_dir(line);
 		/* If the player file was able to be read properly... */
 		if (0 == entry_file_read_last_entry(full_player_path, &temp)) {
@@ -1164,7 +1174,12 @@ int print_player_records(char *file_path) {
 				}
 
 				while (fgets(line, sizeof(line), filter_file)) {
-					*strchr(line, '\n') = '\0';
+					char *end_of_line = strchr(line, '\n');
+					if (end_of_line == NULL) {
+						perror("strchr (print_player_records)");
+						return -2;
+					}
+					*end_of_line = '\0';
 					/* If the name is in the filter, mark it accordingly */
 					if (0 == strcmp(ent.opp_name, line)) {
 						passes_filter = 1;
@@ -1402,7 +1417,12 @@ int filter_player_list(char **players_pointer, int *num_players, \
 
 	while (fgets(line, sizeof(line), filter_file)) {
 		/* Replace newline with null terminator */
-		*strchr(line, '\n') = '\0';
+		char *end_of_line = strchr(line, '\n');
+		if (end_of_line == NULL) {
+			perror("strchr (filter_player_list)");
+			return -2;
+		}
+		*end_of_line = '\0';
 
 		for (int i = 0; i < *num_players; i++) {
 			/* If the player name exists in the player list, add
