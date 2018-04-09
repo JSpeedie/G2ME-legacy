@@ -583,7 +583,7 @@ void adjust_absent_players(char* player_list, char day, char month, \
 		return;
 	}
 
-	char line[256];
+	char line[MAX_FILE_PATH_LEN];
 	char did_not_comp = 1;
 	/* get list of player names that did not compete
 	 * apply step 6 to them and append to player file */
@@ -632,7 +632,7 @@ void update_players(char* bracket_file_path) {
 		return;
 	}
 
-	char line[256];
+	char line[MAX_FILE_PATH_LEN];
 	char p1_name[MAX_NAME_LEN];
 	char p2_name[MAX_NAME_LEN];
 	char p1_gc;
@@ -731,10 +731,15 @@ int run_brackets(char *bracket_list_file_path) {
 		return -1;
 	}
 
-	char line[256];
+	char line[MAX_FILE_PATH_LEN];
 
 	while (fgets(line, sizeof(line), bracket_list_file)) {
-		*strchr(line, '\n') = '\0';
+		char *end_of_line = strchr(line, '\n');
+		if (end_of_line == NULL) {
+			perror("strchr (run_brackets)");
+			return -2;
+		}
+		*end_of_line = '\0';
 		if (use_games == 1) {
 			printf("running %s using games\n", line);
 		} else {

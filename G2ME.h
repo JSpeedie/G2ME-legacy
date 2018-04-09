@@ -1,5 +1,5 @@
 #define MAX_NAME_LEN 128
-#define MAX_FILE_PATH_LEN 256
+#define MAX_FILE_PATH_LEN 512
 #define REALLOC_PR_ENTRIES_INC 4
 #define SIZE_PR_ENTRY 128
 #define LEXIO 1
