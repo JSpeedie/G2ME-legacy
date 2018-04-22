@@ -736,15 +736,14 @@ int run_brackets(char *bracket_list_file_path) {
 		return -1;
 	}
 
-	char line[MAX_FILE_PATH_LEN];
+	char line[MAX_FILE_PATH_LEN + 1];
 
 	while (fgets(line, sizeof(line), bracket_list_file)) {
 		char *end_of_line = strchr(line, '\n');
-		if (end_of_line == NULL) {
-			perror("strchr (run_brackets)");
-			return -2;
-		}
-		*end_of_line = '\0';
+		/* If search for a newline didn't fail, the line ended in a newline
+		 * which must be replaced */
+		if (end_of_line != NULL) *end_of_line = '\0';
+
 		if (use_games == 1) {
 			printf("running %s using games\n", line);
 		} else {
