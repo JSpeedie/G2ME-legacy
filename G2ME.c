@@ -86,7 +86,7 @@ void clear_file(char* file) {
  * \return void
  */
 void write_entry_from_input(char* file_path) {
-	printf("[name] [opp_name] [rating] [RD] [vol] [gc] [opp_gc] [day] [month] [year] [t_name]: ");
+	fprintf(stdout, "[name] [opp_name] [rating] [RD] [vol] [gc] [opp_gc] [day] [month] [year] [t_name]: ");
 	char *full_path = file_path_with_player_dir(file_path);
 
 	struct entry input_entry;
@@ -107,7 +107,7 @@ void write_entry_from_input(char* file_path) {
  * \param '*P' the struct player to print
  */
 void print_player(struct player *P) {
-	printf("%16.14lf %16.14lf %16.14lf\n", getRating(P), getRd(P), P->vol);
+	fprintf(stdout, "%16.14lf %16.14lf %16.14lf\n", getRating(P), getRd(P), P->vol);
 }
 
 /** Prints a string representation of a struct entry to stdout
@@ -119,7 +119,7 @@ void print_entry(struct entry E) {
 	char date[32];
 	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
 
-	printf("%d  %d  %-10s  %-10s  %16.14lf  %16.14lf  %16.14lf" \
+	fprintf(stdout, "%d  %d  %-10s  %-10s  %16.14lf  %16.14lf  %16.14lf"	\
 		"%d-%d  %s  %d  %-10s\n",  \
 		E.len_name, E.len_opp_name, E.name, E.opp_name, E.rating, E.RD, \
 		E.vol, E.gc, E.opp_gc, date, E.len_t_name, E.t_name);
@@ -159,7 +159,7 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 		else if (E.gc < E.opp_gc) output_colour = RED;
 	}
 
-	printf("%*d  %*d  %-*s  %*d  %s%-*s%s  %*s%.4lf  %*s%.4lf  %*s%.8lf  %d-%d" \
+	fprintf(stdout, "%*d  %*d  %-*s  %*d  %s%-*s%s  %*s%.4lf  %*s%.4lf  %*s%.8lf  %d-%d" \
 		"  %-*s  %d  %s\n", \
 		longest_nl, E.len_name, longest_opp_nl, E.len_opp_name, \
 		E.len_name, E.name, longest_opp_id, E.opp_id, output_colour, \
@@ -198,7 +198,7 @@ void print_entry_name(struct entry E, int longest_name, int longest_rating, \
 		else if (E.gc < E.opp_gc) output_colour = RED;
 	}
 
-	printf("%s  %s%-*s%s  %*s%.1lf  %*s%.1lf  %*s%.6lf  %d-%d  %-*s  %s\n", \
+	fprintf(stdout, "%s  %s%-*s%s  %*s%.1lf  %*s%.1lf  %*s%.6lf  %d-%d  %-*s  %s\n", \
 		E.name, output_colour, longest_name, E.opp_name, NORMAL, \
 		longest_rating-rating_length, "", E.rating, longest_RD-rd_length, \
 		"", E.RD, longest_vol-vol_length, "", E.vol, E.gc, E.opp_gc, \
@@ -736,18 +736,27 @@ int run_brackets(char *bracket_list_file_path) {
 		return -1;
 	}
 
-	char line[MAX_FILE_PATH_LEN + 1];
+	char line[MAX_FILE_PATH_LEN + 2];
 
 	while (fgets(line, sizeof(line), bracket_list_file)) {
-		char *end_of_line = strchr(line, '\n');
-		/* If search for a newline didn't fail, the line ended in a newline
+		/* Code to catch all several forms of newline such as:
+		 * '\n', "\r\n", '\r', "\n\m". Actually catches "[\n\r].*"
+		 * If the search for a newline didn't fail, the line ended in a newline
 		 * which must be replaced */
-		if (end_of_line != NULL) *end_of_line = '\0';
+		char *end_of_line = strchr(line, '\n');
+		if (end_of_line != NULL) {
+			*end_of_line = '\0';
+		} else {
+			end_of_line = strchr(line, '\r');
+			if (end_of_line != NULL) {
+				*end_of_line = '\0';
+			}
+		}
 
 		if (use_games == 1) {
-			printf("running %s using games\n", line);
+			fprintf(stdout, "running %s using games\n", line);
 		} else {
-			printf("running %s\n", line);
+			fprintf(stdout, "running %s\n", line);
 		}
 		update_players(line);
 	}
@@ -1229,11 +1238,11 @@ int print_player_records(char *file_path) {
 
 		// If the user wants ties to be printed
 		if (print_ties == 1) {
-			printf("%s vs %s%s%s = %d-%d-%d\n", \
+			fprintf(stdout, "%s vs %s%s%s = %d-%d-%d\n",					\
 				records[i].name, output_colour_player, records[i].opp_name, \
 				NORMAL, records[i].wins, records[i].ties, records[i].losses);
 		} else {
-			printf("%s vs %s%s%s = %d-%d\n", \
+			fprintf(stdout, "%s vs %s%s%s = %d-%d\n",					\
 				records[i].name, output_colour_player, records[i].opp_name, \
 				NORMAL, records[i].wins, records[i].losses);
 		}
@@ -1245,7 +1254,7 @@ int print_player_records(char *file_path) {
 void print_player_attended(char *attended, int count) {
 	// Print names of all tournaments attended by the player
 	for (int i = 0; i < count; i++) {
-		printf("%s\n", attended + i * MAX_NAME_LEN);
+		fprintf(stdout, "%s\n", attended + i * MAX_NAME_LEN);
 	}
 }
 
@@ -1476,7 +1485,7 @@ void print_matchup_table(void) {
 		snprintf(col, col_width, "%-*s", col_width, &players[i * MAX_NAME_LEN]);
 		strcat(output[0], col);
 	}
-	printf("%s\n", output[0]);
+	fprintf(stdout, "%s\n", output[0]);
 
 	if ((p_dir = opendir(player_dir)) != NULL) {
 		for (int i = 0; i < num_players; i++) {
@@ -1508,7 +1517,7 @@ void print_matchup_table(void) {
 				}
 				strcat(output[i + 1], col);
 			}
-			printf("%s\n", output[i + 1]);
+			fprintf(stdout, "%s\n", output[i + 1]);
 		}
 		closedir(p_dir);
 	} else {
@@ -1547,7 +1556,7 @@ void print_matchup_table_csv(void) {
 			1024 - 1 - strlen(output[0]));
 		strncat(output[0], ",", 1024 - 1 - strlen(output[0]));
 	}
-	printf("%s\n", output[0]);
+	fprintf(stdout, "%s\n", output[0]);
 
 	if ((p_dir = opendir(player_dir)) != NULL) {
 		for (int i = 0; i < num_players; i++) {
@@ -1577,7 +1586,7 @@ void print_matchup_table_csv(void) {
 				}
 				strcat(output[i + 1], col);
 			}
-			printf("%s\n", output[i + 1]);
+			fprintf(stdout, "%s\n", output[i + 1]);
 		}
 		closedir(p_dir);
 	} else {
@@ -1691,7 +1700,7 @@ int main(int argc, char **argv) {
 			free(attended);
 		} else if (opt == 'c') {
 			char *full_player_path = file_path_with_player_dir(optarg);
-			printf("%d\n", entry_file_get_outcome_count(full_player_path));
+			fprintf(stdout, "%d\n", entry_file_get_outcome_count(full_player_path));
 			free(full_player_path);
 		} else if (opt == 'd') {
 			memset(player_dir, 0, sizeof(player_dir));
