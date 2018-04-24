@@ -638,11 +638,18 @@ int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
 int entry_file_append_pr_entry_to_file(struct entry* E, char* file_path, \
 	int longest_name_length) {
 
-	FILE *entry_file = fopen(file_path, "a+");
-	if (entry_file == NULL) {
-		perror("fopen (entry_file_append_pr_entry_to_file)");
-		return -1;
+	FILE *entry_file;
+
+	if (flag_output_to_stdout == 0) {
+		entry_file = fopen(file_path, "a+");
+		if (entry_file == NULL) {
+			perror("fopen (entry_file_append_pr_entry_to_file)");
+			return -1;
+		}
+	} else {
+		entry_file = stdout;
 	}
+
 	if (fprintf(entry_file, "%*s  %6.1lf  %5.1lf  %10.8lf\n", \
 		longest_name_length, E->name, E->rating, E->RD, E->vol) < 0) {
 
@@ -650,7 +657,9 @@ int entry_file_append_pr_entry_to_file(struct entry* E, char* file_path, \
 		return -3;
 	}
 
-	fclose(entry_file);
+	if (flag_output_to_stdout == 0) {
+		fclose(entry_file);
+	}
 	return 0;
 }
 
@@ -669,10 +678,16 @@ int entry_file_append_pr_entry_to_file_verbose(struct entry* E, char* file_path,
 	int longest_name_length, int longest_attended_count, \
 	int longest_outcome_count) {
 
-	FILE *entry_file = fopen(file_path, "a+");
-	if (entry_file == NULL) {
-		perror("fopen (entry_file_append_pr_entry_to_file_verbose)");
-		return -1;
+	FILE *entry_file;
+
+	if (flag_output_to_stdout == 0) {
+		entry_file = fopen(file_path, "a+");
+		if (entry_file == NULL) {
+			perror("fopen (entry_file_append_pr_entry_to_file_verbose)");
+			return -1;
+		}
+	} else {
+		entry_file = stdout;
 	}
 
 	char *full_player_path = file_path_with_player_dir(E->name);
@@ -715,7 +730,9 @@ int entry_file_append_pr_entry_to_file_verbose(struct entry* E, char* file_path,
 		}
 	}
 
-	fclose(entry_file);
+	if (flag_output_to_stdout == 0) {
+		fclose(entry_file);
+	}
 	return 0;
 }
 

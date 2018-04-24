@@ -23,6 +23,7 @@ char *CYAN = "\x1B[36m";
 char *WHITE = "\x1B[37m";
 char *PLAYER_DIR = ".players/";
 
+char flag_output_to_stdout = 0;
 char verbose = 0;
 char use_games = 0;
 char keep_players = 0;
@@ -838,7 +839,9 @@ int generate_ratings_file(char* file_path, char* output_file_path) {
 		return -1;
 	}
 
-	clear_file(output_file_path);
+	if (flag_output_to_stdout == 0) {
+		clear_file(output_file_path);
+	}
 
 	/* Player list file is a series of names followed by newlines '\n'
 	 * therefore the longest line that should be supported should be the
@@ -947,7 +950,9 @@ int generate_ratings_file_full(char *output_file_path) {
 	DIR *p_dir;
 	struct dirent *entry;
 	if ((p_dir = opendir(player_dir)) != NULL) {
-		clear_file(output_file_path);
+		if (flag_output_to_stdout == 0) {
+			clear_file(output_file_path);
+		}
 
 		/* Player list file is a series of names followed by newlines '\n'
 		 * therefore the longest line that should be supported should be the
@@ -1669,6 +1674,7 @@ int main(int argc, char **argv) {
 		{ "no-colour",		required_argument,	NULL,	'n' },
 		{ "no-ties",		required_argument,	NULL,	'N' },
 		{ "output",			required_argument,	NULL,	'o' },
+		{ "stdout",			no_argument,	NULL,	'O' },
 		/* Output a file with a sorted list of players and their ratings */
 		{ "power-rating",	required_argument,	NULL,	'p' },
 		{ "P",				required_argument,	NULL,	'P' },
@@ -1681,7 +1687,7 @@ int main(int argc, char **argv) {
 	};
 
 	while ((opt = getopt_long(argc, argv, \
-		"0a:A:b:B:c:Cd:gh:kl:m:MnNo:p:P:r:R:vw:x:", opt_table, NULL)) != -1) {
+		"0a:A:b:B:c:Cd:gh:kl:m:MnNo:Op:P:r:R:vw:x:", opt_table, NULL)) != -1) {
 		if (opt == 'A') {
 			int count;
 			char *full_player_path = file_path_with_player_dir(optarg);
@@ -1753,6 +1759,14 @@ int main(int argc, char **argv) {
 				strncpy(player_list_file, optarg, sizeof(player_list_file) - 1);
 				break;
 			case 'o':
+				if (p_flag_used) {
+					generate_ratings_file(pr_list_file_path, optarg);
+				} else {
+					generate_ratings_file_full(optarg);
+				}
+				break;
+			case 'O':
+				flag_output_to_stdout = 1;
 				if (p_flag_used) {
 					generate_ratings_file(pr_list_file_path, optarg);
 				} else {

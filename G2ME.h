@@ -4,6 +4,8 @@
 #define SIZE_PR_ENTRY 128
 #define LEXIO 1
 
+char flag_output_to_stdout;
+
 typedef struct entry {
 	unsigned short opp_id;
 	unsigned short tournament_id;
