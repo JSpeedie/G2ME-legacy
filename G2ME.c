@@ -13,6 +13,7 @@
 #include "glicko2.h"
 #include "entry_file.h"
 
+char *NOTHING = "";
 char *NORMAL = "\x1B[0m";
 char *RED = "\x1B[31m";
 char *GREEN = "\x1B[32m";
@@ -150,11 +151,13 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 	unsigned int rd_length = strlen(temp);
 	sprintf(temp, "%.8lf", E.vol);
 	unsigned int vol_length = strlen(temp);
-	char *output_colour = NORMAL;
+	char *output_colour = NOTHING;
+	char *reset_colour = NOTHING;
 	if (colour_output == 1) {
 		/* If this player won against their opponent,
 		 * Set their opponent's name colour to green.
 		 * If they lost, to red, and if they tied, to yellow */
+		reset_colour = NORMAL;
 		output_colour = YELLOW;
 		if (E.gc > E.opp_gc) output_colour = GREEN;
 		else if (E.gc < E.opp_gc) output_colour = RED;
@@ -164,7 +167,7 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 		"  %-*s  %d  %s\n", \
 		longest_nl, E.len_name, longest_opp_nl, E.len_opp_name, \
 		E.len_name, E.name, longest_opp_id, E.opp_id, output_colour, \
-		longest_name, E.opp_name, NORMAL, longest_rating-rating_length, "", \
+		longest_name, E.opp_name, reset_colour, longest_rating-rating_length, "", \
 		E.rating, longest_RD-rd_length, "", E.RD, longest_vol-vol_length, "", \
 		E.vol, E.gc, E.opp_gc, longest_date, date, E.tournament_id, E.t_name);
 }
@@ -189,18 +192,20 @@ void print_entry_name(struct entry E, int longest_name, int longest_rating, \
 	unsigned int rd_length = strlen(temp);
 	sprintf(temp, "%.6lf", E.vol);
 	unsigned int vol_length = strlen(temp);
-	char *output_colour = NORMAL;
+	char *output_colour = NOTHING;
+	char *reset_colour = NOTHING;
 	if (colour_output == 1) {
 		/* If this player won against their opponent,
 		 * Set their opponent's name colour to green.
 		 * If they lost, to red, and if they tied, to yellow */
+		reset_colour = NORMAL;
 		output_colour = YELLOW;
 		if (E.gc > E.opp_gc) output_colour = GREEN;
 		else if (E.gc < E.opp_gc) output_colour = RED;
 	}
 
 	printf("%s  %s%-*s%s  %*s%.1lf  %*s%.1lf  %*s%.6lf  %d-%d  %-*s  %s\n", \
-		E.name, output_colour, longest_name, E.opp_name, NORMAL, \
+		E.name, output_colour, longest_name, E.opp_name, reset_colour, \
 		longest_rating-rating_length, "", E.rating, longest_RD-rd_length, \
 		"", E.RD, longest_vol-vol_length, "", E.vol, E.gc, E.opp_gc, \
 		longest_date, date, E.t_name);
@@ -1219,8 +1224,10 @@ int print_player_records(char *file_path) {
 	merge_sort_player_records(&(records[0]), num_rec);
 
 	for (int i = 0; i < num_rec; i++) {
-		char* output_colour_player = NORMAL;
+		char* output_colour_player = NOTHING;
+		char* reset_colour_player = NOTHING;
 		if (colour_output == 1) {
+			reset_colour_player = NORMAL;
 			// If the player has a winning record
 			if (records[i].wins > records[i].losses) {
 				output_colour_player = GREEN;
@@ -1237,11 +1244,11 @@ int print_player_records(char *file_path) {
 		if (print_ties == 1) {
 			printf("%s vs %s%s%s = %d-%d-%d\n", \
 				records[i].name, output_colour_player, records[i].opp_name, \
-				NORMAL, records[i].wins, records[i].ties, records[i].losses);
+				reset_colour_player, records[i].wins, records[i].ties, records[i].losses);
 		} else {
 			printf("%s vs %s%s%s = %d-%d\n", \
 				records[i].name, output_colour_player, records[i].opp_name, \
-				NORMAL, records[i].wins, records[i].losses);
+				reset_colour_player, records[i].wins, records[i].losses);
 		}
 	}
 
@@ -1760,17 +1767,21 @@ int main(int argc, char **argv) {
 				break;
 			case 'o':
 				if (p_flag_used) {
-					generate_ratings_file(pr_list_file_path, optarg);
+					int ret = generate_ratings_file(pr_list_file_path, optarg);
+					if (ret != 0) return ret;
 				} else {
-					generate_ratings_file_full(optarg);
+					int ret = generate_ratings_file_full(optarg);
+					if (ret != 0) return ret;
 				}
 				break;
 			case 'O':
 				flag_output_to_stdout = 1;
 				if (p_flag_used) {
-					generate_ratings_file(pr_list_file_path, optarg);
+					int ret = generate_ratings_file(pr_list_file_path, optarg);
+					if (ret != 0) return ret;
 				} else {
-					generate_ratings_file_full(optarg);
+					int ret = generate_ratings_file_full(optarg);
+					if (ret != 0) return ret;
 				}
 				break;
 			case 'v': verbose = 1; break;
