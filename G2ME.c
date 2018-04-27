@@ -24,6 +24,9 @@ char *CYAN = "\x1B[36m";
 char *WHITE = "\x1B[37m";
 char *PLAYER_DIR = ".players/";
 
+const char ERROR_PLAYER_DNE[] = { "Error: 'player_dir' either could not be "
+	"created or does not exist"};
+
 char flag_output_to_stdout = 0;
 char verbose = 0;
 char use_games = 0;
@@ -1625,33 +1628,28 @@ int reset_players(void) {
 	}
 }
 
-int main(int argc, char **argv) {
-	/* INIT SECTION:
-	 * 1. Initialize player_dir to the file path for the player directory
-	 * 2. Check if player_dir exists
-	 */
-
-	/* 1. Initialize player_dir to the file path for the player directory */
-	memset(player_dir, 0, sizeof(player_dir));
-	strncpy(player_dir, PLAYER_DIR, sizeof(player_dir) - 1);
-
+int check_and_create_player_dir(void) {
 	/* 2. Check if player_dir exists */
 	DIR *d = opendir(player_dir);
-	if (d) {
-		closedir(d);
-	}
-	/* If 'player_dir' does not exist */
+	/* If 'player_dir' DOES exist */
+	if (d) closedir(d);
 	else if (errno == ENOENT) {
 		fprintf(stderr, \
 			"G2ME: Warning: 'player_dir' did not exist, creating...\n");
 		/* If there was an error making the player_directory */
 		if (0 != mkdir(player_dir, 0700)) {
 			perror("mkdir (main)");
+			return -1;
 		}
 	} else {
 		perror("opendir (main)");
-		return -1;
+		return -2;
 	}
+	return 0;
+}
+
+int main(int argc, char **argv) {
+
 
 	int opt;
 	struct option opt_table[] = {
@@ -1692,62 +1690,92 @@ int main(int argc, char **argv) {
 		{ "remove-entries",	required_argument,	NULL,	'x' },
 		{ 0, 0, 0, 0 }
 	};
+	char *opt_string = "0a:A:b:B:c:Cd:gh:kl:m:MnNo:Op:P:r:R:vw:x:";
 
-	while ((opt = getopt_long(argc, argv, \
-		"0a:A:b:B:c:Cd:gh:kl:m:MnNo:Op:P:r:R:vw:x:", opt_table, NULL)) != -1) {
+	/* 1. Initialize player_dir to the file path for the player directory */
+	memset(player_dir, 0, sizeof(player_dir));
+	strncpy(player_dir, PLAYER_DIR, sizeof(player_dir) - 1);
+
+	while ((opt = getopt_long(argc, argv, opt_string, opt_table, NULL)) != -1) {
 		if (opt == 'A') {
-			int count;
-			char *full_player_path = file_path_with_player_dir(optarg);
-			char *attended = \
-				entry_file_get_events_attended(full_player_path, &count);
-			print_player_attended(attended, count);
-			free(full_player_path);
-			free(attended);
+			if (0 == check_and_create_player_dir()) {
+				int count;
+				char *full_player_path = file_path_with_player_dir(optarg);
+				char *attended = \
+					entry_file_get_events_attended(full_player_path, &count);
+				print_player_attended(attended, count);
+				free(full_player_path);
+				free(attended);
+			} else {
+				fprintf(stderr, "Error: 'player_dir' either could not be created" \
+						"or does not exist");
+			}
 		} else if (opt == 'c') {
-			char *full_player_path = file_path_with_player_dir(optarg);
-			printf("%d\n", entry_file_get_outcome_count(full_player_path));
-			free(full_player_path);
+			if (0 == check_and_create_player_dir()) {
+				char *full_player_path = file_path_with_player_dir(optarg);
+				printf("%d\n", entry_file_get_outcome_count(full_player_path));
+				free(full_player_path);
+			} else fprintf(stderr, ERROR_PLAYER_DNE);
 		} else if (opt == 'd') {
 			memset(player_dir, 0, sizeof(player_dir));
 			strncpy(player_dir, optarg, sizeof(player_dir) - 1);
 		} else if (opt == 'h') {
-			char *full_player_path = file_path_with_player_dir(optarg);
-			if (verbose == 1) print_player_file_verbose(full_player_path);
-			else print_player_file(full_player_path);
-			free(full_player_path);
+			if (0 == check_and_create_player_dir()) {
+				char *full_player_path = file_path_with_player_dir(optarg);
+				if (verbose == 1) print_player_file_verbose(full_player_path);
+				else print_player_file(full_player_path);
+				free(full_player_path);
+			} else fprintf(stderr, ERROR_PLAYER_DNE);
 		} else if (opt == 'l') {
-			char *full_player_path = file_path_with_player_dir(optarg);
-			if (0 == entry_file_read_last_entry(full_player_path, &temp)) {
-				print_entry(temp);
-			}
-			free(full_player_path);
+			if (0 == check_and_create_player_dir()) {
+				char *full_player_path = file_path_with_player_dir(optarg);
+				if (0 == entry_file_read_last_entry(full_player_path, &temp)) {
+					print_entry(temp);
+				}
+				free(full_player_path);
+			} else fprintf(stderr, ERROR_PLAYER_DNE);
 		} else if (opt == 'r') {
-			char *full_player_path = file_path_with_player_dir(optarg);
-			entry_file_refactor_name(full_player_path);
-			free(full_player_path);
+			if (0 == check_and_create_player_dir()) {
+				char *full_player_path = file_path_with_player_dir(optarg);
+				entry_file_refactor_name(full_player_path);
+				free(full_player_path);
+			} else fprintf(stderr, ERROR_PLAYER_DNE);
 		} else if (opt == 'R') {
-			char *full_player_path = file_path_with_player_dir(optarg);
-			print_player_records(full_player_path);
-			free(full_player_path);
+			if (0 == check_and_create_player_dir()) {
+				char *full_player_path = file_path_with_player_dir(optarg);
+				print_player_records(full_player_path);
+				free(full_player_path);
+			} else fprintf(stderr, ERROR_PLAYER_DNE);
 		} else if (opt == 'x') {
-			char *full_player_path = file_path_with_player_dir(optarg);
-			entry_file_remove_entry(full_player_path);
-			free(full_player_path);
+			if (0 == check_and_create_player_dir()) {
+				char *full_player_path = file_path_with_player_dir(optarg);
+				entry_file_remove_entry(full_player_path);
+				free(full_player_path);
+			} else fprintf(stderr, ERROR_PLAYER_DNE);
 		}
 
 		switch (opt) {
 			case '0': calc_absent_players = 0; break;
 			case 'a':
-				write_entry_from_input(file_path_with_player_dir(optarg));
+				if (0 == check_and_create_player_dir()) {
+					write_entry_from_input(file_path_with_player_dir(optarg));
+				} else fprintf(stderr, ERROR_PLAYER_DNE);
 				break;
 			case 'b':
-				if (keep_players == 0) reset_players();
-				update_players(optarg);
+				if (0 == check_and_create_player_dir()) {
+					if (keep_players == 0) reset_players();
+					update_players(optarg);
+				} else fprintf(stderr, ERROR_PLAYER_DNE);
 				break;
-			case 'C': print_matchup_table_csv(); break;
+			case 'C':
+				if (0 == check_and_create_player_dir()) {
+					print_matchup_table_csv(); break;
+				} else fprintf(stderr, ERROR_PLAYER_DNE);
 			case 'B':
-				if (keep_players == 0) reset_players();
-				run_brackets(optarg);
+				if (0 == check_and_create_player_dir()) {
+					if (keep_players == 0) reset_players();
+					run_brackets(optarg);
+				} else fprintf(stderr, ERROR_PLAYER_DNE);
 				break;
 			case 'g': use_games = 1; break;
 			case 'k': keep_players = 1; break;
@@ -1766,23 +1794,27 @@ int main(int argc, char **argv) {
 				strncpy(player_list_file, optarg, sizeof(player_list_file) - 1);
 				break;
 			case 'o':
-				if (p_flag_used) {
-					int ret = generate_ratings_file(pr_list_file_path, optarg);
-					if (ret != 0) return ret;
-				} else {
-					int ret = generate_ratings_file_full(optarg);
-					if (ret != 0) return ret;
-				}
+				if (0 == check_and_create_player_dir()) {
+					if (p_flag_used) {
+						int ret = generate_ratings_file(pr_list_file_path, optarg);
+						if (ret != 0) return ret;
+					} else {
+						int ret = generate_ratings_file_full(optarg);
+						if (ret != 0) return ret;
+					}
+				} else fprintf(stderr, ERROR_PLAYER_DNE);
 				break;
 			case 'O':
-				flag_output_to_stdout = 1;
-				if (p_flag_used) {
-					int ret = generate_ratings_file(pr_list_file_path, optarg);
-					if (ret != 0) return ret;
-				} else {
-					int ret = generate_ratings_file_full(optarg);
-					if (ret != 0) return ret;
-				}
+				if (0 == check_and_create_player_dir()) {
+					flag_output_to_stdout = 1;
+					if (p_flag_used) {
+						int ret = generate_ratings_file(pr_list_file_path, optarg);
+						if (ret != 0) return ret;
+					} else {
+						int ret = generate_ratings_file_full(optarg);
+						if (ret != 0) return ret;
+					}
+				} else fprintf(stderr, ERROR_PLAYER_DNE);
 				break;
 			case 'v': verbose = 1; break;
 		}
