@@ -49,7 +49,7 @@ struct entry temp;
 
 char *file_path_with_player_dir(char *s) {
 	int new_path_size = sizeof(char) * (MAX_FILE_PATH_LEN - MAX_NAME_LEN);
-	char *new_path = malloc(new_path_size);
+	char *new_path = (char *) malloc(new_path_size);
 	/* 0 all elements in the new string */
 	memset(new_path, 0, new_path_size);
 
@@ -880,7 +880,7 @@ int generate_ratings_file(char* file_path, char* output_file_path) {
 	/* Create a starting point pr entry array */
 	int pr_entries_size = SIZE_PR_ENTRY;
 	struct entry *players_pr_entries = \
-		malloc(sizeof(struct entry) * pr_entries_size);
+		(struct entry *)malloc(sizeof(struct entry) * pr_entries_size);
 	struct entry temp;
 
 	while (fgets(line, sizeof(line), players)) {
@@ -990,7 +990,7 @@ int generate_ratings_file_full(char *output_file_path) {
 		/* Create a starting point pr entry array */
 		int pr_entries_size = SIZE_PR_ENTRY;
 		struct entry *players_pr_entries = \
-			malloc(sizeof(struct entry) * pr_entries_size);
+			(struct entry *)malloc(sizeof(struct entry) * pr_entries_size);
 		struct entry temp;
 
 		while ((entry = readdir(p_dir)) != NULL) {
@@ -1445,7 +1445,7 @@ int filter_player_list(char **players_pointer, int *num_players, \
 	char line[MAX_NAME_LEN];
 	char *players = *(players_pointer);
 	char *filtered_players = \
-		malloc(sizeof(char) * MAX_NAME_LEN * (*num_players));
+		(char *)malloc(sizeof(char) * MAX_NAME_LEN * (*num_players));
 
 	while (fgets(line, sizeof(line), filter_file)) {
 		/* Replace newline with null terminator */
@@ -1484,7 +1484,7 @@ void print_matchup_table(void) {
 	int num_players = 0;
 	int space_between_columns = 3;
 	// TODO: better size allocation
-	char *players = malloc(MAX_NAME_LEN * 128);
+	char *players = (char *)malloc(MAX_NAME_LEN * 128);
 	players_in_player_dir(players, &num_players, LEXIO);
 
 	/* Filter players to be the ones in the given '-p' flag file */
@@ -1559,7 +1559,7 @@ void print_matchup_table_csv(void) {
 	// column and row titles
 	int num_players = 0;
 	// TODO: better size allocation
-	char *players = malloc(MAX_NAME_LEN * 128);
+	char *players = (char *)malloc(MAX_NAME_LEN * 128);
 	players_in_player_dir(players, &num_players, LEXIO);
 
 	/* Filter players to be the ones in the given '-p' flag file */
@@ -1654,7 +1654,13 @@ int check_and_create_player_dir(void) {
 		fprintf(stderr, \
 			"G2ME: Warning: 'player_dir' did not exist, creating...\n");
 		/* If there was an error making the player_directory */
+#ifdef __linux__
 		if (0 != mkdir(player_dir, 0700)) {
+#elif _WIN32
+		if (0 != mkdir(player_dir)) {
+#else
+		if (0 != mkdir(player_dir, 0700)) {
+#endif
 			perror("mkdir (main)");
 			return -1;
 		}
