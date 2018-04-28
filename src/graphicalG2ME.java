@@ -235,6 +235,7 @@ public class graphicalG2ME {
 		JPanel tabPowerRankings = new JPanel(null);
 		JPanel tabPlayerHistory = new JPanel(null);
 		JPanel tabPlayerRecords = new JPanel(null);
+		JPanel tabRunBrackets = new JPanel(null);
 		/* Configure tabs */
 		tabSettings.setPreferredSize(tabSettings.getPreferredSize());
 		tabPowerRankings.setPreferredSize(tabPowerRankings.getPreferredSize());
@@ -296,6 +297,9 @@ public class graphicalG2ME {
 		SettingsG2MEPlayerDirTextField.setMinimumSize(new Dimension(60, TEXTFIELD_HEIGHT));
 		SettingsG2MEPlayerDirTextField.setPreferredSize(new Dimension(60, TEXTFIELD_HEIGHT));
 		SettingsG2MEPlayerDirTextField.setMaximumSize(new Dimension(Short.MAX_VALUE, TEXTFIELD_HEIGHT));
+		SettingsSaveButton.setMinimumSize(new Dimension(50, TEXTFIELD_HEIGHT));
+		SettingsSaveButton.setPreferredSize(new Dimension(70, TEXTFIELD_HEIGHT));
+		SettingsSaveButton.setMaximumSize(new Dimension(90, TEXTFIELD_HEIGHT));
 		SettingsG2MEDirLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEDirTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEPlayerDirLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -374,7 +378,6 @@ public class graphicalG2ME {
 		PowerRankingsSaveButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-
 				FileDialog FB = new java.awt.FileDialog((java.awt.Frame) null,
 					"Save Power Rankings As...", FileDialog.SAVE);
 				FB.setDirectory(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
@@ -640,6 +643,228 @@ public class graphicalG2ME {
 		/* Configure data in components on Player Records tab */
 		UpdateJListToFilesInDir(PlayerRecordsPlayerList, prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
 
+		/* Configure Run Brackets Tab */
+		JPanel RunBracketsControlBar = new JPanel();
+		RunBracketsControlBar.setLayout(new BoxLayout(RunBracketsControlBar, BoxLayout.Y_AXIS));
+		JPanel RunBracketsTextComponents = new JPanel();
+		RunBracketsControlBar.setLayout(new BoxLayout(RunBracketsControlBar, BoxLayout.Y_AXIS));
+		JAliasedCheckBox RunBracketsKeepDataCheckBox = new JAliasedCheckBox("Keep existing data");
+		JAliasedButton RunBracketsAddButton = new JAliasedButton("Add Bracket...");
+		JAliasedButton RunBracketsOpenButton = new JAliasedButton("Open...");
+		JAliasedButton RunBracketsResetButton = new JAliasedButton("Reset");
+		JAliasedButton RunBracketsRunBracketButton = new JAliasedButton("Run Bracket...");
+		JAliasedButton RunBracketsRunSeasonButton = new JAliasedButton("Run Season...");
+		JAliasedButton RunBracketsSaveButton = new JAliasedButton("Save As...");
+		JAliasedTextArea RunBracketsTextDialog = new JAliasedTextArea();
+		JScrollPane RunBracketsTextDialogScroll = new JScrollPane(RunBracketsTextDialog);
+		JAliasedTextArea RunBracketsOutputDialog = new JAliasedTextArea();
+		JScrollPane RunBracketsOutputDialogScroll = new JScrollPane(RunBracketsOutputDialog);
+
+		RunBracketsKeepDataCheckBox.setSelected(true);
+		RunBracketsTextDialog.setFont(new Font("monospaced", Font.PLAIN, 12));
+		//RunBracketsOutputDialog.setEnabled(false);
+
+		RunBracketsAddButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FileDialog FB = new java.awt.FileDialog((java.awt.Frame) null,
+					"Add bracket file", FileDialog.LOAD);
+				FB.setDirectory(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
+				FB.setVisible(true);
+
+				/* If a file was successfully chosen */
+				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
+				if (DestinationFile != null && !DestinationFile.isDirectory()) {
+					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
+					try {
+						if (RunBracketsTextDialog.getText().equals("")) {
+							RunBracketsTextDialog.setText(RunBracketsTextDialog.getText() +
+								FB.getDirectory() + FB.getFile());
+						} else {
+							RunBracketsTextDialog.setText(RunBracketsTextDialog.getText() +
+								"\n" + FB.getDirectory() + FB.getFile());
+						}
+					} catch (Exception e2) {
+						e2.printStackTrace();
+					}
+				}
+			}
+		});
+		RunBracketsOpenButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FileDialog FB = new java.awt.FileDialog((java.awt.Frame) null,
+					"Open Season File...", FileDialog.LOAD);
+				FB.setDirectory(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
+				FB.setVisible(true);
+
+				/* If a file was successfully chosen */
+				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
+				if (DestinationFile != null && !DestinationFile.isDirectory()) {
+					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
+					try {
+						BufferedReader reader = Files.newBufferedReader(Paths.get(DestinationFile.getAbsolutePath()));
+						boolean not_first = false;
+						RunBracketsTextDialog.setText("");
+						String line;
+						while ((line = reader.readLine()) != null) {
+							if (not_first) RunBracketsTextDialog.setText(RunBracketsTextDialog.getText() + "\n" + line);
+							else RunBracketsTextDialog.setText(RunBracketsTextDialog.getText() + line);
+							not_first = true;
+						}
+						reader.close();
+						System.out.println("Read season file");
+					} catch (Exception e3) {
+						e3.printStackTrace();
+					}
+				}
+			}
+		});
+		RunBracketsRunBracketButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FileDialog FB = new java.awt.FileDialog((java.awt.Frame) null,
+					"Run Bracket File...", FileDialog.LOAD);
+				FB.setDirectory(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
+				FB.setVisible(true);
+
+				/* If a file was successfully chosen */
+				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
+				if (DestinationFile != null && !DestinationFile.isDirectory()) {
+					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
+					try {
+						String bracket = DestinationFile.getAbsolutePath();
+						String k_flag = "";
+						if (RunBracketsKeepDataCheckBox.isSelected()) k_flag = "k";
+						int ret = 0;
+						ret = DisplayCommandResultsInJTextArea(
+								"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+								" -" + k_flag + "b " + bracket, RunBracketsOutputDialog);
+						if (ret != 0) {
+							System.err.println("An error occurred running \"" +
+								"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+								" -" + k_flag + "b " + bracket + "\"");
+						}
+					} catch (Exception e3) {
+						e3.printStackTrace();
+					}
+				}
+			}
+		});
+
+
+
+
+		RunBracketsResetButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				/* Reset Text Dialog */
+				RunBracketsTextDialog.setText("");
+			}
+		});
+		RunBracketsSaveButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FileDialog FB = new java.awt.FileDialog((java.awt.Frame) null,
+					"Save Season As...", FileDialog.SAVE);
+				FB.setDirectory(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
+				FB.setVisible(true);
+
+				/* If a file was successfully chosen */
+				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
+				if (DestinationFile != null) {
+					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
+					try {
+						BufferedWriter writer = Files.newBufferedWriter(Paths.get(DestinationFile.getAbsolutePath()));
+						writer.write(RunBracketsTextDialog.getText() + "\n");
+						writer.close();
+						System.out.println("Wrote season to file");
+					} catch (Exception e6) {
+						e6.printStackTrace();
+					}
+				}
+			}
+		});
+		/* Use Box Layout for this tab */
+		tabRunBrackets.setLayout(new BoxLayout(tabRunBrackets, BoxLayout.X_AXIS));
+		/* Layout settings for the tab */
+		int runBracketsControlBarMinWidth = 80;
+		int runBracketsControlBarPrefWidth = 200;
+		int runBracketsControlBarMaxWidth = 340;
+		/* Set sizes of Text Component section */
+		RunBracketsTextDialogScroll.setMinimumSize(new Dimension(200, 100));
+		RunBracketsTextDialogScroll.setPreferredSize(new Dimension(400, 500));
+		RunBracketsTextDialogScroll.setMaximumSize(new Dimension(Short.MAX_VALUE, Short.MAX_VALUE));
+		RunBracketsOutputDialogScroll.setMinimumSize(new Dimension(200, 60));
+		RunBracketsOutputDialogScroll.setPreferredSize(new Dimension(400, 140));
+		RunBracketsOutputDialogScroll.setMaximumSize(new Dimension(Short.MAX_VALUE, 200));
+		/* Set sizes of Control Bar section */
+		RunBracketsKeepDataCheckBox.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, TEXTFIELD_HEIGHT));
+		RunBracketsKeepDataCheckBox.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		RunBracketsKeepDataCheckBox.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		RunBracketsOpenButton.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, TEXTFIELD_HEIGHT));
+		RunBracketsOpenButton.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		RunBracketsOpenButton.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		RunBracketsSaveButton.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, TEXTFIELD_HEIGHT));
+		RunBracketsSaveButton.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		RunBracketsSaveButton.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		RunBracketsRunBracketButton.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, TEXTFIELD_HEIGHT));
+		RunBracketsRunBracketButton.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		RunBracketsRunBracketButton.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		RunBracketsRunSeasonButton.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, TEXTFIELD_HEIGHT));
+		RunBracketsRunSeasonButton.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		RunBracketsRunSeasonButton.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		RunBracketsAddButton.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, TEXTFIELD_HEIGHT));
+		RunBracketsAddButton.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		RunBracketsAddButton.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		RunBracketsResetButton.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, TEXTFIELD_HEIGHT));
+		RunBracketsResetButton.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		RunBracketsResetButton.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		/* Correct Alignments of components in the Text Component section */
+		// RunBracketsTextDialog.setAlignmentX(Component.LEFT_ALIGNMENT);
+		// RunBracketsOutputDialog.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsTextDialogScroll.setAlignmentY(Component.TOP_ALIGNMENT);
+		RunBracketsTextDialogScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsOutputDialogScroll.setAlignmentY(Component.TOP_ALIGNMENT);
+		RunBracketsOutputDialogScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsTextComponents.setAlignmentY(Component.TOP_ALIGNMENT);
+		RunBracketsTextComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
+		/* Correct Alignments of components in the control bar section */
+		RunBracketsControlBar.setAlignmentY(Component.TOP_ALIGNMENT);
+		RunBracketsControlBar.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsKeepDataCheckBox.setAlignmentY(Component.TOP_ALIGNMENT);
+		RunBracketsKeepDataCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsOpenButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsSaveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsRunBracketButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsRunSeasonButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsAddButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsResetButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		/* Add all elements in the text component section to the text component panel */
+		RunBracketsTextComponents.add(RunBracketsTextDialogScroll);
+		RunBracketsTextComponents.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		RunBracketsTextComponents.add(RunBracketsOutputDialogScroll);
+		/* Add all elements in the control bar to the control bar panel */
+		RunBracketsControlBar.add(RunBracketsOpenButton);
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		RunBracketsControlBar.add(RunBracketsSaveButton);
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, 4 * ELEMENT_SPACING)));
+		RunBracketsControlBar.add(RunBracketsKeepDataCheckBox);
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		RunBracketsControlBar.add(RunBracketsRunBracketButton);
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		RunBracketsControlBar.add(RunBracketsRunSeasonButton);
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, 4 * ELEMENT_SPACING)));
+		RunBracketsControlBar.add(RunBracketsAddButton);
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		RunBracketsControlBar.add(RunBracketsResetButton);
+		/* Add all the elements to the tab (with spacing) */
+		tabRunBrackets.setBorder(new EmptyBorder(ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING));
+		tabRunBrackets.add(RunBracketsTextComponents);
+		tabRunBrackets.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		tabRunBrackets.add(RunBracketsControlBar);
+		/* Configure data in components on Player History tab */
+
 		JFrame frame = new JFrame("graphicalG2ME");
 		frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		frame.setSize(800, 800);
@@ -663,6 +888,7 @@ public class graphicalG2ME {
 		tabbedPane.addTab("Power Rankings", tabPowerRankings);
 		tabbedPane.addTab("Player History", tabPlayerHistory);
 		tabbedPane.addTab("Player Records", tabPlayerRecords);
+		tabbedPane.addTab("Run Brackets", tabRunBrackets);
 		frame.getContentPane().add(tabbedPane, BorderLayout.CENTER);
 	}
 }

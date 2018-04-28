@@ -730,6 +730,23 @@ void update_players(char* bracket_file_path) {
 	}
 }
 
+
+/* Takes a file path to a bracket file, and runs the bracket.
+ *
+ * \param '*bracket_file_path' a file path to a bracket file
+ * \return an int representing if the function succeeded or failed.
+ *     Negative on failure. 0 upon success.
+ */
+int run_single_bracket(char *bracket_file_path) {
+	if (use_games == 1) {
+		fprintf(stdout, "running %s using games\n", bracket_file_path);
+	} else {
+		fprintf(stdout, "running %s\n", bracket_file_path);
+	}
+	update_players(bracket_file_path);
+	return 0;
+}
+
 /* Takes a file path to a bracket list file, for each line in the file,
  * attempts to access a file of the name [line_in_bracket_list_file_path_file]
  * and run the bracket.
@@ -1764,7 +1781,7 @@ int main(int argc, char **argv) {
 			case 'b':
 				if (0 == check_and_create_player_dir()) {
 					if (keep_players == 0) reset_players();
-					update_players(optarg);
+					run_single_bracket(optarg);
 				} else fprintf(stderr, ERROR_PLAYER_DNE);
 				break;
 			case 'C':
