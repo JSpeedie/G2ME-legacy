@@ -13,16 +13,16 @@
 #include "glicko2.h"
 #include "entry_file.h"
 
-char *NOTHING = "";
-char *NORMAL = "\x1B[0m";
-char *RED = "\x1B[31m";
-char *GREEN = "\x1B[32m";
-char *YELLOW = "\x1B[33m";
-char *BLUE = "\x1B[34m";
-char *MAGENTA = "\x1B[35m";
-char *CYAN = "\x1B[36m";
-char *WHITE = "\x1B[37m";
-char *PLAYER_DIR = ".players/";
+char NOTHING[] = { "" };
+char NORMAL[] = { "\x1B[0m" };
+char RED[] = { "\x1B[31m" };
+char GREEN[] = { "\x1B[32m" };
+char YELLOW[] = { "\x1B[33m" };
+char BLUE[] = { "\x1B[34m" };
+char MAGENTA[] = { "\x1B[35m" };
+char CYAN[] = { "\x1B[36m" };
+char WHITE[] = { "\x1B[37m" };
+char PLAYER_DIR[] = { ".players/" };
 
 const char ERROR_PLAYER_DNE[] = { "Error: 'player_dir' either could not be "
 	"created or does not exist"};
@@ -911,7 +911,8 @@ int generate_ratings_file(char* file_path, char* output_file_path) {
 				/* If there is no space to add this pr entry, reallocate */
 				if (pr_entries_num + 1 > pr_entries_size) {
 					pr_entries_size += REALLOC_PR_ENTRIES_INC;
-					players_pr_entries = realloc(players_pr_entries, \
+					players_pr_entries = (struct entry *) \
+						realloc(players_pr_entries, \
 						sizeof(struct entry) * pr_entries_size);
 					if (players_pr_entries == NULL) {
 						perror("realloc (generate_ratings_file)");
@@ -1017,7 +1018,8 @@ int generate_ratings_file_full(char *output_file_path) {
 						 * reallocate */
 						if (pr_entries_num + 1 > pr_entries_size) {
 							pr_entries_size += REALLOC_PR_ENTRIES_INC;
-							players_pr_entries = realloc(players_pr_entries, \
+							players_pr_entries = (struct entry *) \
+								realloc(players_pr_entries, \
 								sizeof(struct entry) * pr_entries_size);
 							if (players_pr_entries == NULL) {
 								perror("realloc (generate_ratings_file)");
@@ -1713,7 +1715,7 @@ int main(int argc, char **argv) {
 		{ "remove-entries",	required_argument,	NULL,	'x' },
 		{ 0, 0, 0, 0 }
 	};
-	char *opt_string = "0a:A:b:B:c:Cd:gh:kl:m:MnNo:Op:P:r:R:vw:x:";
+	char opt_string[] = { "0a:A:b:B:c:Cd:gh:kl:m:MnNo:Op:P:r:R:vw:x:" };
 
 	/* 1. Initialize player_dir to the file path for the player directory */
 	memset(player_dir, 0, sizeof(player_dir));
