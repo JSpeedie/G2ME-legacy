@@ -455,7 +455,7 @@ int entry_file_get_number_of_entries(char *file_path) {
 
 	int entries = 0;
 	/* Read entry from old file */
-	struct entry *cur_entry = malloc(sizeof(struct entry));
+	struct entry *cur_entry = (struct entry *)malloc(sizeof(struct entry));
 	entry_file_get_to_entries(base_file);
 	/* While the function is still able to read entries from the old file */
 	while (0 == entry_file_read_entry(base_file, cur_entry)) {
@@ -773,14 +773,14 @@ int entry_file_read_start_from_file(char *file_path, struct entry *E) {
  */
 int entry_file_refactor_name(char *file_path) {
 	char new_name[MAX_NAME_LEN];
-	printf("New player name: ");
+	fprintf(stdout, "New player name: ");
 	scanf("%s", new_name);
 	/* Read entry from old file */
 	struct entry cur_entry;
 	entry_file_read_start_from_file(file_path, &cur_entry);
 	strncpy(&(cur_entry.name[0]), new_name, MAX_NAME_LEN);
 	cur_entry.len_name = strlen(cur_entry.name);
-	printf("new name %s\n", cur_entry.name);
+	fprintf(stdout, "new name %s\n", cur_entry.name);
 	/* Get the name for the temp file TODO what if .[original name] already exists? */
 	char dir[strlen(file_path) + 1];
 	char base[strlen(file_path) + 1];
@@ -858,7 +858,7 @@ int entry_file_remove_entry(char *file_path) {
 	int entries = entry_file_get_number_of_entries(file_path);
 	int entries_read = 0;
 	/* Read entry from old file */
-	struct entry *cur_entry = malloc(sizeof(struct entry));
+	struct entry *cur_entry = (struct entry *)malloc(sizeof(struct entry));
 	char new_file_name[MAX_NAME_LEN + 1];
 	memset(new_file_name, 0, sizeof(new_file_name));
 	/* Add the full path up to the file */
@@ -937,7 +937,7 @@ char *entry_file_get_events_attended(char *file_path, int *ret_count) {
 	char name[MAX_NAME_LEN];
 	long tourneys_size = SIZE_PR_ENTRY;
 	long tourneys_num = 0;
-	char *tourneys = calloc(SIZE_PR_ENTRY * MAX_NAME_LEN, sizeof(char));
+	char *tourneys = (char *)calloc(SIZE_PR_ENTRY * MAX_NAME_LEN, sizeof(char));
 	char in_tourneys = 0;
 	struct entry cur_entry;
 	memset(name, 0, sizeof(name));
@@ -967,7 +967,7 @@ char *entry_file_get_events_attended(char *file_path, int *ret_count) {
 			/* If there is no space to add this tournament, reallocate */
 			if (tourneys_num + 1 > tourneys_size) {
 				tourneys_size += REALLOC_PR_ENTRIES_INC;
-				tourneys = realloc(tourneys, \
+				tourneys = (char*)realloc(tourneys, \
 					SIZE_PR_ENTRY * MAX_NAME_LEN * sizeof(char));
 				if (tourneys == NULL) {
 					perror("realloc (entry_file_get_events_attended)");
