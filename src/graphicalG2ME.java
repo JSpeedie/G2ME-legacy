@@ -31,7 +31,7 @@ public class graphicalG2ME {
 	int playerInformationSearchLastLength = 0;
 	String playerRecordsLastName = "";
 	int playerRecordsSearchLastLength = 0;
-
+	String runBracketsLastFile = "";
 
 	/* Aliased GUI classes */
 	public class JAliasedTextField extends JTextField {
@@ -611,9 +611,12 @@ public class graphicalG2ME {
 		JPanel RunBracketsTextComponents = new JPanel();
 		RunBracketsTextComponents.setLayout(new BoxLayout(RunBracketsTextComponents, BoxLayout.Y_AXIS));
 		JAliasedCheckBox RunBracketsKeepDataBracketsCheckBox = new JAliasedCheckBox("Keep existing data");
+		RunBracketsKeepDataBracketsCheckBox.setToolTipText("Run bracket using existing player data");
 		JAliasedCheckBox RunBracketsKeepDataSeasonsCheckBox = new JAliasedCheckBox("Keep existing data (Season)");
+		RunBracketsKeepDataSeasonsCheckBox.setToolTipText("Run season using existing player data");
 		JAliasedButton RunBracketsAddButton = new JAliasedButton("Add Bracket...");
 		JAliasedButton RunBracketsOpenButton = new JAliasedButton("Open...");
+		JAliasedButton RunBracketsClearButton = new JAliasedButton("Clear");
 		JAliasedButton RunBracketsResetButton = new JAliasedButton("Reset");
 		JAliasedButton RunBracketsResetLogButton = new JAliasedButton("Reset Log");
 		JAliasedButton RunBracketsRunBracketButton = new JAliasedButton("Run Bracket...");
@@ -668,6 +671,7 @@ public class graphicalG2ME {
 				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
 				if (FB.getFile() != null && DestinationFile != null && !DestinationFile.isDirectory()) {
 					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
+					runBracketsLastFile = DestinationFile.getAbsolutePath();
 					try {
 						BufferedReader reader = Files.newBufferedReader(Paths.get(DestinationFile.getAbsolutePath()));
 						boolean not_first = false;
@@ -748,10 +752,30 @@ public class graphicalG2ME {
 				}
 			}
 		});
-		RunBracketsResetButton.addActionListener(new ActionListener() {
+		RunBracketsClearButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				RunBracketsTextDialog.setText("");
+			}
+		});
+		RunBracketsResetButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					BufferedReader reader = Files.newBufferedReader(Paths.get(runBracketsLastFile));
+					boolean not_first = false;
+					RunBracketsTextDialog.setText("");
+					String line;
+					while ((line = reader.readLine()) != null) {
+						if (not_first) RunBracketsTextDialog.setText(RunBracketsTextDialog.getText() + "\n" + line);
+						else RunBracketsTextDialog.setText(RunBracketsTextDialog.getText() + line);
+						not_first = true;
+					}
+					reader.close();
+					System.out.println("Read season file");
+				} catch (Exception e3) {
+					e3.printStackTrace();
+				}
 			}
 		});
 		RunBracketsResetLogButton.addActionListener(new ActionListener() {
@@ -824,6 +848,9 @@ public class graphicalG2ME {
 		RunBracketsAddButton.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, TEXTFIELD_HEIGHT));
 		RunBracketsAddButton.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		RunBracketsAddButton.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		RunBracketsClearButton.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, TEXTFIELD_HEIGHT));
+		RunBracketsClearButton.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		RunBracketsClearButton.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, TEXTFIELD_HEIGHT));
 		RunBracketsResetButton.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, TEXTFIELD_HEIGHT));
 		RunBracketsResetButton.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		RunBracketsResetButton.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, TEXTFIELD_HEIGHT));
@@ -847,6 +874,7 @@ public class graphicalG2ME {
 		RunBracketsRunBracketButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		RunBracketsRunSeasonButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		RunBracketsAddButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsClearButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		RunBracketsResetButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		RunBracketsResetLogButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		/* Add all elements in the text component section to the text component panel */
@@ -857,6 +885,12 @@ public class graphicalG2ME {
 		RunBracketsControlBar.add(RunBracketsOpenButton);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsSaveButton);
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		RunBracketsControlBar.add(RunBracketsAddButton);
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		RunBracketsControlBar.add(RunBracketsClearButton);
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		RunBracketsControlBar.add(RunBracketsResetButton);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, 4 * ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsKeepDataBracketsCheckBox);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
@@ -865,10 +899,6 @@ public class graphicalG2ME {
 		RunBracketsControlBar.add(RunBracketsKeepDataSeasonsCheckBox);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsRunSeasonButton);
-		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, 4 * ELEMENT_SPACING)));
-		RunBracketsControlBar.add(RunBracketsAddButton);
-		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
-		RunBracketsControlBar.add(RunBracketsResetButton);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsResetLogButton);
 		/* Add all the elements to the tab (with spacing) */
