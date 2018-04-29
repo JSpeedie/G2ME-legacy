@@ -25,6 +25,7 @@ public class graphicalG2ME {
 
 	final int ELEMENT_SPACING = 5;
 	final int TEXTFIELD_HEIGHT = 32;
+	final int CHECKBOX_HEIGHT = 24;
 	String playerHistoryLastName = "";
 	int playerHistorySearchLastLength = 0;
 	String playerRecordsLastName = "";
@@ -106,7 +107,7 @@ public class graphicalG2ME {
 		new graphicalG2ME();
 	}
 
-	public int DisplayCommandResultsInJTextArea(String command, JTextArea t) {
+	public int DisplayCommandResultsInJTextArea(String command, JTextArea t, boolean stack) {
 		try {
 			System.out.println("running \"" + command + "\"");
 			Runtime rt = Runtime.getRuntime();
@@ -117,8 +118,9 @@ public class graphicalG2ME {
 
 			String line;
 			boolean not_first = false;
+			if (stack) not_first = !t.getText().equals("");
 
-			t.setText("");
+			if (stack == false) t.setText("");
 			while ((line = input.readLine()) != null) {
 				if (not_first) t.setText(t.getText() + "\n" + line);
 				else t.setText(t.getText() + line);
@@ -159,11 +161,13 @@ public class graphicalG2ME {
 		if (verbose) flags = "-nvh";
 
 		ret = DisplayCommandResultsInJTextArea(
-				"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " " + flags + " " + playerName, t);
+			"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+			" " + flags + " " + playerName, t, false);
 
 		if (ret != 0) {
 			System.err.println("An error occurred running \"" +
-				"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " " + flags + " " + playerName + "\"");
+				"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+				" " + flags + " " + playerName + "\"");
 		}
 	}
 
@@ -175,11 +179,13 @@ public class graphicalG2ME {
 		if (verbose) flags = "-nvR";
 
 		ret = DisplayCommandResultsInJTextArea(
-				"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " " + flags + " " + playerName, t);
+			"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+			" " + flags + " " + playerName, t, false);
 
 		if (ret != 0) {
 			System.err.println("An error occurred running \"" +
-				"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " " + flags + " " + playerName + "\"");
+				"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+				" " + flags + " " + playerName + "\"");
 		}
 	}
 
@@ -335,15 +341,16 @@ public class graphicalG2ME {
 				int ret = 0;
 				if (PowerRankingsFilterFileTextField.getText().equals("")) {
 					ret = DisplayCommandResultsInJTextArea(
-							"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -O", PowerRankingsTextDialog);
+						"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -O",
+						PowerRankingsTextDialog, false);
 					if (ret != 0) {
 						System.err.println("An error occurred running \"" +
 							"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -O" + "\"");
 					}
 				} else {
 					ret = DisplayCommandResultsInJTextArea(
-							"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -p "
-						+ PowerRankingsFilterFileTextField.getText() + " -O", PowerRankingsTextDialog);
+						"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -p "
+						+ PowerRankingsFilterFileTextField.getText() + " -O", PowerRankingsTextDialog, false);
 					if (ret != 0) {
 						System.err.println("An error occurred running \"" +
 							"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -p "
@@ -358,15 +365,16 @@ public class graphicalG2ME {
 				int ret = 0;
 				if (PowerRankingsFilterFileTextField.getText().equals("")) {
 					ret = DisplayCommandResultsInJTextArea(
-							"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -vO", PowerRankingsTextDialog);
+							"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -vO",
+							PowerRankingsTextDialog, false);
 					if (ret != 0) {
 						System.err.println("An error occurred running \"" +
 							"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -vO" + "\"");
 					}
 				} else {
 					ret = DisplayCommandResultsInJTextArea(
-							"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -p "
-						+ PowerRankingsFilterFileTextField.getText() + " -vO", PowerRankingsTextDialog);
+						"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -p "
+						+ PowerRankingsFilterFileTextField.getText() + " -vO", PowerRankingsTextDialog, false);
 					if (ret != 0) {
 						System.err.println("An error occurred running \"" +
 							"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -p "
@@ -385,7 +393,7 @@ public class graphicalG2ME {
 
 				/* If a file was successfully chosen */
 				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
-				if (DestinationFile != null) {
+				if (FB.getFile() != null && DestinationFile != null && !DestinationFile.isDirectory()) {
 					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
 					try {
 						BufferedWriter writer = Files.newBufferedWriter(Paths.get(DestinationFile.getAbsolutePath()));
@@ -647,22 +655,26 @@ public class graphicalG2ME {
 		JPanel RunBracketsControlBar = new JPanel();
 		RunBracketsControlBar.setLayout(new BoxLayout(RunBracketsControlBar, BoxLayout.Y_AXIS));
 		JPanel RunBracketsTextComponents = new JPanel();
-		RunBracketsControlBar.setLayout(new BoxLayout(RunBracketsControlBar, BoxLayout.Y_AXIS));
-		JAliasedCheckBox RunBracketsKeepDataCheckBox = new JAliasedCheckBox("Keep existing data");
+		RunBracketsTextComponents.setLayout(new BoxLayout(RunBracketsTextComponents, BoxLayout.Y_AXIS));
+		JAliasedCheckBox RunBracketsKeepDataBracketsCheckBox = new JAliasedCheckBox("Keep existing data");
+		JAliasedCheckBox RunBracketsKeepDataSeasonsCheckBox = new JAliasedCheckBox("Keep existing data (Season)");
 		JAliasedButton RunBracketsAddButton = new JAliasedButton("Add Bracket...");
 		JAliasedButton RunBracketsOpenButton = new JAliasedButton("Open...");
 		JAliasedButton RunBracketsResetButton = new JAliasedButton("Reset");
+		JAliasedButton RunBracketsResetLogButton = new JAliasedButton("Reset Log");
 		JAliasedButton RunBracketsRunBracketButton = new JAliasedButton("Run Bracket...");
 		JAliasedButton RunBracketsRunSeasonButton = new JAliasedButton("Run Season...");
 		JAliasedButton RunBracketsSaveButton = new JAliasedButton("Save As...");
 		JAliasedTextArea RunBracketsTextDialog = new JAliasedTextArea();
 		JScrollPane RunBracketsTextDialogScroll = new JScrollPane(RunBracketsTextDialog);
-		JAliasedTextArea RunBracketsOutputDialog = new JAliasedTextArea();
-		JScrollPane RunBracketsOutputDialogScroll = new JScrollPane(RunBracketsOutputDialog);
+		JAliasedTextArea RunBracketsLogDialog = new JAliasedTextArea();
+		JScrollPane RunBracketsLogDialogScroll = new JScrollPane(RunBracketsLogDialog);
 
-		RunBracketsKeepDataCheckBox.setSelected(true);
+		RunBracketsKeepDataBracketsCheckBox.setSelected(true);
+		RunBracketsKeepDataSeasonsCheckBox.setSelected(false);
 		RunBracketsTextDialog.setFont(new Font("monospaced", Font.PLAIN, 12));
-		//RunBracketsOutputDialog.setEnabled(false);
+		RunBracketsLogDialog.setEditable(false);
+		RunBracketsLogDialog.setEnabled(false);
 
 		RunBracketsAddButton.addActionListener(new ActionListener() {
 			@Override
@@ -674,7 +686,7 @@ public class graphicalG2ME {
 
 				/* If a file was successfully chosen */
 				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
-				if (DestinationFile != null && !DestinationFile.isDirectory()) {
+				if (FB.getFile() != null && DestinationFile != null && !DestinationFile.isDirectory()) {
 					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
 					try {
 						if (RunBracketsTextDialog.getText().equals("")) {
@@ -700,7 +712,7 @@ public class graphicalG2ME {
 
 				/* If a file was successfully chosen */
 				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
-				if (DestinationFile != null && !DestinationFile.isDirectory()) {
+				if (FB.getFile() != null && DestinationFile != null && !DestinationFile.isDirectory()) {
 					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
 					try {
 						BufferedReader reader = Files.newBufferedReader(Paths.get(DestinationFile.getAbsolutePath()));
@@ -730,16 +742,16 @@ public class graphicalG2ME {
 
 				/* If a file was successfully chosen */
 				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
-				if (DestinationFile != null && !DestinationFile.isDirectory()) {
+				if (FB.getFile() != null && DestinationFile != null && !DestinationFile.isDirectory()) {
 					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
 					try {
 						String bracket = DestinationFile.getAbsolutePath();
 						String k_flag = "";
-						if (RunBracketsKeepDataCheckBox.isSelected()) k_flag = "k";
+						if (RunBracketsKeepDataBracketsCheckBox.isSelected()) k_flag = "k";
 						int ret = 0;
 						ret = DisplayCommandResultsInJTextArea(
 								"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
-								" -" + k_flag + "b " + bracket, RunBracketsOutputDialog);
+								" -" + k_flag + "b " + bracket, RunBracketsLogDialog, true);
 						if (ret != 0) {
 							System.err.println("An error occurred running \"" +
 								"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
@@ -751,15 +763,47 @@ public class graphicalG2ME {
 				}
 			}
 		});
+		RunBracketsRunSeasonButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FileDialog FB = new java.awt.FileDialog((java.awt.Frame) null,
+					"Run Season File...", FileDialog.LOAD);
+				FB.setDirectory(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
+				FB.setVisible(true);
 
-
-
-
+				/* If a file was successfully chosen */
+				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
+				if (FB.getFile() != null && DestinationFile != null && !DestinationFile.isDirectory()) {
+					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
+					try {
+						String bracket = DestinationFile.getAbsolutePath();
+						String k_flag = "";
+						if (RunBracketsKeepDataSeasonsCheckBox.isSelected()) k_flag = "k";
+						int ret = 0;
+						ret = DisplayCommandResultsInJTextArea(
+								"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+								" -" + k_flag + "B " + bracket, RunBracketsLogDialog, true);
+						if (ret != 0) {
+							System.err.println("An error occurred running \"" +
+								"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+								" -" + k_flag + "B " + bracket + "\"");
+						}
+					} catch (Exception e3) {
+						e3.printStackTrace();
+					}
+				}
+			}
+		});
 		RunBracketsResetButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				/* Reset Text Dialog */
 				RunBracketsTextDialog.setText("");
+			}
+		});
+		RunBracketsResetLogButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				RunBracketsLogDialog.setText("");
 			}
 		});
 		RunBracketsSaveButton.addActionListener(new ActionListener() {
@@ -772,7 +816,7 @@ public class graphicalG2ME {
 
 				/* If a file was successfully chosen */
 				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
-				if (DestinationFile != null) {
+				if (FB.getFile() != null && DestinationFile != null && !DestinationFile.isDirectory()) {
 					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
 					try {
 						BufferedWriter writer = Files.newBufferedWriter(Paths.get(DestinationFile.getAbsolutePath()));
@@ -788,20 +832,29 @@ public class graphicalG2ME {
 		/* Use Box Layout for this tab */
 		tabRunBrackets.setLayout(new BoxLayout(tabRunBrackets, BoxLayout.X_AXIS));
 		/* Layout settings for the tab */
-		int runBracketsControlBarMinWidth = 80;
-		int runBracketsControlBarPrefWidth = 200;
-		int runBracketsControlBarMaxWidth = 340;
+		short runBracketsControlBarMinWidth = 90;
+		short runBracketsControlBarPrefWidth = 240;
+		short runBracketsControlBarMaxWidth = 360;
+		short runBracketsTextComponentsMinWidth = 160;
+		short runBracketsTextComponentsPrefWidth = 800;
+		short runBracketsTextComponentsMaxWidth = Short.MAX_VALUE;
 		/* Set sizes of Text Component section */
-		RunBracketsTextDialogScroll.setMinimumSize(new Dimension(200, 100));
-		RunBracketsTextDialogScroll.setPreferredSize(new Dimension(400, 500));
-		RunBracketsTextDialogScroll.setMaximumSize(new Dimension(Short.MAX_VALUE, Short.MAX_VALUE));
-		RunBracketsOutputDialogScroll.setMinimumSize(new Dimension(200, 60));
-		RunBracketsOutputDialogScroll.setPreferredSize(new Dimension(400, 140));
-		RunBracketsOutputDialogScroll.setMaximumSize(new Dimension(Short.MAX_VALUE, 200));
+		RunBracketsTextDialogScroll.setMinimumSize(new Dimension(runBracketsTextComponentsMinWidth, 100));
+		RunBracketsTextDialogScroll.setPreferredSize(new Dimension(runBracketsTextComponentsPrefWidth, 500));
+		RunBracketsTextDialogScroll.setMaximumSize(new Dimension(runBracketsTextComponentsMaxWidth, Short.MAX_VALUE));
+		RunBracketsLogDialogScroll.setMinimumSize(new Dimension(runBracketsTextComponentsMinWidth, 60));
+		RunBracketsLogDialogScroll.setPreferredSize(new Dimension(runBracketsTextComponentsPrefWidth, 140));
+		RunBracketsLogDialogScroll.setMaximumSize(new Dimension(runBracketsTextComponentsMaxWidth, 200));
+		RunBracketsTextComponents.setMinimumSize(new Dimension(runBracketsTextComponentsMinWidth, 160));
+		RunBracketsTextComponents.setPreferredSize(new Dimension(runBracketsTextComponentsPrefWidth, 640));
+		RunBracketsTextComponents.setMaximumSize(new Dimension(runBracketsTextComponentsMaxWidth, Short.MAX_VALUE));
 		/* Set sizes of Control Bar section */
-		RunBracketsKeepDataCheckBox.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, TEXTFIELD_HEIGHT));
-		RunBracketsKeepDataCheckBox.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, TEXTFIELD_HEIGHT));
-		RunBracketsKeepDataCheckBox.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		RunBracketsKeepDataBracketsCheckBox.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, CHECKBOX_HEIGHT));
+		RunBracketsKeepDataBracketsCheckBox.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, CHECKBOX_HEIGHT));
+		RunBracketsKeepDataBracketsCheckBox.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, CHECKBOX_HEIGHT));
+		RunBracketsKeepDataSeasonsCheckBox.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, CHECKBOX_HEIGHT));
+		RunBracketsKeepDataSeasonsCheckBox.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, CHECKBOX_HEIGHT));
+		RunBracketsKeepDataSeasonsCheckBox.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, CHECKBOX_HEIGHT));
 		RunBracketsOpenButton.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, TEXTFIELD_HEIGHT));
 		RunBracketsOpenButton.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		RunBracketsOpenButton.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, TEXTFIELD_HEIGHT));
@@ -820,50 +873,55 @@ public class graphicalG2ME {
 		RunBracketsResetButton.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, TEXTFIELD_HEIGHT));
 		RunBracketsResetButton.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		RunBracketsResetButton.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		RunBracketsResetLogButton.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, TEXTFIELD_HEIGHT));
+		RunBracketsResetLogButton.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		RunBracketsResetLogButton.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, TEXTFIELD_HEIGHT));
 		/* Correct Alignments of components in the Text Component section */
-		// RunBracketsTextDialog.setAlignmentX(Component.LEFT_ALIGNMENT);
-		// RunBracketsOutputDialog.setAlignmentX(Component.LEFT_ALIGNMENT);
-		RunBracketsTextDialogScroll.setAlignmentY(Component.TOP_ALIGNMENT);
 		RunBracketsTextDialogScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
-		RunBracketsOutputDialogScroll.setAlignmentY(Component.TOP_ALIGNMENT);
-		RunBracketsOutputDialogScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsLogDialogScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
 		RunBracketsTextComponents.setAlignmentY(Component.TOP_ALIGNMENT);
 		RunBracketsTextComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		/* Correct Alignments of components in the control bar section */
 		RunBracketsControlBar.setAlignmentY(Component.TOP_ALIGNMENT);
 		RunBracketsControlBar.setAlignmentX(Component.LEFT_ALIGNMENT);
-		RunBracketsKeepDataCheckBox.setAlignmentY(Component.TOP_ALIGNMENT);
-		RunBracketsKeepDataCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsKeepDataBracketsCheckBox.setAlignmentY(Component.TOP_ALIGNMENT);
+		RunBracketsKeepDataBracketsCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsKeepDataSeasonsCheckBox.setAlignmentY(Component.TOP_ALIGNMENT);
+		RunBracketsKeepDataSeasonsCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
 		RunBracketsOpenButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		RunBracketsSaveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		RunBracketsRunBracketButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		RunBracketsRunSeasonButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		RunBracketsAddButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		RunBracketsResetButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsResetLogButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		/* Add all elements in the text component section to the text component panel */
 		RunBracketsTextComponents.add(RunBracketsTextDialogScroll);
 		RunBracketsTextComponents.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
-		RunBracketsTextComponents.add(RunBracketsOutputDialogScroll);
+		RunBracketsTextComponents.add(RunBracketsLogDialogScroll);
 		/* Add all elements in the control bar to the control bar panel */
 		RunBracketsControlBar.add(RunBracketsOpenButton);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsSaveButton);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, 4 * ELEMENT_SPACING)));
-		RunBracketsControlBar.add(RunBracketsKeepDataCheckBox);
+		RunBracketsControlBar.add(RunBracketsKeepDataBracketsCheckBox);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsRunBracketButton);
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		RunBracketsControlBar.add(RunBracketsKeepDataSeasonsCheckBox);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsRunSeasonButton);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, 4 * ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsAddButton);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsResetButton);
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		RunBracketsControlBar.add(RunBracketsResetLogButton);
 		/* Add all the elements to the tab (with spacing) */
 		tabRunBrackets.setBorder(new EmptyBorder(ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING));
 		tabRunBrackets.add(RunBracketsTextComponents);
 		tabRunBrackets.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
 		tabRunBrackets.add(RunBracketsControlBar);
-		/* Configure data in components on Player History tab */
 
 		JFrame frame = new JFrame("graphicalG2ME");
 		frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
