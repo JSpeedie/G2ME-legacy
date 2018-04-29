@@ -26,8 +26,9 @@ public class graphicalG2ME {
 	final int ELEMENT_SPACING = 5;
 	final int TEXTFIELD_HEIGHT = 32;
 	final int CHECKBOX_HEIGHT = 24;
-	String playerHistoryLastName = "";
-	int playerHistorySearchLastLength = 0;
+	String playerInformationCurrentFlag = "h";
+	String playerInformationLastName = "";
+	int playerInformationSearchLastLength = 0;
 	String playerRecordsLastName = "";
 	int playerRecordsSearchLastLength = 0;
 
@@ -101,6 +102,20 @@ public class graphicalG2ME {
 			super.paintComponent(g);
 		}
 	}
+
+	public class JAliasedRadioButton extends JRadioButton {
+		public JAliasedRadioButton(String s) {
+			super(s);
+		}
+
+		@Override
+		public void paintComponent(Graphics g) {
+			Graphics2D graphics2d = (Graphics2D) g;
+			graphics2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+			RenderingHints.VALUE_ANTIALIAS_ON);
+			super.paintComponent(g);
+		}
+	}
 	/* End of Aliased GUI classes */
 
 	public static void main(String[] args) {
@@ -153,30 +168,12 @@ public class graphicalG2ME {
 		}
 	}
 
-	public void UpdateJTextAreaToPlayerHistory(JTextArea t, String playerName, boolean verbose) {
+	public void UpdateJTextAreaToFlag(JTextArea t, String playerName, boolean verbose, String flag) {
 		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
-		String flags = "-nh";
+		String flags = "-n" + flag;
 		int ret = 0;
 
-		if (verbose) flags = "-nvh";
-
-		ret = DisplayCommandResultsInJTextArea(
-			"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
-			" " + flags + " " + playerName, t, false);
-
-		if (ret != 0) {
-			System.err.println("An error occurred running \"" +
-				"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
-				" " + flags + " " + playerName + "\"");
-		}
-	}
-
-	public void UpdateJTextAreaToPlayerRecords(JTextArea t, String playerName, boolean verbose) {
-		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
-		String flags = "-nR";
-		int ret = 0;
-
-		if (verbose) flags = "-nvR";
+		if (verbose) flags = "-nv" + flag;
 
 		ret = DisplayCommandResultsInJTextArea(
 			"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
@@ -239,19 +236,16 @@ public class graphicalG2ME {
 
 		JPanel tabSettings = new JPanel(null);
 		JPanel tabPowerRankings = new JPanel(null);
-		JPanel tabPlayerHistory = new JPanel(null);
-		JPanel tabPlayerRecords = new JPanel(null);
+		JPanel tabPlayerInformation = new JPanel(null);
 		JPanel tabRunBrackets = new JPanel(null);
 		/* Configure tabs */
 		tabSettings.setPreferredSize(tabSettings.getPreferredSize());
 		tabPowerRankings.setPreferredSize(tabPowerRankings.getPreferredSize());
-		tabPlayerHistory.setPreferredSize(tabPlayerHistory.getPreferredSize());
-		tabPlayerRecords.setPreferredSize(tabPlayerRecords.getPreferredSize());
+		tabPlayerInformation.setPreferredSize(tabPlayerInformation.getPreferredSize());
 		/* Validate tabs */
 		tabSettings.validate();
 		tabPowerRankings.validate();
-		tabPlayerHistory.validate();
-		tabPlayerRecords.validate();
+		tabPlayerInformation.validate();
 
 		/* Configure Settings Tab */
 		JLabel SettingsG2MEDirLabel = new JLabel("G2ME Directory file path");
@@ -442,214 +436,174 @@ public class graphicalG2ME {
 		tabPowerRankings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
 		tabPowerRankings.add(PowerRankingsTextDialogScroll);
 
-		/* Configure Player History Tab */
-		JPanel PlayerHistoryControlBar = new JPanel();
-		PlayerHistoryControlBar.setLayout(new BoxLayout(PlayerHistoryControlBar, BoxLayout.Y_AXIS));
-		JAliasedButton PlayerHistoryRefreshButton = new JAliasedButton("Refresh");
-		JAliasedCheckBox PlayerHistoryVerboseCheckBox = new JAliasedCheckBox("Verbose");
-		JAliasedTextField PlayerHistorySearchTextField = new JAliasedTextField();
-		JAliasedList PlayerHistoryPlayerList = new JAliasedList();
-		JScrollPane PlayerHistoryPlayerListScroll = new JScrollPane(PlayerHistoryPlayerList);
-		JAliasedTextArea PlayerHistoryTextDialog = new JAliasedTextArea();
-		JScrollPane PlayerHistoryTextDialogScroll = new JScrollPane(PlayerHistoryTextDialog);
+		/* Configure Player Information Tab */
+		JPanel PlayerInformationControlBar = new JPanel();
+		PlayerInformationControlBar.setLayout(new BoxLayout(PlayerInformationControlBar, BoxLayout.Y_AXIS));
+		JAliasedButton PlayerInformationRefreshButton = new JAliasedButton("Refresh");
+		JAliasedCheckBox PlayerInformationVerboseCheckBox = new JAliasedCheckBox("Verbose");
+		JAliasedTextField PlayerInformationSearchTextField = new JAliasedTextField();
+		JAliasedList PlayerInformationPlayerList = new JAliasedList();
+		JScrollPane PlayerInformationPlayerListScroll = new JScrollPane(PlayerInformationPlayerList);
+		JAliasedTextArea PlayerInformationTextDialog = new JAliasedTextArea();
+		JScrollPane PlayerInformationTextDialogScroll = new JScrollPane(PlayerInformationTextDialog);
 
-		PlayerHistoryTextDialog.setFont(new Font("monospaced", Font.PLAIN, 12));
-		KeyListener PlayerHistorySearchKeyListener = new KeyListener() {
+		JAliasedRadioButton PlayerInformationHistoryButton = new JAliasedRadioButton("Outcome History");
+		PlayerInformationHistoryButton.setSelected(true);
+		PlayerInformationHistoryButton.setToolTipText("Opponent, Date, Tournament and Glicko2 Data After Every Outcome (Set/Game)");
+		JAliasedRadioButton PlayerInformationRecordsButton = new JAliasedRadioButton("Records/Head-to-Heads");
+		PlayerInformationRecordsButton.setToolTipText("Wins, Ties, Losses Against All Players Played");
+		JAliasedRadioButton PlayerInformationEventsAttendedButton = new JAliasedRadioButton("Events Attended");
+		PlayerInformationEventsAttendedButton.setToolTipText("Names of All Events Attended");
+		JAliasedRadioButton PlayerInformationNumOutcomesButton = new JAliasedRadioButton("Number of Outcomes (Sets/Games) Played");
+		PlayerInformationNumOutcomesButton.setToolTipText("Number of Outcomes (Sets/Games) Played");
+
+		PlayerInformationHistoryButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				PlayerInformationVerboseCheckBox.setEnabled(true);
+				playerInformationCurrentFlag = "h";
+			}
+		});
+		PlayerInformationRecordsButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				PlayerInformationVerboseCheckBox.setEnabled(false);
+				playerInformationCurrentFlag = "R";
+			}
+		});
+		PlayerInformationEventsAttendedButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				PlayerInformationVerboseCheckBox.setEnabled(false);
+				playerInformationCurrentFlag = "A";
+			}
+		});
+		PlayerInformationNumOutcomesButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				PlayerInformationVerboseCheckBox.setEnabled(false);
+				playerInformationCurrentFlag = "c";
+			}
+		});
+		ButtonGroup PlayerInformationButtonGroup = new ButtonGroup();
+		PlayerInformationButtonGroup.add(PlayerInformationHistoryButton);
+		PlayerInformationButtonGroup.add(PlayerInformationRecordsButton);
+		PlayerInformationButtonGroup.add(PlayerInformationEventsAttendedButton);
+		PlayerInformationButtonGroup.add(PlayerInformationNumOutcomesButton);
+
+		PlayerInformationTextDialog.setFont(new Font("monospaced", Font.PLAIN, 12));
+		KeyListener PlayerInformationSearchKeyListener = new KeyListener() {
 			public void keyReleased(KeyEvent keyEvent) {
-				String searchText = PlayerHistorySearchTextField.getText();
-				UpdateJListToSearchString(PlayerHistoryPlayerList, searchText);
-				playerHistorySearchLastLength = searchText.length();
+				String searchText = PlayerInformationSearchTextField.getText();
+				UpdateJListToSearchString(PlayerInformationPlayerList, searchText);
+				playerInformationSearchLastLength = searchText.length();
 			}
 
 			public void keyPressed(KeyEvent keyEvent) {}
 			public void keyTyped(KeyEvent keyEvent) {}
 		};
-		PlayerHistorySearchTextField.addKeyListener(PlayerHistorySearchKeyListener);
-		PlayerHistorySearchTextField.addActionListener(new ActionListener() {
+		PlayerInformationSearchTextField.addKeyListener(PlayerInformationSearchKeyListener);
+		PlayerInformationSearchTextField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				/* Display data for player of [first name in JList] */
-				if (PlayerHistoryPlayerList.getFirstVisibleIndex() != -1) {
+				if (PlayerInformationPlayerList.getFirstVisibleIndex() != -1) {
 					String newValue =
-						PlayerHistoryPlayerList.getModel().getElementAt(
-						PlayerHistoryPlayerList.getFirstVisibleIndex()).toString();
+						PlayerInformationPlayerList.getModel().getElementAt(
+						PlayerInformationPlayerList.getFirstVisibleIndex()).toString();
 					if (newValue != null) {
-						playerHistoryLastName = newValue;
-						UpdateJTextAreaToPlayerHistory(PlayerHistoryTextDialog,
-							newValue, PlayerHistoryVerboseCheckBox.isSelected());
+						playerInformationLastName = newValue;
+						/* Update player information currently in dialog */
+						UpdateJTextAreaToFlag(PlayerInformationTextDialog, playerInformationLastName,
+							PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag);
 					}
 				}
 			}
 		});
-		PlayerHistoryRefreshButton.addActionListener(new ActionListener() {
+		PlayerInformationRefreshButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				/* Refresh list of players */
-				UpdateJListToSearchString(PlayerHistoryPlayerList,
-					PlayerHistorySearchTextField.getText());
-				/* Refresh player history currently in dialog */
-				UpdateJTextAreaToPlayerHistory(PlayerHistoryTextDialog, playerHistoryLastName,
-					PlayerHistoryVerboseCheckBox.isSelected());
+				UpdateJListToSearchString(PlayerInformationPlayerList,
+					PlayerInformationSearchTextField.getText());
+				/* Refresh player information currently in dialog */
+				UpdateJTextAreaToFlag(PlayerInformationTextDialog, playerInformationLastName,
+					PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag);
 			}
 		});
-		PlayerHistoryPlayerList.addListSelectionListener(new ListSelectionListener() {
+		PlayerInformationPlayerList.addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				/* If there is a valid item currently selected */
-				if (PlayerHistoryPlayerList.getSelectedIndex() != -1) {
-					String newValue = PlayerHistoryPlayerList.getSelectedValue().toString();
+				if (PlayerInformationPlayerList.getSelectedIndex() != -1) {
+					String newValue = PlayerInformationPlayerList.getSelectedValue().toString();
 					if (newValue != null) {
-						playerHistoryLastName = newValue;
-						UpdateJTextAreaToPlayerHistory(PlayerHistoryTextDialog,
-							newValue, PlayerHistoryVerboseCheckBox.isSelected());
+						playerInformationLastName = newValue;
+						/* Update player information currently in dialog */
+						UpdateJTextAreaToFlag(PlayerInformationTextDialog, playerInformationLastName,
+							PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag);
 					}
 				}
 			}
 		});
 		/* Use Box Layout for this tab */
-		tabPlayerHistory.setLayout(new BoxLayout(tabPlayerHistory, BoxLayout.X_AXIS));
+		tabPlayerInformation.setLayout(new BoxLayout(tabPlayerInformation, BoxLayout.X_AXIS));
 		/* Layout settings for the tab */
-		int playerHistoryControlBarMinWidth = 100;
-		int playerHistoryControlBarPrefWidth = 250;
-		int playerHistoryControlBarMaxWidth = 400;
-		PlayerHistoryRefreshButton.setMinimumSize(new Dimension(playerHistoryControlBarMinWidth, TEXTFIELD_HEIGHT));
-		PlayerHistoryRefreshButton.setPreferredSize(new Dimension(playerHistoryControlBarPrefWidth, TEXTFIELD_HEIGHT));
-		PlayerHistoryRefreshButton.setMaximumSize(new Dimension(playerHistoryControlBarMaxWidth, TEXTFIELD_HEIGHT));
-		PlayerHistoryVerboseCheckBox.setMinimumSize(new Dimension(playerHistoryControlBarMinWidth, TEXTFIELD_HEIGHT));
-		PlayerHistoryVerboseCheckBox.setPreferredSize(new Dimension(playerHistoryControlBarPrefWidth, TEXTFIELD_HEIGHT));
-		PlayerHistoryVerboseCheckBox.setMaximumSize(new Dimension(playerHistoryControlBarMaxWidth, TEXTFIELD_HEIGHT));
-		PlayerHistorySearchTextField.setMinimumSize(new Dimension(playerHistoryControlBarMinWidth, TEXTFIELD_HEIGHT));
-		PlayerHistorySearchTextField.setPreferredSize(new Dimension(playerHistoryControlBarPrefWidth, TEXTFIELD_HEIGHT));
-		PlayerHistorySearchTextField.setMaximumSize(new Dimension(playerHistoryControlBarMaxWidth, TEXTFIELD_HEIGHT));
-		PlayerHistorySearchTextField.setToolTipText("Start typing a name to filter results");
-		PlayerHistoryPlayerListScroll.setMinimumSize(new Dimension(playerHistoryControlBarMinWidth, 200));
-		PlayerHistoryPlayerListScroll.setPreferredSize(new Dimension(playerHistoryControlBarPrefWidth, Short.MAX_VALUE));
-		PlayerHistoryPlayerListScroll.setMaximumSize(new Dimension(playerHistoryControlBarMaxWidth, Short.MAX_VALUE));
+		int playerInfoControlBarMinWidth = 100;
+		int playerInfoControlBarPrefWidth = 250;
+		int playerInfoControlBarMaxWidth = 400;
+		/* Set sizes for radio buttons */
+		PlayerInformationHistoryButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, CHECKBOX_HEIGHT));
+		PlayerInformationHistoryButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, CHECKBOX_HEIGHT));
+		PlayerInformationHistoryButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, CHECKBOX_HEIGHT));
+		PlayerInformationRecordsButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, CHECKBOX_HEIGHT));
+		PlayerInformationRecordsButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, CHECKBOX_HEIGHT));
+		PlayerInformationRecordsButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, CHECKBOX_HEIGHT));
+		PlayerInformationEventsAttendedButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, CHECKBOX_HEIGHT));
+		PlayerInformationEventsAttendedButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, CHECKBOX_HEIGHT));
+		PlayerInformationEventsAttendedButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, CHECKBOX_HEIGHT));
+		PlayerInformationNumOutcomesButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, CHECKBOX_HEIGHT));
+		PlayerInformationNumOutcomesButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, CHECKBOX_HEIGHT));
+		PlayerInformationNumOutcomesButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, CHECKBOX_HEIGHT));
+		/* Set sizes for the rest of the control bar */
+		PlayerInformationRefreshButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, TEXTFIELD_HEIGHT));
+		PlayerInformationRefreshButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		PlayerInformationRefreshButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		PlayerInformationVerboseCheckBox.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, TEXTFIELD_HEIGHT));
+		PlayerInformationVerboseCheckBox.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		PlayerInformationVerboseCheckBox.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		PlayerInformationSearchTextField.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, TEXTFIELD_HEIGHT));
+		PlayerInformationSearchTextField.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		PlayerInformationSearchTextField.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		PlayerInformationSearchTextField.setToolTipText("Start typing a name to filter results");
+		PlayerInformationPlayerListScroll.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, 200));
+		PlayerInformationPlayerListScroll.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, Short.MAX_VALUE));
+		PlayerInformationPlayerListScroll.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, Short.MAX_VALUE));
 		/* Correct Alignments of components in the control bar section */
-		PlayerHistoryRefreshButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-		PlayerHistoryVerboseCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-		PlayerHistorySearchTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
-		PlayerHistoryPlayerListScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
-		/* Add all elements in the control bar to the control bar panel */
-		PlayerHistoryControlBar.add(PlayerHistoryRefreshButton);
-		PlayerHistoryControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
-		PlayerHistoryControlBar.add(PlayerHistoryVerboseCheckBox);
-		PlayerHistoryControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
-		PlayerHistoryControlBar.add(PlayerHistorySearchTextField);
-		PlayerHistoryControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
-		PlayerHistoryControlBar.add(PlayerHistoryPlayerListScroll);
+		PlayerInformationRefreshButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PlayerInformationVerboseCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PlayerInformationSearchTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PlayerInformationPlayerListScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
+		/* Add the radio buttons to the control bar */
+		PlayerInformationControlBar.add(PlayerInformationHistoryButton);
+		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		PlayerInformationControlBar.add(PlayerInformationRecordsButton);
+		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		PlayerInformationControlBar.add(PlayerInformationEventsAttendedButton);
+		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		PlayerInformationControlBar.add(PlayerInformationNumOutcomesButton);
+		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		/* Add the rest of the elements in the control bar */
+		PlayerInformationControlBar.add(PlayerInformationRefreshButton);
+		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		PlayerInformationControlBar.add(PlayerInformationVerboseCheckBox);
+		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		PlayerInformationControlBar.add(PlayerInformationSearchTextField);
+		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		PlayerInformationControlBar.add(PlayerInformationPlayerListScroll);
 		/* Add all the elements to the tab (with spacing) */
-		tabPlayerHistory.setBorder(new EmptyBorder(ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING));
-		tabPlayerHistory.add(PlayerHistoryTextDialogScroll);
-		tabPlayerHistory.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
-		tabPlayerHistory.add(PlayerHistoryControlBar);
+		tabPlayerInformation.setBorder(new EmptyBorder(ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING));
+		tabPlayerInformation.add(PlayerInformationTextDialogScroll);
+		tabPlayerInformation.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		tabPlayerInformation.add(PlayerInformationControlBar);
 		/* Configure data in components on Player History tab */
-		UpdateJListToFilesInDir(PlayerHistoryPlayerList, prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
-
-		/* Configure Player Records Tab */
-		JPanel PlayerRecordsControlBar = new JPanel();
-		PlayerRecordsControlBar.setLayout(new BoxLayout(PlayerRecordsControlBar, BoxLayout.Y_AXIS));
-		JAliasedButton PlayerRecordsRefreshButton = new JAliasedButton("Refresh");
-		JAliasedCheckBox PlayerRecordsVerboseCheckBox = new JAliasedCheckBox("Verbose");
-		JAliasedTextField PlayerRecordsSearchTextField = new JAliasedTextField();
-		JAliasedList PlayerRecordsPlayerList = new JAliasedList();
-		JScrollPane PlayerRecordsPlayerListScroll = new JScrollPane(PlayerRecordsPlayerList);
-		JAliasedTextArea PlayerRecordsTextDialog = new JAliasedTextArea();
-		JScrollPane PlayerRecordsTextDialogScroll = new JScrollPane(PlayerRecordsTextDialog);
-
-		PlayerRecordsTextDialog.setFont(new Font("monospaced", Font.PLAIN, 12));
-		KeyListener PlayerRecordsSearchKeyListener = new KeyListener() {
-			public void keyReleased(KeyEvent keyEvent) {
-				String searchText = PlayerRecordsSearchTextField.getText();
-				UpdateJListToSearchString(PlayerRecordsPlayerList, searchText);
-				playerRecordsSearchLastLength = searchText.length();
-			}
-
-			public void keyPressed(KeyEvent keyEvent) {}
-			public void keyTyped(KeyEvent keyEvent) {}
-		};
-		PlayerRecordsSearchTextField.addKeyListener(PlayerRecordsSearchKeyListener);
-		PlayerRecordsSearchTextField.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				/* Display data for player of [first name in JList] */
-				if (PlayerRecordsPlayerList.getFirstVisibleIndex() != -1) {
-					String newValue =
-						PlayerRecordsPlayerList.getModel().getElementAt(
-						PlayerRecordsPlayerList.getFirstVisibleIndex()).toString();
-					if (newValue != null) {
-						playerRecordsLastName = newValue;
-						UpdateJTextAreaToPlayerRecords(PlayerRecordsTextDialog,
-							newValue, PlayerRecordsVerboseCheckBox.isSelected());
-					}
-				}
-			}
-		});
-		PlayerRecordsRefreshButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				/* Refresh list of players */
-				UpdateJListToSearchString(PlayerRecordsPlayerList,
-					PlayerRecordsSearchTextField.getText());
-				/* Refresh player history currently in dialog */
-				UpdateJTextAreaToPlayerRecords(PlayerRecordsTextDialog, playerRecordsLastName,
-					PlayerRecordsVerboseCheckBox.isSelected());
-			}
-		});
-		PlayerRecordsPlayerList.addListSelectionListener(new ListSelectionListener() {
-			@Override
-			public void valueChanged(ListSelectionEvent e) {
-				/* If there is a valid item currently selected */
-				if (PlayerRecordsPlayerList.getSelectedIndex() != -1) {
-					String newValue = PlayerRecordsPlayerList.getSelectedValue().toString();
-					if (newValue != null) {
-						playerRecordsLastName = newValue;
-						UpdateJTextAreaToPlayerRecords(PlayerRecordsTextDialog,
-							newValue, PlayerRecordsVerboseCheckBox.isSelected());
-					}
-				}
-			}
-		});
-		/* Use Box Layout for this tab */
-		tabPlayerRecords.setLayout(new BoxLayout(tabPlayerRecords, BoxLayout.X_AXIS));
-		/* Layout settings for the tab */
-		int playerRecordsControlBarMinWidth = 100;
-		int playerRecordsControlBarPrefWidth = 250;
-		int playerRecordsControlBarMaxWidth = 400;
-		PlayerRecordsRefreshButton.setMinimumSize(new Dimension(playerRecordsControlBarMinWidth, TEXTFIELD_HEIGHT));
-		PlayerRecordsRefreshButton.setPreferredSize(new Dimension(playerRecordsControlBarPrefWidth, TEXTFIELD_HEIGHT));
-		PlayerRecordsRefreshButton.setMaximumSize(new Dimension(playerRecordsControlBarMaxWidth, TEXTFIELD_HEIGHT));
-		PlayerRecordsVerboseCheckBox.setMinimumSize(new Dimension(playerRecordsControlBarMinWidth, TEXTFIELD_HEIGHT));
-		PlayerRecordsVerboseCheckBox.setPreferredSize(new Dimension(playerRecordsControlBarPrefWidth, TEXTFIELD_HEIGHT));
-		PlayerRecordsVerboseCheckBox.setMaximumSize(new Dimension(playerRecordsControlBarMaxWidth, TEXTFIELD_HEIGHT));
-		PlayerRecordsVerboseCheckBox.setEnabled(false);
-		PlayerRecordsSearchTextField.setMinimumSize(new Dimension(playerRecordsControlBarMinWidth, TEXTFIELD_HEIGHT));
-		PlayerRecordsSearchTextField.setPreferredSize(new Dimension(playerRecordsControlBarPrefWidth, TEXTFIELD_HEIGHT));
-		PlayerRecordsSearchTextField.setMaximumSize(new Dimension(playerRecordsControlBarMaxWidth, TEXTFIELD_HEIGHT));
-		PlayerRecordsSearchTextField.setToolTipText("Start typing a name to filter results");
-		PlayerRecordsPlayerListScroll.setMinimumSize(new Dimension(playerRecordsControlBarMinWidth, 200));
-		PlayerRecordsPlayerListScroll.setPreferredSize(new Dimension(playerRecordsControlBarPrefWidth, Short.MAX_VALUE));
-		PlayerRecordsPlayerListScroll.setMaximumSize(new Dimension(playerRecordsControlBarMaxWidth, Short.MAX_VALUE));
-		/* Correct Alignments of components in the control bar section */
-		PlayerRecordsRefreshButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-		PlayerRecordsVerboseCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-		PlayerRecordsSearchTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
-		PlayerRecordsPlayerListScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
-		/* Add all elements in the control bar to the control bar panel */
-		PlayerRecordsControlBar.add(PlayerRecordsRefreshButton);
-		PlayerRecordsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
-		PlayerRecordsControlBar.add(PlayerRecordsVerboseCheckBox);
-		PlayerRecordsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
-		PlayerRecordsControlBar.add(PlayerRecordsSearchTextField);
-		PlayerRecordsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
-		PlayerRecordsControlBar.add(PlayerRecordsPlayerListScroll);
-		/* Add all the elements to the tab (with spacing) */
-		tabPlayerRecords.setBorder(new EmptyBorder(ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING));
-		tabPlayerRecords.add(PlayerRecordsTextDialogScroll);
-		tabPlayerRecords.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
-		tabPlayerRecords.add(PlayerRecordsControlBar);
-		/* Configure data in components on Player Records tab */
-		UpdateJListToFilesInDir(PlayerRecordsPlayerList, prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
+		UpdateJListToFilesInDir(PlayerInformationPlayerList, prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
 
 		/* Configure Run Brackets Tab */
 		JPanel RunBracketsControlBar = new JPanel();
@@ -944,8 +898,7 @@ public class graphicalG2ME {
 		};
 		tabbedPane.addTab("Settings", tabSettings);
 		tabbedPane.addTab("Power Rankings", tabPowerRankings);
-		tabbedPane.addTab("Player History", tabPlayerHistory);
-		tabbedPane.addTab("Player Records", tabPlayerRecords);
+		tabbedPane.addTab("Player Info", tabPlayerInformation);
 		tabbedPane.addTab("Run Brackets", tabRunBrackets);
 		frame.getContentPane().add(tabbedPane, BorderLayout.CENTER);
 	}
