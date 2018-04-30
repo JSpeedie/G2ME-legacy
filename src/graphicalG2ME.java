@@ -16,22 +16,28 @@ import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
 public class graphicalG2ME {
 
-	/* Prefs variables */
-	private static final String G2ME_DIR="/home/me/G2MEGit/";
-	private static final String G2ME_PLAYER_DIR="/home/me/G2MEGit/.players/";
+	/* Prefs Keys */
+	private static final String G2ME_DIR="G2ME_DIR";
+	private static final String G2ME_PLAYER_DIR="G2ME_PLAYER_DIR";
+	private static final String WEIGHT="WEIGHT";
+	private static final String USE_GAMES="USE_GAMES";
+	private static final String RD_ADJUST_ABSENT="RD_ADJUST_ABSENT";
 	/* Prefs defaults */
-	static String G2ME_DIR_DEFAULT="/home/me/G2MEGit/";
-	static String G2ME_PLAYER_DIR_DEFAULT="/home/me/G2MEGit/.players/";
+	private static String G2ME_DIR_DEFAULT="/home/me/G2MEGit/";
+	private static String G2ME_PLAYER_DIR_DEFAULT="/home/me/G2MEGit/.players/";
+	private static double WEIGHT_DEFAULT=1.0;
+	private static boolean USE_GAMES_DEFAULT=false;
+	private static boolean RD_ADJUST_ABSENT_DEFAULT=true;
 
-	final int ELEMENT_SPACING = 5;
-	final int TEXTFIELD_HEIGHT = 32;
-	final int CHECKBOX_HEIGHT = 24;
-	String playerInformationCurrentFlag = "h";
-	String playerInformationLastName = "";
-	int playerInformationSearchLastLength = 0;
-	String playerRecordsLastName = "";
-	int playerRecordsSearchLastLength = 0;
-	String runBracketsLastFile = "";
+	private final int ELEMENT_SPACING = 5;
+	private final int TEXTFIELD_HEIGHT = 32;
+	private final int CHECKBOX_HEIGHT = 24;
+	private String playerInformationCurrentFlag = "h";
+	private String playerInformationLastName = "";
+	private int playerInformationSearchLastLength = 0;
+	private String playerRecordsLastName = "";
+	private int playerRecordsSearchLastLength = 0;
+	private String runBracketsLastFile = "";
 
 	/* Aliased GUI classes */
 	public class JAliasedTextField extends JTextField {
@@ -116,13 +122,27 @@ public class graphicalG2ME {
 			super.paintComponent(g);
 		}
 	}
+
+	public class JAliasedSpinner extends JSpinner {
+		public JAliasedSpinner(SpinnerNumberModel s) {
+			super(s);
+		}
+
+		@Override
+		public void paintComponent(Graphics g) {
+			Graphics2D graphics2d = (Graphics2D) g;
+			graphics2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+			RenderingHints.VALUE_ANTIALIAS_ON);
+			super.paintComponent(g);
+		}
+	}
 	/* End of Aliased GUI classes */
 
 	public static void main(String[] args) {
 		new graphicalG2ME();
 	}
 
-	public int DisplayCommandResultsInJTextArea(String command, JTextArea t, boolean stack) {
+	private int DisplayCommandResultsInJTextArea(String command, JTextArea t, boolean stack) {
 		try {
 			System.out.println("running \"" + command + "\"");
 			Runtime rt = Runtime.getRuntime();
@@ -142,8 +162,7 @@ public class graphicalG2ME {
 				not_first = true;
 			}
 
-			int ret = pr.waitFor();
-			return ret;
+			return pr.waitFor();
 
 		} catch(Exception e) {
 		    System.out.println(e.toString());
@@ -152,9 +171,9 @@ public class graphicalG2ME {
 		}
 	}
 
-	public void UpdateJListToFilesInDir(JList l, String PlayerDirPath) {
+	private void UpdateJListToFilesInDir(JList l, String PlayerDirPath) {
 		File PlayerDirectory = new File(PlayerDirPath);
-		if (PlayerDirectory != null && PlayerDirectory.isDirectory()) {
+		if (PlayerDirectory.isDirectory()) {
 			File[] listOfFiles = PlayerDirectory.listFiles();
 			Arrays.sort(listOfFiles);
 			String listOfFileNames[] = new String[listOfFiles.length];
@@ -168,7 +187,7 @@ public class graphicalG2ME {
 		}
 	}
 
-	public void UpdateJTextAreaToFlag(JTextArea t, String playerName, boolean verbose, String flag) {
+	private void UpdateJTextAreaToFlag(JTextArea t, String playerName, boolean verbose, String flag) {
 		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
 		String flags = "-n" + flag;
 		int ret = 0;
@@ -186,30 +205,29 @@ public class graphicalG2ME {
 		}
 	}
 
-	public void UpdateJListToSearchString(JList l, String s) {
+	private void UpdateJListToSearchString(JList l, String s) {
 		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
 		File PlayerDirectory = new File(prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
 		File[] listOfFiles = PlayerDirectory.listFiles();
-		Arrays.sort(listOfFiles);
-		ArrayList<String> items = new ArrayList<>();
-		for (int i = 0; i < listOfFiles.length; i++) {
-			boolean mismatch = false;
-			// This file can only match the search if its length is shorter
-			// than or equal to the search
-			if (s.length() <= listOfFiles[i].getName().length()) {
-				for (int j = 0; j < s.length(); j++) {
-
-					if (s.length() > 0) {
+		if (listOfFiles != null) {
+			Arrays.sort(listOfFiles);
+			ArrayList<String> items = new ArrayList<>();
+			for (int i = 0; i < listOfFiles.length; i++) {
+				boolean mismatch = false;
+				// This file can only match the search if its length is shorter
+				// than or equal to the search
+				if (s.length() <= listOfFiles[i].getName().length()) {
+					for (int j = 0; j < s.length(); j++) {
 						if (listOfFiles[i].getName().charAt(j) != s.charAt(j)) {
 							mismatch = true;
 							break;
 						}
 					}
+					if (mismatch == false) items.add(listOfFiles[i].getName());
 				}
-				if (mismatch == false) items.add(listOfFiles[i].getName());
 			}
+			l.setListData(items.toArray());
 		}
-		l.setListData(items.toArray());
 	}
 
 	public graphicalG2ME() {
@@ -387,7 +405,7 @@ public class graphicalG2ME {
 
 				/* If a file was successfully chosen */
 				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
-				if (FB.getFile() != null && DestinationFile != null && !DestinationFile.isDirectory()) {
+				if (FB.getFile() != null && !DestinationFile.isDirectory()) {
 					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
 					try {
 						BufferedWriter writer = Files.newBufferedWriter(Paths.get(DestinationFile.getAbsolutePath()));
@@ -610,10 +628,18 @@ public class graphicalG2ME {
 		RunBracketsControlBar.setLayout(new BoxLayout(RunBracketsControlBar, BoxLayout.Y_AXIS));
 		JPanel RunBracketsTextComponents = new JPanel();
 		RunBracketsTextComponents.setLayout(new BoxLayout(RunBracketsTextComponents, BoxLayout.Y_AXIS));
+		JPanel RunBracketsWeightComponents = new JPanel();
+		RunBracketsWeightComponents.setLayout(new BoxLayout(RunBracketsWeightComponents, BoxLayout.X_AXIS));
 		JAliasedCheckBox RunBracketsKeepDataBracketsCheckBox = new JAliasedCheckBox("Keep existing data");
 		RunBracketsKeepDataBracketsCheckBox.setToolTipText("Run bracket using existing player data");
 		JAliasedCheckBox RunBracketsKeepDataSeasonsCheckBox = new JAliasedCheckBox("Keep existing data (Season)");
 		RunBracketsKeepDataSeasonsCheckBox.setToolTipText("Run season using existing player data");
+		JAliasedCheckBox RunBracketsUseGamesCheckBox = new JAliasedCheckBox("Use Games");
+		RunBracketsUseGamesCheckBox.setSelected(prefs.getBoolean(USE_GAMES, USE_GAMES_DEFAULT));
+		RunBracketsUseGamesCheckBox.setToolTipText("Use Games as Outcomes Rather Than Sets (Not Recommended)");
+		JAliasedCheckBox RunBracketsRDAdjustAbsentCheckBox = new JAliasedCheckBox("RD Adjust Absent Players");
+		RunBracketsRDAdjustAbsentCheckBox.setSelected(prefs.getBoolean(RD_ADJUST_ABSENT, RD_ADJUST_ABSENT_DEFAULT));
+		RunBracketsRDAdjustAbsentCheckBox.setToolTipText("Adjust the Rating Deviation of Absent Players (Recommended)");
 		JAliasedButton RunBracketsAddButton = new JAliasedButton("Add Bracket...");
 		JAliasedButton RunBracketsOpenButton = new JAliasedButton("Open...");
 		JAliasedButton RunBracketsClearButton = new JAliasedButton("Clear");
@@ -622,6 +648,10 @@ public class graphicalG2ME {
 		JAliasedButton RunBracketsRunBracketButton = new JAliasedButton("Run Bracket...");
 		JAliasedButton RunBracketsRunSeasonButton = new JAliasedButton("Run Season...");
 		JAliasedButton RunBracketsSaveButton = new JAliasedButton("Save As...");
+		JLabel RunBracketsWeightLabel = new JLabel("Weight:");
+		JAliasedSpinner RunBracketsWeightSpinner =
+			new JAliasedSpinner(new SpinnerNumberModel(prefs.getDouble(WEIGHT, WEIGHT_DEFAULT), 0.0, 1000.0, 0.1));
+		RunBracketsWeightSpinner.setToolTipText("Weigh Tournament at Given Value (Not Recommended to be anything other than 1)");
 		JAliasedTextArea RunBracketsTextDialog = new JAliasedTextArea();
 		JScrollPane RunBracketsTextDialogScroll = new JScrollPane(RunBracketsTextDialog);
 		JAliasedTextArea RunBracketsLogDialog = new JAliasedTextArea();
@@ -629,6 +659,24 @@ public class graphicalG2ME {
 
 		RunBracketsKeepDataBracketsCheckBox.setSelected(true);
 		RunBracketsKeepDataSeasonsCheckBox.setSelected(false);
+		RunBracketsWeightSpinner.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				prefs.putDouble(WEIGHT, (double)RunBracketsWeightSpinner.getValue());
+			}
+		});
+		RunBracketsUseGamesCheckBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				prefs.putBoolean(USE_GAMES, RunBracketsUseGamesCheckBox.isSelected());
+			}
+		});
+		RunBracketsRDAdjustAbsentCheckBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				prefs.putBoolean(RD_ADJUST_ABSENT, RunBracketsRDAdjustAbsentCheckBox.isSelected());
+			}
+		});
 		RunBracketsTextDialog.setFont(new Font("monospaced", Font.PLAIN, 12));
 		RunBracketsLogDialog.setEditable(false);
 		RunBracketsLogDialog.setEnabled(false);
@@ -643,7 +691,7 @@ public class graphicalG2ME {
 
 				/* If a file was successfully chosen */
 				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
-				if (FB.getFile() != null && DestinationFile != null && !DestinationFile.isDirectory()) {
+				if (FB.getFile() != null && !DestinationFile.isDirectory()) {
 					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
 					try {
 						if (RunBracketsTextDialog.getText().equals("")) {
@@ -669,7 +717,7 @@ public class graphicalG2ME {
 
 				/* If a file was successfully chosen */
 				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
-				if (FB.getFile() != null && DestinationFile != null && !DestinationFile.isDirectory()) {
+				if (FB.getFile() != null && !DestinationFile.isDirectory()) {
 					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
 					runBracketsLastFile = DestinationFile.getAbsolutePath();
 					try {
@@ -700,20 +748,24 @@ public class graphicalG2ME {
 
 				/* If a file was successfully chosen */
 				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
-				if (FB.getFile() != null && DestinationFile != null && !DestinationFile.isDirectory()) {
+				if (FB.getFile() != null && !DestinationFile.isDirectory()) {
 					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
 					try {
 						String bracket = DestinationFile.getAbsolutePath();
-						String k_flag = "";
-						if (RunBracketsKeepDataBracketsCheckBox.isSelected()) k_flag = "k";
+						String no_req_flags = "";
+						if (!RunBracketsRDAdjustAbsentCheckBox.isSelected()) no_req_flags += "0";
+						if (RunBracketsUseGamesCheckBox.isSelected()) no_req_flags += "g";
+						if (RunBracketsKeepDataBracketsCheckBox.isSelected()) no_req_flags += "k";
 						int ret = 0;
 						ret = DisplayCommandResultsInJTextArea(
 								"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
-								" -" + k_flag + "b " + bracket, RunBracketsLogDialog, true);
+								" -w " + RunBracketsWeightSpinner.getValue() +
+								" -" + no_req_flags + "b " + bracket, RunBracketsLogDialog, true);
 						if (ret != 0) {
 							System.err.println("An error occurred running \"" +
 								"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
-								" -" + k_flag + "b " + bracket + "\"");
+								" -w " + RunBracketsWeightSpinner.getValue() +
+								" -" + no_req_flags + "b " + bracket + "\"");
 						}
 					} catch (Exception e3) {
 						e3.printStackTrace();
@@ -731,20 +783,24 @@ public class graphicalG2ME {
 
 				/* If a file was successfully chosen */
 				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
-				if (FB.getFile() != null && DestinationFile != null && !DestinationFile.isDirectory()) {
+				if (FB.getFile() != null && !DestinationFile.isDirectory()) {
 					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
 					try {
 						String bracket = DestinationFile.getAbsolutePath();
-						String k_flag = "";
-						if (RunBracketsKeepDataSeasonsCheckBox.isSelected()) k_flag = "k";
+						String no_req_flags = "";
+						if (!RunBracketsRDAdjustAbsentCheckBox.isSelected()) no_req_flags += "0";
+						if (RunBracketsUseGamesCheckBox.isSelected()) no_req_flags += "g";
+						if (RunBracketsKeepDataSeasonsCheckBox.isSelected()) no_req_flags += "k";
 						int ret = 0;
 						ret = DisplayCommandResultsInJTextArea(
 								"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
-								" -" + k_flag + "B " + bracket, RunBracketsLogDialog, true);
+								" -w " + RunBracketsWeightSpinner.getValue() +
+								" -" + no_req_flags + "B " + bracket, RunBracketsLogDialog, true);
 						if (ret != 0) {
 							System.err.println("An error occurred running \"" +
 								"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
-								" -" + k_flag + "B " + bracket + "\"");
+								" -w " + RunBracketsWeightSpinner.getValue() +
+								" -" + no_req_flags + "B " + bracket + "\"");
 						}
 					} catch (Exception e3) {
 						e3.printStackTrace();
@@ -794,7 +850,7 @@ public class graphicalG2ME {
 
 				/* If a file was successfully chosen */
 				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
-				if (FB.getFile() != null && DestinationFile != null && !DestinationFile.isDirectory()) {
+				if (FB.getFile() != null && !DestinationFile.isDirectory()) {
 					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
 					try {
 						BufferedWriter writer = Files.newBufferedWriter(Paths.get(DestinationFile.getAbsolutePath()));
@@ -827,6 +883,18 @@ public class graphicalG2ME {
 		RunBracketsTextComponents.setPreferredSize(new Dimension(runBracketsTextComponentsPrefWidth, 640));
 		RunBracketsTextComponents.setMaximumSize(new Dimension(runBracketsTextComponentsMaxWidth, Short.MAX_VALUE));
 		/* Set sizes of Control Bar section */
+		RunBracketsWeightLabel.setMinimumSize(new Dimension(runBracketsControlBarMinWidth/2, CHECKBOX_HEIGHT));
+		RunBracketsWeightLabel.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth/2, CHECKBOX_HEIGHT));
+		RunBracketsWeightLabel.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth/2, CHECKBOX_HEIGHT));
+		RunBracketsWeightSpinner.setMinimumSize(new Dimension(runBracketsControlBarMinWidth/2, TEXTFIELD_HEIGHT));
+		RunBracketsWeightSpinner.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth/2, TEXTFIELD_HEIGHT));
+		RunBracketsWeightSpinner.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth/2, TEXTFIELD_HEIGHT));
+		RunBracketsUseGamesCheckBox.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, CHECKBOX_HEIGHT));
+		RunBracketsUseGamesCheckBox.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, CHECKBOX_HEIGHT));
+		RunBracketsUseGamesCheckBox.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, CHECKBOX_HEIGHT));
+		RunBracketsRDAdjustAbsentCheckBox.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, CHECKBOX_HEIGHT));
+		RunBracketsRDAdjustAbsentCheckBox.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, CHECKBOX_HEIGHT));
+		RunBracketsRDAdjustAbsentCheckBox.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, CHECKBOX_HEIGHT));
 		RunBracketsKeepDataBracketsCheckBox.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, CHECKBOX_HEIGHT));
 		RunBracketsKeepDataBracketsCheckBox.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, CHECKBOX_HEIGHT));
 		RunBracketsKeepDataBracketsCheckBox.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, CHECKBOX_HEIGHT));
@@ -865,9 +933,11 @@ public class graphicalG2ME {
 		/* Correct Alignments of components in the control bar section */
 		RunBracketsControlBar.setAlignmentY(Component.TOP_ALIGNMENT);
 		RunBracketsControlBar.setAlignmentX(Component.LEFT_ALIGNMENT);
-		RunBracketsKeepDataBracketsCheckBox.setAlignmentY(Component.TOP_ALIGNMENT);
 		RunBracketsKeepDataBracketsCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-		RunBracketsKeepDataSeasonsCheckBox.setAlignmentY(Component.TOP_ALIGNMENT);
+		RunBracketsWeightComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsUseGamesCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsRDAdjustAbsentCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsKeepDataBracketsCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
 		RunBracketsKeepDataSeasonsCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
 		RunBracketsOpenButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		RunBracketsSaveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -881,7 +951,23 @@ public class graphicalG2ME {
 		RunBracketsTextComponents.add(RunBracketsTextDialogScroll);
 		RunBracketsTextComponents.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		RunBracketsTextComponents.add(RunBracketsLogDialogScroll);
-		/* Add all elements in the control bar to the control bar panel */
+		/* Organize the bracket weight elements */
+		RunBracketsWeightComponents.add(RunBracketsWeightLabel);
+		RunBracketsWeightComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		RunBracketsWeightComponents.add(RunBracketsWeightSpinner);
+		/* Add the rest of the control bar elements */
+		JSeparator Break = new JSeparator(SwingConstants.HORIZONTAL);
+		Break.setMinimumSize(new Dimension(runBracketsControlBarMinWidth - 2 * ELEMENT_SPACING, 3));
+		Break.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth - 2 * ELEMENT_SPACING, 3));
+		Break.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth - 2 * ELEMENT_SPACING, 3));
+		Break.setAlignmentX(Component.LEFT_ALIGNMENT);
+		Break.setAlignmentY(Component.CENTER_ALIGNMENT);
+		JSeparator Break2 = new JSeparator(SwingConstants.HORIZONTAL);
+		Break2.setMinimumSize(new Dimension(runBracketsControlBarMinWidth - 2 * ELEMENT_SPACING, 3));
+		Break2.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth - 2 * ELEMENT_SPACING, 3));
+		Break2.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth - 2 * ELEMENT_SPACING, 3));
+		Break2.setAlignmentX(Component.LEFT_ALIGNMENT);
+		Break2.setAlignmentY(Component.CENTER_ALIGNMENT);
 		RunBracketsControlBar.add(RunBracketsOpenButton);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsSaveButton);
@@ -891,7 +977,17 @@ public class graphicalG2ME {
 		RunBracketsControlBar.add(RunBracketsClearButton);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsResetButton);
-		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, 4 * ELEMENT_SPACING)));
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
+		RunBracketsControlBar.add(Break);
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
+		RunBracketsControlBar.add(RunBracketsWeightComponents);
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		RunBracketsControlBar.add(RunBracketsUseGamesCheckBox);
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		RunBracketsControlBar.add(RunBracketsRDAdjustAbsentCheckBox);
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
+		RunBracketsControlBar.add(Break2);
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsKeepDataBracketsCheckBox);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsRunBracketButton);
