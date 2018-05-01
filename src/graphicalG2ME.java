@@ -337,7 +337,7 @@ public class graphicalG2ME {
 
 		/* Configure Power Rankings Tab */
 		JPanel PowerRankingsControlBar = new JPanel();
-		PowerRankingsControlBar.setLayout(new BoxLayout(PowerRankingsControlBar, BoxLayout.X_AXIS));
+		PowerRankingsControlBar.setLayout(new BoxLayout(PowerRankingsControlBar, BoxLayout.Y_AXIS));
 		JAliasedButton PowerRankingsGenPRButton = new JAliasedButton("Generate Power Rankings");
 		JAliasedButton PowerRankingsGenPRVerboseButton = new JAliasedButton("Generate Power Rankings (Verbose)");
 		JAliasedTextField PowerRankingsFilterFileTextField = new JAliasedTextField();
@@ -419,40 +419,52 @@ public class graphicalG2ME {
 			}
 		});
 		/* Use Box Layout for this tab */
-		tabPowerRankings.setLayout(new BoxLayout(tabPowerRankings, BoxLayout.Y_AXIS));
+		tabPowerRankings.setLayout(new BoxLayout(tabPowerRankings, BoxLayout.X_AXIS));
+		/* Alignment settings for the tab */
+		PowerRankingsTextDialogScroll.setAlignmentY(Component.TOP_ALIGNMENT);
+		PowerRankingsControlBar.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PowerRankingsControlBar.setAlignmentY(Component.TOP_ALIGNMENT);
+		PowerRankingsGenPRButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PowerRankingsGenPRVerboseButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PowerRankingsFilterFileTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PowerRankingsSaveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		/* Layout settings for the tab */
-		PowerRankingsGenPRButton.setMinimumSize(new Dimension(70, TEXTFIELD_HEIGHT));
-		PowerRankingsGenPRButton.setPreferredSize(new Dimension(180, TEXTFIELD_HEIGHT));
-		PowerRankingsGenPRButton.setMaximumSize(new Dimension(210, TEXTFIELD_HEIGHT));
+		int genPRControlBarMinWidth = 140;
+		int genPRControlBarPrefWidth = 300;
+		int genPRControlBarMaxWidth = 440;
+		/* Dimension settings for the tab */
+		PowerRankingsGenPRButton.setMinimumSize(new Dimension(genPRControlBarMinWidth, TEXTFIELD_HEIGHT));
+		PowerRankingsGenPRButton.setPreferredSize(new Dimension(genPRControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		PowerRankingsGenPRButton.setMaximumSize(new Dimension(genPRControlBarMaxWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsGenPRButton.setToolTipText("Generate Power Rankings");
-		PowerRankingsGenPRVerboseButton.setMinimumSize(new Dimension(70, TEXTFIELD_HEIGHT));
-		PowerRankingsGenPRVerboseButton.setPreferredSize(new Dimension(280, TEXTFIELD_HEIGHT));
-		PowerRankingsGenPRVerboseButton.setMaximumSize(new Dimension(300, TEXTFIELD_HEIGHT));
+		PowerRankingsGenPRVerboseButton.setMinimumSize(new Dimension(genPRControlBarMinWidth, TEXTFIELD_HEIGHT));
+		PowerRankingsGenPRVerboseButton.setPreferredSize(new Dimension(genPRControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		PowerRankingsGenPRVerboseButton.setMaximumSize(new Dimension(genPRControlBarMaxWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsGenPRVerboseButton.setToolTipText("Generate Power Rankings (Verbose)");
-		PowerRankingsFilterFileTextField.setMinimumSize(new Dimension(70, TEXTFIELD_HEIGHT));
-		PowerRankingsFilterFileTextField.setPreferredSize(new Dimension(160, TEXTFIELD_HEIGHT));
-		PowerRankingsFilterFileTextField.setMaximumSize(new Dimension(300, TEXTFIELD_HEIGHT));
+		PowerRankingsFilterFileTextField.setMinimumSize(new Dimension(genPRControlBarMinWidth, TEXTFIELD_HEIGHT));
+		PowerRankingsFilterFileTextField.setPreferredSize(new Dimension(genPRControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		PowerRankingsFilterFileTextField.setMaximumSize(new Dimension(genPRControlBarMaxWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsFilterFileTextField.setToolTipText("File path for a filter file");
-		PowerRankingsSaveButton.setMinimumSize(new Dimension(90, TEXTFIELD_HEIGHT));
-		PowerRankingsSaveButton.setPreferredSize(new Dimension(90, TEXTFIELD_HEIGHT));
-		PowerRankingsSaveButton.setMaximumSize(new Dimension(100, TEXTFIELD_HEIGHT));
+		PowerRankingsSaveButton.setMinimumSize(new Dimension(genPRControlBarMinWidth, TEXTFIELD_HEIGHT));
+		PowerRankingsSaveButton.setPreferredSize(new Dimension(genPRControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		PowerRankingsSaveButton.setMaximumSize(new Dimension(genPRControlBarMaxWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsSaveButton.setToolTipText("Save As...");
 		PowerRankingsTextDialogScroll.setMinimumSize(new Dimension(100, 300));
 		PowerRankingsTextDialogScroll.setPreferredSize(new Dimension(120, 500));
 		PowerRankingsTextDialogScroll.setMaximumSize(new Dimension(Short.MAX_VALUE, Short.MAX_VALUE));
 		/* Add all elements in the control bar to the control bar panel */
 		PowerRankingsControlBar.add(PowerRankingsGenPRButton);
-		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PowerRankingsControlBar.add(PowerRankingsGenPRVerboseButton);
-		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PowerRankingsControlBar.add(PowerRankingsFilterFileTextField);
-		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PowerRankingsControlBar.add(PowerRankingsSaveButton);
 		/* Add all the elements to the tab (with spacing) */
 		tabPowerRankings.setBorder(new EmptyBorder(ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING));
-		tabPowerRankings.add(PowerRankingsControlBar);
-		tabPowerRankings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
 		tabPowerRankings.add(PowerRankingsTextDialogScroll);
+		tabPowerRankings.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		tabPowerRankings.add(PowerRankingsControlBar);
 
 		/* Configure Player Information Tab */
 		JPanel PlayerInformationControlBar = new JPanel();
