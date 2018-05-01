@@ -342,6 +342,12 @@ public class graphicalG2ME {
 		JAliasedButton PowerRankingsGenPRVerboseButton = new JAliasedButton("Generate Power Rankings (Verbose)");
 		JAliasedTextField PowerRankingsFilterFileTextField = new JAliasedTextField();
 		JAliasedButton PowerRankingsSaveButton = new JAliasedButton("Save As...");
+		JLabel PowerRankingsMinEventsLabel = new JLabel("Min. Events:");
+		JPanel PowerRankingsMinEventComponents = new JPanel();
+		PowerRankingsMinEventComponents.setLayout(new BoxLayout(PowerRankingsMinEventComponents, BoxLayout.X_AXIS));
+		JAliasedSpinner PowerRankingsMinEventsSpinner =
+			new JAliasedSpinner(new SpinnerNumberModel(1, 1, 1000, 1));
+		PowerRankingsMinEventsSpinner.setToolTipText("Filter Power Ranking Output to Only Include Players Who Have Attended This Many Events");
 		JAliasedTextArea PowerRankingsTextDialog = new JAliasedTextArea();
 		JScrollPane PowerRankingsTextDialogScroll = new JScrollPane(PowerRankingsTextDialog);
 
@@ -353,20 +359,25 @@ public class graphicalG2ME {
 				int ret = 0;
 				if (PowerRankingsFilterFileTextField.getText().equals("")) {
 					ret = DisplayCommandResultsInJTextArea(
-						"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -O",
+						"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+						" -m " + PowerRankingsMinEventsSpinner.getValue() + " -O",
 						PowerRankingsTextDialog, false);
 					if (ret != 0) {
 						System.err.println("An error occurred running \"" +
-							"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -O" + "\"");
+							"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+							" -m " + PowerRankingsMinEventsSpinner.getValue() + " -O" + "\"");
 					}
 				} else {
 					ret = DisplayCommandResultsInJTextArea(
 						"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -p "
-						+ PowerRankingsFilterFileTextField.getText() + " -O", PowerRankingsTextDialog, false);
+						+ PowerRankingsFilterFileTextField.getText() +
+							" -m " + PowerRankingsMinEventsSpinner.getValue() + " -O",
+							PowerRankingsTextDialog, false);
 					if (ret != 0) {
 						System.err.println("An error occurred running \"" +
 							"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -p "
-							+ PowerRankingsFilterFileTextField.getText() + " -O" + "\"");
+							+ PowerRankingsFilterFileTextField.getText() +
+							" -m " + PowerRankingsMinEventsSpinner.getValue() + " -O" + "\"");
 					}
 				}
 			}
@@ -427,6 +438,11 @@ public class graphicalG2ME {
 		PowerRankingsGenPRButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PowerRankingsGenPRVerboseButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PowerRankingsFilterFileTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PowerRankingsMinEventComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PowerRankingsMinEventsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PowerRankingsMinEventsSpinner.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PowerRankingsMinEventsLabel.setAlignmentY(Component.TOP_ALIGNMENT);
+		PowerRankingsMinEventsSpinner.setAlignmentY(Component.TOP_ALIGNMENT);
 		PowerRankingsSaveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		/* Layout settings for the tab */
 		int genPRControlBarMinWidth = 140;
@@ -445,6 +461,12 @@ public class graphicalG2ME {
 		PowerRankingsFilterFileTextField.setPreferredSize(new Dimension(genPRControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsFilterFileTextField.setMaximumSize(new Dimension(genPRControlBarMaxWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsFilterFileTextField.setToolTipText("File path for a filter file");
+		PowerRankingsMinEventsLabel.setMinimumSize(new Dimension(genPRControlBarMinWidth/2, CHECKBOX_HEIGHT));
+		PowerRankingsMinEventsLabel.setPreferredSize(new Dimension(genPRControlBarPrefWidth/2, CHECKBOX_HEIGHT));
+		PowerRankingsMinEventsLabel.setMaximumSize(new Dimension(genPRControlBarMaxWidth/2, CHECKBOX_HEIGHT));
+		PowerRankingsMinEventsSpinner.setMinimumSize(new Dimension(genPRControlBarMinWidth/2, TEXTFIELD_HEIGHT));
+		PowerRankingsMinEventsSpinner.setPreferredSize(new Dimension(genPRControlBarPrefWidth/2, TEXTFIELD_HEIGHT));
+		PowerRankingsMinEventsSpinner.setMaximumSize(new Dimension(genPRControlBarMaxWidth/2, TEXTFIELD_HEIGHT));
 		PowerRankingsSaveButton.setMinimumSize(new Dimension(genPRControlBarMinWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsSaveButton.setPreferredSize(new Dimension(genPRControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsSaveButton.setMaximumSize(new Dimension(genPRControlBarMaxWidth, TEXTFIELD_HEIGHT));
@@ -452,12 +474,18 @@ public class graphicalG2ME {
 		PowerRankingsTextDialogScroll.setMinimumSize(new Dimension(100, 300));
 		PowerRankingsTextDialogScroll.setPreferredSize(new Dimension(120, 500));
 		PowerRankingsTextDialogScroll.setMaximumSize(new Dimension(Short.MAX_VALUE, Short.MAX_VALUE));
+		/* Add Minimum Events Components */
+		PowerRankingsMinEventComponents.add(PowerRankingsMinEventsLabel);
+		PowerRankingsMinEventComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		PowerRankingsMinEventComponents.add(PowerRankingsMinEventsSpinner);
 		/* Add all elements in the control bar to the control bar panel */
 		PowerRankingsControlBar.add(PowerRankingsGenPRButton);
 		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PowerRankingsControlBar.add(PowerRankingsGenPRVerboseButton);
 		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PowerRankingsControlBar.add(PowerRankingsFilterFileTextField);
+		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		PowerRankingsControlBar.add(PowerRankingsMinEventComponents);
 		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PowerRankingsControlBar.add(PowerRankingsSaveButton);
 		/* Add all the elements to the tab (with spacing) */
