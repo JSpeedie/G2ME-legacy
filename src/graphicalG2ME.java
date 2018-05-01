@@ -22,12 +22,16 @@ public class graphicalG2ME {
 	private static final String WEIGHT="WEIGHT";
 	private static final String USE_GAMES="USE_GAMES";
 	private static final String RD_ADJUST_ABSENT="RD_ADJUST_ABSENT";
+	private static final String POWER_RANKINGS_VERBOSE="POWER_RANKINGS_VERBOSE";
+	private static final String PLAYER_INFO_VERBOSE="PLAYER_INFO_VERBOSE";
 	/* Prefs defaults */
 	private static String G2ME_DIR_DEFAULT="/home/me/G2MEGit/";
 	private static String G2ME_PLAYER_DIR_DEFAULT="/home/me/G2MEGit/.players/";
 	private static double WEIGHT_DEFAULT=1.0;
 	private static boolean USE_GAMES_DEFAULT=false;
 	private static boolean RD_ADJUST_ABSENT_DEFAULT=true;
+	private static boolean POWER_RANKINGS_VERBOSE_DEFAULT=false;
+	private static boolean PLAYER_INFO_VERBOSE_DEFAULT=false;
 
 	private final int ELEMENT_SPACING = 5;
 	private final int TEXTFIELD_HEIGHT = 32;
@@ -339,7 +343,8 @@ public class graphicalG2ME {
 		JPanel PowerRankingsControlBar = new JPanel();
 		PowerRankingsControlBar.setLayout(new BoxLayout(PowerRankingsControlBar, BoxLayout.Y_AXIS));
 		JAliasedButton PowerRankingsGenPRButton = new JAliasedButton("Generate Power Rankings");
-		JAliasedButton PowerRankingsGenPRVerboseButton = new JAliasedButton("Generate Power Rankings (Verbose)");
+		JAliasedCheckBox PowerRankingsVerboseCheckBox = new JAliasedCheckBox("Verbose");
+		PowerRankingsVerboseCheckBox.setSelected(prefs.getBoolean(POWER_RANKINGS_VERBOSE, POWER_RANKINGS_VERBOSE_DEFAULT));
 		JAliasedTextField PowerRankingsFilterFileTextField = new JAliasedTextField();
 		JAliasedButton PowerRankingsSaveButton = new JAliasedButton("Save As...");
 		JLabel PowerRankingsMinEventsLabel = new JLabel("Min. Events:");
@@ -357,53 +362,31 @@ public class graphicalG2ME {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				int ret = 0;
-				if (PowerRankingsFilterFileTextField.getText().equals("")) {
-					ret = DisplayCommandResultsInJTextArea(
+				String no_req_flags = "";
+				String filter_file_flags_and_arg = "";
+				if (PowerRankingsVerboseCheckBox.isSelected()) no_req_flags += "v";
+				if (!PowerRankingsFilterFileTextField.getText().equals("")) {
+					filter_file_flags_and_arg = " -p " + PowerRankingsFilterFileTextField.getText();
+				}
+
+				ret = DisplayCommandResultsInJTextArea(
+					"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+					filter_file_flags_and_arg +
+					" -m " + PowerRankingsMinEventsSpinner.getValue() +
+					" -" + no_req_flags + "O", PowerRankingsTextDialog, false);
+				if (ret != 0) {
+					System.err.println("An error occurred running \"" +
 						"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
-						" -m " + PowerRankingsMinEventsSpinner.getValue() + " -O",
-						PowerRankingsTextDialog, false);
-					if (ret != 0) {
-						System.err.println("An error occurred running \"" +
-							"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
-							" -m " + PowerRankingsMinEventsSpinner.getValue() + " -O" + "\"");
-					}
-				} else {
-					ret = DisplayCommandResultsInJTextArea(
-						"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -p "
-						+ PowerRankingsFilterFileTextField.getText() +
-							" -m " + PowerRankingsMinEventsSpinner.getValue() + " -O",
-							PowerRankingsTextDialog, false);
-					if (ret != 0) {
-						System.err.println("An error occurred running \"" +
-							"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -p "
-							+ PowerRankingsFilterFileTextField.getText() +
-							" -m " + PowerRankingsMinEventsSpinner.getValue() + " -O" + "\"");
-					}
+						filter_file_flags_and_arg +
+						" -m " + PowerRankingsMinEventsSpinner.getValue() +
+						" -" + no_req_flags + "O" + "\"");
 				}
 			}
 		});
-		PowerRankingsGenPRVerboseButton.addActionListener(new ActionListener() {
+		PowerRankingsVerboseCheckBox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				int ret = 0;
-				if (PowerRankingsFilterFileTextField.getText().equals("")) {
-					ret = DisplayCommandResultsInJTextArea(
-							"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -vO",
-							PowerRankingsTextDialog, false);
-					if (ret != 0) {
-						System.err.println("An error occurred running \"" +
-							"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -vO" + "\"");
-					}
-				} else {
-					ret = DisplayCommandResultsInJTextArea(
-						"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -p "
-						+ PowerRankingsFilterFileTextField.getText() + " -vO", PowerRankingsTextDialog, false);
-					if (ret != 0) {
-						System.err.println("An error occurred running \"" +
-							"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) + " -p "
-							+ PowerRankingsFilterFileTextField.getText() + " -vO" + "\"");
-					}
-				}
+				prefs.putBoolean(POWER_RANKINGS_VERBOSE, PowerRankingsVerboseCheckBox.isSelected());
 			}
 		});
 		PowerRankingsSaveButton.addActionListener(new ActionListener() {
@@ -436,13 +419,10 @@ public class graphicalG2ME {
 		PowerRankingsControlBar.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PowerRankingsControlBar.setAlignmentY(Component.TOP_ALIGNMENT);
 		PowerRankingsGenPRButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-		PowerRankingsGenPRVerboseButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PowerRankingsFilterFileTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PowerRankingsMinEventComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PowerRankingsMinEventsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PowerRankingsMinEventsSpinner.setAlignmentX(Component.LEFT_ALIGNMENT);
-		PowerRankingsMinEventsLabel.setAlignmentY(Component.TOP_ALIGNMENT);
-		PowerRankingsMinEventsSpinner.setAlignmentY(Component.TOP_ALIGNMENT);
 		PowerRankingsSaveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		/* Layout settings for the tab */
 		int genPRControlBarMinWidth = 140;
@@ -453,10 +433,9 @@ public class graphicalG2ME {
 		PowerRankingsGenPRButton.setPreferredSize(new Dimension(genPRControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsGenPRButton.setMaximumSize(new Dimension(genPRControlBarMaxWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsGenPRButton.setToolTipText("Generate Power Rankings");
-		PowerRankingsGenPRVerboseButton.setMinimumSize(new Dimension(genPRControlBarMinWidth, TEXTFIELD_HEIGHT));
-		PowerRankingsGenPRVerboseButton.setPreferredSize(new Dimension(genPRControlBarPrefWidth, TEXTFIELD_HEIGHT));
-		PowerRankingsGenPRVerboseButton.setMaximumSize(new Dimension(genPRControlBarMaxWidth, TEXTFIELD_HEIGHT));
-		PowerRankingsGenPRVerboseButton.setToolTipText("Generate Power Rankings (Verbose)");
+		PowerRankingsVerboseCheckBox.setMinimumSize(new Dimension(genPRControlBarMinWidth, CHECKBOX_HEIGHT));
+		PowerRankingsVerboseCheckBox.setPreferredSize(new Dimension(genPRControlBarPrefWidth, CHECKBOX_HEIGHT));
+		PowerRankingsVerboseCheckBox.setMaximumSize(new Dimension(genPRControlBarMaxWidth, CHECKBOX_HEIGHT));
 		PowerRankingsFilterFileTextField.setMinimumSize(new Dimension(genPRControlBarMinWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsFilterFileTextField.setPreferredSize(new Dimension(genPRControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsFilterFileTextField.setMaximumSize(new Dimension(genPRControlBarMaxWidth, TEXTFIELD_HEIGHT));
@@ -481,7 +460,7 @@ public class graphicalG2ME {
 		/* Add all elements in the control bar to the control bar panel */
 		PowerRankingsControlBar.add(PowerRankingsGenPRButton);
 		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
-		PowerRankingsControlBar.add(PowerRankingsGenPRVerboseButton);
+		PowerRankingsControlBar.add(PowerRankingsVerboseCheckBox);
 		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PowerRankingsControlBar.add(PowerRankingsFilterFileTextField);
 		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
@@ -499,6 +478,7 @@ public class graphicalG2ME {
 		PlayerInformationControlBar.setLayout(new BoxLayout(PlayerInformationControlBar, BoxLayout.Y_AXIS));
 		JAliasedButton PlayerInformationRefreshButton = new JAliasedButton("Refresh");
 		JAliasedCheckBox PlayerInformationVerboseCheckBox = new JAliasedCheckBox("Verbose");
+		PlayerInformationVerboseCheckBox.setSelected(prefs.getBoolean(PLAYER_INFO_VERBOSE, PLAYER_INFO_VERBOSE_DEFAULT));
 		JAliasedTextField PlayerInformationSearchTextField = new JAliasedTextField();
 		JAliasedList PlayerInformationPlayerList = new JAliasedList();
 		JScrollPane PlayerInformationPlayerListScroll = new JScrollPane(PlayerInformationPlayerList);
@@ -544,6 +524,13 @@ public class graphicalG2ME {
 		PlayerInformationButtonGroup.add(PlayerInformationRecordsButton);
 		PlayerInformationButtonGroup.add(PlayerInformationEventsAttendedButton);
 		PlayerInformationButtonGroup.add(PlayerInformationNumOutcomesButton);
+
+		PlayerInformationVerboseCheckBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				prefs.putBoolean(PLAYER_INFO_VERBOSE, PlayerInformationVerboseCheckBox.isSelected());
+			}
+		});
 
 		PlayerInformationTextDialog.setFont(new Font("monospaced", Font.PLAIN, 12));
 		KeyListener PlayerInformationSearchKeyListener = new KeyListener() {
@@ -684,7 +671,7 @@ public class graphicalG2ME {
 		JAliasedButton RunBracketsOpenButton = new JAliasedButton("Open...");
 		JAliasedButton RunBracketsClearButton = new JAliasedButton("Clear");
 		JAliasedButton RunBracketsResetButton = new JAliasedButton("Reset");
-		JAliasedButton RunBracketsResetLogButton = new JAliasedButton("Reset Log");
+		JAliasedButton RunBracketsClearLogButton = new JAliasedButton("Clear Log");
 		JAliasedButton RunBracketsRunBracketButton = new JAliasedButton("Run Bracket...");
 		JAliasedButton RunBracketsRunSeasonButton = new JAliasedButton("Run Season...");
 		JAliasedButton RunBracketsSaveButton = new JAliasedButton("Save As...");
@@ -874,7 +861,7 @@ public class graphicalG2ME {
 				}
 			}
 		});
-		RunBracketsResetLogButton.addActionListener(new ActionListener() {
+		RunBracketsClearLogButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				RunBracketsLogDialog.setText("");
@@ -962,9 +949,9 @@ public class graphicalG2ME {
 		RunBracketsResetButton.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, TEXTFIELD_HEIGHT));
 		RunBracketsResetButton.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		RunBracketsResetButton.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, TEXTFIELD_HEIGHT));
-		RunBracketsResetLogButton.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, TEXTFIELD_HEIGHT));
-		RunBracketsResetLogButton.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, TEXTFIELD_HEIGHT));
-		RunBracketsResetLogButton.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		RunBracketsClearLogButton.setMinimumSize(new Dimension(runBracketsControlBarMinWidth, TEXTFIELD_HEIGHT));
+		RunBracketsClearLogButton.setPreferredSize(new Dimension(runBracketsControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		RunBracketsClearLogButton.setMaximumSize(new Dimension(runBracketsControlBarMaxWidth, TEXTFIELD_HEIGHT));
 		/* Correct Alignments of components in the Text Component section */
 		RunBracketsTextDialogScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
 		RunBracketsLogDialogScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -986,7 +973,7 @@ public class graphicalG2ME {
 		RunBracketsAddButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		RunBracketsClearButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		RunBracketsResetButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-		RunBracketsResetLogButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		RunBracketsClearLogButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		/* Add all elements in the text component section to the text component panel */
 		RunBracketsTextComponents.add(RunBracketsTextDialogScroll);
 		RunBracketsTextComponents.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
@@ -1036,7 +1023,7 @@ public class graphicalG2ME {
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsRunSeasonButton);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
-		RunBracketsControlBar.add(RunBracketsResetLogButton);
+		RunBracketsControlBar.add(RunBracketsClearLogButton);
 		/* Add all the elements to the tab (with spacing) */
 		tabRunBrackets.setBorder(new EmptyBorder(ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING));
 		tabRunBrackets.add(RunBracketsTextComponents);
