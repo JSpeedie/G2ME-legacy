@@ -24,6 +24,7 @@ public class graphicalG2ME {
 	private static final String RD_ADJUST_ABSENT="RD_ADJUST_ABSENT";
 	private static final String POWER_RANKINGS_VERBOSE="POWER_RANKINGS_VERBOSE";
 	private static final String PLAYER_INFO_VERBOSE="PLAYER_INFO_VERBOSE";
+	private static final String PLAYER_INFO_RB_SELECTED="PLAYER_INFO_RB_SELECTED";
 	/* Prefs defaults */
 	private static String G2ME_DIR_DEFAULT="/home/me/G2MEGit/";
 	private static String G2ME_PLAYER_DIR_DEFAULT="/home/me/G2MEGit/.players/";
@@ -32,6 +33,7 @@ public class graphicalG2ME {
 	private static boolean RD_ADJUST_ABSENT_DEFAULT=true;
 	private static boolean POWER_RANKINGS_VERBOSE_DEFAULT=false;
 	private static boolean PLAYER_INFO_VERBOSE_DEFAULT=false;
+	private static int PLAYER_INFO_RB_SELECTED_DEFAULT=0;
 
 	private final int ELEMENT_SPACING = 5;
 	private final int TEXTFIELD_HEIGHT = 32;
@@ -486,7 +488,6 @@ public class graphicalG2ME {
 		JScrollPane PlayerInformationTextDialogScroll = new JScrollPane(PlayerInformationTextDialog);
 
 		JAliasedRadioButton PlayerInformationHistoryButton = new JAliasedRadioButton("Outcome History");
-		PlayerInformationHistoryButton.setSelected(true);
 		PlayerInformationHistoryButton.setToolTipText("Opponent, Date, Tournament and Glicko2 Data After Every Outcome (Set/Game)");
 		JAliasedRadioButton PlayerInformationRecordsButton = new JAliasedRadioButton("Records/Head-to-Heads");
 		PlayerInformationRecordsButton.setToolTipText("Wins, Ties, Losses Against All Players Played");
@@ -494,31 +495,43 @@ public class graphicalG2ME {
 		PlayerInformationEventsAttendedButton.setToolTipText("Names of All Events Attended");
 		JAliasedRadioButton PlayerInformationNumOutcomesButton = new JAliasedRadioButton("Number of Outcomes (Sets/Games) Played");
 		PlayerInformationNumOutcomesButton.setToolTipText("Number of Outcomes (Sets/Games) Played");
+		JAliasedRadioButton[] PlayerInfoRadioButtonArray = new JAliasedRadioButton[4];
+		PlayerInfoRadioButtonArray[0] = PlayerInformationHistoryButton;
+		PlayerInfoRadioButtonArray[1] = PlayerInformationRecordsButton;
+		PlayerInfoRadioButtonArray[2] = PlayerInformationEventsAttendedButton;
+		PlayerInfoRadioButtonArray[3] = PlayerInformationNumOutcomesButton;
 
 		PlayerInformationHistoryButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(true);
 				playerInformationCurrentFlag = "h";
+				prefs.putInt(PLAYER_INFO_RB_SELECTED, 0);
 			}
 		});
 		PlayerInformationRecordsButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(false);
 				playerInformationCurrentFlag = "R";
+				prefs.putInt(PLAYER_INFO_RB_SELECTED, 1);
 			}
 		});
 		PlayerInformationEventsAttendedButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(false);
 				playerInformationCurrentFlag = "A";
+				prefs.putInt(PLAYER_INFO_RB_SELECTED, 2);
 			}
 		});
 		PlayerInformationNumOutcomesButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(false);
 				playerInformationCurrentFlag = "c";
+				prefs.putInt(PLAYER_INFO_RB_SELECTED, 3);
 			}
 		});
+		/* Remember which one was selected */
+		PlayerInfoRadioButtonArray[prefs.getInt(PLAYER_INFO_RB_SELECTED, PLAYER_INFO_RB_SELECTED_DEFAULT)].setSelected(true);
+
 		ButtonGroup PlayerInformationButtonGroup = new ButtonGroup();
 		PlayerInformationButtonGroup.add(PlayerInformationHistoryButton);
 		PlayerInformationButtonGroup.add(PlayerInformationRecordsButton);
