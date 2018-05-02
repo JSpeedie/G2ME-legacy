@@ -211,6 +211,34 @@ public class graphicalG2ME {
 		}
 	}
 
+	private void UpdateJTextAreaToFlagWithFilters(JTextArea t, String playerName, boolean verbose,
+		String flag, int minEvents, String filterFilePath) {
+
+		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
+		String flags = "-n" + flag;
+		String minEventsFlagAndArg = " -m " + minEvents;
+		String filter_file_flags_and_arg = "";
+		int ret = 0;
+
+		if (!filterFilePath.equals("")) {
+			filter_file_flags_and_arg = " -p " + filterFilePath;
+		}
+
+		if (verbose) flags = " -nv" + flag;
+
+		ret = DisplayCommandResultsInJTextArea(
+			"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+			minEventsFlagAndArg + filter_file_flags_and_arg +
+			flags + " " + playerName, t, false);
+
+		if (ret != 0) {
+			System.err.println("An error occurred running \"" +
+				"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+				minEventsFlagAndArg + filter_file_flags_and_arg +
+				flags + " " + playerName + "\"");
+		}
+	}
+
 	private void UpdateJListToSearchString(JList l, String s) {
 		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
 		File PlayerDirectory = new File(prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
@@ -273,10 +301,61 @@ public class graphicalG2ME {
 
 		/* Configure Settings Tab */
 		JLabel SettingsG2MEDirLabel = new JLabel("G2ME Directory file path");
+		JPanel SettingsG2MEDirComponents = new JPanel(null);
+		SettingsG2MEDirComponents.setLayout(new BoxLayout(SettingsG2MEDirComponents, BoxLayout.X_AXIS));
 		JAliasedTextField SettingsG2MEDirTextField = new JAliasedTextField();
+		JAliasedButton SettingsG2MEDirBrowseButton = new JAliasedButton("Browse...");
+		SettingsG2MEDirBrowseButton.setEnabled(false);
+		JPanel SettingsG2MEPlayerDirComponents = new JPanel(null);
+		SettingsG2MEPlayerDirComponents.setLayout(new BoxLayout(SettingsG2MEPlayerDirComponents, BoxLayout.X_AXIS));
 		JLabel SettingsG2MEPlayerDirLabel = new JLabel("G2ME Players-Directory file path");
 		JAliasedTextField SettingsG2MEPlayerDirTextField = new JAliasedTextField();
+		JAliasedButton SettingsG2MEPlayerDirBrowseButton = new JAliasedButton("Browse...");
+		SettingsG2MEPlayerDirBrowseButton.setEnabled(false);
 		JAliasedButton SettingsSaveButton = new JAliasedButton("Save");
+
+		SettingsG2MEDirBrowseButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FileDialog FB = new java.awt.FileDialog((java.awt.Frame) null,
+					"Select G2ME Directory...", FileDialog.LOAD);
+				FB.setDirectory(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
+				FB.setVisible(true);
+
+				/* If a file was successfully chosen */
+				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
+				if (FB.getFile() != null && DestinationFile.isDirectory()) {
+					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
+					try {
+						SettingsG2MEDirTextField.setText(DestinationFile.getAbsolutePath());
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
+
+		SettingsG2MEPlayerDirBrowseButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FileDialog FB = new java.awt.FileDialog((java.awt.Frame) null,
+					"Select G2ME Player Directory...", FileDialog.LOAD);
+				FB.setDirectory(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
+				FB.setVisible(true);
+
+				/* If a file was successfully chosen */
+				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
+				if (FB.getFile() != null && DestinationFile.isDirectory()) {
+					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
+					try {
+						SettingsG2MEPlayerDirTextField.setText(DestinationFile.getAbsolutePath());
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
+
 		SettingsSaveButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -318,26 +397,41 @@ public class graphicalG2ME {
 		SettingsG2MEDirTextField.setMinimumSize(new Dimension(60, TEXTFIELD_HEIGHT));
 		SettingsG2MEDirTextField.setPreferredSize(new Dimension(60, TEXTFIELD_HEIGHT));
 		SettingsG2MEDirTextField.setMaximumSize(new Dimension(Short.MAX_VALUE, TEXTFIELD_HEIGHT));
+		SettingsG2MEDirBrowseButton.setMinimumSize(new Dimension(60, TEXTFIELD_HEIGHT));
+		SettingsG2MEDirBrowseButton.setPreferredSize(new Dimension(100, TEXTFIELD_HEIGHT));
+		SettingsG2MEDirBrowseButton.setMaximumSize(new Dimension(140, TEXTFIELD_HEIGHT));
 		SettingsG2MEPlayerDirTextField.setMinimumSize(new Dimension(60, TEXTFIELD_HEIGHT));
 		SettingsG2MEPlayerDirTextField.setPreferredSize(new Dimension(60, TEXTFIELD_HEIGHT));
 		SettingsG2MEPlayerDirTextField.setMaximumSize(new Dimension(Short.MAX_VALUE, TEXTFIELD_HEIGHT));
+		SettingsG2MEPlayerDirBrowseButton.setMinimumSize(new Dimension(60, TEXTFIELD_HEIGHT));
+		SettingsG2MEPlayerDirBrowseButton.setPreferredSize(new Dimension(100, TEXTFIELD_HEIGHT));
+		SettingsG2MEPlayerDirBrowseButton.setMaximumSize(new Dimension(140, TEXTFIELD_HEIGHT));
 		SettingsSaveButton.setMinimumSize(new Dimension(50, TEXTFIELD_HEIGHT));
 		SettingsSaveButton.setPreferredSize(new Dimension(70, TEXTFIELD_HEIGHT));
 		SettingsSaveButton.setMaximumSize(new Dimension(90, TEXTFIELD_HEIGHT));
+		SettingsG2MEDirComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
+		SettingsG2MEPlayerDirComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEDirLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEDirTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEPlayerDirLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEPlayerDirTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsSaveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		/* Add elements to their "hboxes" */
+		SettingsG2MEDirComponents.add(SettingsG2MEDirTextField);
+		SettingsG2MEDirComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		SettingsG2MEDirComponents.add(SettingsG2MEDirBrowseButton);
+		SettingsG2MEPlayerDirComponents.add(SettingsG2MEPlayerDirTextField);
+		SettingsG2MEPlayerDirComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		SettingsG2MEPlayerDirComponents.add(SettingsG2MEPlayerDirBrowseButton);
 		/* Add all the elements to the tab (with spacing) */
 		tabSettings.setBorder(new EmptyBorder(ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING));
 		tabSettings.add(SettingsG2MEDirLabel);
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
-		tabSettings.add(SettingsG2MEDirTextField);
+		tabSettings.add(SettingsG2MEDirComponents);
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
 		tabSettings.add(SettingsG2MEPlayerDirLabel);
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
-		tabSettings.add(SettingsG2MEPlayerDirTextField);
+		tabSettings.add(SettingsG2MEPlayerDirComponents);
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
 		tabSettings.add(SettingsSaveButton);
 
@@ -348,6 +442,7 @@ public class graphicalG2ME {
 		JAliasedCheckBox PowerRankingsVerboseCheckBox = new JAliasedCheckBox("Verbose");
 		PowerRankingsVerboseCheckBox.setSelected(prefs.getBoolean(POWER_RANKINGS_VERBOSE, POWER_RANKINGS_VERBOSE_DEFAULT));
 		JAliasedTextField PowerRankingsFilterFileTextField = new JAliasedTextField();
+		JAliasedButton PowerRankingsFilterFileBrowseButton = new JAliasedButton("Browse For Filter File...");
 		JAliasedButton PowerRankingsSaveButton = new JAliasedButton("Save As...");
 		JLabel PowerRankingsMinEventsLabel = new JLabel("Min. Events:");
 		JPanel PowerRankingsMinEventComponents = new JPanel();
@@ -359,6 +454,27 @@ public class graphicalG2ME {
 		JScrollPane PowerRankingsTextDialogScroll = new JScrollPane(PowerRankingsTextDialog);
 
 		PowerRankingsTextDialog.setFont(new Font("monospaced", Font.PLAIN, 12));
+
+		PowerRankingsFilterFileBrowseButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FileDialog FB = new java.awt.FileDialog((java.awt.Frame) null,
+					"Select Filter File...", FileDialog.LOAD);
+				FB.setDirectory(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
+				FB.setVisible(true);
+
+				/* If a file was successfully chosen */
+				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
+				if (FB.getFile() != null && !DestinationFile.isDirectory()) {
+					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
+					try {
+						PowerRankingsFilterFileTextField.setText(DestinationFile.getAbsolutePath());
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
 
 		PowerRankingsGenPRButton.addActionListener(new ActionListener() {
 			@Override
@@ -441,6 +557,9 @@ public class graphicalG2ME {
 		PowerRankingsFilterFileTextField.setMinimumSize(new Dimension(genPRControlBarMinWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsFilterFileTextField.setPreferredSize(new Dimension(genPRControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsFilterFileTextField.setMaximumSize(new Dimension(genPRControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		PowerRankingsFilterFileBrowseButton.setMinimumSize(new Dimension(genPRControlBarMinWidth, TEXTFIELD_HEIGHT));
+		PowerRankingsFilterFileBrowseButton.setPreferredSize(new Dimension(genPRControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		PowerRankingsFilterFileBrowseButton.setMaximumSize(new Dimension(genPRControlBarMaxWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsFilterFileTextField.setToolTipText("File path for a filter file");
 		PowerRankingsMinEventsLabel.setMinimumSize(new Dimension(genPRControlBarMinWidth/2, CHECKBOX_HEIGHT));
 		PowerRankingsMinEventsLabel.setPreferredSize(new Dimension(genPRControlBarPrefWidth/2, CHECKBOX_HEIGHT));
@@ -448,6 +567,12 @@ public class graphicalG2ME {
 		PowerRankingsMinEventsSpinner.setMinimumSize(new Dimension(genPRControlBarMinWidth/2, TEXTFIELD_HEIGHT));
 		PowerRankingsMinEventsSpinner.setPreferredSize(new Dimension(genPRControlBarPrefWidth/2, TEXTFIELD_HEIGHT));
 		PowerRankingsMinEventsSpinner.setMaximumSize(new Dimension(genPRControlBarMaxWidth/2, TEXTFIELD_HEIGHT));
+		JSeparator PowerRankingsSaveBreak = new JSeparator(SwingConstants.HORIZONTAL);
+		PowerRankingsSaveBreak.setMinimumSize(new Dimension(genPRControlBarMinWidth - 2 * ELEMENT_SPACING, 3));
+		PowerRankingsSaveBreak.setPreferredSize(new Dimension(genPRControlBarPrefWidth - 2 * ELEMENT_SPACING, 3));
+		PowerRankingsSaveBreak.setMaximumSize(new Dimension(genPRControlBarMaxWidth - 2 * ELEMENT_SPACING, 3));
+		PowerRankingsSaveBreak.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PowerRankingsSaveBreak.setAlignmentY(Component.CENTER_ALIGNMENT);
 		PowerRankingsSaveButton.setMinimumSize(new Dimension(genPRControlBarMinWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsSaveButton.setPreferredSize(new Dimension(genPRControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsSaveButton.setMaximumSize(new Dimension(genPRControlBarMaxWidth, TEXTFIELD_HEIGHT));
@@ -464,10 +589,15 @@ public class graphicalG2ME {
 		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PowerRankingsControlBar.add(PowerRankingsVerboseCheckBox);
 		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
-		PowerRankingsControlBar.add(PowerRankingsFilterFileTextField);
-		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PowerRankingsControlBar.add(PowerRankingsMinEventComponents);
 		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		PowerRankingsControlBar.add(PowerRankingsFilterFileTextField);
+		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		PowerRankingsControlBar.add(PowerRankingsFilterFileBrowseButton);
+		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
+		PowerRankingsControlBar.add(PowerRankingsSaveBreak);
+		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
 		PowerRankingsControlBar.add(PowerRankingsSaveButton);
 		/* Add all the elements to the tab (with spacing) */
 		tabPowerRankings.setBorder(new EmptyBorder(ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING));
@@ -486,6 +616,14 @@ public class graphicalG2ME {
 		JScrollPane PlayerInformationPlayerListScroll = new JScrollPane(PlayerInformationPlayerList);
 		JAliasedTextArea PlayerInformationTextDialog = new JAliasedTextArea();
 		JScrollPane PlayerInformationTextDialogScroll = new JScrollPane(PlayerInformationTextDialog);
+		JAliasedTextField PlayerInformationFilterFileTextField = new JAliasedTextField();
+		JAliasedButton PlayerInformationFilterFileBrowseButton = new JAliasedButton("Browse For Filter File...");
+		JLabel PlayerInformationMinEventsLabel = new JLabel("Min. Events:");
+		JPanel PlayerInformationMinEventComponents = new JPanel();
+		PlayerInformationMinEventComponents.setLayout(new BoxLayout(PlayerInformationMinEventComponents, BoxLayout.X_AXIS));
+		JAliasedSpinner PlayerInformationMinEventsSpinner =
+			new JAliasedSpinner(new SpinnerNumberModel(1, 1, 1000, 1));
+		PlayerInformationMinEventsSpinner.setToolTipText("Filter Power Ranking Output to Only Include Players Who Have Attended This Many Events");
 
 		JAliasedRadioButton PlayerInformationHistoryButton = new JAliasedRadioButton("Outcome History");
 		PlayerInformationHistoryButton.setToolTipText("Opponent, Date, Tournament and Glicko2 Data After Every Outcome (Set/Game)");
@@ -495,6 +633,11 @@ public class graphicalG2ME {
 		PlayerInformationEventsAttendedButton.setToolTipText("Names of All Events Attended");
 		JAliasedRadioButton PlayerInformationNumOutcomesButton = new JAliasedRadioButton("Number of Outcomes (Sets/Games) Played");
 		PlayerInformationNumOutcomesButton.setToolTipText("Number of Outcomes (Sets/Games) Played");
+		String[] playerInfoFlags = new String[4];
+		playerInfoFlags[0] = "h";
+		playerInfoFlags[1] = "R";
+		playerInfoFlags[2] = "A";
+		playerInfoFlags[3] = "c";
 		JAliasedRadioButton[] PlayerInfoRadioButtonArray = new JAliasedRadioButton[4];
 		PlayerInfoRadioButtonArray[0] = PlayerInformationHistoryButton;
 		PlayerInfoRadioButtonArray[1] = PlayerInformationRecordsButton;
@@ -504,33 +647,62 @@ public class graphicalG2ME {
 		PlayerInformationHistoryButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(true);
-				playerInformationCurrentFlag = "h";
+				PlayerInformationMinEventsSpinner.setEnabled(false);
+				PlayerInformationFilterFileTextField.setEnabled(false);
+				PlayerInformationFilterFileBrowseButton.setEnabled(false);
+				playerInformationCurrentFlag = playerInfoFlags[0];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 0);
 			}
 		});
 		PlayerInformationRecordsButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(false);
-				playerInformationCurrentFlag = "R";
+				PlayerInformationMinEventsSpinner.setEnabled(true);
+				PlayerInformationFilterFileTextField.setEnabled(true);
+				PlayerInformationFilterFileBrowseButton.setEnabled(true);
+				playerInformationCurrentFlag = playerInfoFlags[1];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 1);
 			}
 		});
 		PlayerInformationEventsAttendedButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(false);
-				playerInformationCurrentFlag = "A";
+				PlayerInformationMinEventsSpinner.setEnabled(false);
+				PlayerInformationFilterFileTextField.setEnabled(false);
+				PlayerInformationFilterFileBrowseButton.setEnabled(false);
+				playerInformationCurrentFlag = playerInfoFlags[2];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 2);
 			}
 		});
 		PlayerInformationNumOutcomesButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(false);
-				playerInformationCurrentFlag = "c";
+				PlayerInformationMinEventsSpinner.setEnabled(false);
+				PlayerInformationFilterFileTextField.setEnabled(false);
+				PlayerInformationFilterFileBrowseButton.setEnabled(false);
+				playerInformationCurrentFlag = playerInfoFlags[3];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 3);
 			}
 		});
-		/* Remember which one was selected */
-		PlayerInfoRadioButtonArray[prefs.getInt(PLAYER_INFO_RB_SELECTED, PLAYER_INFO_RB_SELECTED_DEFAULT)].setSelected(true);
+		/* Remember which one was selected, and set GUI accordingly */
+		int previousRBSelected = prefs.getInt(PLAYER_INFO_RB_SELECTED, PLAYER_INFO_RB_SELECTED_DEFAULT);
+		PlayerInfoRadioButtonArray[previousRBSelected].setSelected(true);
+		playerInformationCurrentFlag = playerInfoFlags[previousRBSelected];
+
+		if (previousRBSelected == 0) {
+			PlayerInformationVerboseCheckBox.setEnabled(true);
+		} else {
+			PlayerInformationVerboseCheckBox.setEnabled(false);
+		}
+		if (previousRBSelected == 1) {
+			PlayerInformationMinEventsSpinner.setEnabled(true);
+			PlayerInformationFilterFileTextField.setEnabled(true);
+			PlayerInformationFilterFileBrowseButton.setEnabled(true);
+		} else {
+			PlayerInformationMinEventsSpinner.setEnabled(false);
+			PlayerInformationFilterFileTextField.setEnabled(false);
+			PlayerInformationFilterFileBrowseButton.setEnabled(false);
+		}
 
 		ButtonGroup PlayerInformationButtonGroup = new ButtonGroup();
 		PlayerInformationButtonGroup.add(PlayerInformationHistoryButton);
@@ -556,6 +728,26 @@ public class graphicalG2ME {
 			public void keyPressed(KeyEvent keyEvent) {}
 			public void keyTyped(KeyEvent keyEvent) {}
 		};
+		PlayerInformationFilterFileBrowseButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FileDialog FB = new java.awt.FileDialog((java.awt.Frame) null,
+					"Select Filter File...", FileDialog.LOAD);
+				FB.setDirectory(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
+				FB.setVisible(true);
+
+				/* If a file was successfully chosen */
+				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
+				if (FB.getFile() != null && !DestinationFile.isDirectory()) {
+					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
+					try {
+						PlayerInformationFilterFileTextField.setText(DestinationFile.getAbsolutePath());
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
 		PlayerInformationSearchTextField.addKeyListener(PlayerInformationSearchKeyListener);
 		PlayerInformationSearchTextField.addActionListener(new ActionListener() {
 			@Override
@@ -568,8 +760,9 @@ public class graphicalG2ME {
 					if (newValue != null) {
 						playerInformationLastName = newValue;
 						/* Update player information currently in dialog */
-						UpdateJTextAreaToFlag(PlayerInformationTextDialog, playerInformationLastName,
-							PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag);
+						UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
+							PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag,
+							(int)PlayerInformationMinEventsSpinner.getValue(), PlayerInformationFilterFileTextField.getText());
 					}
 				}
 			}
@@ -581,8 +774,9 @@ public class graphicalG2ME {
 				UpdateJListToSearchString(PlayerInformationPlayerList,
 					PlayerInformationSearchTextField.getText());
 				/* Refresh player information currently in dialog */
-				UpdateJTextAreaToFlag(PlayerInformationTextDialog, playerInformationLastName,
-					PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag);
+				UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
+					PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag,
+					(int)PlayerInformationMinEventsSpinner.getValue(), PlayerInformationFilterFileTextField.getText());
 			}
 		});
 		PlayerInformationPlayerList.addListSelectionListener(new ListSelectionListener() {
@@ -594,8 +788,9 @@ public class graphicalG2ME {
 					if (newValue != null) {
 						playerInformationLastName = newValue;
 						/* Update player information currently in dialog */
-						UpdateJTextAreaToFlag(PlayerInformationTextDialog, playerInformationLastName,
-							PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag);
+						UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
+							PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag,
+							(int)PlayerInformationMinEventsSpinner.getValue(), PlayerInformationFilterFileTextField.getText());
 					}
 				}
 			}
@@ -626,6 +821,23 @@ public class graphicalG2ME {
 		PlayerInformationVerboseCheckBox.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, TEXTFIELD_HEIGHT));
 		PlayerInformationVerboseCheckBox.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		PlayerInformationVerboseCheckBox.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		JSeparator PlayerInformationPlayerListBreak = new JSeparator(SwingConstants.HORIZONTAL);
+		PlayerInformationFilterFileTextField.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, TEXTFIELD_HEIGHT));
+		PlayerInformationFilterFileTextField.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		PlayerInformationFilterFileTextField.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		PlayerInformationFilterFileBrowseButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, TEXTFIELD_HEIGHT));
+		PlayerInformationFilterFileBrowseButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		PlayerInformationFilterFileBrowseButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		PlayerInformationFilterFileTextField.setToolTipText("File path for a filter file");
+		PlayerInformationMinEventsLabel.setMinimumSize(new Dimension(playerInfoControlBarMinWidth/2, CHECKBOX_HEIGHT));
+		PlayerInformationMinEventsLabel.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth/2, CHECKBOX_HEIGHT));
+		PlayerInformationMinEventsLabel.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth/2, CHECKBOX_HEIGHT));
+		PlayerInformationMinEventsSpinner.setMinimumSize(new Dimension(playerInfoControlBarMinWidth/2, TEXTFIELD_HEIGHT));
+		PlayerInformationMinEventsSpinner.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth/2, TEXTFIELD_HEIGHT));
+		PlayerInformationMinEventsSpinner.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth/2, TEXTFIELD_HEIGHT));
+		PlayerInformationPlayerListBreak.setMinimumSize(new Dimension(playerInfoControlBarMinWidth - 2 * ELEMENT_SPACING, 3));
+		PlayerInformationPlayerListBreak.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth - 2 * ELEMENT_SPACING, 3));
+		PlayerInformationPlayerListBreak.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth - 2 * ELEMENT_SPACING, 3));
 		PlayerInformationSearchTextField.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, TEXTFIELD_HEIGHT));
 		PlayerInformationSearchTextField.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		PlayerInformationSearchTextField.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, TEXTFIELD_HEIGHT));
@@ -633,9 +845,18 @@ public class graphicalG2ME {
 		PlayerInformationPlayerListScroll.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, 200));
 		PlayerInformationPlayerListScroll.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, Short.MAX_VALUE));
 		PlayerInformationPlayerListScroll.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, Short.MAX_VALUE));
+		/* Add Minimum Events Components */
+		PlayerInformationMinEventComponents.add(PlayerInformationMinEventsLabel);
+		PlayerInformationMinEventComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		PlayerInformationMinEventComponents.add(PlayerInformationMinEventsSpinner);
 		/* Correct Alignments of components in the control bar section */
 		PlayerInformationRefreshButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PlayerInformationVerboseCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PlayerInformationMinEventComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PlayerInformationFilterFileTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PlayerInformationFilterFileBrowseButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PlayerInformationPlayerListBreak.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PlayerInformationPlayerListBreak.setAlignmentY(Component.CENTER_ALIGNMENT);
 		PlayerInformationSearchTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PlayerInformationPlayerListScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
 		/* Add the radio buttons to the control bar */
@@ -652,6 +873,14 @@ public class graphicalG2ME {
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PlayerInformationControlBar.add(PlayerInformationVerboseCheckBox);
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		PlayerInformationControlBar.add(PlayerInformationMinEventComponents);
+		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		PlayerInformationControlBar.add(PlayerInformationFilterFileTextField);
+		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		PlayerInformationControlBar.add(PlayerInformationFilterFileBrowseButton);
+		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
+		PlayerInformationControlBar.add(PlayerInformationPlayerListBreak);
+		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
 		PlayerInformationControlBar.add(PlayerInformationSearchTextField);
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PlayerInformationControlBar.add(PlayerInformationPlayerListScroll);
