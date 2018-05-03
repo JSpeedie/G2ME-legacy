@@ -273,6 +273,7 @@ public class graphicalG2ME {
 			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
 				if ("GTK+".equals(info.getName())) {
 					UIManager.setLookAndFeel(info.getClassName());
+					System.out.println("Note: Using GTK Look And Feel");
 					break;
 				}
 			}
@@ -280,6 +281,8 @@ public class graphicalG2ME {
 			/* Otherwise use the system look and feel */
 			try {
 				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+				System.out.println("Note: could not find gtk look and feel. " +
+					"Using Sysem Look And Feel...");
 			} catch (Exception e2) {
 				System.err.println("Error: could not find system look and feel. Exiting...");
 				System.exit(1);
