@@ -1,3 +1,8 @@
+/* Windows includes */
+#ifdef _WIN32
+#include <io.h>
+#endif
+/* Non-windows includes */
 #include <dirent.h>
 #include <errno.h>
 #include <getopt.h>
@@ -545,7 +550,13 @@ int entry_file_read_last_entry(char* file_path, struct entry *ret) {
  */
 int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
 	/* If the file did not exist */
+#ifdef __linux__
 	char existed = access(file_path, R_OK) != -1;
+#elif _WIN32
+	char existed = _access(file_path, 0) != -1;
+#else
+	char existed = access(file_path, R_OK) != -1;
+#endif
 
 	/* If the player entry file did not exist, create a new one with the
 	 * standard starting infomartion of length of name, name, and 2 zeros
