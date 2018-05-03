@@ -357,6 +357,7 @@ public class graphicalG2ME {
 		JAliasedTextField SettingsG2MEPlayerDirTextField = new JAliasedTextField();
 		JAliasedButton SettingsG2MEPlayerDirBrowseButton = new JAliasedButton("Browse...");
 		SettingsG2MEPlayerDirBrowseButton.setEnabled(false);
+		JAliasedButton SettingsAutoConfigureButton = new JAliasedButton("Attempt Auto-configuration");
 		JAliasedButton SettingsSaveButton = new JAliasedButton("Save");
 
 		SettingsG2MEBinBrowseButton.addActionListener(new ActionListener() {
@@ -428,6 +429,28 @@ public class graphicalG2ME {
 			}
 		});
 
+		SettingsAutoConfigureButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String baseDir = SettingsG2MEBinTextField.getText();
+				int lastIndex = baseDir.lastIndexOf("/");
+				/* If the path given is a windows path */
+				if (lastIndex == -1) {
+					lastIndex = baseDir.lastIndexOf("\\");
+					baseDir = baseDir.substring(0, lastIndex);
+					SettingsG2MEDirTextField.setText(baseDir);
+					SettingsG2MEPlayerDirTextField.setText(baseDir + "\\.players\\");
+				} else {
+					baseDir = baseDir.substring(0, lastIndex);
+					SettingsG2MEDirTextField.setText(baseDir);
+					SettingsG2MEPlayerDirTextField.setText(baseDir + "/.players/");
+				}
+				SettingsCheckG2MEBinTextField(SettingsG2MEBinTextField);
+				SettingsCheckG2MEDirTextField(SettingsG2MEDirTextField);
+				SettingsCheckG2MEPlayerDirTextField(SettingsG2MEPlayerDirTextField);
+			}
+		});
+
 		SettingsSaveButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -468,6 +491,9 @@ public class graphicalG2ME {
 		SettingsG2MEPlayerDirBrowseButton.setMinimumSize(new Dimension(60, TEXTFIELD_HEIGHT));
 		SettingsG2MEPlayerDirBrowseButton.setPreferredSize(new Dimension(100, TEXTFIELD_HEIGHT));
 		SettingsG2MEPlayerDirBrowseButton.setMaximumSize(new Dimension(140, TEXTFIELD_HEIGHT));
+		SettingsAutoConfigureButton.setMinimumSize(new Dimension(140, TEXTFIELD_HEIGHT));
+		SettingsAutoConfigureButton.setPreferredSize(new Dimension(220, TEXTFIELD_HEIGHT));
+		SettingsAutoConfigureButton.setMaximumSize(new Dimension(240, TEXTFIELD_HEIGHT));
 		SettingsSaveButton.setMinimumSize(new Dimension(50, TEXTFIELD_HEIGHT));
 		SettingsSaveButton.setPreferredSize(new Dimension(70, TEXTFIELD_HEIGHT));
 		SettingsSaveButton.setMaximumSize(new Dimension(90, TEXTFIELD_HEIGHT));
@@ -478,6 +504,7 @@ public class graphicalG2ME {
 		SettingsG2MEDirTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEPlayerDirLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEPlayerDirTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
+		SettingsAutoConfigureButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsSaveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		/* Add elements to their "hboxes" */
 		SettingsG2MEBinComponents.add(SettingsG2MEBinTextField);
@@ -502,6 +529,8 @@ public class graphicalG2ME {
 		tabSettings.add(SettingsG2MEPlayerDirLabel);
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
 		tabSettings.add(SettingsG2MEPlayerDirComponents);
+		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
+		tabSettings.add(SettingsAutoConfigureButton);
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
 		tabSettings.add(SettingsSaveButton);
 
