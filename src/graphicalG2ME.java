@@ -17,6 +17,7 @@ import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 public class graphicalG2ME {
 
 	/* Prefs Keys */
+	private static final String G2ME_BIN="G2ME_BIN";
 	private static final String G2ME_DIR="G2ME_DIR";
 	private static final String G2ME_PLAYER_DIR="G2ME_PLAYER_DIR";
 	private static final String WEIGHT="WEIGHT";
@@ -26,6 +27,7 @@ public class graphicalG2ME {
 	private static final String PLAYER_INFO_VERBOSE="PLAYER_INFO_VERBOSE";
 	private static final String PLAYER_INFO_RB_SELECTED="PLAYER_INFO_RB_SELECTED";
 	/* Prefs defaults */
+	private static String G2ME_BIN_DEFAULT="/usr/local/bin/G2ME";
 	private static String G2ME_DIR_DEFAULT="/home/me/G2MEGit/";
 	private static String G2ME_PLAYER_DIR_DEFAULT="/home/me/G2MEGit/.players/";
 	private static double WEIGHT_DEFAULT=1.0;
@@ -201,12 +203,14 @@ public class graphicalG2ME {
 		if (verbose) flags = "-nv" + flag;
 
 		ret = DisplayCommandResultsInJTextArea(
-			"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+			prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
+			" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
 			" " + flags + " " + playerName, t, false);
 
 		if (ret != 0) {
 			System.err.println("An error occurred running \"" +
-				"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+				prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
+				" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
 				" " + flags + " " + playerName + "\"");
 		}
 	}
@@ -227,13 +231,15 @@ public class graphicalG2ME {
 		if (verbose) flags = " -nv" + flag;
 
 		ret = DisplayCommandResultsInJTextArea(
-			"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+			prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
+			" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
 			minEventsFlagAndArg + filter_file_flags_and_arg +
 			flags + " " + playerName, t, false);
 
 		if (ret != 0) {
 			System.err.println("An error occurred running \"" +
-				"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+				prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
+				" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
 				minEventsFlagAndArg + filter_file_flags_and_arg +
 				flags + " " + playerName + "\"");
 		}
@@ -304,6 +310,12 @@ public class graphicalG2ME {
 		tabPlayerInformation.validate();
 
 		/* Configure Settings Tab */
+		JLabel SettingsG2MEExeLabel = new JLabel("G2ME Executable file path");
+		JPanel SettingsG2MEExeComponents = new JPanel(null);
+		SettingsG2MEExeComponents.setLayout(new BoxLayout(SettingsG2MEExeComponents, BoxLayout.X_AXIS));
+		JAliasedTextField SettingsG2MEExeTextField = new JAliasedTextField();
+		JAliasedButton SettingsG2MEExeBrowseButton = new JAliasedButton("Browse...");
+		SettingsG2MEExeBrowseButton.setEnabled(false);
 		JLabel SettingsG2MEDirLabel = new JLabel("G2ME Directory file path");
 		JPanel SettingsG2MEDirComponents = new JPanel(null);
 		SettingsG2MEDirComponents.setLayout(new BoxLayout(SettingsG2MEDirComponents, BoxLayout.X_AXIS));
@@ -317,6 +329,27 @@ public class graphicalG2ME {
 		JAliasedButton SettingsG2MEPlayerDirBrowseButton = new JAliasedButton("Browse...");
 		SettingsG2MEPlayerDirBrowseButton.setEnabled(false);
 		JAliasedButton SettingsSaveButton = new JAliasedButton("Save");
+
+		SettingsG2MEExeBrowseButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FileDialog FB = new java.awt.FileDialog((java.awt.Frame) null,
+					"Select G2ME Directory...", FileDialog.LOAD);
+				FB.setDirectory(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
+				FB.setVisible(true);
+
+				/* If a file was successfully chosen */
+				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
+				if (FB.getFile() != null && DestinationFile.isDirectory()) {
+					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
+					try {
+						SettingsG2MEExeTextField.setText(DestinationFile.getAbsolutePath());
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
 
 		SettingsG2MEDirBrowseButton.addActionListener(new ActionListener() {
 			@Override
@@ -363,10 +396,17 @@ public class graphicalG2ME {
 		SettingsSaveButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				prefs.put(G2ME_BIN, SettingsG2MEExeTextField.getText());
 				prefs.put(G2ME_DIR, SettingsG2MEDirTextField.getText());
 				prefs.put(G2ME_PLAYER_DIR, SettingsG2MEPlayerDirTextField.getText());
+				File G2MEExecutable = new File(prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT));
 				File G2MEDirectory = new File(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
 				File PlayerDirectory = new File(prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
+				if (!(G2MEExecutable != null && G2MEExecutable.isFile())) {
+					SettingsG2MEExeTextField.setForeground(Color.red);
+				} else {
+					SettingsG2MEExeTextField.setForeground(Color.green);
+				}
 				if (!(G2MEDirectory != null && G2MEDirectory.isDirectory())) {
 					SettingsG2MEDirTextField.setForeground(Color.red);
 				} else {
@@ -380,11 +420,18 @@ public class graphicalG2ME {
 			}
 		});
 		/* Set default text for the 2 text fields */
+		SettingsG2MEExeTextField.setText(prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT));
 		SettingsG2MEDirTextField.setText(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
 		SettingsG2MEPlayerDirTextField.setText(prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
-		/* Check that the 2 file paths lead to existing directories */
+		/* Check that the file paths lead to existing executables/directories */
+		File G2MEExecutable = new File(prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT));
 		File G2MEDirectory = new File(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
 		File PlayerDirectory = new File(prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
+		if (!(G2MEExecutable != null && G2MEExecutable.isFile())) {
+			SettingsG2MEExeTextField.setForeground(Color.red);
+		} else {
+			SettingsG2MEExeTextField.setForeground(Color.green);
+		}
 		if (!(G2MEDirectory != null && G2MEDirectory.isDirectory())) {
 			SettingsG2MEDirTextField.setForeground(Color.red);
 		} else {
@@ -398,6 +445,12 @@ public class graphicalG2ME {
 		/* Use Box Layout for this tab */
 		tabSettings.setLayout(new BoxLayout(tabSettings, BoxLayout.Y_AXIS));
 		/* Layout settings for the tab */
+		SettingsG2MEExeTextField.setMinimumSize(new Dimension(60, TEXTFIELD_HEIGHT));
+		SettingsG2MEExeTextField.setPreferredSize(new Dimension(60, TEXTFIELD_HEIGHT));
+		SettingsG2MEExeTextField.setMaximumSize(new Dimension(Short.MAX_VALUE, TEXTFIELD_HEIGHT));
+		SettingsG2MEExeBrowseButton.setMinimumSize(new Dimension(60, TEXTFIELD_HEIGHT));
+		SettingsG2MEExeBrowseButton.setPreferredSize(new Dimension(100, TEXTFIELD_HEIGHT));
+		SettingsG2MEExeBrowseButton.setMaximumSize(new Dimension(140, TEXTFIELD_HEIGHT));
 		SettingsG2MEDirTextField.setMinimumSize(new Dimension(60, TEXTFIELD_HEIGHT));
 		SettingsG2MEDirTextField.setPreferredSize(new Dimension(60, TEXTFIELD_HEIGHT));
 		SettingsG2MEDirTextField.setMaximumSize(new Dimension(Short.MAX_VALUE, TEXTFIELD_HEIGHT));
@@ -413,6 +466,7 @@ public class graphicalG2ME {
 		SettingsSaveButton.setMinimumSize(new Dimension(50, TEXTFIELD_HEIGHT));
 		SettingsSaveButton.setPreferredSize(new Dimension(70, TEXTFIELD_HEIGHT));
 		SettingsSaveButton.setMaximumSize(new Dimension(90, TEXTFIELD_HEIGHT));
+		SettingsG2MEExeComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEDirComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEPlayerDirComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEDirLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -421,6 +475,9 @@ public class graphicalG2ME {
 		SettingsG2MEPlayerDirTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsSaveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		/* Add elements to their "hboxes" */
+		SettingsG2MEExeComponents.add(SettingsG2MEExeTextField);
+		SettingsG2MEExeComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		SettingsG2MEExeComponents.add(SettingsG2MEExeBrowseButton);
 		SettingsG2MEDirComponents.add(SettingsG2MEDirTextField);
 		SettingsG2MEDirComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
 		SettingsG2MEDirComponents.add(SettingsG2MEDirBrowseButton);
@@ -429,6 +486,10 @@ public class graphicalG2ME {
 		SettingsG2MEPlayerDirComponents.add(SettingsG2MEPlayerDirBrowseButton);
 		/* Add all the elements to the tab (with spacing) */
 		tabSettings.setBorder(new EmptyBorder(ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING));
+		tabSettings.add(SettingsG2MEExeLabel);
+		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
+		tabSettings.add(SettingsG2MEExeComponents);
+		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
 		tabSettings.add(SettingsG2MEDirLabel);
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
 		tabSettings.add(SettingsG2MEDirComponents);
@@ -492,13 +553,15 @@ public class graphicalG2ME {
 				}
 
 				ret = DisplayCommandResultsInJTextArea(
-					"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+					prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
+					" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
 					filter_file_flags_and_arg +
 					" -m " + PowerRankingsMinEventsSpinner.getValue() +
 					" -" + no_req_flags + "O", PowerRankingsTextDialog, false);
 				if (ret != 0) {
 					System.err.println("An error occurred running \"" +
-						"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+						prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
+						" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
 						filter_file_flags_and_arg +
 						" -m " + PowerRankingsMinEventsSpinner.getValue() +
 						" -" + no_req_flags + "O" + "\"");
@@ -660,7 +723,7 @@ public class graphicalG2ME {
 		});
 		PlayerInformationRecordsButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				PlayerInformationVerboseCheckBox.setEnabled(false);
+				PlayerInformationVerboseCheckBox.setEnabled(true);
 				PlayerInformationMinEventsSpinner.setEnabled(true);
 				PlayerInformationFilterFileTextField.setEnabled(true);
 				PlayerInformationFilterFileBrowseButton.setEnabled(true);
@@ -693,7 +756,7 @@ public class graphicalG2ME {
 		PlayerInfoRadioButtonArray[previousRBSelected].setSelected(true);
 		playerInformationCurrentFlag = playerInfoFlags[previousRBSelected];
 
-		if (previousRBSelected == 0) {
+		if (previousRBSelected == 0 || previousRBSelected == 1) {
 			PlayerInformationVerboseCheckBox.setEnabled(true);
 		} else {
 			PlayerInformationVerboseCheckBox.setEnabled(false);
@@ -1031,12 +1094,14 @@ public class graphicalG2ME {
 						if (RunBracketsKeepDataBracketsCheckBox.isSelected()) no_req_flags += "k";
 						int ret = 0;
 						ret = DisplayCommandResultsInJTextArea(
-								"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+								prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
+								" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
 								" -w " + RunBracketsWeightSpinner.getValue() +
 								" -" + no_req_flags + "b " + bracket, RunBracketsLogDialog, true);
 						if (ret != 0) {
 							System.err.println("An error occurred running \"" +
-								"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+								prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
+								" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
 								" -w " + RunBracketsWeightSpinner.getValue() +
 								" -" + no_req_flags + "b " + bracket + "\"");
 						}
@@ -1066,12 +1131,14 @@ public class graphicalG2ME {
 						if (RunBracketsKeepDataSeasonsCheckBox.isSelected()) no_req_flags += "k";
 						int ret = 0;
 						ret = DisplayCommandResultsInJTextArea(
-								"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+								prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
+								" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
 								" -w " + RunBracketsWeightSpinner.getValue() +
 								" -" + no_req_flags + "B " + bracket, RunBracketsLogDialog, true);
 						if (ret != 0) {
 							System.err.println("An error occurred running \"" +
-								"G2ME -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+								prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
+								" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
 								" -w " + RunBracketsWeightSpinner.getValue() +
 								" -" + no_req_flags + "B " + bracket + "\"");
 						}
