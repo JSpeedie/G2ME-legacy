@@ -773,11 +773,12 @@ void update_players(char* bracket_file_path) {
  */
 int run_single_bracket(char *bracket_file_path) {
 	if (use_games == 1) {
-		fprintf(stdout, "running %s using games\n", bracket_file_path);
+		fprintf(stdout, "running \"%s\" using games ...", bracket_file_path);
 	} else {
-		fprintf(stdout, "running %s\n", bracket_file_path);
+		fprintf(stdout, "running \"%s\" ...", bracket_file_path);
 	}
 	update_players(bracket_file_path);
+	fprintf(stdout, "DONE\n");
 	return 0;
 }
 
@@ -806,11 +807,11 @@ int run_brackets(char *bracket_list_file_path) {
 		}
 		*end_of_line = '\0';
 		if (use_games == 1) {
-			printf("running %s using games\n", line);
+			fprintf(stdout, "running \"%s\" using games ...", line);
 		} else {
-			printf("running %s\n", line);
+			fprintf(stdout, "running \"%s\" ...", line);
 		}
-		update_players(line);
+		fprintf(stdout, "DONE\n");
 	}
 
 	fclose(bracket_list_file);
