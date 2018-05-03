@@ -268,6 +268,14 @@ public class graphicalG2ME {
 		/* Load preferences */
 		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
 
+		/* By default, use the system look and feel */
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			System.out.println("Note: Using System Look And Feel...");
+		} catch (Exception e2) {
+			System.err.println("Error: could not find system look and feel. Exiting...");
+			System.exit(1);
+		}
 		/* Try to set Look and Feel to GTK if available */
 		try {
 			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
@@ -278,15 +286,8 @@ public class graphicalG2ME {
 				}
 			}
 		} catch (Exception e) {
-			/* Otherwise use the system look and feel */
-			try {
-				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-				System.out.println("Note: could not find gtk look and feel. " +
-					"Using Sysem Look And Feel...");
-			} catch (Exception e2) {
-				System.err.println("Error: could not find system look and feel. Exiting...");
-				System.exit(1);
-			}
+			System.err.println("Error: Using GTK theme. Exiting...");
+			System.exit(1);
 		}
 
 		JPanel tabSettings = new JPanel(null);
