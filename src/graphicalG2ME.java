@@ -270,6 +270,36 @@ public class graphicalG2ME {
 		}
 	}
 
+	private void SettingsCheckG2MEBinTextField(JTextField text) {
+		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
+		File G2MEBinary = new File(prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT));
+		if (!(G2MEBinary != null && G2MEBinary.isFile())) {
+			text.setForeground(Color.red);
+		} else {
+			text.setForeground(Color.green);
+		}
+	}
+
+	private void SettingsCheckG2MEDirTextField(JTextField text) {
+		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
+		File G2MEDirectory = new File(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
+		if (!(G2MEDirectory != null && G2MEDirectory.isDirectory())) {
+			text.setForeground(Color.red);
+		} else {
+			text.setForeground(Color.green);
+		}
+	}
+
+	private void SettingsCheckG2MEPlayerDirTextField(JTextField text) {
+		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
+		File PlayerDirectory = new File(prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
+		if (!(PlayerDirectory != null && PlayerDirectory.isDirectory())) {
+			text.setForeground(Color.red);
+		} else {
+			text.setForeground(Color.green);
+		}
+	}
+
 	public graphicalG2ME() {
 		/* Load preferences */
 		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
@@ -310,12 +340,11 @@ public class graphicalG2ME {
 		tabPlayerInformation.validate();
 
 		/* Configure Settings Tab */
-		JLabel SettingsG2MEExeLabel = new JLabel("G2ME Executable file path");
-		JPanel SettingsG2MEExeComponents = new JPanel(null);
-		SettingsG2MEExeComponents.setLayout(new BoxLayout(SettingsG2MEExeComponents, BoxLayout.X_AXIS));
-		JAliasedTextField SettingsG2MEExeTextField = new JAliasedTextField();
-		JAliasedButton SettingsG2MEExeBrowseButton = new JAliasedButton("Browse...");
-		SettingsG2MEExeBrowseButton.setEnabled(false);
+		JLabel SettingsG2MEBinLabel = new JLabel("G2ME Binary/Executable file path");
+		JPanel SettingsG2MEBinComponents = new JPanel(null);
+		SettingsG2MEBinComponents.setLayout(new BoxLayout(SettingsG2MEBinComponents, BoxLayout.X_AXIS));
+		JAliasedTextField SettingsG2MEBinTextField = new JAliasedTextField();
+		JAliasedButton SettingsG2MEBinBrowseButton = new JAliasedButton("Browse...");
 		JLabel SettingsG2MEDirLabel = new JLabel("G2ME Directory file path");
 		JPanel SettingsG2MEDirComponents = new JPanel(null);
 		SettingsG2MEDirComponents.setLayout(new BoxLayout(SettingsG2MEDirComponents, BoxLayout.X_AXIS));
@@ -330,20 +359,22 @@ public class graphicalG2ME {
 		SettingsG2MEPlayerDirBrowseButton.setEnabled(false);
 		JAliasedButton SettingsSaveButton = new JAliasedButton("Save");
 
-		SettingsG2MEExeBrowseButton.addActionListener(new ActionListener() {
+		SettingsG2MEBinBrowseButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				FileDialog FB = new java.awt.FileDialog((java.awt.Frame) null,
-					"Select G2ME Directory...", FileDialog.LOAD);
+					"Select G2ME Binary/Executable...", FileDialog.LOAD);
 				FB.setDirectory(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
 				FB.setVisible(true);
 
 				/* If a file was successfully chosen */
 				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
-				if (FB.getFile() != null && DestinationFile.isDirectory()) {
+				if (FB.getFile() != null && DestinationFile.isFile()) {
 					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
 					try {
-						SettingsG2MEExeTextField.setText(DestinationFile.getAbsolutePath());
+						SettingsG2MEBinTextField.setText(DestinationFile.getAbsolutePath());
+						prefs.put(G2ME_BIN, SettingsG2MEBinTextField.getText());
+						SettingsCheckG2MEBinTextField(SettingsG2MEBinTextField);
 					} catch (Exception e1) {
 						e1.printStackTrace();
 					}
@@ -365,6 +396,8 @@ public class graphicalG2ME {
 					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
 					try {
 						SettingsG2MEDirTextField.setText(DestinationFile.getAbsolutePath());
+						prefs.put(G2ME_DIR, SettingsG2MEDirTextField.getText());
+						SettingsCheckG2MEDirTextField(SettingsG2MEDirTextField);
 					} catch (Exception e1) {
 						e1.printStackTrace();
 					}
@@ -386,6 +419,8 @@ public class graphicalG2ME {
 					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
 					try {
 						SettingsG2MEPlayerDirTextField.setText(DestinationFile.getAbsolutePath());
+						prefs.put(G2ME_PLAYER_DIR, SettingsG2MEPlayerDirTextField.getText());
+						SettingsCheckG2MEPlayerDirTextField(SettingsG2MEPlayerDirTextField);
 					} catch (Exception e1) {
 						e1.printStackTrace();
 					}
@@ -396,61 +431,31 @@ public class graphicalG2ME {
 		SettingsSaveButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				prefs.put(G2ME_BIN, SettingsG2MEExeTextField.getText());
+				prefs.put(G2ME_BIN, SettingsG2MEBinTextField.getText());
 				prefs.put(G2ME_DIR, SettingsG2MEDirTextField.getText());
 				prefs.put(G2ME_PLAYER_DIR, SettingsG2MEPlayerDirTextField.getText());
-				File G2MEExecutable = new File(prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT));
-				File G2MEDirectory = new File(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
-				File PlayerDirectory = new File(prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
-				if (!(G2MEExecutable != null && G2MEExecutable.isFile())) {
-					SettingsG2MEExeTextField.setForeground(Color.red);
-				} else {
-					SettingsG2MEExeTextField.setForeground(Color.green);
-				}
-				if (!(G2MEDirectory != null && G2MEDirectory.isDirectory())) {
-					SettingsG2MEDirTextField.setForeground(Color.red);
-				} else {
-					SettingsG2MEDirTextField.setForeground(Color.green);
-				}
-				if (!(PlayerDirectory != null && PlayerDirectory.isDirectory())) {
-					SettingsG2MEPlayerDirTextField.setForeground(Color.red);
-				} else {
-					SettingsG2MEPlayerDirTextField.setForeground(Color.green);
-				}
+				SettingsCheckG2MEBinTextField(SettingsG2MEBinTextField);
+				SettingsCheckG2MEDirTextField(SettingsG2MEDirTextField);
+				SettingsCheckG2MEPlayerDirTextField(SettingsG2MEPlayerDirTextField);
 			}
 		});
 		/* Set default text for the 2 text fields */
-		SettingsG2MEExeTextField.setText(prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT));
+		SettingsG2MEBinTextField.setText(prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT));
 		SettingsG2MEDirTextField.setText(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
 		SettingsG2MEPlayerDirTextField.setText(prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
 		/* Check that the file paths lead to existing executables/directories */
-		File G2MEExecutable = new File(prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT));
-		File G2MEDirectory = new File(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
-		File PlayerDirectory = new File(prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
-		if (!(G2MEExecutable != null && G2MEExecutable.isFile())) {
-			SettingsG2MEExeTextField.setForeground(Color.red);
-		} else {
-			SettingsG2MEExeTextField.setForeground(Color.green);
-		}
-		if (!(G2MEDirectory != null && G2MEDirectory.isDirectory())) {
-			SettingsG2MEDirTextField.setForeground(Color.red);
-		} else {
-			SettingsG2MEDirTextField.setForeground(Color.green);
-		}
-		if (!(PlayerDirectory != null && PlayerDirectory.isDirectory())) {
-			SettingsG2MEPlayerDirTextField.setForeground(Color.red);
-		} else {
-			SettingsG2MEPlayerDirTextField.setForeground(Color.green);
-		}
+		SettingsCheckG2MEBinTextField(SettingsG2MEBinTextField);
+		SettingsCheckG2MEDirTextField(SettingsG2MEDirTextField);
+		SettingsCheckG2MEPlayerDirTextField(SettingsG2MEPlayerDirTextField);
 		/* Use Box Layout for this tab */
 		tabSettings.setLayout(new BoxLayout(tabSettings, BoxLayout.Y_AXIS));
 		/* Layout settings for the tab */
-		SettingsG2MEExeTextField.setMinimumSize(new Dimension(60, TEXTFIELD_HEIGHT));
-		SettingsG2MEExeTextField.setPreferredSize(new Dimension(60, TEXTFIELD_HEIGHT));
-		SettingsG2MEExeTextField.setMaximumSize(new Dimension(Short.MAX_VALUE, TEXTFIELD_HEIGHT));
-		SettingsG2MEExeBrowseButton.setMinimumSize(new Dimension(60, TEXTFIELD_HEIGHT));
-		SettingsG2MEExeBrowseButton.setPreferredSize(new Dimension(100, TEXTFIELD_HEIGHT));
-		SettingsG2MEExeBrowseButton.setMaximumSize(new Dimension(140, TEXTFIELD_HEIGHT));
+		SettingsG2MEBinTextField.setMinimumSize(new Dimension(60, TEXTFIELD_HEIGHT));
+		SettingsG2MEBinTextField.setPreferredSize(new Dimension(60, TEXTFIELD_HEIGHT));
+		SettingsG2MEBinTextField.setMaximumSize(new Dimension(Short.MAX_VALUE, TEXTFIELD_HEIGHT));
+		SettingsG2MEBinBrowseButton.setMinimumSize(new Dimension(60, TEXTFIELD_HEIGHT));
+		SettingsG2MEBinBrowseButton.setPreferredSize(new Dimension(100, TEXTFIELD_HEIGHT));
+		SettingsG2MEBinBrowseButton.setMaximumSize(new Dimension(140, TEXTFIELD_HEIGHT));
 		SettingsG2MEDirTextField.setMinimumSize(new Dimension(60, TEXTFIELD_HEIGHT));
 		SettingsG2MEDirTextField.setPreferredSize(new Dimension(60, TEXTFIELD_HEIGHT));
 		SettingsG2MEDirTextField.setMaximumSize(new Dimension(Short.MAX_VALUE, TEXTFIELD_HEIGHT));
@@ -466,7 +471,7 @@ public class graphicalG2ME {
 		SettingsSaveButton.setMinimumSize(new Dimension(50, TEXTFIELD_HEIGHT));
 		SettingsSaveButton.setPreferredSize(new Dimension(70, TEXTFIELD_HEIGHT));
 		SettingsSaveButton.setMaximumSize(new Dimension(90, TEXTFIELD_HEIGHT));
-		SettingsG2MEExeComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
+		SettingsG2MEBinComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEDirComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEPlayerDirComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEDirLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -475,9 +480,9 @@ public class graphicalG2ME {
 		SettingsG2MEPlayerDirTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsSaveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		/* Add elements to their "hboxes" */
-		SettingsG2MEExeComponents.add(SettingsG2MEExeTextField);
-		SettingsG2MEExeComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
-		SettingsG2MEExeComponents.add(SettingsG2MEExeBrowseButton);
+		SettingsG2MEBinComponents.add(SettingsG2MEBinTextField);
+		SettingsG2MEBinComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		SettingsG2MEBinComponents.add(SettingsG2MEBinBrowseButton);
 		SettingsG2MEDirComponents.add(SettingsG2MEDirTextField);
 		SettingsG2MEDirComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
 		SettingsG2MEDirComponents.add(SettingsG2MEDirBrowseButton);
@@ -486,9 +491,9 @@ public class graphicalG2ME {
 		SettingsG2MEPlayerDirComponents.add(SettingsG2MEPlayerDirBrowseButton);
 		/* Add all the elements to the tab (with spacing) */
 		tabSettings.setBorder(new EmptyBorder(ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING));
-		tabSettings.add(SettingsG2MEExeLabel);
+		tabSettings.add(SettingsG2MEBinLabel);
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
-		tabSettings.add(SettingsG2MEExeComponents);
+		tabSettings.add(SettingsG2MEBinComponents);
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
 		tabSettings.add(SettingsG2MEDirLabel);
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
@@ -1366,24 +1371,9 @@ public class graphicalG2ME {
 			public void stateChanged(ChangeEvent e) {
 				/* Check if the paths are correct upon clicking on the Settings tab */
 				if (tabbedPane.getSelectedComponent() == tabSettings) {
-					File G2MEExecutable = new File(prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT));
-					File G2MEDirectory = new File(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
-					File PlayerDirectory = new File(prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
-					if (!(G2MEExecutable != null && G2MEExecutable.isFile())) {
-						SettingsG2MEExeTextField.setForeground(Color.red);
-					} else {
-						SettingsG2MEExeTextField.setForeground(Color.green);
-					}
-					if (!(G2MEDirectory != null && G2MEDirectory.isDirectory())) {
-						SettingsG2MEDirTextField.setForeground(Color.red);
-					} else {
-						SettingsG2MEDirTextField.setForeground(Color.green);
-					}
-					if (!(PlayerDirectory != null && PlayerDirectory.isDirectory())) {
-						SettingsG2MEPlayerDirTextField.setForeground(Color.red);
-					} else {
-						SettingsG2MEPlayerDirTextField.setForeground(Color.green);
-					}
+					SettingsCheckG2MEBinTextField(SettingsG2MEBinTextField);
+					SettingsCheckG2MEDirTextField(SettingsG2MEDirTextField);
+					SettingsCheckG2MEPlayerDirTextField(SettingsG2MEPlayerDirTextField);
 				}
 			}
 		});
