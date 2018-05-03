@@ -45,7 +45,41 @@ char pr_list_file_path[MAX_FILE_PATH_LEN];
 char p_flag_used = 0;
 char player_dir[MAX_FILE_PATH_LEN];
 
+int get_record(char *, char *, struct record *);
+
 struct entry temp;
+
+int check_if_dir(char *dir_path, char *file_name) {
+	char original_dir[MAX_FILE_PATH_LEN + 1];
+	int ret = 1;
+	if (NULL == getcwd(original_dir, MAX_FILE_PATH_LEN)) {
+		perror("getcwd (check_if_dir)");
+		return -1;
+	}
+	if (0 != chdir(dir_path)) {
+		perror("chdir (check_if_dir)");
+		return -2;
+	}
+	char fixed_dir[MAX_FILE_PATH_LEN + 1];
+	if (NULL == getcwd(fixed_dir, MAX_FILE_PATH_LEN)) {
+		perror("getcwd (check_if_dir)");
+		ret = -3;
+	}
+
+	struct stat file_info;
+	if(stat(file_name, &file_info) < 0) {
+		perror("stat (check_if_dir)");
+		ret = -4;
+	}
+	if (0 != chdir(original_dir)) {
+		perror("chdir (check_if_dir)");
+		ret = -5;
+	}
+	if (S_ISDIR(file_info.st_mode)) {
+		return 0;
+	}
+	return ret;
+}
 
 char *file_path_with_player_dir(char *s) {
 	int new_path_size = sizeof(char) * (MAX_FILE_PATH_LEN - MAX_NAME_LEN);
@@ -1223,20 +1257,17 @@ int print_player_records(char *file_path) {
 		}
 		if (passes_filter == 1) {
 			found_name = 0;
+			/* Search to see if records on this opponent are already
+			 * saved in the array */
 			for (int i = 0; i < num_rec; i++) {
 				if (0 == strcmp(ent.opp_name, records[i].opp_name)) {
 					found_name = 1;
-					if (ent.gc > ent.opp_gc) records[i].wins += 1;
-					else if (ent.gc == ent.opp_gc) records[i].ties += 1;
-					else if (ent.gc < ent.opp_gc) records[i].losses += 1;
 				}
 			}
+			/* If the record against this player is not in the array,
+			 * get the record */
 			if (found_name == 0) {
-				strncpy(records[num_rec].name, ent.name, MAX_NAME_LEN);
-				strncpy(records[num_rec].opp_name, ent.opp_name, MAX_NAME_LEN);
-				if (ent.gc > ent.opp_gc) records[num_rec].wins += 1;
-				else if (ent.gc == ent.opp_gc) records[num_rec].ties += 1;
-				else if (ent.gc < ent.opp_gc) records[num_rec].losses += 1;
+				get_record(ent.name, ent.opp_name, &records[num_rec]);
 				num_rec++;
 			}
 		}
@@ -1262,16 +1293,32 @@ int print_player_records(char *file_path) {
 			}
 		}
 
+		fprintf(stdout, "%s vs %s%s%s = %d",
+				records[i].name, output_colour_player, records[i].opp_name, \
+				reset_colour_player, records[i].wins);
 		// If the user wants ties to be printed
 		if (print_ties == 1) {
-			printf("%s vs %s%s%s = %d-%d-%d\n", \
-				records[i].name, output_colour_player, records[i].opp_name, \
-				reset_colour_player, records[i].wins, records[i].ties, records[i].losses);
-		} else {
-			printf("%s vs %s%s%s = %d-%d\n", \
-				records[i].name, output_colour_player, records[i].opp_name, \
-				reset_colour_player, records[i].wins, records[i].losses);
+			fprintf(stdout, "-%d", records[i].ties);
 		}
+		fprintf(stdout, "-%d", records[i].losses);
+		if (verbose == 1) {
+			if (colour_output == 1) {
+				fprintf(stdout, " -> ");
+				for (int j = 0; records[i].last_outcomes[j] != '\0'; j++) {
+					if (records[i].last_outcomes[j] == 'W') {
+						fprintf(stdout, "%s%c", GREEN, records[i].last_outcomes[j]);
+					} else if (records[i].last_outcomes[j] == 'T') {
+						fprintf(stdout, "%s%c", YELLOW, records[i].last_outcomes[j]);
+					} else if (records[i].last_outcomes[j] == 'L') {
+						fprintf(stdout, "%s%c", RED, records[i].last_outcomes[j]);
+					}
+				}
+				fprintf(stdout, "%s", NORMAL);
+			} else {
+				fprintf(stdout, " -> %s", records[i].last_outcomes);
+			}
+		}
+		fprintf(stdout, "\n");
 	}
 
 	return 0;
@@ -1381,6 +1428,10 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	ret->losses = 0;
 	ret->ties = 0;
 
+	int num_ent = entry_file_get_number_of_entries(full_player1_path);
+	int cur_opp_ent_num = 0;
+	unsigned long num_of_last_outcomes = sizeof(ret->last_outcomes) - 1;
+
 	/* Get to the entries in the player file */
 	int r = entry_file_get_to_entries(p_file);
 	if (r != 0) {
@@ -1389,13 +1440,28 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	}
 
 	while (entry_file_read_entry(p_file, &ent) == 0) {
-		// If the opponent for the given entry is the player of interest
+		/* If the opponent for the given entry is the player of interest */
 		if (0 == strcmp(ent.opp_name, player2)) {
 			if (ent.gc > ent.opp_gc) ret->wins += 1;
 			else if (ent.gc == ent.opp_gc) ret->ties += 1;
 			else if (ent.gc < ent.opp_gc) ret->losses += 1;
+			/* If the current entry is one of the last x many,
+			 * add it to the recent outcome list */
+			if ((unsigned long)(num_ent - cur_opp_ent_num)
+				< num_of_last_outcomes) {
+
+				if (ent.gc > ent.opp_gc) {
+					ret->last_outcomes[cur_opp_ent_num] = 'W';
+				} else if (ent.gc == ent.opp_gc) {
+					ret->last_outcomes[cur_opp_ent_num] = 'T';
+				} else if (ent.gc < ent.opp_gc) {
+					ret->last_outcomes[cur_opp_ent_num] = 'L';
+				}
+			}
+			cur_opp_ent_num++;
 		}
 	}
+	ret->last_outcomes[cur_opp_ent_num] = '\0';
 	free(full_player1_path);
 	fclose(p_file);
 

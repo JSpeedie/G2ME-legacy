@@ -28,9 +28,10 @@ typedef struct entry {
 typedef struct record {
 	char name[MAX_NAME_LEN];
 	char opp_name[MAX_NAME_LEN];
-	unsigned char wins;
-	unsigned char ties;
-	unsigned char losses;
+	unsigned short wins;
+	unsigned short ties;
+	unsigned short losses;
+	char last_outcomes[MAX_NAME_LEN];
 }Record;
 
 char *file_path_with_player_dir(char *);
