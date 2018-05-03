@@ -1362,6 +1362,31 @@ public class graphicalG2ME {
 						super.paintComponent(g);
 					}
 		};
+		tabbedPane.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				/* Check if the paths are correct upon clicking on the Settings tab */
+				if (tabbedPane.getSelectedComponent() == tabSettings) {
+					File G2MEExecutable = new File(prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT));
+					File G2MEDirectory = new File(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
+					File PlayerDirectory = new File(prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
+					if (!(G2MEExecutable != null && G2MEExecutable.isFile())) {
+						SettingsG2MEExeTextField.setForeground(Color.red);
+					} else {
+						SettingsG2MEExeTextField.setForeground(Color.green);
+					}
+					if (!(G2MEDirectory != null && G2MEDirectory.isDirectory())) {
+						SettingsG2MEDirTextField.setForeground(Color.red);
+					} else {
+						SettingsG2MEDirTextField.setForeground(Color.green);
+					}
+					if (!(PlayerDirectory != null && PlayerDirectory.isDirectory())) {
+						SettingsG2MEPlayerDirTextField.setForeground(Color.red);
+					} else {
+						SettingsG2MEPlayerDirTextField.setForeground(Color.green);
+					}
+				}
+			}
+		});
 		tabbedPane.addTab("Settings", tabSettings);
 		tabbedPane.addTab("Power Rankings", tabPowerRankings);
 		tabbedPane.addTab("Player Info", tabPlayerInformation);
