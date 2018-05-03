@@ -219,7 +219,7 @@ public class graphicalG2ME {
 		String flag, int minEvents, String filterFilePath) {
 
 		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
-		String flags = "-n" + flag;
+		String flags = " -n" + flag;
 		String minEventsFlagAndArg = " -m " + minEvents;
 		String filter_file_flags_and_arg = "";
 		int ret = 0;
