@@ -363,6 +363,7 @@ public class graphicalG2ME {
 		SettingsG2MEPlayerDirBrowseButton.setEnabled(false);
 		JAliasedButton SettingsAutoConfigureButton = new JAliasedButton("Attempt Auto-configuration");
 		JAliasedButton SettingsSaveButton = new JAliasedButton("Save");
+		JAliasedButton SettingsResetSavedGUISettingsButton = new JAliasedButton("Reset Saved GUI Settings");
 
 		SettingsG2MEBinBrowseButton.addActionListener(new ActionListener() {
 			@Override
@@ -495,6 +496,9 @@ public class graphicalG2ME {
 		SettingsG2MEPlayerDirBrowseButton.setMinimumSize(new Dimension(60, TEXTFIELD_HEIGHT));
 		SettingsG2MEPlayerDirBrowseButton.setPreferredSize(new Dimension(100, TEXTFIELD_HEIGHT));
 		SettingsG2MEPlayerDirBrowseButton.setMaximumSize(new Dimension(140, TEXTFIELD_HEIGHT));
+		SettingsResetSavedGUISettingsButton.setMinimumSize(new Dimension(140, TEXTFIELD_HEIGHT));
+		SettingsResetSavedGUISettingsButton.setPreferredSize(new Dimension(220, TEXTFIELD_HEIGHT));
+		SettingsResetSavedGUISettingsButton.setMaximumSize(new Dimension(240, TEXTFIELD_HEIGHT));
 		SettingsAutoConfigureButton.setMinimumSize(new Dimension(140, TEXTFIELD_HEIGHT));
 		SettingsAutoConfigureButton.setPreferredSize(new Dimension(220, TEXTFIELD_HEIGHT));
 		SettingsAutoConfigureButton.setMaximumSize(new Dimension(240, TEXTFIELD_HEIGHT));
@@ -508,6 +512,7 @@ public class graphicalG2ME {
 		SettingsG2MEDirTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEPlayerDirLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEPlayerDirTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
+		SettingsResetSavedGUISettingsButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsAutoConfigureButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsSaveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		/* Add elements to their "hboxes" */
@@ -533,6 +538,8 @@ public class graphicalG2ME {
 		tabSettings.add(SettingsG2MEPlayerDirLabel);
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
 		tabSettings.add(SettingsG2MEPlayerDirComponents);
+		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
+		tabSettings.add(SettingsResetSavedGUISettingsButton);
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
 		tabSettings.add(SettingsAutoConfigureButton);
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
@@ -1450,6 +1457,36 @@ public class graphicalG2ME {
 		// TODO: make icon image
 		// frame.setIconImage(new ImageIcon(imgURL).getImage());
 
+		SettingsResetSavedGUISettingsButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				/* Reset Settings Tab */
+				prefs.put(G2ME_BIN, G2ME_BIN_DEFAULT);
+				prefs.put(G2ME_DIR, G2ME_DIR_DEFAULT);
+				prefs.put(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT);
+				SettingsG2MEBinTextField.setText(G2ME_BIN_DEFAULT);
+				SettingsG2MEDirTextField.setText(G2ME_DIR_DEFAULT);
+				SettingsG2MEPlayerDirTextField.setText(G2ME_PLAYER_DIR_DEFAULT);
+				SettingsCheckG2MEBinTextField(SettingsG2MEBinTextField);
+				SettingsCheckG2MEDirTextField(SettingsG2MEDirTextField);
+				SettingsCheckG2MEPlayerDirTextField(SettingsG2MEPlayerDirTextField);
+				/* Reset Power Rankings Tab */
+				prefs.putBoolean(POWER_RANKINGS_VERBOSE, POWER_RANKINGS_VERBOSE_DEFAULT);
+				PowerRankingsVerboseCheckBox.setSelected(POWER_RANKINGS_VERBOSE_DEFAULT);
+				/* Reset Player Info Tab */
+				prefs.putBoolean(PLAYER_INFO_VERBOSE, PLAYER_INFO_VERBOSE_DEFAULT);
+				prefs.putInt(PLAYER_INFO_RB_SELECTED, PLAYER_INFO_RB_SELECTED_DEFAULT);
+				PlayerInformationVerboseCheckBox.setSelected(PLAYER_INFO_VERBOSE_DEFAULT);
+				PlayerInfoRadioButtonArray[PLAYER_INFO_RB_SELECTED_DEFAULT].setSelected(true);
+				/* Reset Run Brackets Tab */
+				prefs.putDouble(WEIGHT, WEIGHT_DEFAULT);
+				prefs.putBoolean(USE_GAMES, USE_GAMES_DEFAULT);
+				prefs.putBoolean(RD_ADJUST_ABSENT, RD_ADJUST_ABSENT_DEFAULT);
+				RunBracketsWeightSpinner.setValue(WEIGHT_DEFAULT);
+				RunBracketsUseGamesCheckBox.setSelected(USE_GAMES_DEFAULT);
+				RunBracketsRDAdjustAbsentCheckBox.setSelected(RD_ADJUST_ABSENT_DEFAULT);
+			}
+		});
 		/* Antialiased font tabbed pane */
 		JTabbedPane tabbedPane = new JTabbedPane() {
 					@Override
