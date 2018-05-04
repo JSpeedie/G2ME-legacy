@@ -222,10 +222,14 @@ public class graphicalG2ME {
 		String flags = " -n" + flag;
 		String minEventsFlagAndArg = " -m " + minEvents;
 		String filter_file_flags_and_arg = "";
+		String spaceAndPlayerName = " " + playerName;
 		int ret = 0;
 
 		if (!filterFilePath.equals("")) {
 			filter_file_flags_and_arg = " -p " + filterFilePath;
+		}
+		if (flag.equals("M") || flag.equals("C")) {
+			spaceAndPlayerName = "";
 		}
 
 		if (verbose) flags = " -nv" + flag;
@@ -234,14 +238,14 @@ public class graphicalG2ME {
 			prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
 			" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
 			minEventsFlagAndArg + filter_file_flags_and_arg +
-			flags + " " + playerName, t, false);
+			flags + spaceAndPlayerName, t, false);
 
 		if (ret != 0) {
 			System.err.println("An error occurred running \"" +
 				prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
 				" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
 				minEventsFlagAndArg + filter_file_flags_and_arg +
-				flags + " " + playerName + "\"");
+				flags + spaceAndPlayerName + "\"");
 		}
 	}
 
@@ -734,16 +738,25 @@ public class graphicalG2ME {
 		PlayerInformationEventsAttendedButton.setToolTipText("Names of All Events Attended");
 		JAliasedRadioButton PlayerInformationNumOutcomesButton = new JAliasedRadioButton("Number of Outcomes (Sets/Games) Played");
 		PlayerInformationNumOutcomesButton.setToolTipText("Number of Outcomes (Sets/Games) Played");
-		String[] playerInfoFlags = new String[4];
+		JAliasedRadioButton PlayerInformationRecordTableButton = new JAliasedRadioButton("Records/Head-to-Heads Table");
+		PlayerInformationRecordTableButton.setToolTipText("Records/Head-to-Head Table. Requires clicking the Refresh button");
+		JAliasedRadioButton PlayerInformationRecordCSVButton = new JAliasedRadioButton("Records/Head-to-Heads CSV");
+		PlayerInformationRecordCSVButton.setToolTipText("Records/Head-to-Heads Table, but in a CSV, spreadsheet output. Requires" +
+			"clicking the Refresh button");
+		String[] playerInfoFlags = new String[6];
 		playerInfoFlags[0] = "h";
 		playerInfoFlags[1] = "R";
 		playerInfoFlags[2] = "A";
 		playerInfoFlags[3] = "c";
-		JAliasedRadioButton[] PlayerInfoRadioButtonArray = new JAliasedRadioButton[4];
+		playerInfoFlags[4] = "M";
+		playerInfoFlags[5] = "C";
+		JAliasedRadioButton[] PlayerInfoRadioButtonArray = new JAliasedRadioButton[6];
 		PlayerInfoRadioButtonArray[0] = PlayerInformationHistoryButton;
 		PlayerInfoRadioButtonArray[1] = PlayerInformationRecordsButton;
 		PlayerInfoRadioButtonArray[2] = PlayerInformationEventsAttendedButton;
 		PlayerInfoRadioButtonArray[3] = PlayerInformationNumOutcomesButton;
+		PlayerInfoRadioButtonArray[4] = PlayerInformationRecordTableButton;
+		PlayerInfoRadioButtonArray[5] = PlayerInformationRecordCSVButton;
 
 		PlayerInformationHistoryButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -751,6 +764,8 @@ public class graphicalG2ME {
 				PlayerInformationMinEventsSpinner.setEnabled(false);
 				PlayerInformationFilterFileTextField.setEnabled(false);
 				PlayerInformationFilterFileBrowseButton.setEnabled(false);
+				PlayerInformationSearchTextField.setEnabled(true);
+				PlayerInformationPlayerList.setEnabled(true);
 				playerInformationCurrentFlag = playerInfoFlags[0];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 0);
 			}
@@ -761,6 +776,8 @@ public class graphicalG2ME {
 				PlayerInformationMinEventsSpinner.setEnabled(true);
 				PlayerInformationFilterFileTextField.setEnabled(true);
 				PlayerInformationFilterFileBrowseButton.setEnabled(true);
+				PlayerInformationSearchTextField.setEnabled(true);
+				PlayerInformationPlayerList.setEnabled(true);
 				playerInformationCurrentFlag = playerInfoFlags[1];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 1);
 			}
@@ -771,6 +788,8 @@ public class graphicalG2ME {
 				PlayerInformationMinEventsSpinner.setEnabled(false);
 				PlayerInformationFilterFileTextField.setEnabled(false);
 				PlayerInformationFilterFileBrowseButton.setEnabled(false);
+				PlayerInformationSearchTextField.setEnabled(true);
+				PlayerInformationPlayerList.setEnabled(true);
 				playerInformationCurrentFlag = playerInfoFlags[2];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 2);
 			}
@@ -781,8 +800,34 @@ public class graphicalG2ME {
 				PlayerInformationMinEventsSpinner.setEnabled(false);
 				PlayerInformationFilterFileTextField.setEnabled(false);
 				PlayerInformationFilterFileBrowseButton.setEnabled(false);
+				PlayerInformationSearchTextField.setEnabled(true);
+				PlayerInformationPlayerList.setEnabled(true);
 				playerInformationCurrentFlag = playerInfoFlags[3];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 3);
+			}
+		});
+		PlayerInformationRecordTableButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				PlayerInformationVerboseCheckBox.setEnabled(false);
+				PlayerInformationMinEventsSpinner.setEnabled(true);
+				PlayerInformationFilterFileTextField.setEnabled(true);
+				PlayerInformationFilterFileBrowseButton.setEnabled(true);
+				PlayerInformationSearchTextField.setEnabled(false);
+				PlayerInformationPlayerList.setEnabled(false);
+				playerInformationCurrentFlag = playerInfoFlags[4];
+				prefs.putInt(PLAYER_INFO_RB_SELECTED, 4);
+			}
+		});
+		PlayerInformationRecordCSVButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				PlayerInformationVerboseCheckBox.setEnabled(false);
+				PlayerInformationMinEventsSpinner.setEnabled(true);
+				PlayerInformationFilterFileTextField.setEnabled(true);
+				PlayerInformationFilterFileBrowseButton.setEnabled(true);
+				PlayerInformationSearchTextField.setEnabled(false);
+				PlayerInformationPlayerList.setEnabled(false);
+				playerInformationCurrentFlag = playerInfoFlags[5];
+				prefs.putInt(PLAYER_INFO_RB_SELECTED, 5);
 			}
 		});
 		/* Remember which one was selected, and set GUI accordingly */
@@ -795,7 +840,7 @@ public class graphicalG2ME {
 		} else {
 			PlayerInformationVerboseCheckBox.setEnabled(false);
 		}
-		if (previousRBSelected == 1) {
+		if (previousRBSelected == 1 || previousRBSelected == 4 || previousRBSelected == 5) {
 			PlayerInformationMinEventsSpinner.setEnabled(true);
 			PlayerInformationFilterFileTextField.setEnabled(true);
 			PlayerInformationFilterFileBrowseButton.setEnabled(true);
@@ -804,12 +849,21 @@ public class graphicalG2ME {
 			PlayerInformationFilterFileTextField.setEnabled(false);
 			PlayerInformationFilterFileBrowseButton.setEnabled(false);
 		}
+		if (previousRBSelected == 4 || previousRBSelected == 5) {
+			PlayerInformationSearchTextField.setEnabled(false);
+			PlayerInformationPlayerList.setEnabled(false);
+		} else {
+			PlayerInformationSearchTextField.setEnabled(true);
+			PlayerInformationPlayerList.setEnabled(true);
+		}
 
 		ButtonGroup PlayerInformationButtonGroup = new ButtonGroup();
 		PlayerInformationButtonGroup.add(PlayerInformationHistoryButton);
 		PlayerInformationButtonGroup.add(PlayerInformationRecordsButton);
 		PlayerInformationButtonGroup.add(PlayerInformationEventsAttendedButton);
 		PlayerInformationButtonGroup.add(PlayerInformationNumOutcomesButton);
+		PlayerInformationButtonGroup.add(PlayerInformationRecordTableButton);
+		PlayerInformationButtonGroup.add(PlayerInformationRecordCSVButton);
 
 		PlayerInformationVerboseCheckBox.addActionListener(new ActionListener() {
 			@Override
@@ -899,7 +953,7 @@ public class graphicalG2ME {
 		/* Use Box Layout for this tab */
 		tabPlayerInformation.setLayout(new BoxLayout(tabPlayerInformation, BoxLayout.X_AXIS));
 		/* Layout settings for the tab */
-		int playerInfoControlBarMinWidth = 100;
+		int playerInfoControlBarMinWidth = 120;
 		int playerInfoControlBarPrefWidth = 250;
 		int playerInfoControlBarMaxWidth = 400;
 		/* Set sizes for radio buttons */
@@ -915,6 +969,12 @@ public class graphicalG2ME {
 		PlayerInformationNumOutcomesButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, CHECKBOX_HEIGHT));
 		PlayerInformationNumOutcomesButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, CHECKBOX_HEIGHT));
 		PlayerInformationNumOutcomesButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, CHECKBOX_HEIGHT));
+		PlayerInformationRecordTableButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, CHECKBOX_HEIGHT));
+		PlayerInformationRecordTableButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, CHECKBOX_HEIGHT));
+		PlayerInformationRecordTableButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, CHECKBOX_HEIGHT));
+		PlayerInformationRecordCSVButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, CHECKBOX_HEIGHT));
+		PlayerInformationRecordCSVButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, CHECKBOX_HEIGHT));
+		PlayerInformationRecordCSVButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, CHECKBOX_HEIGHT));
 		/* Set sizes for the rest of the control bar */
 		PlayerInformationRefreshButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, TEXTFIELD_HEIGHT));
 		PlayerInformationRefreshButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, TEXTFIELD_HEIGHT));
@@ -968,6 +1028,10 @@ public class graphicalG2ME {
 		PlayerInformationControlBar.add(PlayerInformationEventsAttendedButton);
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PlayerInformationControlBar.add(PlayerInformationNumOutcomesButton);
+		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		PlayerInformationControlBar.add(PlayerInformationRecordTableButton);
+		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		PlayerInformationControlBar.add(PlayerInformationRecordCSVButton);
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		/* Add the rest of the elements in the control bar */
 		PlayerInformationControlBar.add(PlayerInformationRefreshButton);
