@@ -22,7 +22,16 @@ char BLUE[] = { "\x1B[34m" };
 char MAGENTA[] = { "\x1B[35m" };
 char CYAN[] = { "\x1B[36m" };
 char WHITE[] = { "\x1B[37m" };
+#ifdef __linux__
 char PLAYER_DIR[] = { ".players/" };
+char DIR_TERMINATOR = '/';
+#elif _WIN32
+char PLAYER_DIR[] = { ".players\\" };
+char DIR_TERMINATOR = '\\';
+#else
+char PLAYER_DIR[] = { ".players/" };
+char DIR_TERMINATOR = '/';
+#endif
 
 const char ERROR_PLAYER_DNE[] = { "Error: 'player_dir' either could not be "
 	"created or does not exist"};
@@ -90,9 +99,9 @@ char *file_path_with_player_dir(char *s) {
 	/* Copy the player directory file path into the return string */
 	strncpy(new_path, player_dir, new_path_size - 1);
 	/* If the last character in the player directory path is not a '/' */
-	if (new_path[strlen(new_path) - 1] != '/') {
-		/* Append a '/' */
-		new_path[strlen(new_path)] = '/';
+	if (new_path[strlen(new_path) - 1] != DIR_TERMINATOR) {
+		/* Append a '/' or '\' */
+		new_path[strlen(new_path)] = DIR_TERMINATOR;
 	}
 
 	/* Append the player file to the player dir file path */
@@ -125,7 +134,8 @@ void clear_file(char* file) {
  * \return void
  */
 void write_entry_from_input(char* file_path) {
-	printf("[name] [opp_name] [rating] [RD] [vol] [gc] [opp_gc] [day] [month] [year] [t_name]: ");
+	fprintf(stdout, "[name] [opp_name] [rating] [RD] [vol] [gc] [opp_gc] "\
+		"[day] [month] [year] [t_name]: ");
 	char *full_path = file_path_with_player_dir(file_path);
 
 	struct entry input_entry;
@@ -146,7 +156,8 @@ void write_entry_from_input(char* file_path) {
  * \param '*P' the struct player to print
  */
 void print_player(struct player *P) {
-	printf("%16.14lf %16.14lf %16.14lf\n", getRating(P), getRd(P), P->vol);
+	fprintf(stdout, "%16.14lf %16.14lf %16.14lf\n", \
+		getRating(P), getRd(P), P->vol);
 }
 
 /** Prints a string representation of a struct entry to stdout
@@ -158,7 +169,7 @@ void print_entry(struct entry E) {
 	char date[32];
 	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
 
-	printf("%d  %d  %-10s  %-10s  %16.14lf  %16.14lf  %16.14lf" \
+	fprintf(stdout, "%d  %d  %-10s  %-10s  %16.14lf  %16.14lf  %16.14lf" \
 		"%d-%d  %s  %d  %-10s\n",  \
 		E.len_name, E.len_opp_name, E.name, E.opp_name, E.rating, E.RD, \
 		E.vol, E.gc, E.opp_gc, date, E.len_t_name, E.t_name);
@@ -200,7 +211,8 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 		else if (E.gc < E.opp_gc) output_colour = RED;
 	}
 
-	printf("%*d  %*d  %-*s  %*d  %s%-*s%s  %*s%.4lf  %*s%.4lf  %*s%.8lf  %d-%d" \
+	fprintf(stdout, "%*d  %*d  %-*s  %*d  %s%-*s%s  %*s%.4lf  %*s%.4lf  " \
+		"%*s%.8lf  %d-%d" \
 		"  %-*s  %d  %s\n", \
 		longest_nl, E.len_name, longest_opp_nl, E.len_opp_name, \
 		E.len_name, E.name, longest_opp_id, E.opp_id, output_colour, \
@@ -241,7 +253,8 @@ void print_entry_name(struct entry E, int longest_name, int longest_rating, \
 		else if (E.gc < E.opp_gc) output_colour = RED;
 	}
 
-	printf("%s  %s%-*s%s  %*s%.1lf  %*s%.1lf  %*s%.6lf  %d-%d  %-*s  %s\n", \
+	fprintf(stdout, "%s  %s%-*s%s  %*s%.1lf  %*s%.1lf  %*s%.6lf  %d-%d  " \
+		"%-*s  %s\n", \
 		E.name, output_colour, longest_name, E.opp_name, reset_colour, \
 		longest_rating-rating_length, "", E.rating, longest_RD-rd_length, \
 		"", E.RD, longest_vol-vol_length, "", E.vol, E.gc, E.opp_gc, \
@@ -588,7 +601,7 @@ void adjust_absent_players_no_file(char day, char month, \
 	 * apply step 6 to them and append to player file */
 	while ((entry = readdir(p_dir)) != NULL) {
 		/* If the directory item is a directory, skip */
-		if (entry->d_type == DT_DIR) continue;
+		if (0 == check_if_dir(player_dir, entry->d_name)) continue;
 
 		/* Reset variable to assume player did not compete */
 		did_not_comp = 1;
@@ -1031,7 +1044,7 @@ int generate_ratings_file_full(char *output_file_path) {
 
 		while ((entry = readdir(p_dir)) != NULL) {
 			// Make sure it doesn't count directories
-			if (entry->d_type != DT_DIR) {
+			if (1 == check_if_dir(player_dir, entry->d_name)) {
 				char *full_player_path = file_path_with_player_dir(entry->d_name);
 				/* If the player file was able to be read properly... */
 				if (0 == entry_file_read_last_entry(full_player_path, &temp)) {
@@ -1328,7 +1341,7 @@ int print_player_records(char *file_path) {
 void print_player_attended(char *attended, int count) {
 	// Print names of all tournaments attended by the player
 	for (int i = 0; i < count; i++) {
-		printf("%s\n", attended + i * MAX_NAME_LEN);
+		fprintf(stdout, "%s\n", attended + i * MAX_NAME_LEN);
 	}
 }
 
@@ -1360,7 +1373,7 @@ char *players_in_player_dir(char *players, int *num, char type) {
 		*num = 0;
 		while ((entry = readdir(p_dir)) != NULL) {
 			// Make sure it doesn't count directories
-			if (entry->d_type != DT_DIR) {
+			if (1 == check_if_dir(player_dir, entry->d_name)) {
 				int num_events;
 				char *full_player_path = \
 					file_path_with_player_dir(entry->d_name);
@@ -1578,7 +1591,7 @@ void print_matchup_table(void) {
 		snprintf(col, col_width, "%-*s", col_width, &players[i * MAX_NAME_LEN]);
 		strcat(output[0], col);
 	}
-	printf("%s\n", output[0]);
+	fprintf(stdout, "%s\n", output[0]);
 
 	if ((p_dir = opendir(player_dir)) != NULL) {
 		for (int i = 0; i < num_players; i++) {
@@ -1610,7 +1623,7 @@ void print_matchup_table(void) {
 				}
 				strcat(output[i + 1], col);
 			}
-			printf("%s\n", output[i + 1]);
+			fprintf(stdout, "%s\n", output[i + 1]);
 		}
 		closedir(p_dir);
 	} else {
@@ -1649,7 +1662,7 @@ void print_matchup_table_csv(void) {
 			1024 - 1 - strlen(output[0]));
 		strncat(output[0], ",", 1024 - 1 - strlen(output[0]));
 	}
-	printf("%s\n", output[0]);
+	fprintf(stdout, "%s\n", output[0]);
 
 	if ((p_dir = opendir(player_dir)) != NULL) {
 		for (int i = 0; i < num_players; i++) {
@@ -1679,7 +1692,7 @@ void print_matchup_table_csv(void) {
 				}
 				strcat(output[i + 1], col);
 			}
-			printf("%s\n", output[i + 1]);
+			fprintf(stdout, "%s\n", output[i + 1]);
 		}
 		closedir(p_dir);
 	} else {
@@ -1699,7 +1712,7 @@ int reset_players(void) {
 	if ((p_dir = opendir(player_dir)) != NULL) {
 		while ((entry = readdir(p_dir)) != NULL) {
 			// Make sure it doesn't count directories
-			if (entry->d_type != DT_DIR) {
+			if (1 == check_if_dir(player_dir, entry->d_name)) {
 				char *full_player_path = \
 					file_path_with_player_dir(entry->d_name);
 				remove(full_player_path);
@@ -1805,7 +1818,8 @@ int main(int argc, char **argv) {
 		} else if (opt == 'c') {
 			if (0 == check_and_create_player_dir()) {
 				char *full_player_path = file_path_with_player_dir(optarg);
-				printf("%d\n", entry_file_get_outcome_count(full_player_path));
+				fprintf(stdout, "%d\n", \
+					entry_file_get_outcome_count(full_player_path));
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DNE);
 		} else if (opt == 'd') {
