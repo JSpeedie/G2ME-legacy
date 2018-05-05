@@ -20,6 +20,7 @@
 	* [The 'c' flag](#the-c-flag)
 	* [The 'C' flag](#the-c-flag-1)
 	* [The 'd' flag](#the-d-flag)
+	* [The 'e' flag](#the-e-flag)
 	* [The 'g' flag](#the-g-flag)
 	* [The 'h' flag](#the-h-flag)
 	* [The 'k' flag](#the-k-flag)
@@ -533,6 +534,14 @@ Useful for keeping the working directory clean or for working on player files
 stored on another storage device. By default, if you don't specify the `-d`
 flag, the default player directory file path will be `./.players/`. An example
 full player file path would be `/home/me/G2ME/.players/JohnSmith`.
+
+### The 'e' flag
+
+`G2ME -e`
+
+Takes no arguments, removes all player files in the directory
+'player_dir' which is either $(pwd)/.players/ or whatever it was set
+to by a previous `-d` flag.
 
 ### The 'g' flag
 
