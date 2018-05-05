@@ -162,17 +162,60 @@ void print_player(struct player *P) {
 
 /** Prints a string representation of a struct entry to stdout
  *
+ * Difference with verbosity: Now outputs all variables of the
+ * 'struct entry' including 'len_name', 'opp_name', and 't_name'
+
+ * \param 'E' the struct entry to print
+ */
+void print_entry_verbose(struct entry E) {
+	/* Process date data into one string */
+	char date[32];
+	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
+	// TODO: fix magic number thing
+	char *output_colour = NOTHING;
+	char *reset_colour = NOTHING;
+	if (colour_output == 1) {
+		/* If this player won against their opponent,
+		 * Set their opponent's name colour to green.
+		 * If they lost, to red, and if they tied, to yellow */
+		reset_colour = NORMAL;
+		output_colour = YELLOW;
+		if (E.gc > E.opp_gc) output_colour = GREEN;
+		else if (E.gc < E.opp_gc) output_colour = RED;
+	}
+
+	fprintf(stdout, "%d  %d  %s  %d  %s%s%s  %.4lf  %.4lf  " \
+		"%.8lf  %d-%d  %s  %d  %s\n", \
+		E.len_name, E.len_opp_name, E.name, E.opp_id, output_colour, \
+		E.opp_name, reset_colour, E.rating, E.RD, E.vol, E.gc, \
+		E.opp_gc, date, E.tournament_id, E.t_name);
+}
+
+/** Prints a string representation of a struct entry to stdout
+ *
  * \param 'E' the struct entry to print
  */
 void print_entry(struct entry E) {
 	/* Process date data into one string */
 	char date[32];
 	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
+	// TODO: fix magic number thing
+	char *output_colour = NOTHING;
+	char *reset_colour = NOTHING;
+	if (colour_output == 1) {
+		/* If this player won against their opponent,
+		 * Set their opponent's name colour to green.
+		 * If they lost, to red, and if they tied, to yellow */
+		reset_colour = NORMAL;
+		output_colour = YELLOW;
+		if (E.gc > E.opp_gc) output_colour = GREEN;
+		else if (E.gc < E.opp_gc) output_colour = RED;
+	}
 
-	fprintf(stdout, "%d  %d  %-10s  %-10s  %16.14lf  %16.14lf  %16.14lf" \
-		"%d-%d  %s  %d  %-10s\n",  \
-		E.len_name, E.len_opp_name, E.name, E.opp_name, E.rating, E.RD, \
-		E.vol, E.gc, E.opp_gc, date, E.len_t_name, E.t_name);
+	fprintf(stdout, "%s  %s%s%s  %.1lf  %.1lf  " \
+		"%.6lf  %d-%d  %s  %s\n", \
+		E.name, output_colour, E.opp_name, reset_colour, E.rating,
+		E.RD, E.vol, E.gc, E.opp_gc, date, E.t_name);
 }
 
 /** Prints a string representation of a struct entry to stdout
@@ -824,6 +867,7 @@ int run_brackets(char *bracket_list_file_path) {
 		} else {
 			fprintf(stdout, "running \"%s\" ...", line);
 		}
+		update_players(line);
 		fprintf(stdout, "DONE\n");
 	}
 
@@ -1836,7 +1880,8 @@ int main(int argc, char **argv) {
 			if (0 == check_and_create_player_dir()) {
 				char *full_player_path = file_path_with_player_dir(optarg);
 				if (0 == entry_file_read_last_entry(full_player_path, &temp)) {
-					print_entry(temp);
+					if (verbose == 1) print_entry_verbose(temp);
+					else print_entry(temp);
 				}
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DNE);
