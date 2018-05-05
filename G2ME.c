@@ -253,7 +253,8 @@ void print_entry(struct entry E) {
  */
 void print_entry_name_verbose(struct entry E, int longest_nl, \
 	int longest_opp_nl, int longest_opp_id, int longest_name, \
-	int longest_rating, int longest_RD, int longest_vol, int longest_date) {
+	int longest_rating, int longest_RD, int longest_vol, int longest_t_id, \
+	int longest_date) {
 
 	/* Process date data into one string */
 	char date[32];
@@ -277,15 +278,14 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 		if (E.gc > E.opp_gc) output_colour = GREEN;
 		else if (E.gc < E.opp_gc) output_colour = RED;
 	}
-
 	fprintf(stdout, "%*d  %*d  %-*s  %*d  %s%-*s%s  %*s%.4lf  %*s%.4lf  " \
-		"%*s%.8lf  %d-%d" \
-		"  %-*s  %d  %s\n", \
+		"%*s%.8lf  %d-%d  %-*s  %*d  %s\n", \
 		longest_nl, E.len_name, longest_opp_nl, E.len_opp_name, \
 		E.len_name, E.name, longest_opp_id, E.opp_id, output_colour, \
 		longest_name, E.opp_name, reset_colour, longest_rating-rating_length, "", \
 		E.rating, longest_RD-rd_length, "", E.RD, longest_vol-vol_length, "", \
-		E.vol, E.gc, E.opp_gc, longest_date, date, E.tournament_id, E.t_name);
+		E.vol, E.gc, E.opp_gc, longest_date, date, longest_t_id, \
+		E.tournament_id, E.t_name);
 }
 /** Prints a string representation of a struct entry to stdout
  *
@@ -359,6 +359,7 @@ int print_player_file_verbose(char* file_path) {
 	unsigned long int longest_RD = 0;
 	unsigned long int longest_vol = 0;
 	unsigned long int longest_date = 0;
+	unsigned long int longest_t_id = 0;
 
 	fseek(p_file, 0, SEEK_SET);
 	entry_file_get_to_entries(p_file);
@@ -379,6 +380,8 @@ int print_player_file_verbose(char* file_path) {
 		if (strlen(temp) > longest_RD) longest_RD = strlen(temp);
 		sprintf(temp, "%.8lf", line.vol);
 		if (strlen(temp) > longest_vol) longest_vol = strlen(temp);
+		sprintf(temp, "%d", line.tournament_id);
+		if (strlen(temp) > longest_t_id) longest_t_id = strlen(temp);
 		sprintf(temp, "%d/%d/%d", line.day, line.month, line.year);
 		if (strlen(temp) > longest_date) longest_date = strlen(temp);
 	}
@@ -389,7 +392,7 @@ int print_player_file_verbose(char* file_path) {
 	while (entry_file_read_entry(p_file, &line) == 0) {
 		print_entry_name_verbose(line, longest_nl, longest_opp_nl, \
 		longest_opp_id, longest_name, longest_rating, longest_RD, longest_vol, \
-		longest_date);
+		longest_t_id, longest_date);
 	}
 
 	fclose(p_file);
