@@ -1902,6 +1902,7 @@ int main(int argc, char **argv) {
 		{ "count-outcomes",	required_argument,	NULL,	'c' },
 		{ "matchup-csv",	required_argument,	NULL,	'C' },
 		{ "player-dir",		required_argument,	NULL,	'd' },
+		{ "reset-players",		no_argument,	NULL,	'e' },
 		{ "use-games",		no_argument,		NULL,	'g' },
 		/* Output given player file in human readable form */
 		{ "human",			required_argument,	NULL,	'h' },
@@ -1925,7 +1926,7 @@ int main(int argc, char **argv) {
 		{ "remove-entries",	required_argument,	NULL,	'x' },
 		{ 0, 0, 0, 0 }
 	};
-	char opt_string[] = { "0a:A:b:B:c:Cd:gh:kl:m:MnNo:Op:P:r:R:vw:x:" };
+	char opt_string[] = { "0a:A:b:B:c:Cd:egh:kl:m:MnNo:Op:P:r:R:vw:x:" };
 
 	/* 1. Initialize player_dir to the file path for the player directory */
 	memset(player_dir, 0, sizeof(player_dir));
@@ -2012,6 +2013,11 @@ int main(int argc, char **argv) {
 				if (0 == check_and_create_player_dir()) {
 					if (keep_players == 0) reset_players();
 					run_brackets(optarg);
+				} else fprintf(stderr, ERROR_PLAYER_DNE);
+				break;
+			case 'e':
+				if (0 == check_and_create_player_dir()) {
+					reset_players();
 				} else fprintf(stderr, ERROR_PLAYER_DNE);
 				break;
 			case 'g': use_games = 1; break;
