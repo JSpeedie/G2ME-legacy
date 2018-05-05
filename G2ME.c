@@ -1,3 +1,4 @@
+/* Non-windows includes */
 #include <dirent.h>
 #include <errno.h>
 #include <getopt.h>
@@ -9,6 +10,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+/* Windows includes */
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #include "glicko2.h"
 #include "entry_file.h"
@@ -511,7 +516,13 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	char *full_p1_path = file_path_with_player_dir(p1_name);
 	char *full_p2_path = file_path_with_player_dir(p2_name);
 	/* If the file does not exist, init the player struct to defaults */
+#ifdef __linux__
 	if (access(full_p1_path, R_OK | W_OK) == -1) {
+#elif _WIN32
+	if (_access(full_p1_path, 0) == -1) {
+#else
+	if (access(full_p1_path, R_OK | W_OK) == -1) {
+#endif
 		setRating(p1, DEF_RATING);
 		setRd(p1, DEF_RD);
 		p1->vol = DEF_VOL;
@@ -526,7 +537,13 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 		}
 	}
 	/* If the file does not exist, init the player struct to defaults */
+#ifdef __linux__
 	if (access(full_p2_path, R_OK | W_OK) == -1) {
+#elif _WIN32
+	if (_access(full_p2_path, 0) == -1) {
+#else
+	if (access(full_p2_path, R_OK | W_OK) == -1) {
+#endif
 		setRating(p2, DEF_RATING);
 		setRd(p2, DEF_RD);
 		p2->vol = DEF_VOL;
@@ -577,9 +594,16 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
 	char *t_name) {
 
 	/* If the player who did not compete has a player file */
+#ifdef __linux__
 	if (access(file_path_with_player_dir(player_file), \
 		R_OK | W_OK) != -1) {
-
+#elif _WIN32
+	if (_access(file_path_with_player_dir(player_file), \
+		R_OK | W_OK) != -1) {
+#else
+	if (access(file_path_with_player_dir(player_file), \
+		R_OK | W_OK) != -1) {
+#endif
 		struct player P;
 		struct entry latest_ent;
 		if (0 == \
@@ -726,6 +750,8 @@ void adjust_absent_players(char* player_list, char day, char month, \
  * \return void
  */
 // TODO: break up function.
+// TODO: make sscanfs safe/secure.
+//       Right now they risk a stack/buffer overflow
 void update_players(char* bracket_file_path) {
 
 	/* Set to 0 since the bracket is beginning and no names are stored */
@@ -750,8 +776,49 @@ void update_players(char* bracket_file_path) {
 
 	while (fgets(line, sizeof(line), bracket_file)) {
 		/* Read data from one line of bracket file into all the variables */
+#ifdef __linux__
 		sscanf(line, "%s %s %hhd %hhd %hhd %hhd %hd",
 			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
+#elif _WIN32
+
+		char *token = strtok(line, " ");
+		int temp;
+
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		strncpy(p1_name, token, MAX_NAME_LEN);
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		strncpy(p2_name, token, MAX_NAME_LEN);
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		sscanf(token, "%d", &temp);
+		p1_gc = (char)temp;
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		sscanf(token, "%d", &temp);
+		p2_gc = (char)temp;
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		sscanf(token, "%d", &temp);
+		day = (char)temp;
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		sscanf(token, "%d", &temp);
+		month = (char)temp;
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		sscanf(token, "%d", &temp);
+		year = (short)temp;
+#else
+		sscanf(line, "%s %s %hhd %hhd %hhd %hhd %hd",
+			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
+#endif
 
 		if (calc_absent_players_with_file || calc_absent_players == 1) {
 			char already_in = 0;
