@@ -122,14 +122,33 @@ char *file_path_with_player_dir(char *s) {
  */
 void clear_file(char* file) {
 
+#ifdef __linux__
 	FILE* victim = fopen(file, "w");
 	if (victim == NULL) {
 		perror("fopen (clear_file)");
 		return;
 	}
-
 	fprintf(victim, "");
 	fclose(victim);
+#elif _WIN32
+	/* Open the file, with read and write, Share for reading,
+	* no security, open regardless, normal file with no attributes */
+	HANDLE victim = CreateFile(file, GENERIC_WRITE | GENERIC_READ,
+		FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL,
+		NULL);
+	long unsigned ret;
+	WriteFile(victim, "", sizeof(""), &ret, NULL);
+	CloseHandle(victim);
+#else
+	FILE* victim = fopen(file, "w");
+	if (victim == NULL) {
+		perror("fopen (clear_file)");
+		return;
+	}
+	fprintf(victim, "");
+	fclose(victim);
+#endif
+
 	return;
 }
 

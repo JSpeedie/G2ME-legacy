@@ -1,6 +1,8 @@
 /* Windows includes */
 #ifdef _WIN32
 #include <io.h>
+//#include <windows.h>
+//#include <fcntl.h>
 #endif
 /* Non-windows includes */
 #include <dirent.h>
@@ -557,11 +559,20 @@ int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
 #else
 	char existed = access(file_path, R_OK) != -1;
 #endif
-
 	/* If the player entry file did not exist, create a new one with the
 	 * standard starting infomartion of length of name, name, and 2 zeros
 	 * because they have 0 opponents or tournaments played/attedned */
 	if (!existed) {
+/* #ifdef _WIN32 */
+/* 		/\* Open the file, with read and write, Share for reading, */
+/* 		* no security, open regardless, normal file with no attributes *\/ */
+/* 		HANDLE victim = CreateFile(file_path, GENERIC_WRITE | GENERIC_READ, */
+/* 			FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL); */
+/* 		WriteFile(victim, "", sizeof(""), NULL, NULL); */
+/* 		fprintf(stderr, " GetLastError(0x%x) = %s\n", GetLastError(), */
+/* 		(LPCTSTR) "hi"); */
+/* 		CloseHandle(victim); */
+/* #endif */
 		/* Open file for appending */
 		FILE *entry_file = fopen(file_path, "ab+");
 		if (entry_file == NULL) {
