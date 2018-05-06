@@ -474,6 +474,36 @@ int entry_file_get_number_of_entries(char *file_path) {
 	return entries;
 }
 
+/** Reads a player file at the given file path and returns the number
+ * of entries contained in that file where the opponent is '*player2'.
+ *
+ * \param '*file_path' the file path of the file to be read.
+ * \param '*player2' the file name (not path) of a player file
+ * \return 0 upon success, or a negative number upon failure.
+ */
+int entry_file_get_number_of_outcomes_against(char *file_path, char *player2) {
+	FILE *base_file = fopen(file_path, "rb");
+	if (base_file == NULL) {
+		perror("fopen (entry_file_get_number_of_outcomes_against)");
+		return -1;
+	}
+
+	int entries = 0;
+	/* Read entry from old file */
+	struct entry *cur_entry = (struct entry *)malloc(sizeof(struct entry));
+	entry_file_get_to_entries(base_file);
+	/* While the function is still able to read entries from the old file */
+	while (0 == entry_file_read_entry(base_file, cur_entry)) {
+		if (0 == strcmp(cur_entry->opp_name, player2)) {
+			entries++;
+		}
+	}
+	free(cur_entry);
+	fclose(base_file);
+
+	return entries;
+}
+
 /** Returns the offset within a player file at which the last entry begins.
  *
  * \param '*file_path' a string of the file path of a player file for the

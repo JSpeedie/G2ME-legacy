@@ -1560,7 +1560,6 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	/* Read the starter data in the file */
 	struct entry ent;
 	entry_file_read_start_from_file(full_player1_path, &ent);
-	//printf("full_player1_path: \"%s\"\n", full_player1_path);
 
 	FILE *p_file = fopen(full_player1_path, "rb");
 	if (p_file == NULL) {
@@ -1575,7 +1574,7 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	ret->losses = 0;
 	ret->ties = 0;
 
-	int num_ent = entry_file_get_number_of_entries(full_player1_path);
+	int num_ent = entry_file_get_number_of_outcomes_against(full_player1_path, player2);
 	int cur_opp_ent_num = 0;
 	unsigned long num_of_last_outcomes = sizeof(ret->last_outcomes) - 1;
 
@@ -1601,7 +1600,8 @@ int get_record(char *player1, char *player2, struct record *ret) {
 					ret->last_outcomes[cur_opp_ent_num] = 'W';
 				} else if (ent.gc == ent.opp_gc) {
 					ret->last_outcomes[cur_opp_ent_num] = 'T';
-				} else if (ent.gc < ent.opp_gc) {
+				/* Assert: (ent.gc < ent.opp_gc) */
+				} else {
 					ret->last_outcomes[cur_opp_ent_num] = 'L';
 				}
 			}
