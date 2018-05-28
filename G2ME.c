@@ -774,14 +774,14 @@ void adjust_absent_players(char* player_list, char day, char month, \
 // TODO: break up function.
 // TODO: make sscanfs safe/secure.
 //       Right now they risk a stack/buffer overflow
-void update_players(char* bracket_file_path) {
+int update_players(char* bracket_file_path) {
 
 	/* Set to 0 since the bracket is beginning and no names are stored */
 	tournament_names_len = 0;
 	FILE *bracket_file = fopen(bracket_file_path, "r");
 	if (bracket_file == NULL) {
 		perror("fopen (bracket_file)");
-		return;
+		return -1;
 	}
 
 	char line[MAX_FILE_PATH_LEN];
@@ -907,6 +907,8 @@ void update_players(char* bracket_file_path) {
 	} else if (calc_absent_players_with_file) {
 		adjust_absent_players(player_list_file, day, month, year, t_name);
 	}
+
+	return 0;
 }
 
 
@@ -922,9 +924,14 @@ int run_single_bracket(char *bracket_file_path) {
 	} else {
 		fprintf(stdout, "running \"%s\" ...", bracket_file_path);
 	}
-	update_players(bracket_file_path);
-	fprintf(stdout, "DONE\n");
-	return 0;
+	int ret = update_players(bracket_file_path);
+	if (ret == 0) {
+		fprintf(stdout, "DONE\n");
+		return 0;
+	} else {
+		fprintf(stdout, "ERROR\n");
+		return 0;
+	}
 }
 
 /* Takes a file path to a bracket list file, for each line in the file,
