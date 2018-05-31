@@ -1430,10 +1430,22 @@ int print_player_records(char *file_path) {
 			reset_colour_player = NORMAL;
 			// If the player has a winning record
 			if (records[i].wins > records[i].losses) {
-				output_colour_player = GREEN;
+				/* If the player has a "perfect" record, use a
+				 * different colour to print it */
+				if (records[i].losses == 0) {
+					output_colour_player = BLUE;
+				} else {
+					output_colour_player = GREEN;
+				}
 			// If the player has a losing record
 			} else if (records[i].wins < records[i].losses) {
-				output_colour_player = RED;
+				/* If the player has a "reverse perfect" record, use a
+				 * different colour to print it */
+				if (records[i].wins == 0) {
+					output_colour_player = MAGENTA;
+				} else {
+					output_colour_player = RED;
+				}
 			// If the player has a tied record
 			} else {
 				output_colour_player = YELLOW;
