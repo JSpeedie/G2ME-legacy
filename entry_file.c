@@ -447,6 +447,71 @@ int entry_file_get_to_entries(FILE *base_file) {
 	return 0;
 }
 
+int entry_file_number_of_opponents(char *file_path) {
+	int ret = 0;
+	FILE *base_file = fopen(file_path, "rb");
+	if (base_file == NULL) {
+		perror("fopen (entry_file_number_of_opponents)");
+		ret = -1;
+	}
+	char ln;
+	short num_opp;
+	if (1 != fread(&ln, sizeof(char), 1, base_file)) ret = -1;
+	char name[ln];
+	if ((size_t) ln != fread(&name[0], sizeof(char), ln, base_file)) {
+		ret = -2;
+	}
+	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) ret = -3;
+
+	fclose(base_file);
+	/* If there were no errors, return the number of opponents */
+	if (ret == 0) ret = num_opp;
+	return ret;
+}
+
+/** Takes a file path to a player file and * returns the number of
+ * events this player has attended * that weren't RD adjustments
+ * (or NULL).
+ *
+ * \param '*file_path' the player file to read
+ * \return upon success, a positive integer representing the number
+ *     of opponents this player has played. Upon failure of any kind,
+ *     this function returns a negative integer depending on the error.
+ */
+int entry_file_number_of_events(char *file_path) {
+	int ret = 0;
+	FILE *base_file = fopen(file_path, "rb");
+	if (base_file == NULL) {
+		perror("fopen (entry_file_number_of_events)");
+		ret = -1;
+	}
+	char ln;
+	short num_opp, num_t;
+	if (1 != fread(&ln, sizeof(char), 1, base_file)) ret = -1;
+	char name[ln];
+	if ((size_t) ln != fread(&name[0], sizeof(char), ln, base_file)) {
+		ret = -2;
+	}
+	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) ret = -3;
+
+	for (int i = 0; i < num_opp; i++) {
+		char read = '\1';
+		if (1 != fread(&read, sizeof(char), 1, base_file)) ret = -9;
+		while (read != '\0' && !(feof(base_file))) {
+			if (1 != fread(&read, sizeof(char), 1, base_file)) ret = -11;
+		}
+	}
+
+	if (1 != fread(&num_t, sizeof(short), 1, base_file)) {
+		ret = -4;
+	}
+
+	fclose(base_file);
+	/* If there were no errors, ret = the number of events */
+	if (ret == 0) ret = num_opp;
+	return ret;
+}
+
 /** Reads a player file at the given file path and returns the number
  * of entries contained in that file.
  *
