@@ -9,6 +9,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 /* Windows includes */
 #ifdef _WIN32
@@ -42,6 +43,7 @@ const char ERROR_PLAYER_DNE[] = { "Error: 'player_dir' either could not be "
 	"created or does not exist"};
 
 char flag_output_to_stdout = 0;
+char flag_time_program = 0;
 char verbose = 0;
 char use_games = 0;
 char keep_players = 0;
@@ -2024,16 +2026,20 @@ int main(int argc, char **argv) {
 		{ "P",				required_argument,	NULL,	'P' },
 		{ "refactor",		required_argument,	NULL,	'r' },
 		{ "records",		required_argument,	NULL,	'R' },
+		{ "time",			no_argument,		NULL,	't' },
 		{ "verbose",		no_argument,		NULL,	'v' },
 		{ "weight",			required_argument,	NULL,	'w' },
 		{ "remove-entries",	required_argument,	NULL,	'x' },
 		{ 0, 0, 0, 0 }
 	};
-	char opt_string[] = { "0a:A:b:B:c:Cd:egh:kl:m:MnNo:Op:P:r:R:vw:x:" };
+	char opt_string[] = { "0a:A:b:B:c:Cd:egh:kl:m:MnNo:Op:P:r:R:tvw:x:" };
 
 	/* 1. Initialize player_dir to the file path for the player directory */
 	memset(player_dir, 0, sizeof(player_dir));
 	strncpy(player_dir, PLAYER_DIR, sizeof(player_dir) - 1);
+
+	clock_t t;
+	t = clock();
 
 	while ((opt = getopt_long(argc, argv, opt_string, opt_table, NULL)) != -1) {
 		if (opt == 'A') {
@@ -2163,6 +2169,15 @@ int main(int argc, char **argv) {
 				} else fprintf(stderr, ERROR_PLAYER_DNE);
 				break;
 			case 'v': verbose = 1; break;
+			case 't': flag_time_program = 1; break;
 		}
 	}
+
+	if (flag_time_program == 1) {
+		t = clock() - t;
+		/* Convert to seconds */
+		double time_taken = ((double)t)/CLOCKS_PER_SEC;
+    	fprintf(stdout, "NOTE: took %lf seconds\n", time_taken);
+	}
+    return 0;
 }
