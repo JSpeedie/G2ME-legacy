@@ -569,6 +569,36 @@ int entry_file_get_number_of_outcomes_against(char *file_path, char *player2) {
 	return entries;
 }
 
+/** Reads a player file at the given file path and returns an array of longs
+ * that represent the number of times player1 has met that player in an event.
+ * The array is indexed by the opponent IDs set in the player1 player file.
+ * NOTE: the return value is calloc'd and as such, free() must be called on it
+ * once it is no longer being used.
+ *
+ * \param '*file_path' the file path of the file to be read.
+ * \return NULL upon failure, an array of longs (pointer) upon success.
+ */
+long *entry_file_get_all_number_of_outcomes_against(char *file_path) {
+	long array_size = entry_file_number_of_opponents(file_path);
+	FILE *base_file = fopen(file_path, "rb");
+	if (base_file == NULL) {
+		perror("fopen (entry_file_get_all_number_of_outcomes_against)");
+		return NULL;
+	}
+
+	long *entries = (long *)calloc(array_size, sizeof(long));
+	/* Read entry from old file */
+	struct entry cur_entry;
+	entry_file_get_to_entries(base_file);
+	/* While the function is still able to read entries from the old file */
+	while (0 == entry_file_read_entry(base_file, &cur_entry)) {
+		entries[cur_entry.opp_id] = entries[cur_entry.opp_id] + 1;
+	}
+	fclose(base_file);
+
+	return entries;
+}
+
 /** Returns the offset within a player file at which the last entry begins.
  *
  * \param '*file_path' a string of the file path of a player file for the
