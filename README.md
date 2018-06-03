@@ -35,6 +35,7 @@
 	* [The 'r' flag](#the-r-flag)
 	* [The 'R' flag](#the-r-flag-1)
 	* [The 't' flag](#the-t-flag)
+	* [The 'v' flag](#the-v-flag)
 	* [The 'w' flag](#the-w-flag)
 	* [The 'x' flag](#the-x-flag)
 * [The Glicko2 System Explained](#the-glicko2-system-explained)
@@ -738,6 +739,11 @@ Julian vs John = 4-0-0
 
 Takes no arguments. After running all flags, outputs a line to
 `stdout` stating how long running all the flags took in seconds.
+
+### The 'v' flag
+
+Takes no arguments. Modifies the output of some option flags (like
+`-h`, `-o`, `-O`, `-R`) to contain more information.
 
 ### The 'w' flag
 
