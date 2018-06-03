@@ -952,15 +952,23 @@ int run_brackets(char *bracket_list_file_path) {
 		return -1;
 	}
 
-	char line[MAX_FILE_PATH_LEN];
+	char line[MAX_FILE_PATH_LEN + 2];
 
 	while (fgets(line, sizeof(line), bracket_list_file)) {
+		/* Code to catch all several forms of newline such as:
+		 * '\n', "\r\n", '\r', "\n\m". Actually catches "[\n\r].*"
+		 * If the search for a newline didn't fail, the line ended in a newline
+		 * which must be replaced */
 		char *end_of_line = strchr(line, '\n');
-		if (end_of_line == NULL) {
-			perror("strchr (run_brackets)");
-			return -2;
+		if (end_of_line != NULL) {
+			*end_of_line = '\0';
+		} else {
+			end_of_line = strchr(line, '\r');
+			if (end_of_line != NULL) {
+				*end_of_line = '\0';
+			}
 		}
-		*end_of_line = '\0';
+
 		if (use_games == 1) {
 			fprintf(stdout, "running \"%s\" using games ...", line);
 		} else {
