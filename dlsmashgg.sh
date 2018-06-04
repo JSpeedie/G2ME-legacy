@@ -13,11 +13,11 @@
 # $ sh dlsmashgg.sh 577720
 # All that's needed now is to add the date for every set
 smashggurl="https://api.smash.gg/phase_group/${1}?expand[]=entrants&expand[]=event&expand[]=phase&expand[]=sets&expand[]=participants&mutations[]=playerData"
-json=$(wget $smashggurl -q -O - > .temp)
+json=$(wget $smashggurl -q -O -)
 
 # Creates output of format:
 # [Set Number] [player 1 tournament id] [player 2 tournament id] [player 1 game count] [player 2 game count]
-setinfo=$(cat .temp \
+setinfo=$(echo "$json" \
 	| jq -r '.entities.sets[] | select( .entrant2Id != null ) | select( .entrant1Id != null ) | .entrant1Id,.entrant2Id,.entrant1Score,.entrant2Score,.isGF')
 let count=0;
 formatted_sets=""
@@ -34,7 +34,7 @@ done
 # Creates output of format:
 # [player_id in tournament] [player_id_lasting]
 IFS=$'\n'
-declare -a nameinfo=($(cat .temp \
+declare -a nameinfo=($(echo "$json" \
 	| jq '.entities.entrants[] | .id,.participantIds[0]'))
 unset IFS
 let count=0;
@@ -50,7 +50,7 @@ for (( i = 0; i < ${#nameinfo[@]}; ++i )); do
 done
 
 IFS=$'\n'
-declare -a id=($(cat .temp \
+declare -a id=($(echo "$json" \
 	| jq '.entities.participants[] | .id,.contactInfo.nameFirst,.contactInfo.nameLast'))
 unset IFS
 player_id_conversion=""
