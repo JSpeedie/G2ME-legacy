@@ -1,3 +1,17 @@
+# This script requires 1 argument: a phase id for the bracket on smash.gg
+# this can be found by going to the api page:
+# https://api.smash.gg/tournament/[tournament name here]?expand[]=phase&expand[]=groups&expand[]=event
+# and going to 'entities' > 'groups'. Each event (melee singles, melee doubles,
+# project m, etc) will have it's own number
+#
+# Example:
+# I have a tournament: https://smash.gg/tournament/toronto-stock-exchange-7/events
+# I visit the api page:
+# https://api.smash.gg/tournament/toronto-stock-exchange-7?expand[]=phase&expand[]=groups&expand[]=event
+# After findidng the correct phase id (in this example, melee singles is
+# 577720) I run this script like
+# $ sh dlsmashgg.sh 577720
+# All that's needed now is to add the date for every set
 smashggurl="https://api.smash.gg/phase_group/${1}?expand[]=entrants&expand[]=event&expand[]=phase&expand[]=sets&expand[]=participants&mutations[]=playerData"
 json=$(wget $smashggurl -q -O - > .temp)
 
