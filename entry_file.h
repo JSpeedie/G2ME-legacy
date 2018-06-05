@@ -12,10 +12,7 @@
 
 #include "G2ME.h"
 
-char *entry_file_get_events_attended(char *, int *);
-int entry_file_get_outcome_count(char *);
 double entry_file_get_glicko_change_since_last_event(char *);
-int entry_file_read_start_from_file(char *, struct entry *);
 int entry_file_contains_opponent(char *, char *);
 int entry_file_add_new_opponent(struct entry *, char *);
 int entry_file_contains_tournament(char *, char *);
@@ -28,7 +25,7 @@ int entry_file_get_number_of_entries(char *);
 int entry_file_number_of_opponents(char *);
 int entry_file_number_of_events(char *);
 int entry_file_get_number_of_outcomes_against(char *, char *);
-int *entry_file_get_all_number_of_outcomes_against(char *);
+long *entry_file_get_all_number_of_outcomes_against(char *);
 long int entry_file_get_last_entry_offset(char *);
 int entry_file_read_last_entry(char *, struct entry *);
 int entry_file_append_entry_to_file(struct entry *, char *);

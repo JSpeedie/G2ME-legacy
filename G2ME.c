@@ -9,6 +9,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 /* Windows includes */
 #ifdef _WIN32
@@ -42,6 +43,7 @@ const char ERROR_PLAYER_DNE[] = { "Error: 'player_dir' either could not be "
 	"created or does not exist"};
 
 char flag_output_to_stdout = 0;
+char flag_time_program = 0;
 char verbose = 0;
 char use_games = 0;
 char keep_players = 0;
@@ -60,6 +62,7 @@ char p_flag_used = 0;
 char player_dir[MAX_FILE_PATH_LEN];
 
 int get_record(char *, char *, struct record *);
+struct record *get_all_records(char *, int *);
 
 struct entry temp;
 
@@ -1354,9 +1357,10 @@ int print_player_records(char *file_path) {
 		return -1;
 	}
 
-	struct record records[128];
-	int found_name = 0;
+
 	int num_rec = 0;
+	struct record *records = get_all_records(file_path, &num_rec);
+	int found_name = 0;
 	char passes_filter = 0;
 	char line[MAX_NAME_LEN];
 	struct entry ent;
@@ -1428,7 +1432,7 @@ int print_player_records(char *file_path) {
 	}
 
 	fclose(p_file);
-	merge_sort_player_records(&(records[0]), num_rec);
+	merge_sort_player_records(records, num_rec);
 
 	for (int i = 0; i < num_rec; i++) {
 		char* output_colour_player = NOTHING;
@@ -1632,6 +1636,97 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	fclose(p_file);
 
 	return 0;
+}
+
+/* Takes a path to a player file and a pointer to an int.
+ * Reads the player file, creates an array of 'struct record's, one
+ * for every player player1 has ever played, containing player1's wins, ties,
+ * losses, etc. and returns a pointer to said array. Modifies '*num_of_records'
+ * to contain the number of elements in that array.
+ *
+ * \param '*file_path' A file path to an player-file.
+ * \param '*num_of_records' An int pointer that will be moified to contain
+ *     the number of records in the returned array.
+ * \return a pointer to a 'struct record' that is an array of 'struct record's
+ *     indexed by 'opp_id'. Returns NULL on failure.
+ */
+struct record *get_all_records(char *file_path, int *num_of_records) {
+
+	*num_of_records = entry_file_number_of_opponents(file_path);
+	struct record *ret = (struct record *)malloc(sizeof(struct record) * *num_of_records);
+	/* Read the starter data in the file */
+	struct entry ent;
+	entry_file_read_start_from_file(file_path, &ent);
+
+	FILE *p_file = fopen(file_path, "rb");
+	if (p_file == NULL) {
+		perror("fopen (get_all_records)");
+		return NULL;
+	}
+
+	for (int i = 0; i < *num_of_records; i++) {
+		strncpy(ret[i].name, ent.name, MAX_NAME_LEN);
+		ret[i].wins = 0;
+		ret[i].losses = 0;
+		ret[i].ties = 0;
+	}
+
+	// CONSIDER: get number of entries for every opponent (long array) (only if verbose?)
+	long *num_outcome_all = entry_file_get_all_number_of_outcomes_against(file_path);
+	// Array containing the current number of entries for a given opponent
+	int *cur_opp_ent_num = calloc(*num_of_records, sizeof(int));
+	struct record temp;
+	unsigned long num_of_last_outcomes = sizeof(temp.last_outcomes) - 1;
+
+	/* Get to the entries in the player file */
+	int r = entry_file_get_to_entries(p_file);
+	if (r != 0) {
+		perror("get_all_records (entry_file_get_to_entries)");
+		free(num_outcome_all);
+		free(cur_opp_ent_num);
+		return NULL;
+	}
+
+	while (entry_file_read_entry(p_file, &ent) == 0) {
+		// CONSIDER: OPT: replace this triple check every entry with a function
+		//            that sets names once.
+		/* If this is the first time updating a player's record */
+		if (ret[ent.opp_id].wins == 0
+			&& ret[ent.opp_id].ties == 0
+			&& ret[ent.opp_id].losses == 0) {
+
+			// TODO: actually get player2 name from their file.
+			// '*player2' is just a file name
+			strncpy(ret[ent.opp_id].opp_name, ent.opp_name, MAX_NAME_LEN);
+		}
+
+		if (ent.gc > ent.opp_gc) ret[ent.opp_id].wins += 1;
+		else if (ent.gc == ent.opp_gc) ret[ent.opp_id].ties += 1;
+		else if (ent.gc < ent.opp_gc) ret[ent.opp_id].losses += 1;
+		/* If the current entry is one of the last x many,
+		 * add it to the recent outcome list */
+		if ((unsigned long)(num_outcome_all[ent.opp_id] - cur_opp_ent_num[ent.opp_id])
+			< num_of_last_outcomes) {
+
+			if (ent.gc > ent.opp_gc) {
+				ret[ent.opp_id].last_outcomes[cur_opp_ent_num[ent.opp_id]] = 'W';
+			} else if (ent.gc == ent.opp_gc) {
+				ret[ent.opp_id].last_outcomes[cur_opp_ent_num[ent.opp_id]] = 'T';
+			/* Assert: (ent.gc < ent.opp_gc) */
+			} else {
+				ret[ent.opp_id].last_outcomes[cur_opp_ent_num[ent.opp_id]] = 'L';
+			}
+		}
+		cur_opp_ent_num[ent.opp_id]++;
+	}
+	for (int i = 0; i < *num_of_records; i++) {
+		ret[i].last_outcomes[cur_opp_ent_num[i]] = '\0';
+	}
+	free(num_outcome_all);
+	free(cur_opp_ent_num);
+	fclose(p_file);
+
+	return ret;
 }
 
 /* Takes an array of player names, and the length of the array.
@@ -1943,16 +2038,20 @@ int main(int argc, char **argv) {
 		{ "P",				required_argument,	NULL,	'P' },
 		{ "refactor",		required_argument,	NULL,	'r' },
 		{ "records",		required_argument,	NULL,	'R' },
+		{ "time",			no_argument,		NULL,	't' },
 		{ "verbose",		no_argument,		NULL,	'v' },
 		{ "weight",			required_argument,	NULL,	'w' },
 		{ "remove-entries",	required_argument,	NULL,	'x' },
 		{ 0, 0, 0, 0 }
 	};
-	char opt_string[] = { "0a:A:b:B:c:Cd:egh:kl:m:MnNo:Op:P:r:R:vw:x:" };
+	char opt_string[] = { "0a:A:b:B:c:Cd:egh:kl:m:MnNo:Op:P:r:R:tvw:x:" };
 
 	/* 1. Initialize player_dir to the file path for the player directory */
 	memset(player_dir, 0, sizeof(player_dir));
 	strncpy(player_dir, PLAYER_DIR, sizeof(player_dir) - 1);
+
+	clock_t t;
+	t = clock();
 
 	while ((opt = getopt_long(argc, argv, opt_string, opt_table, NULL)) != -1) {
 		if (opt == 'A') {
@@ -2082,6 +2181,15 @@ int main(int argc, char **argv) {
 				} else fprintf(stderr, ERROR_PLAYER_DNE);
 				break;
 			case 'v': verbose = 1; break;
+			case 't': flag_time_program = 1; break;
 		}
 	}
+
+	if (flag_time_program == 1) {
+		t = clock() - t;
+		/* Convert to seconds */
+		double time_taken = ((double)t)/CLOCKS_PER_SEC;
+    	fprintf(stdout, "NOTE: took %lf seconds\n", time_taken);
+	}
+    return 0;
 }
