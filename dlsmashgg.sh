@@ -18,14 +18,14 @@ json=$(wget $smashggurl -q -O -)
 # Creates output of format:
 # [Set Number] [player 1 tournament id] [player 2 tournament id] [player 1 game count] [player 2 game count]
 setinfo=$(echo "$json" \
-	| jq -r '.entities.sets[] | select( .entrant2Id != null ) | select( .entrant1Id != null ) | .entrant1Id,.entrant2Id,.entrant1Score,.entrant2Score,.isGF')
+	| jq -r '.entities.sets[] | select( .entrant2Id != null ) | select( .entrant1Id != null ) | .entrant1Id,.entrant2Id,.entrant1Score,.entrant2Score,.isGF,.completedAt')
 let count=0;
 formatted_sets=""
 for i in $(echo $setinfo); do
 	let count=count+1;
-	if [[ count -ge 5 ]]; then
+	if [[ count -ge 6 ]]; then
 		let count=0;
-		formatted_sets+="$(echo "$i")\n"
+		formatted_sets+="$(date -d @${i} "+%d %m %Y")\n"
 	else
 		formatted_sets+="$(echo "$i ")"
 	fi
@@ -95,4 +95,4 @@ unset IFS
 grand_finals_sets=$(echo -e "$sets_with_player_names" | grep "true")
 correct_order_sets=$(echo -e "$sets_with_player_names" | grep -v "true"; echo -e $grand_finals_sets;)
 
-echo -e "$correct_order_sets" | cut -d ' ' -f1-4
+echo -e "$correct_order_sets" | cut -d ' ' -f1-4,6-8
