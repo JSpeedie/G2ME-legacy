@@ -54,6 +54,7 @@ for (( i = 0; i < ${#nameinfo[@]}; ++i )); do
 	fi
 done
 
+# Creates output of format '[player lasting id] "[first name]" "[last name]"'
 IFS=$'\n'
 declare -a id=($(echo "$json" \
 	| jq '.entities.participants[] | .id,.contactInfo.nameFirst,.contactInfo.nameLast'))
@@ -70,9 +71,15 @@ for (( i = 0; i < ${#id[@]}; ++i )); do
 	fi
 done
 
-# Creates output of format [player lasting id] [first name][last name]
-# Format '"[first name]" "[last name]"' to '[first name][last name]'
+
+# Change players names who didn't enter their names to a place holder
+player_id_conversion=$(echo "$player_id_conversion" | sed "s/\"\"/PLACEHOLDER/g")
+# Converts '[player lasting id] "[first name]" "[last name]"'
+#       to '[player lasting id] [first name][last name]'
 player_id_conversion=$(echo "$player_id_conversion" | sed "s/\" \"//g" | sed "s/\"//g")
+
+# Converts '[player lasting id] [first name][last name]'
+#       to '[player temp id] [first name][last name]'
 IFS=$'\n'
 tourn_id_name=$tourn_id_lasting_id
 for i in $(echo -e -n "$player_id_conversion"); do
