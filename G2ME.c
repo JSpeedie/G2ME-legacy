@@ -28,6 +28,7 @@ char BLUE[] = { "\x1B[34m" };
 char MAGENTA[] = { "\x1B[35m" };
 char CYAN[] = { "\x1B[36m" };
 char WHITE[] = { "\x1B[37m" };
+char COMMENT_SYMBOL[] = { "#" };
 #ifdef __linux__
 char PLAYER_DIR[] = { ".players/" };
 char DIR_TERMINATOR = '/';
@@ -800,106 +801,127 @@ int update_players(char* bracket_file_path) {
 	strncpy(t_name, basename(bracket_file_path), sizeof(t_name));
 
 	while (fgets(line, sizeof(line), bracket_file)) {
-		/* Read data from one line of bracket file into all the variables */
+		/* Check if line is commented out */
+		char parse_line = 1;
+		unsigned long i = 0;
+		while (i < strlen(line) && line[i] != '\0') {
+			/* If it reaches a non-whitespace character, check if it's
+			 * a comment */
+			if (line[i] != '	' && line[i] != ' ') {
+				/* If there is space for the comment symbol in the
+				 * line, continue */
+				if (i + strlen(COMMENT_SYMBOL) <= strlen(line)) {
+					/* If there is a comment, do not parse the line */
+					if (strncmp(&line[i], COMMENT_SYMBOL, strlen(COMMENT_SYMBOL)) == 0) {
+						parse_line = 0;
+						break;
+					}
+				}
+			}
+			i++;
+		}
+		if (parse_line == 1) {
+			/* Read data from one line of bracket file into all the variables */
 #ifdef __linux__
-		sscanf(line, "%s %s %hhd %hhd %hhd %hhd %hd",
-			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
+			sscanf(line, "%s %s %hhd %hhd %hhd %hhd %hd",
+				p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
 #elif _WIN32
 
-		char *token = strtok(line, " ");
-		int temp;
+			char *token = strtok(line, " ");
+			int temp;
 
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
-		strncpy(p1_name, token, MAX_NAME_LEN);
+			if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+			strncpy(p1_name, token, MAX_NAME_LEN);
 
-		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
-		strncpy(p2_name, token, MAX_NAME_LEN);
+			token = strtok(NULL, " ");
+			if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+			strncpy(p2_name, token, MAX_NAME_LEN);
 
-		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
-		sscanf(token, "%d", &temp);
-		p1_gc = (char)temp;
+			token = strtok(NULL, " ");
+			if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+			sscanf(token, "%d", &temp);
+			p1_gc = (char)temp;
 
-		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
-		sscanf(token, "%d", &temp);
-		p2_gc = (char)temp;
+			token = strtok(NULL, " ");
+			if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+			sscanf(token, "%d", &temp);
+			p2_gc = (char)temp;
 
-		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
-		sscanf(token, "%d", &temp);
-		day = (char)temp;
+			token = strtok(NULL, " ");
+			if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+			sscanf(token, "%d", &temp);
+			day = (char)temp;
 
-		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
-		sscanf(token, "%d", &temp);
-		month = (char)temp;
+			token = strtok(NULL, " ");
+			if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+			sscanf(token, "%d", &temp);
+			month = (char)temp;
 
-		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
-		sscanf(token, "%d", &temp);
-		year = (short)temp;
+			token = strtok(NULL, " ");
+			if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+			sscanf(token, "%d", &temp);
+			year = (short)temp;
 #else
-		sscanf(line, "%s %s %hhd %hhd %hhd %hhd %hd",
-			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
+			sscanf(line, "%s %s %hhd %hhd %hhd %hhd %hd",
+				p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
 #endif
 
-		if (calc_absent_players_with_file || calc_absent_players == 1) {
-			char already_in = 0;
-			char already_in2 = 0;
-			for (int i = 0; i < tournament_names_len; i++) {
-				/* If the name already exists in the list of entrants,
-				 * don't add */
-				if (0 == strcmp(p1_name, tournament_names[i])) {
-					already_in = 1;
-					break;
+			if (calc_absent_players_with_file || calc_absent_players == 1) {
+				char already_in = 0;
+				char already_in2 = 0;
+				for (int i = 0; i < tournament_names_len; i++) {
+					/* If the name already exists in the list of entrants,
+					 * don't add */
+					if (0 == strcmp(p1_name, tournament_names[i])) {
+						already_in = 1;
+						break;
+					}
+					if (0 == strcmp(p2_name, tournament_names[i])) {
+						already_in2 = 1;
+						break;
+					}
 				}
-				if (0 == strcmp(p2_name, tournament_names[i])) {
-					already_in2 = 1;
-					break;
+				if (!already_in) {
+					strncpy(tournament_names[tournament_names_len], \
+						p1_name, MAX_NAME_LEN);
+					tournament_names_len++;
+				}
+				if (!already_in2) {
+					strncpy(tournament_names[tournament_names_len], \
+						p2_name, MAX_NAME_LEN);
+					tournament_names_len++;
 				}
 			}
-			if (!already_in) {
-				strncpy(tournament_names[tournament_names_len], \
-					p1_name, MAX_NAME_LEN);
-				tournament_names_len++;
-			}
-			if (!already_in2) {
-				strncpy(tournament_names[tournament_names_len], \
-					p2_name, MAX_NAME_LEN);
-				tournament_names_len++;
-			}
-		}
 
-		struct player p1;
-		struct player p2;
-		double p1_out;
-		double p2_out;
-		if (use_games == 1) {
-			p1_out = 1;
-			p2_out = 0;
-			for (int i = 0; i < p1_gc; i++) {
+			struct player p1;
+			struct player p2;
+			double p1_out;
+			double p2_out;
+			if (use_games == 1) {
+				p1_out = 1;
+				p2_out = 0;
+				for (int i = 0; i < p1_gc; i++) {
+					update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
+						&p1_out, &p2_out, day, month, year, t_name);
+					update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
+						&p2_out, &p1_out, day, month, year, t_name);
+				}
+				p1_out = 0;
+				p2_out = 1;
+				for (int i = 0; i < p2_gc; i++) {
+					update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
+						&p1_out, &p2_out, day, month, year, t_name);
+					update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
+						&p2_out, &p1_out, day, month, year, t_name);
+				}
+			} else {
+				p1_out = p1_gc > p2_gc;
+				p2_out = p1_gc < p2_gc;
 				update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
 					&p1_out, &p2_out, day, month, year, t_name);
 				update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
 					&p2_out, &p1_out, day, month, year, t_name);
 			}
-			p1_out = 0;
-			p2_out = 1;
-			for (int i = 0; i < p2_gc; i++) {
-				update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
-					&p1_out, &p2_out, day, month, year, t_name);
-				update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
-					&p2_out, &p1_out, day, month, year, t_name);
-			}
-		} else {
-			p1_out = p1_gc > p2_gc;
-			p2_out = p1_gc < p2_gc;
-			update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
-				&p1_out, &p2_out, day, month, year, t_name);
-			update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
-				&p2_out, &p1_out, day, month, year, t_name);
 		}
 	}
 
