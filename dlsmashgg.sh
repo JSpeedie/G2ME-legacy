@@ -2,7 +2,8 @@
 # this can be found by going to the api page:
 # https://api.smash.gg/tournament/[tournament name here]?expand[]=phase&expand[]=groups&expand[]=event
 # and going to 'entities' > 'groups'. Each event (melee singles, melee doubles,
-# project m, etc) will have it's own number
+# project m, etc) will have it's own number. Expand 1 of them, 'id' is the value
+# you will need for this script.
 #
 # Example:
 # I have a tournament: https://smash.gg/tournament/toronto-stock-exchange-7/events
@@ -18,18 +19,22 @@ json=$(wget $smashggurl -q -O -)
 # Creates output of format:
 # [Set Number] [player 1 tournament id] [player 2 tournament id] [player 1 game count] [player 2 game count]
 setinfo=$(echo "$json" \
-	| jq -r '.entities.sets[] | select( .entrant2Id != null ) | select( .entrant1Id != null ) | .entrant1Id,.entrant2Id,.entrant1Score,.entrant2Score,.isGF,.completedAt')
+	| jq -r '.entities.sets[] | select( .entrant2Id != null ) | select( .entrant1Id != null ) | .id,.entrant1Id,.entrant2Id,.entrant1Score,.entrant2Score,.isGF,.completedAt')
 let count=0;
 formatted_sets=""
 for i in $(echo $setinfo); do
 	let count=count+1;
-	if [[ count -ge 6 ]]; then
+	if [[ count -ge 7 ]]; then
 		let count=0;
 		formatted_sets+="$(date -d @${i} "+%d %m %Y")\n"
 	else
 		formatted_sets+="$(echo "$i ")"
 	fi
 done
+
+# Sort the sets to be in the correct order
+# aka winners rounds 1 to x, then losers rounds 1 to x
+formatted_sets=$(echo -e -n "$formatted_sets" | sort -nk1 | cut -d ' ' -f2-9)
 
 # Creates output of format:
 # [player_id in tournament] [player_id_lasting]
