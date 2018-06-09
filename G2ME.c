@@ -801,10 +801,10 @@ int update_players(char* bracket_file_path) {
 	strncpy(t_name, basename(bracket_file_path), sizeof(t_name));
 
 	while (fgets(line, sizeof(line), bracket_file)) {
-		/* Check if line is commented out */
-		char parse_line = 1;
+		/* Remove comments from text */
+		char parse_line = 0;
 		unsigned long i = 0;
-		while (i < strlen(line) && line[i] != '\0') {
+		while (i < strlen(line)) {
 			/* If it reaches a non-whitespace character, check if it's
 			 * a comment */
 			if (line[i] != '	' && line[i] != ' ') {
@@ -813,10 +813,20 @@ int update_players(char* bracket_file_path) {
 				if (i + strlen(COMMENT_SYMBOL) <= strlen(line)) {
 					/* If there is a comment, do not parse the line */
 					if (strncmp(&line[i], COMMENT_SYMBOL, strlen(COMMENT_SYMBOL)) == 0) {
-						parse_line = 0;
+						line[i] = '\0';
 						break;
 					}
 				}
+			}
+			i++;
+		}
+		/* Check if the line is non-empty */
+		i = 0;
+		while (i < strlen(line)) {
+			/* If it reaches a non-whitespace character */
+			if (line[i] != '	' && line[i] != ' ' && line[i] != '\n' && line[i] != '\r') {
+				parse_line = 1;
+				break;
 			}
 			i++;
 		}
@@ -977,10 +987,10 @@ int run_brackets(char *bracket_list_file_path) {
 	char line[MAX_FILE_PATH_LEN + 2];
 
 	while (fgets(line, sizeof(line), bracket_list_file)) {
-		/* Check if line is commented out */
-		char parse_line = 1;
+		/* Remove comments from text */
+		char parse_line = 0;
 		unsigned long i = 0;
-		while (i < strlen(line) && line[i] != '\0') {
+		while (i < strlen(line)) {
 			/* If it reaches a non-whitespace character, check if it's
 			 * a comment */
 			if (line[i] != '	' && line[i] != ' ') {
@@ -989,10 +999,20 @@ int run_brackets(char *bracket_list_file_path) {
 				if (i + strlen(COMMENT_SYMBOL) <= strlen(line)) {
 					/* If there is a comment, do not parse the line */
 					if (strncmp(&line[i], COMMENT_SYMBOL, strlen(COMMENT_SYMBOL)) == 0) {
-						parse_line = 0;
+						line[i] = '\0';
 						break;
 					}
 				}
+			}
+			i++;
+		}
+		/* Check if the line is non-empty */
+		i = 0;
+		while (i < strlen(line)) {
+			/* If it reaches a non-whitespace character */
+			if (line[i] != '	' && line[i] != ' ' && line[i] != '\n' && line[i] != '\r') {
+				parse_line = 1;
+				break;
 			}
 			i++;
 		}
