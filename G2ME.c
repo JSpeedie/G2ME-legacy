@@ -1422,26 +1422,16 @@ void merge_sort_player_records(struct record *records, int array_size) {
 //       one that gets the array of records, and one that prints the records
 // TODO: improve efficiency for checking players pass filters
 int print_player_records(char *file_path) {
-	FILE *p_file = fopen(file_path, "rb");
-	if (p_file == NULL) {
-		perror("fopen (print_player_records)");
-		return -1;
-	}
-
-
+	/* Get all records and sort them alphabetically */
 	int num_rec = 0;
+	// TODO: add filter to get_all_records, array indexed by opp_id, contains ret array index
 	struct record *records = get_all_records(file_path, &num_rec);
-	int found_name = 0;
+	merge_sort_player_records(records, num_rec);
+
 	char passes_filter = 0;
 	char line[MAX_NAME_LEN];
-	struct entry ent;
-	/* Read the starter data in the file */
-	entry_file_read_start_from_file(file_path, &ent);
-	/* Go back to beginning of entries for reading */
-	fseek(p_file, 0, SEEK_SET);
-	entry_file_get_to_entries(p_file);
 
-	while (entry_file_read_entry(p_file, &ent) == 0) {
+	for (int i = 0; i < num_rec; i++) {
 		/* If a minimum event requirement is being used, assume
 		 * the player does not pass the filter initially */
 		passes_filter = 0;
@@ -1450,16 +1440,16 @@ int print_player_records(char *file_path) {
 		int attended_count = 0;
 		/* If the entry is for a player and not an RD adjustment since
 		 * RD adjustments don't have player files */
-		if (0 != strcmp(ent.opp_name, "-")) {
+		if (0 != strcmp(records[i].opp_name, "-")) {
 			char *full_player_path = \
-				file_path_with_player_dir(ent.opp_name);
+				file_path_with_player_dir(records[i].opp_name);
 			entry_file_get_events_attended(full_player_path, &attended_count);
 			free(full_player_path);
 		}
 
 		if (attended_count >= pr_minimum_events) {
 			passes_filter = 1;
-			/* Filter players to be the ones in the given '-p' flag file */
+			/* Filter players to be the ones in the given '-f' flag file */
 			if (f_flag_used == 1) {
 				passes_filter = 0;
 				FILE *filter_file = fopen(filter_file_path, "r");
@@ -1469,6 +1459,7 @@ int print_player_records(char *file_path) {
 				}
 
 				while (fgets(line, sizeof(line), filter_file)) {
+					// TODO: dangerous line replacement. Fix
 					char *end_of_line = strchr(line, '\n');
 					if (end_of_line == NULL) {
 						perror("strchr (print_player_records)");
@@ -1476,7 +1467,7 @@ int print_player_records(char *file_path) {
 					}
 					*end_of_line = '\0';
 					/* If the name is in the filter, mark it accordingly */
-					if (0 == strcmp(ent.opp_name, line)) {
+					if (0 == strcmp(records[i].opp_name, line)) {
 						passes_filter = 1;
 						break;
 					}
@@ -1484,82 +1475,63 @@ int print_player_records(char *file_path) {
 				fclose(filter_file);
 			}
 		}
+
 		if (passes_filter == 1) {
-			found_name = 0;
-			/* Search to see if records on this opponent are already
-			 * saved in the array */
-			for (int i = 0; i < num_rec; i++) {
-				if (0 == strcmp(ent.opp_name, records[i].opp_name)) {
-					found_name = 1;
-				}
-			}
-			/* If the record against this player is not in the array,
-			 * get the record */
-			if (found_name == 0) {
-				get_record(ent.name, ent.opp_name, &records[num_rec]);
-				num_rec++;
-			}
-		}
-	}
-
-	fclose(p_file);
-	merge_sort_player_records(records, num_rec);
-
-	for (int i = 0; i < num_rec; i++) {
-		char* output_colour_player = NOTHING;
-		char* reset_colour_player = NOTHING;
-		if (colour_output == 1) {
-			reset_colour_player = NORMAL;
-			// If the player has a winning record
-			if (records[i].wins > records[i].losses) {
-				/* If the player has a "perfect" record, use a
-				 * different colour to print it */
-				if (records[i].losses == 0) {
-					output_colour_player = BLUE;
-				} else {
-					output_colour_player = GREEN;
-				}
-			// If the player has a losing record
-			} else if (records[i].wins < records[i].losses) {
-				/* If the player has a "reverse perfect" record, use a
-				 * different colour to print it */
-				if (records[i].wins == 0) {
-					output_colour_player = MAGENTA;
-				} else {
-					output_colour_player = RED;
-				}
-			// If the player has a tied record
-			} else {
-				output_colour_player = YELLOW;
-			}
-		}
-
-		fprintf(stdout, "%s vs %s%s%s = %d",
-				records[i].name, output_colour_player, records[i].opp_name, \
-				reset_colour_player, records[i].wins);
-		// If the user wants ties to be printed
-		if (print_ties == 1) {
-			fprintf(stdout, "-%d", records[i].ties);
-		}
-		fprintf(stdout, "-%d", records[i].losses);
-		if (verbose == 1) {
+			char* output_colour_player = NOTHING;
+			char* reset_colour_player = NOTHING;
 			if (colour_output == 1) {
-				fprintf(stdout, " -> ");
-				for (int j = 0; records[i].last_outcomes[j] != '\0'; j++) {
-					if (records[i].last_outcomes[j] == 'W') {
-						fprintf(stdout, "%s%c", GREEN, records[i].last_outcomes[j]);
-					} else if (records[i].last_outcomes[j] == 'T') {
-						fprintf(stdout, "%s%c", YELLOW, records[i].last_outcomes[j]);
-					} else if (records[i].last_outcomes[j] == 'L') {
-						fprintf(stdout, "%s%c", RED, records[i].last_outcomes[j]);
+				reset_colour_player = NORMAL;
+				// If the player has a winning record
+				if (records[i].wins > records[i].losses) {
+					/* If the player has a "perfect" record, use a
+					 * different colour to print it */
+					if (records[i].losses == 0) {
+						output_colour_player = BLUE;
+					} else {
+						output_colour_player = GREEN;
 					}
+				// If the player has a losing record
+				} else if (records[i].wins < records[i].losses) {
+					/* If the player has a "reverse perfect" record, use a
+					 * different colour to print it */
+					if (records[i].wins == 0) {
+						output_colour_player = MAGENTA;
+					} else {
+						output_colour_player = RED;
+					}
+				// If the player has a tied record
+				} else {
+					output_colour_player = YELLOW;
 				}
-				fprintf(stdout, "%s", NORMAL);
-			} else {
-				fprintf(stdout, " -> %s", records[i].last_outcomes);
 			}
+
+			fprintf(stdout, "%s vs %s%s%s = %d",
+					records[i].name, output_colour_player, records[i].opp_name, \
+					reset_colour_player, records[i].wins);
+			// If the user wants ties to be printed
+			if (print_ties == 1) {
+				fprintf(stdout, "-%d", records[i].ties);
+			}
+			fprintf(stdout, "-%d", records[i].losses);
+			if (verbose == 1) {
+				if (colour_output == 1) {
+					fprintf(stdout, " -> ");
+					for (int j = 0; records[i].last_outcomes[j] != '\0'; j++) {
+						if (records[i].last_outcomes[j] == 'W') {
+							fprintf(stdout, "%s%c", GREEN, records[i].last_outcomes[j]);
+						} else if (records[i].last_outcomes[j] == 'T') {
+							fprintf(stdout, "%s%c", YELLOW, records[i].last_outcomes[j]);
+						} else if (records[i].last_outcomes[j] == 'L') {
+							fprintf(stdout, "%s%c", RED, records[i].last_outcomes[j]);
+						}
+					}
+					fprintf(stdout, "%s", NORMAL);
+				} else {
+					fprintf(stdout, " -> %s", records[i].last_outcomes);
+				}
+			}
+			fprintf(stdout, "\n");
 		}
-		fprintf(stdout, "\n");
 	}
 
 	return 0;
@@ -1887,7 +1859,7 @@ void print_matchup_table(void) {
 	char *players = (char *)malloc(MAX_NAME_LEN * 128);
 	players_in_player_dir(players, &num_players, LEXIO);
 
-	/* Filter players to be the ones in the given '-p' flag file */
+	/* Filter players to be the ones in the given '-f' flag file */
 	if (f_flag_used == 1) {
 		filter_player_list(&players, &num_players, filter_file_path);
 	}
@@ -1962,7 +1934,7 @@ void print_matchup_table_csv(void) {
 	char *players = (char *)malloc(MAX_NAME_LEN * 128);
 	players_in_player_dir(players, &num_players, LEXIO);
 
-	/* Filter players to be the ones in the given '-p' flag file */
+	/* Filter players to be the ones in the given '-f' flag file */
 	if (f_flag_used == 1) {
 		filter_player_list(&players, &num_players, filter_file_path);
 	}
