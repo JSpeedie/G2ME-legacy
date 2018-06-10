@@ -16,8 +16,8 @@ typedef struct entry {
 	double rating;
 	double RD;
 	double vol;
-	unsigned char gc;
-	unsigned char opp_gc;
+	signed char gc;
+	signed char opp_gc;
 	unsigned char day;
 	unsigned char month;
 	unsigned short year;

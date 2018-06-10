@@ -536,7 +536,7 @@ struct entry create_entry(struct player* P, char* name, char* opp_name,
  * \return void
  */
 void update_player_on_outcome(char* p1_name, char* p2_name,
-	struct player* p1, struct player* p2, double* p1_gc, double* p2_gc,
+	struct player* p1, struct player* p2, char* p1_gc, char* p2_gc,
 	char day, char month, short year, char* t_name) {
 
 	char *full_p1_path = file_path_with_player_dir(p1_name);
@@ -589,8 +589,8 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	struct player new_p1 = *p1;
 	struct player new_p2 = *p2;
 
-	update_player(&new_p1, &p2->__rating, 1, &p2->__rd, p1_gc);
-	update_player(&new_p2, &p1->__rating, 1, &p1->__rd, p2_gc);
+	update_player(&new_p1, &p2->__rating, 1, &p2->__rd, (double *) p1_gc);
+	update_player(&new_p2, &p1->__rating, 1, &p1->__rd, (double *) p2_gc);
 	/* Adjust changes in glicko data based on weight of given game/set */
 	new_p1.__rating = p1->__rating + ((new_p1.__rating - p1->__rating) * outcome_weight);
 	new_p1.__rd = p1->__rd + ((new_p1.__rd - p1->__rd) * outcome_weight);
@@ -905,8 +905,8 @@ int update_players(char* bracket_file_path) {
 
 			struct player p1;
 			struct player p2;
-			double p1_out;
-			double p2_out;
+			char p1_out;
+			char p2_out;
 			if (use_games == 1) {
 				p1_out = 1;
 				p2_out = 0;
@@ -925,12 +925,10 @@ int update_players(char* bracket_file_path) {
 						&p2_out, &p1_out, day, month, year, t_name);
 				}
 			} else {
-				p1_out = p1_gc > p2_gc;
-				p2_out = p1_gc < p2_gc;
 				update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
-					&p1_out, &p2_out, day, month, year, t_name);
+					&p1_gc, &p2_gc, day, month, year, t_name);
 				update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
-					&p2_out, &p1_out, day, month, year, t_name);
+					&p2_gc, &p1_gc, day, month, year, t_name);
 			}
 		}
 	}
