@@ -58,8 +58,8 @@ double outcome_weight = 1;
 /* TODO: make it dynamically realloc */
 char tournament_names[128][128];
 unsigned char tournament_names_len = 0;
-char pr_list_file_path[MAX_FILE_PATH_LEN];
-char p_flag_used = 0;
+char filter_file_path[MAX_FILE_PATH_LEN];
+char f_flag_used = 0;
 char player_dir[MAX_FILE_PATH_LEN];
 
 int get_record(char *, char *, struct record *);
@@ -1460,9 +1460,9 @@ int print_player_records(char *file_path) {
 		if (attended_count >= pr_minimum_events) {
 			passes_filter = 1;
 			/* Filter players to be the ones in the given '-p' flag file */
-			if (p_flag_used == 1) {
+			if (f_flag_used == 1) {
 				passes_filter = 0;
-				FILE *filter_file = fopen(pr_list_file_path, "r");
+				FILE *filter_file = fopen(filter_file_path, "r");
 				if (filter_file == NULL) {
 					perror("fopen (filter_player_list)");
 					return -1;
@@ -1828,14 +1828,14 @@ unsigned long int longest_name(char *players, int array_len) {
  * \param '*players' pointer to an array of 'MAX_NAME_LEN' * '*(num_players)'
  *     chars.
  * \param '*num_players' the length of the '*players' array.
- * \param '*pr_list_file_path' the file path of a pr list file.
+ * \param '*filter_file_path' the file path of a pr list file.
  * \return an integer representing the success or failure of
  *     this function. 0 Means sucess, negative numbers mean failure.
  */
 int filter_player_list(char **players_pointer, int *num_players, \
-	char *pr_list_file_path) {
+	char *filter_file_path) {
 
-	FILE *filter_file = fopen(pr_list_file_path, "r");
+	FILE *filter_file = fopen(filter_file_path, "r");
 	if (filter_file == NULL) {
 		perror("fopen (filter_player_list)");
 		return -1;
@@ -1888,8 +1888,8 @@ void print_matchup_table(void) {
 	players_in_player_dir(players, &num_players, LEXIO);
 
 	/* Filter players to be the ones in the given '-p' flag file */
-	if (p_flag_used == 1) {
-		filter_player_list(&players, &num_players, pr_list_file_path);
+	if (f_flag_used == 1) {
+		filter_player_list(&players, &num_players, filter_file_path);
 	}
 
 	int longest_n = longest_name(players, num_players);
@@ -1963,8 +1963,8 @@ void print_matchup_table_csv(void) {
 	players_in_player_dir(players, &num_players, LEXIO);
 
 	/* Filter players to be the ones in the given '-p' flag file */
-	if (p_flag_used == 1) {
-		filter_player_list(&players, &num_players, pr_list_file_path);
+	if (f_flag_used == 1) {
+		filter_player_list(&players, &num_players, filter_file_path);
 	}
 
 	// 'num_players + 1' to accomodate one player per row and an extra row
@@ -2091,6 +2091,7 @@ int main(int argc, char **argv) {
 		{ "matchup-csv",	required_argument,	NULL,	'C' },
 		{ "player-dir",		required_argument,	NULL,	'd' },
 		{ "reset-players",		no_argument,	NULL,	'e' },
+		{ "filter",		required_argument,	NULL,	'f' },
 		{ "use-games",		no_argument,		NULL,	'g' },
 		/* Output given player file in human readable form */
 		{ "human",			required_argument,	NULL,	'h' },
@@ -2104,8 +2105,6 @@ int main(int argc, char **argv) {
 		{ "no-ties",		required_argument,	NULL,	'N' },
 		{ "output",			required_argument,	NULL,	'o' },
 		{ "stdout",			no_argument,	NULL,	'O' },
-		/* Output a file with a sorted list of players and their ratings */
-		{ "power-rating",	required_argument,	NULL,	'p' },
 		{ "P",				required_argument,	NULL,	'P' },
 		{ "refactor",		required_argument,	NULL,	'r' },
 		{ "records",		required_argument,	NULL,	'R' },
@@ -2115,7 +2114,7 @@ int main(int argc, char **argv) {
 		{ "remove-entries",	required_argument,	NULL,	'x' },
 		{ 0, 0, 0, 0 }
 	};
-	char opt_string[] = { "0a:A:b:B:c:Cd:egh:kl:m:MnNo:Op:P:r:R:tvw:x:" };
+	char opt_string[] = { "0a:A:b:B:c:Cd:ef:gh:kl:m:MnNo:OP:r:R:tvw:x:" };
 
 	/* 1. Initialize player_dir to the file path for the player directory */
 	memset(player_dir, 0, sizeof(player_dir));
@@ -2212,17 +2211,17 @@ int main(int argc, char **argv) {
 					reset_players();
 				} else fprintf(stderr, ERROR_PLAYER_DNE);
 				break;
+			case 'f':
+				f_flag_used = 1;
+				strncpy(filter_file_path, optarg, \
+					sizeof(filter_file_path) - 1);
+				break;
 			case 'g': use_games = 1; break;
 			case 'k': keep_players = 1; break;
 			case 'm': pr_minimum_events = atoi(optarg); break;
 			case 'M': print_matchup_table(); break;
 			case 'n': colour_output = 0; break;
 			case 'N': print_ties = 0; break;
-			case 'p':
-				p_flag_used = 1;
-				strncpy(pr_list_file_path, optarg, \
-					sizeof(pr_list_file_path) - 1);
-				break;
 			case 'w': outcome_weight = strtod(optarg, NULL); break;
 			case 'P':
 				calc_absent_players_with_file = 1;
@@ -2230,8 +2229,8 @@ int main(int argc, char **argv) {
 				break;
 			case 'o':
 				if (0 == check_and_create_player_dir()) {
-					if (p_flag_used) {
-						int ret = generate_ratings_file(pr_list_file_path, optarg);
+					if (f_flag_used) {
+						int ret = generate_ratings_file(filter_file_path, optarg);
 						if (ret != 0) return ret;
 					} else {
 						int ret = generate_ratings_file_full(optarg);
@@ -2242,8 +2241,8 @@ int main(int argc, char **argv) {
 			case 'O':
 				if (0 == check_and_create_player_dir()) {
 					flag_output_to_stdout = 1;
-					if (p_flag_used) {
-						int ret = generate_ratings_file(pr_list_file_path, optarg);
+					if (f_flag_used) {
+						int ret = generate_ratings_file(filter_file_path, optarg);
 						if (ret != 0) return ret;
 					} else {
 						int ret = generate_ratings_file_full(optarg);
