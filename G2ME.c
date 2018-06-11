@@ -590,7 +590,6 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	struct player new_p2 = *p2;
 	double p1_result = (double) (*(p1_gc) > *(p2_gc));
 	double p2_result = (double) (*(p1_gc) < *(p2_gc));
-	printf("p1_result = %lf, p2_result = %lf\n", p1_result, p2_result);
 
 	update_player(&new_p1, &p2->__rating, 1, &p2->__rd, &p1_result);
 	update_player(&new_p2, &p1->__rating, 1, &p1->__rd, &p2_result);
