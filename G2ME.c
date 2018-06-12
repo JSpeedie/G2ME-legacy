@@ -60,6 +60,7 @@ char tournament_names[128][128];
 unsigned char tournament_names_len = 0;
 char filter_file_path[MAX_FILE_PATH_LEN];
 char f_flag_used = 0;
+char p_flag_used = 0;
 char player_dir[MAX_FILE_PATH_LEN];
 
 int get_record(char *, char *, struct record *);
@@ -1030,14 +1031,32 @@ int run_brackets(char *bracket_list_file_path) {
 					*end_of_line = '\0';
 				}
 			}
-
-			if (use_games == 1) {
-				fprintf(stdout, "running \"%s\" using games ...", line);
+			if (p_flag_used == 1) {
+				char run_input = '\0';
+				fprintf(stdout, "run \"%s\"? [Y/n] ", line);
+				scanf(" %c", &run_input);
+				if (run_input == 'Y') {
+					if (use_games == 1) {
+						fprintf(stdout, "running \"%s\" using games ...", line);
+					} else {
+						fprintf(stdout, "running \"%s\" ...", line);
+					}
+					update_players(line);
+					fprintf(stdout, "DONE\n");
+				} else if (run_input == 'n') {
+						fprintf(stdout, "Skipping...\n");
+				} else {
+					fprintf(stderr, "ERROR: input not recognized\n");
+				}
 			} else {
-				fprintf(stdout, "running \"%s\" ...", line);
+				if (use_games == 1) {
+					fprintf(stdout, "running \"%s\" using games ...", line);
+				} else {
+					fprintf(stdout, "running \"%s\" ...", line);
+				}
+				update_players(line);
+				fprintf(stdout, "DONE\n");
 			}
-			update_players(line);
-			fprintf(stdout, "DONE\n");
 		}
 	}
 
@@ -2077,6 +2096,7 @@ int main(int argc, char **argv) {
 		{ "no-ties",		required_argument,	NULL,	'N' },
 		{ "output",			required_argument,	NULL,	'o' },
 		{ "stdout",			no_argument,	NULL,	'O' },
+		{ "prompt",				no_argument,	NULL,	'p' },
 		{ "P",				required_argument,	NULL,	'P' },
 		{ "refactor",		required_argument,	NULL,	'r' },
 		{ "records",		required_argument,	NULL,	'R' },
@@ -2086,7 +2106,7 @@ int main(int argc, char **argv) {
 		{ "remove-entries",	required_argument,	NULL,	'x' },
 		{ 0, 0, 0, 0 }
 	};
-	char opt_string[] = { "0a:A:b:B:c:Cd:ef:gh:kl:m:MnNo:OP:r:R:tvw:x:" };
+	char opt_string[] = { "0a:A:b:B:c:Cd:ef:gh:kl:m:MnNo:OpP:r:R:tvw:x:" };
 
 	/* 1. Initialize player_dir to the file path for the player directory */
 	memset(player_dir, 0, sizeof(player_dir));
@@ -2195,6 +2215,9 @@ int main(int argc, char **argv) {
 			case 'n': colour_output = 0; break;
 			case 'N': print_ties = 0; break;
 			case 'w': outcome_weight = strtod(optarg, NULL); break;
+			case 'p':
+				p_flag_used = 1;
+				break;
 			case 'P':
 				calc_absent_players_with_file = 1;
 				strncpy(player_list_file, optarg, sizeof(player_list_file) - 1);
