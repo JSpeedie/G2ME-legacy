@@ -258,8 +258,8 @@ void print_entry(struct entry E) {
  */
 void print_entry_name_verbose(struct entry E, int longest_nl, \
 	int longest_opp_nl, int longest_opp_id, int longest_name, \
-	int longest_rating, int longest_RD, int longest_vol, int longest_t_id, \
-	int longest_date) {
+	int longest_rating, int longest_RD, int longest_vol, \
+	int longest_gc, int longest_opp_gc, int longest_t_id, int longest_date) {
 
 	/* Process date data into one string */
 	char date[32];
@@ -272,6 +272,8 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 	unsigned int rd_length = strlen(temp);
 	sprintf(temp, "%.8lf", E.vol);
 	unsigned int vol_length = strlen(temp);
+	sprintf(temp, "%d", E.opp_gc);
+	unsigned int opp_gc_length = strlen(temp);
 	char *output_colour = NOTHING;
 	char *reset_colour = NOTHING;
 	if (colour_output == 1) {
@@ -284,13 +286,13 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 		else if (E.gc < E.opp_gc) output_colour = RED;
 	}
 	fprintf(stdout, "%*d  %*d  %-*s  %*d  %s%-*s%s  %*s%.4lf  %*s%.4lf  " \
-		"%*s%.8lf  %d-%d  %-*s  %*d  %s\n", \
+		"%*s%.8lf  %*d-%d%*s  %-*s  %*d  %s\n", \
 		longest_nl, E.len_name, longest_opp_nl, E.len_opp_name, \
 		E.len_name, E.name, longest_opp_id, E.opp_id, output_colour, \
 		longest_name, E.opp_name, reset_colour, longest_rating-rating_length, "", \
 		E.rating, longest_RD-rd_length, "", E.RD, longest_vol-vol_length, "", \
-		E.vol, E.gc, E.opp_gc, longest_date, date, longest_t_id, \
-		E.tournament_id, E.t_name);
+		E.vol, longest_gc, E.gc, E.opp_gc, longest_opp_gc-opp_gc_length, "", \
+		longest_date, date, longest_t_id, E.tournament_id, E.t_name);
 }
 /** Prints a string representation of a struct entry to stdout
  *
@@ -300,7 +302,7 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
  */
 
 void print_entry_name(struct entry E, int longest_name, int longest_rating, \
-	int longest_RD, int longest_vol, int longest_date) {
+	int longest_RD, int longest_vol, int longest_gc, int longest_opp_gc, int longest_date) {
 
 	/* Process date data into one string */
 	char date[32];
@@ -313,6 +315,8 @@ void print_entry_name(struct entry E, int longest_name, int longest_rating, \
 	unsigned int rd_length = strlen(temp);
 	sprintf(temp, "%.6lf", E.vol);
 	unsigned int vol_length = strlen(temp);
+	sprintf(temp, "%d", E.opp_gc);
+	unsigned int opp_gc_length = strlen(temp);
 	char *output_colour = NOTHING;
 	char *reset_colour = NOTHING;
 	if (colour_output == 1) {
@@ -325,11 +329,12 @@ void print_entry_name(struct entry E, int longest_name, int longest_rating, \
 		else if (E.gc < E.opp_gc) output_colour = RED;
 	}
 
-	fprintf(stdout, "%s  %s%-*s%s  %*s%.1lf  %*s%.1lf  %*s%.6lf  %d-%d  " \
+	fprintf(stdout, "%s  %s%-*s%s  %*s%.1lf  %*s%.1lf  %*s%.6lf  %*d-%d%*s  " \
 		"%-*s  %s\n", \
 		E.name, output_colour, longest_name, E.opp_name, reset_colour, \
 		longest_rating-rating_length, "", E.rating, longest_RD-rd_length, \
-		"", E.RD, longest_vol-vol_length, "", E.vol, E.gc, E.opp_gc, \
+		"", E.RD, longest_vol-vol_length, "", E.vol, \
+		longest_gc, E.gc, E.opp_gc, longest_opp_gc-opp_gc_length, "", \
 		longest_date, date, E.t_name);
 }
 
@@ -363,6 +368,8 @@ int print_player_file_verbose(char* file_path) {
 	unsigned long int longest_rating = 0;
 	unsigned long int longest_RD = 0;
 	unsigned long int longest_vol = 0;
+	unsigned long int longest_gc = 0;
+	unsigned long int longest_opp_gc = 0;
 	unsigned long int longest_date = 0;
 	unsigned long int longest_t_id = 0;
 
@@ -389,6 +396,10 @@ int print_player_file_verbose(char* file_path) {
 		if (strlen(temp) > longest_t_id) longest_t_id = strlen(temp);
 		sprintf(temp, "%d/%d/%d", line.day, line.month, line.year);
 		if (strlen(temp) > longest_date) longest_date = strlen(temp);
+		sprintf(temp, "%d", line.gc);
+		if (strlen(temp) > longest_gc) longest_gc = strlen(temp);
+		sprintf(temp, "%d", line.opp_gc);
+		if (strlen(temp) > longest_opp_gc) longest_opp_gc = strlen(temp);
 	}
 
 	fseek(p_file, 0, SEEK_SET);
@@ -396,8 +407,8 @@ int print_player_file_verbose(char* file_path) {
 
 	while (entry_file_read_entry(p_file, &line) == 0) {
 		print_entry_name_verbose(line, longest_nl, longest_opp_nl, \
-		longest_opp_id, longest_name, longest_rating, longest_RD, longest_vol, \
-		longest_t_id, longest_date);
+			longest_opp_id, longest_name, longest_rating, longest_RD, longest_vol, \
+			longest_gc, longest_opp_gc, longest_t_id, longest_date);
 	}
 
 	fclose(p_file);
@@ -430,6 +441,8 @@ int print_player_file(char* file_path) {
 	unsigned long int longest_rating = 0;
 	unsigned long int longest_RD = 0;
 	unsigned long int longest_vol = 0;
+	unsigned long int longest_gc = 0;
+	unsigned long int longest_opp_gc = 0;
 	unsigned long int longest_date = 0;
 
 	fseek(p_file, 0, SEEK_SET);
@@ -451,6 +464,10 @@ int print_player_file(char* file_path) {
 		if (strlen(temp) > longest_vol) longest_vol = strlen(temp);
 		sprintf(temp, "%d/%d/%d", line.day, line.month, line.year);
 		if (strlen(temp) > longest_date) longest_date = strlen(temp);
+		sprintf(temp, "%d", line.gc);
+		if (strlen(temp) > longest_gc) longest_gc = strlen(temp);
+		sprintf(temp, "%d", line.opp_gc);
+		if (strlen(temp) > longest_opp_gc) longest_opp_gc = strlen(temp);
 	}
 
 	fseek(p_file, 0, SEEK_SET);
@@ -458,7 +475,7 @@ int print_player_file(char* file_path) {
 
 	while (entry_file_read_entry(p_file, &line) == 0) {
 		print_entry_name(line, longest_name, longest_rating, longest_RD, \
-			longest_vol, longest_date);
+			longest_vol, longest_gc, longest_opp_gc, longest_date);
 	}
 
 	fclose(p_file);
