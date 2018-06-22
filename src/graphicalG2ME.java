@@ -226,7 +226,7 @@ public class graphicalG2ME {
 		int ret = 0;
 
 		if (!filterFilePath.equals("")) {
-			filter_file_flags_and_arg = " -p " + filterFilePath;
+			filter_file_flags_and_arg = " -f " + filterFilePath;
 		}
 		if (flag.equals("M") || flag.equals("C")) {
 			spaceAndPlayerName = "";
@@ -594,7 +594,7 @@ public class graphicalG2ME {
 				String filter_file_flags_and_arg = "";
 				if (PowerRankingsVerboseCheckBox.isSelected()) no_req_flags += "v";
 				if (!PowerRankingsFilterFileTextField.getText().equals("")) {
-					filter_file_flags_and_arg = " -p " + PowerRankingsFilterFileTextField.getText();
+					filter_file_flags_and_arg = " -f " + PowerRankingsFilterFileTextField.getText();
 				}
 
 				ret = DisplayCommandResultsInJTextArea(
