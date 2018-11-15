@@ -1190,6 +1190,17 @@ int generate_ratings_file(char* file_path, char* output_file_path) {
 		}
 		*end_of_line = '\0';
 		char *full_player_path = file_path_with_player_dir(line);
+		/* If player in filter file does NOT have a player file */
+#ifdef __linux__
+		if (access(full_player_path, R_OK | W_OK) == -1) {
+#elif _WIN32
+		if (_access(full_player_path, R_OK | W_OK) == -1) {
+#else
+		if (access(full_player_path, R_OK | W_OK) == -1) {
+#endif
+			continue;
+		}
+
 		/* If the player file was able to be read properly... */
 		if (0 == entry_file_read_last_entry(full_player_path, &temp)) {
 			int num_events;
@@ -1580,6 +1591,30 @@ void print_player_attended(char *attended, int count) {
 	}
 }
 
+/* Takes a pointer to an integer, modifies '*num_of_players' to the
+ * number of players in the 'player_dir'. Really just counts the number
+ * of non-directory "files" in the player directory.
+ *
+ * \param '*num_of_players' an int pointer that will be modified to contain
+ *     the number of player names in the directory.
+ * \return a pointer to the return array.
+ */
+void num_players_in_player_dir(int *num_of_players) {
+	DIR *p_dir;
+	struct dirent *entry;
+
+	if ((p_dir = opendir(player_dir)) != NULL) {
+		*num_of_players = 0;
+		while ((entry = readdir(p_dir)) != NULL) {
+			// Make sure it doesn't count directories
+			if (1 == check_if_dir(player_dir, entry->d_name)) {
+				*num_of_players = (*num_of_players) + 1;
+			}
+		}
+		closedir(p_dir);
+	}
+}
+
 /* Takes a char pointer created by malloc or calloc and a pointer
  * to an integer. Gets the name of every player in the player directory
  * 'player_dir' into the array in lexiographical order. Modifies '*num'
@@ -1601,7 +1636,7 @@ void print_player_attended(char *attended, int count) {
 char *players_in_player_dir(char *players, int *num, char type) {
 	DIR *p_dir;
 	struct dirent *entry;
-	// TODO reallocate '*players' if necessary make it required that
+	// TODO: reallocate '*players' if necessary make it required that
 	// '*players' is a pointer made by a calloc or malloc call
 
 	if ((p_dir = opendir(player_dir)) != NULL) {
@@ -1891,8 +1926,11 @@ void print_matchup_table(void) {
 	// column and row titles
 	int num_players = 0;
 	int space_between_columns = 3;
-	// TODO: better size allocation
-	char *players = (char *)malloc(MAX_NAME_LEN * 128);
+	/* Get the number of players to allocate the array of player names */
+	int max_num_players;
+	num_players_in_player_dir(&max_num_players);
+	char *players = (char *)malloc(MAX_NAME_LEN * max_num_players);
+	/* Get the names of eligible players to print */
 	players_in_player_dir(players, &num_players, LEXIO);
 
 	/* Filter players to be the ones in the given '-f' flag file */
