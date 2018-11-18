@@ -275,6 +275,7 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 	sprintf(temp, "%d", E.opp_gc);
 	unsigned int opp_gc_length = strlen(temp);
 	char *output_colour = NOTHING;
+	char *tournament_colour = NOTHING;
 	char *reset_colour = NOTHING;
 	if (colour_output == 1) {
 		/* If this player won against their opponent,
@@ -284,15 +285,18 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 		output_colour = YELLOW;
 		if (E.gc > E.opp_gc) output_colour = GREEN;
 		else if (E.gc < E.opp_gc) output_colour = RED;
+		tournament_colour = RED;
+		if (0 != strcmp(E.opp_name, "-")) tournament_colour = GREEN;
 	}
 	fprintf(stdout, "%*d  %*d  %-*s  %*d  %s%-*s%s  %*s%.4lf  %*s%.4lf  " \
-		"%*s%.8lf  %*d-%d%*s  %-*s  %*d  %s\n", \
+		"%*s%.8lf  %*d-%d%*s  %-*s  %*d  %s%s%s\n", \
 		longest_nl, E.len_name, longest_opp_nl, E.len_opp_name, \
 		E.len_name, E.name, longest_opp_id, E.opp_id, output_colour, \
 		longest_name, E.opp_name, reset_colour, longest_rating-rating_length, "", \
 		E.rating, longest_RD-rd_length, "", E.RD, longest_vol-vol_length, "", \
 		E.vol, longest_gc, E.gc, E.opp_gc, longest_opp_gc-opp_gc_length, "", \
-		longest_date, date, longest_t_id, E.tournament_id, E.t_name);
+		longest_date, date, longest_t_id, E.tournament_id, tournament_colour, \
+		E.t_name, reset_colour);
 }
 /** Prints a string representation of a struct entry to stdout
  *
@@ -318,6 +322,7 @@ void print_entry_name(struct entry E, int longest_name, int longest_rating, \
 	sprintf(temp, "%d", E.opp_gc);
 	unsigned int opp_gc_length = strlen(temp);
 	char *output_colour = NOTHING;
+	char *tournament_colour = NOTHING;
 	char *reset_colour = NOTHING;
 	if (colour_output == 1) {
 		/* If this player won against their opponent,
@@ -327,15 +332,17 @@ void print_entry_name(struct entry E, int longest_name, int longest_rating, \
 		output_colour = YELLOW;
 		if (E.gc > E.opp_gc) output_colour = GREEN;
 		else if (E.gc < E.opp_gc) output_colour = RED;
+		tournament_colour = RED;
+		if (0 != strcmp(E.opp_name, "-")) tournament_colour = GREEN;
 	}
 
 	fprintf(stdout, "%s  %s%-*s%s  %*s%.1lf  %*s%.1lf  %*s%.6lf  %*d-%d%*s  " \
-		"%-*s  %s\n", \
+		"%-*s  %s%s%s\n", \
 		E.name, output_colour, longest_name, E.opp_name, reset_colour, \
 		longest_rating-rating_length, "", E.rating, longest_RD-rd_length, \
 		"", E.RD, longest_vol-vol_length, "", E.vol, \
 		longest_gc, E.gc, E.opp_gc, longest_opp_gc-opp_gc_length, "", \
-		longest_date, date, E.t_name);
+		longest_date, date, tournament_colour, E.t_name, reset_colour);
 }
 
 /** Prints all the contents of a player file to stdout with each entry
