@@ -213,11 +213,11 @@ void print_entry_verbose(struct entry E) {
 		else if (E.gc < E.opp_gc) output_colour = RED;
 	}
 
-	fprintf(stdout, "%d  %d  %s  %d  %s%s%s  %.4lf  %.4lf  " \
+	fprintf(stdout, "%d  %d  %s  %d  %s%s%s  %d  %.4lf  %.4lf  " \
 		"%.8lf  %d-%d  %s  %d  %s\n", \
 		E.len_name, E.len_opp_name, E.name, E.opp_id, output_colour, \
-		E.opp_name, reset_colour, E.rating, E.RD, E.vol, E.gc, \
-		E.opp_gc, date, E.tournament_id, E.t_name);
+		E.opp_name, reset_colour, E.is_competitor, E.rating, E.RD, E.vol, \
+		E.gc, E.opp_gc, date, E.tournament_id, E.t_name);
 }
 
 /** Prints a string representation of a struct entry to stdout
@@ -286,17 +286,20 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 		if (E.gc > E.opp_gc) output_colour = GREEN;
 		else if (E.gc < E.opp_gc) output_colour = RED;
 		tournament_colour = RED;
-		if (0 != strcmp(E.opp_name, "-")) tournament_colour = GREEN;
+		if (E.is_competitor == 1) tournament_colour = GREEN;
+		else output_colour = NORMAL;
 	}
-	fprintf(stdout, "%*d  %*d  %-*s  %*d  %s%-*s%s  %*s%.4lf  %*s%.4lf  " \
+	fprintf(stdout, "%*d  %*d  %-*s  %*d  %s%-*s%s  %d  %*s%.4lf  %*s%.4lf  " \
 		"%*s%.8lf  %*d-%d%*s  %-*s  %*d  %s%s%s\n", \
 		longest_nl, E.len_name, longest_opp_nl, E.len_opp_name, \
 		E.len_name, E.name, longest_opp_id, E.opp_id, output_colour, \
-		longest_name, E.opp_name, reset_colour, longest_rating-rating_length, "", \
-		E.rating, longest_RD-rd_length, "", E.RD, longest_vol-vol_length, "", \
-		E.vol, longest_gc, E.gc, E.opp_gc, longest_opp_gc-opp_gc_length, "", \
-		longest_date, date, longest_t_id, E.tournament_id, tournament_colour, \
-		E.t_name, reset_colour);
+		longest_name, E.opp_name, reset_colour, E.is_competitor, \
+		longest_rating-rating_length, "", E.rating,
+		longest_RD-rd_length, "", E.RD, longest_vol-vol_length, "", \
+		E.vol, longest_gc, E.gc, E.opp_gc, \
+		longest_opp_gc-opp_gc_length, "", longest_date, date, \
+		longest_t_id, E.tournament_id, tournament_colour, E.t_name, \
+		reset_colour);
 }
 /** Prints a string representation of a struct entry to stdout
  *
@@ -333,7 +336,8 @@ void print_entry_name(struct entry E, int longest_name, int longest_rating, \
 		if (E.gc > E.opp_gc) output_colour = GREEN;
 		else if (E.gc < E.opp_gc) output_colour = RED;
 		tournament_colour = RED;
-		if (0 != strcmp(E.opp_name, "-")) tournament_colour = GREEN;
+		if (E.is_competitor == 1) tournament_colour = GREEN;
+		else output_colour = NORMAL;
 	}
 
 	fprintf(stdout, "%s  %s%-*s%s  %*s%.1lf  %*s%.1lf  %*s%.6lf  %*d-%d%*s  " \
@@ -681,6 +685,10 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
 				latest_ent.gc = 0;
 				latest_ent.opp_gc = 0;
 				latest_ent.day = day;
+				/* Modify first bit of 'day' to tell whether this was a real
+				 * set/game. Day should always be <= 31 leaving 3 extra bits.
+				 * Bitwise OR with 10000000 */
+				latest_ent.day = latest_ent.day | (1 << ((sizeof(latest_ent.day) * 8) - 1));
 				latest_ent.month = month;
 				latest_ent.year = year;
 				strncpy(latest_ent.t_name, t_name, MAX_NAME_LEN - 1);
@@ -1503,6 +1511,13 @@ int print_player_records(char *file_path) {
 
 		if (attended_count >= pr_minimum_events) {
 			passes_filter = 1;
+			/* If there is no record data (this should only be executed
+			 * for the RD adjustment name "-" */
+			if (records[i].wins == 0
+				&& records[i].ties == 0
+				&& records[i].losses == 0) {
+				continue;
+			}
 			/* Filter players to be the ones in the given '-f' flag file */
 			if (f_flag_used == 1) {
 				passes_filter = 0;
@@ -1821,6 +1836,8 @@ struct record *get_all_records(char *file_path, int *num_of_records) {
 			strncpy(ret[ent.opp_id].opp_name, ent.opp_name, MAX_NAME_LEN);
 		}
 
+		/* If the entry is a non-competitor (RD-adjustment), ignore */
+		if (ent.is_competitor == 0) continue;
 		if (ent.gc > ent.opp_gc) ret[ent.opp_id].wins += 1;
 		else if (ent.gc == ent.opp_gc) ret[ent.opp_id].ties += 1;
 		else if (ent.gc < ent.opp_gc) ret[ent.opp_id].losses += 1;
