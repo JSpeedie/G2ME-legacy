@@ -18,6 +18,7 @@ typedef struct entry {
 	double vol;
 	signed char gc;
 	signed char opp_gc;
+	unsigned char is_competitor;
 	unsigned char day;
 	unsigned char month;
 	unsigned short year;

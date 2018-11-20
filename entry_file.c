@@ -386,6 +386,15 @@ int entry_file_read_entry(FILE *f, struct entry *E) {
 	if (1 != fread(&E->gc, sizeof(char), 1, f)) { return -6; } //1 27
 	if (1 != fread(&E->opp_gc, sizeof(char), 1, f)) { return -7; } //1 28
 	if (1 != fread(&E->day, sizeof(char), 1, f)) { return -8; } //1 29
+	/* If 'day' bitwise ANDed with 10000000 != 0, then this is a
+	 * non-competitor entry */
+	if ( (E->day & (1 << ((sizeof(E->day) * 8) - 1))) != 0) {
+		E->is_competitor = 0;
+		/* Set leftmost bit to 0 */
+		E->day = E->day &  ~(1 << ((sizeof(E->day) * 8) - 1));
+	} else {
+		E->is_competitor = 1;
+	}
 	if (1 != fread(&E->month, sizeof(char), 1, f)) { return -9; } //1 30
 	if (1 != fread(&E->year, sizeof(short), 1, f)) { return -10; } //2 32
 	if (1 != fread(&E->tournament_id, sizeof(short), 1, f)) { return -11; } //2 32
@@ -1050,9 +1059,8 @@ int entry_file_get_outcome_count(char *file_path) {
 	entry_file_get_to_entries(p_file);
 
 	while (entry_file_read_entry(p_file, &cur_entry) == 0) {
-		// If the entry was NOT an RD adjustment due to absense
-		if (strcmp(cur_entry.opp_name, "-") != 0 && !(cur_entry.gc == 0 \
-			&& cur_entry.opp_gc == 0)) {
+		/* If the entry was NOT an RD adjustment due to absence */
+		if (cur_entry.is_competitor == 1) {
 			num_outcomes++;
 		}
 	}
@@ -1108,9 +1116,9 @@ char *entry_file_get_events_attended(char *file_path, int *ret_count) {
 				in_tourneys = 1;
 			}
 		}
-		/* If this tournament wasn't in the array, and the opponent was
+		/* If this tournament wasn't in the array, and the opponent wasn't
 		 * actually a system RD adjustment, add it to the array */
-		if (in_tourneys == 0 && strcmp(cur_entry.opp_name, "-") != 0) {
+		if (in_tourneys == 0 && cur_entry.is_competitor == 1) {
 			/* If there is no space to add this tournament, reallocate */
 			if (tourneys_num + 1 > tourneys_size) {
 				tourneys_size += REALLOC_PR_ENTRIES_INC;
