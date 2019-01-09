@@ -9,6 +9,7 @@ extern char flag_output_to_stdout;
 typedef struct entry {
 	unsigned short opp_id;
 	unsigned short tournament_id;
+	unsigned short season_id;
 	unsigned char len_name;
 	unsigned char len_opp_name;
 	char name[MAX_NAME_LEN];

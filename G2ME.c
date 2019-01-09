@@ -40,8 +40,10 @@ char PLAYER_DIR[] = { ".players/" };
 char DIR_TERMINATOR = '/';
 #endif
 
-const char ERROR_PLAYER_DNE[] = { "Error: 'player_dir' either could not be "
-	"created or does not exist"};
+const char ERROR_PLAYER_DIR_DNE[] = { "Error: 'player_dir' either could not be "
+	"created or does not exist\n"};
+const char ERROR_PLAYER_DNE[] = { "Error: the given player could not be found "
+	"in working directory or the given player directory\n"};
 
 char flag_output_to_stdout = 0;
 char flag_time_program = 0;
@@ -259,7 +261,8 @@ void print_entry(struct entry E) {
 void print_entry_name_verbose(struct entry E, int longest_nl, \
 	int longest_opp_nl, int longest_opp_id, int longest_name, \
 	int longest_rating, int longest_RD, int longest_vol, \
-	int longest_gc, int longest_opp_gc, int longest_t_id, int longest_date) {
+	int longest_gc, int longest_opp_gc, int longest_t_id, \
+	int longest_date, int longest_t_name, int longest_s_id) {
 
 	/* Process date data into one string */
 	char date[32];
@@ -290,7 +293,7 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 		else output_colour = NORMAL;
 	}
 	fprintf(stdout, "%*d  %*d  %-*s  %*d  %s%-*s%s  %d  %*s%.4lf  %*s%.4lf  " \
-		"%*s%.8lf  %*d-%d%*s  %-*s  %*d  %s%s%s\n", \
+		"%*s%.8lf  %*d-%d%*s  %-*s  %*d  %s%-*s%s %*d\n", \
 		longest_nl, E.len_name, longest_opp_nl, E.len_opp_name, \
 		E.len_name, E.name, longest_opp_id, E.opp_id, output_colour, \
 		longest_name, E.opp_name, reset_colour, E.is_competitor, \
@@ -298,8 +301,8 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 		longest_RD-rd_length, "", E.RD, longest_vol-vol_length, "", \
 		E.vol, longest_gc, E.gc, E.opp_gc, \
 		longest_opp_gc-opp_gc_length, "", longest_date, date, \
-		longest_t_id, E.tournament_id, tournament_colour, E.t_name, \
-		reset_colour);
+		longest_t_id, E.tournament_id, tournament_colour, longest_t_name, \
+		E.t_name, reset_colour, longest_s_id, E.season_id);
 }
 /** Prints a string representation of a struct entry to stdout
  *
@@ -383,6 +386,8 @@ int print_player_file_verbose(char* file_path) {
 	unsigned long int longest_opp_gc = 0;
 	unsigned long int longest_date = 0;
 	unsigned long int longest_t_id = 0;
+	unsigned long int longest_t_name = 0;
+	unsigned long int longest_s_id = 0;
 
 	fseek(p_file, 0, SEEK_SET);
 	entry_file_get_to_entries(p_file);
@@ -391,6 +396,7 @@ int print_player_file_verbose(char* file_path) {
 		if (strlen(line.opp_name) > longest_name) {
 			longest_name = strlen(line.opp_name);
 		}
+
 		sprintf(temp, "%d", line.len_name);
 		if (strlen(temp) > longest_nl) longest_nl = strlen(temp);
 		sprintf(temp, "%d", line.len_opp_name);
@@ -403,14 +409,19 @@ int print_player_file_verbose(char* file_path) {
 		if (strlen(temp) > longest_RD) longest_RD = strlen(temp);
 		sprintf(temp, "%.8lf", line.vol);
 		if (strlen(temp) > longest_vol) longest_vol = strlen(temp);
-		sprintf(temp, "%d", line.tournament_id);
-		if (strlen(temp) > longest_t_id) longest_t_id = strlen(temp);
 		sprintf(temp, "%d/%d/%d", line.day, line.month, line.year);
 		if (strlen(temp) > longest_date) longest_date = strlen(temp);
 		sprintf(temp, "%d", line.gc);
 		if (strlen(temp) > longest_gc) longest_gc = strlen(temp);
 		sprintf(temp, "%d", line.opp_gc);
 		if (strlen(temp) > longest_opp_gc) longest_opp_gc = strlen(temp);
+		sprintf(temp, "%d", line.tournament_id);
+		if (strlen(temp) > longest_t_id) longest_t_id = strlen(temp);
+		if (strlen(line.t_name) > longest_t_name) {
+			longest_t_name = strlen(line.t_name);
+		}
+		sprintf(temp, "%d", line.season_id);
+		if (strlen(temp) > longest_s_id) longest_s_id = strlen(temp);
 	}
 
 	fseek(p_file, 0, SEEK_SET);
@@ -418,8 +429,9 @@ int print_player_file_verbose(char* file_path) {
 
 	while (entry_file_read_entry(p_file, &line) == 0) {
 		print_entry_name_verbose(line, longest_nl, longest_opp_nl, \
-			longest_opp_id, longest_name, longest_rating, longest_RD, longest_vol, \
-			longest_gc, longest_opp_gc, longest_t_id, longest_date);
+			longest_opp_id, longest_name, longest_rating, longest_RD, \
+			longest_vol, longest_gc, longest_opp_gc, longest_t_id, \
+			longest_date, longest_t_name, longest_s_id);
 	}
 
 	fclose(p_file);
@@ -523,7 +535,7 @@ void init_player_from_entry(struct player* P, struct entry* E) {
  * \return a struct entry containing all that information
  */
 struct entry create_entry(struct player* P, char* name, char* opp_name,
-	char gc, char opp_gc, char day, char month, short year, char* t_name) {
+	char gc, char opp_gc, char day, char month, short year, char* t_name, short season_id) {
 
 	struct entry ret;
 	ret.len_name = strlen(name);
@@ -540,6 +552,7 @@ struct entry create_entry(struct player* P, char* name, char* opp_name,
 	ret.year = year;
 	ret.len_t_name = strlen(t_name);
 	strncpy(ret.t_name, t_name, sizeof(ret.t_name));
+	ret.season_id = season_id;
 
 	return ret;
 }
@@ -566,7 +579,7 @@ struct entry create_entry(struct player* P, char* name, char* opp_name,
  */
 void update_player_on_outcome(char* p1_name, char* p2_name,
 	struct player* p1, struct player* p2, char* p1_gc, char* p2_gc,
-	char day, char month, short year, char* t_name) {
+	char day, char month, short year, char* t_name, short season_id) {
 
 	char *full_p1_path = file_path_with_player_dir(p1_name);
 	char *full_p2_path = file_path_with_player_dir(p2_name);
@@ -587,6 +600,11 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 		int t;
 		if (0 == (t = entry_file_read_last_entry(full_p1_path, &p1_latest))) {
 			init_player_from_entry(p1, &p1_latest);
+			/* If this outcome was not a part of a season, write the season
+			 * as the same as the latest season the player was in */
+			if (season_id == -1) {
+				season_id = p1_latest.season_id;
+			}
 		} else {
 			perror("entry_file_read_last_entry (update_player_on_outcome)");
 		}
@@ -627,8 +645,11 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	new_p1.__rd = p1->__rd + ((new_p1.__rd - p1->__rd) * outcome_weight);
 	new_p1.vol = p1->vol + ((new_p1.vol - p1->vol) * outcome_weight);
 	struct entry p1_new_entry =
-		create_entry(&new_p1, p1_name, p2_name, *p1_gc, *p2_gc, day, month, year, t_name);
-	entry_file_append_entry_to_file(&p1_new_entry, full_p1_path);
+		create_entry(&new_p1, p1_name, p2_name, *p1_gc, *p2_gc, day, month, year, t_name, season_id);
+	int ret = entry_file_append_entry_to_file(&p1_new_entry, full_p1_path);
+	if (ret != 0) {
+		fprintf(stderr, "Error appending entry to file \"%s\"\n", full_p1_path);
+	}
 
 	free(full_p1_path);
 	free(full_p2_path);
@@ -813,8 +834,7 @@ void adjust_absent_players(char* player_list, char day, char month, \
 // TODO: break up function.
 // TODO: make sscanfs safe/secure.
 //       Right now they risk a stack/buffer overflow
-int update_players(char* bracket_file_path) {
-
+int update_players(char* bracket_file_path, short season_id) {
 	/* Set to 0 since the bracket is beginning and no names are stored */
 	tournament_names_len = 0;
 	FILE *bracket_file = fopen(bracket_file_path, "r");
@@ -947,23 +967,23 @@ int update_players(char* bracket_file_path) {
 				p2_out = 0;
 				for (int i = 0; i < p1_gc; i++) {
 					update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
-						&p1_out, &p2_out, day, month, year, t_name);
+						&p1_out, &p2_out, day, month, year, t_name, season_id);
 					update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
-						&p2_out, &p1_out, day, month, year, t_name);
+						&p2_out, &p1_out, day, month, year, t_name, season_id);
 				}
 				p1_out = 0;
 				p2_out = 1;
 				for (int i = 0; i < p2_gc; i++) {
 					update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
-						&p1_out, &p2_out, day, month, year, t_name);
+						&p1_out, &p2_out, day, month, year, t_name, season_id);
 					update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
-						&p2_out, &p1_out, day, month, year, t_name);
+						&p2_out, &p1_out, day, month, year, t_name, season_id);
 				}
 			} else {
 				update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
-					&p1_gc, &p2_gc, day, month, year, t_name);
+					&p1_gc, &p2_gc, day, month, year, t_name, season_id);
 				update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
-					&p2_gc, &p1_gc, day, month, year, t_name);
+					&p2_gc, &p1_gc, day, month, year, t_name, season_id);
 			}
 		}
 	}
@@ -992,7 +1012,7 @@ int run_single_bracket(char *bracket_file_path) {
 	} else {
 		fprintf(stdout, "running \"%s\" ...", bracket_file_path);
 	}
-	int ret = update_players(bracket_file_path);
+	int ret = update_players(bracket_file_path, -1);
 	if (ret == 0) {
 		fprintf(stdout, "DONE\n");
 		return 0;
@@ -1017,7 +1037,39 @@ int run_brackets(char *bracket_list_file_path) {
 		return -1;
 	}
 
+	short latest_season_id = -1;
 	char line[MAX_FILE_PATH_LEN + 2];
+	/* Get the latest season from a recent player */
+	/* search for a player with a non -1 season */
+	DIR *p_dir;
+	struct dirent *entry;
+	/* If the directory could not be accessed, print error and return */
+	if ((p_dir = opendir(player_dir)) == NULL) {
+		perror("opendir (run_brackets)");
+		return -1;
+	}
+
+	/* Find highest season number from the player. Note that if
+	 * absentee adjustments aren't used then there is no guarantee that
+	 * any given player will have the latest season id */
+	while ((entry = readdir(p_dir)) != NULL) {
+		/* If the directory item is a directory, skip */
+		if (0 == check_if_dir(player_dir, entry->d_name)) continue;
+		char *full_player_path = file_path_with_player_dir(entry->d_name);
+		if (access(full_player_path, R_OK | W_OK) == -1) {
+			fprintf(stderr, ERROR_PLAYER_DNE);
+			return -1;
+		}
+		struct entry temp;
+		if (0 == (entry_file_read_last_entry(full_player_path, &temp))) {
+			if (temp.season_id > latest_season_id) {
+				latest_season_id = temp.season_id;
+			}
+		}
+		free(full_player_path);
+
+	}
+	closedir(p_dir);
 
 	while (fgets(line, sizeof(line), bracket_list_file)) {
 		/* Remove comments from text */
@@ -1073,7 +1125,7 @@ int run_brackets(char *bracket_list_file_path) {
 					} else {
 						fprintf(stdout, "running \"%s\" ...", line);
 					}
-					update_players(line);
+					update_players(line, latest_season_id + 1);
 					fprintf(stdout, "DONE\n");
 				} else if (run_input == 'n') {
 						fprintf(stdout, "Skipping...\n");
@@ -1086,7 +1138,7 @@ int run_brackets(char *bracket_list_file_path) {
 				} else {
 					fprintf(stdout, "running \"%s\" ...", line);
 				}
-				update_players(line);
+				update_players(line, latest_season_id + 1);
 				fprintf(stdout, "DONE\n");
 			}
 		}
@@ -1502,6 +1554,7 @@ int print_player_records(char *file_path) {
 		int attended_count = 0;
 		/* If the entry is for a player and not an RD adjustment since
 		 * RD adjustments don't have player files */
+		// TODO: add is_competitor to records struct
 		if (0 != strcmp(records[i].opp_name, "-")) {
 			char *full_player_path = \
 				file_path_with_player_dir(records[i].opp_name);
@@ -1592,6 +1645,10 @@ int print_player_records(char *file_path) {
 							fprintf(stdout, "%s%c", YELLOW, records[i].last_outcomes[j]);
 						} else if (records[i].last_outcomes[j] == 'L') {
 							fprintf(stdout, "%s%c", RED, records[i].last_outcomes[j]);
+						} else if (records[i].last_outcomes[j] == '|') {
+							fprintf(stdout, "%s%c", NORMAL, records[i].last_outcomes[j]);
+						} else {
+							fprintf(stdout, "%sc", NORMAL);
 						}
 					}
 					fprintf(stdout, "%s", NORMAL);
@@ -1823,6 +1880,7 @@ struct record *get_all_records(char *file_path, int *num_of_records) {
 		return NULL;
 	}
 
+	short prev_entrys_season = 0;
 	while (entry_file_read_entry(p_file, &ent) == 0) {
 		// CONSIDER: OPT: replace this triple check every entry with a function
 		//            that sets names once.
@@ -1841,9 +1899,18 @@ struct record *get_all_records(char *file_path, int *num_of_records) {
 		if (ent.gc > ent.opp_gc) ret[ent.opp_id].wins += 1;
 		else if (ent.gc == ent.opp_gc) ret[ent.opp_id].ties += 1;
 		else if (ent.gc < ent.opp_gc) ret[ent.opp_id].losses += 1;
+
+		/* If the season changed, add season markers to output strings */
+		if (ent.season_id != prev_entrys_season) {
+			for (int i = 0; i < *num_of_records; i++) {
+				ret[i].last_outcomes[cur_opp_ent_num[i]] = '|';
+				cur_opp_ent_num[i]++;
+			}
+			prev_entrys_season = ent.season_id;
+		}
 		/* If the current entry is one of the last x many,
 		 * add it to the recent outcome list */
-		if ((unsigned long)(num_outcome_all[ent.opp_id] - cur_opp_ent_num[ent.opp_id])
+		if ((unsigned long)(num_outcome_all[ent.opp_id] - cur_opp_ent_num[ent.opp_id] + prev_entrys_season)
 			< num_of_last_outcomes) {
 
 			if (ent.gc > ent.opp_gc) {
@@ -2214,44 +2281,60 @@ int main(int argc, char **argv) {
 				fprintf(stdout, "%d\n", \
 					entry_file_get_outcome_count(full_player_path));
 				free(full_player_path);
-			} else fprintf(stderr, ERROR_PLAYER_DNE);
+			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		} else if (opt == 'd') {
 			memset(player_dir, 0, sizeof(player_dir));
 			strncpy(player_dir, optarg, sizeof(player_dir) - 1);
 		} else if (opt == 'h') {
 			if (0 == check_and_create_player_dir()) {
 				char *full_player_path = file_path_with_player_dir(optarg);
+				if (access(full_player_path, R_OK | W_OK) == -1) {
+					fprintf(stderr, ERROR_PLAYER_DNE);
+					return -1;
+				}
 				if (verbose == 1) print_player_file_verbose(full_player_path);
 				else print_player_file(full_player_path);
 				free(full_player_path);
-			} else fprintf(stderr, ERROR_PLAYER_DNE);
+			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		} else if (opt == 'l') {
 			if (0 == check_and_create_player_dir()) {
 				char *full_player_path = file_path_with_player_dir(optarg);
+				if (access(full_player_path, R_OK | W_OK) == -1) {
+					fprintf(stderr, ERROR_PLAYER_DNE);
+					return -1;
+				}
 				if (0 == entry_file_read_last_entry(full_player_path, &temp)) {
 					if (verbose == 1) print_entry_verbose(temp);
 					else print_entry(temp);
 				}
 				free(full_player_path);
-			} else fprintf(stderr, ERROR_PLAYER_DNE);
+			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		} else if (opt == 'r') {
 			if (0 == check_and_create_player_dir()) {
 				char *full_player_path = file_path_with_player_dir(optarg);
+				if (access(full_player_path, R_OK | W_OK) == -1) {
+					fprintf(stderr, ERROR_PLAYER_DNE);
+					return -1;
+				}
 				entry_file_refactor_name(full_player_path);
 				free(full_player_path);
-			} else fprintf(stderr, ERROR_PLAYER_DNE);
+			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		} else if (opt == 'R') {
 			if (0 == check_and_create_player_dir()) {
 				char *full_player_path = file_path_with_player_dir(optarg);
+				if (access(full_player_path, R_OK | W_OK) == -1) {
+					fprintf(stderr, ERROR_PLAYER_DNE);
+					return -1;
+				}
 				print_player_records(full_player_path);
 				free(full_player_path);
-			} else fprintf(stderr, ERROR_PLAYER_DNE);
+			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		} else if (opt == 'x') {
 			if (0 == check_and_create_player_dir()) {
 				char *full_player_path = file_path_with_player_dir(optarg);
 				entry_file_remove_entry(full_player_path);
 				free(full_player_path);
-			} else fprintf(stderr, ERROR_PLAYER_DNE);
+			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		}
 
 		switch (opt) {
@@ -2259,28 +2342,28 @@ int main(int argc, char **argv) {
 			case 'a':
 				if (0 == check_and_create_player_dir()) {
 					write_entry_from_input(file_path_with_player_dir(optarg));
-				} else fprintf(stderr, ERROR_PLAYER_DNE);
+				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'b':
 				if (0 == check_and_create_player_dir()) {
 					if (keep_players == 0) reset_players();
 					run_single_bracket(optarg);
-				} else fprintf(stderr, ERROR_PLAYER_DNE);
+				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'C':
 				if (0 == check_and_create_player_dir()) {
 					print_matchup_table_csv(); break;
-				} else fprintf(stderr, ERROR_PLAYER_DNE);
+				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 			case 'B':
 				if (0 == check_and_create_player_dir()) {
 					if (keep_players == 0) reset_players();
 					run_brackets(optarg);
-				} else fprintf(stderr, ERROR_PLAYER_DNE);
+				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'e':
 				if (0 == check_and_create_player_dir()) {
 					reset_players();
-				} else fprintf(stderr, ERROR_PLAYER_DNE);
+				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'f':
 				f_flag_used = 1;
@@ -2310,7 +2393,7 @@ int main(int argc, char **argv) {
 						int ret = generate_ratings_file_full(optarg);
 						if (ret != 0) return ret;
 					}
-				} else fprintf(stderr, ERROR_PLAYER_DNE);
+				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'O':
 				if (0 == check_and_create_player_dir()) {
@@ -2322,7 +2405,7 @@ int main(int argc, char **argv) {
 						int ret = generate_ratings_file_full(optarg);
 						if (ret != 0) return ret;
 					}
-				} else fprintf(stderr, ERROR_PLAYER_DNE);
+				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'v': verbose = 1; break;
 			case 't': flag_time_program = 1; break;

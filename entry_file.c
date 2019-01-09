@@ -398,6 +398,7 @@ int entry_file_read_entry(FILE *f, struct entry *E) {
 	if (1 != fread(&E->month, sizeof(char), 1, f)) { return -9; } //1 30
 	if (1 != fread(&E->year, sizeof(short), 1, f)) { return -10; } //2 32
 	if (1 != fread(&E->tournament_id, sizeof(short), 1, f)) { return -11; } //2 32
+	if (1 != fread(&E->season_id, sizeof(short), 1, f)) { return -12; } //2 34
 	/* Sets opp_name and len_opp_name of E to be according to opponent
 	 * name E->opp_id */
 	int r;
@@ -630,7 +631,7 @@ long int entry_file_get_last_entry_offset(char* file_path) {
 	 * [4 char | game counts and date] [2 short | year and tournament_id] */
 	long int size_of_an_entry = \
 		(1 * sizeof(short)) + (3 * sizeof(double)) \
-		+ (4 * sizeof(char)) + (2 * sizeof(short));
+		+ (4 * sizeof(char)) + (3 * sizeof(short));
 	void *temp = malloc(size_of_an_entry);
 
 	/* Attempt to read a whole entry at a time, when it fails, exit */
@@ -778,6 +779,7 @@ int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
 	if (1 != fwrite(&E->month, sizeof(char), 1, entry_file)) { return -16; } //1 30
 	if (1 != fwrite(&E->year, sizeof(short), 1, entry_file)) { return -17; } //2 32
 	if (1 != fwrite(&E->tournament_id, sizeof(short), 1, entry_file)) { return -18; } //2 34
+	if (1 != fwrite(&E->season_id, sizeof(short), 1, entry_file)) { return -19; } //2 36
 
 	fclose(entry_file);
 	return 0;
