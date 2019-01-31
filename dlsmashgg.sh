@@ -1,19 +1,41 @@
-# This script requires 1 argument: a phase id for the bracket on smash.gg
-# this can be found by going to the api page:
+# Example:
+# I have a tournament: https://smash.gg/tournament/toronto-stock-exchange-7/events
+# $ sh dlsmashgg.sh toronto-stock-exchange-7
+# All that's needed now is to add the date for every set
+
+# Take a tournament "url name" and print all the brackets that could
+# be converted and let the user choose
+echo "fetching group IDs..."
+smashggurl="https://api.smash.gg/tournament/${1}?expand[]=phase&expand[]=groups&expand[]=event"
+json=$(wget $smashggurl -q -O -)
+groupIds=$(echo "$json" \
+	| jq -r '.entities.groups[] | .id');
+echo "$groupIds"
+printf "Please enter one of the IDs listed above: "
+read -a chosenGroupId
+
+if echo "$groupIds" | grep "^${chosenGroupId}$"; then
+	echo "Chosen group: $chosenGroupId"
+	echo "fetching bracket data..."
+else
+	echo "ERROR: Invalid groupId. Exiting..."
+	exit 1
+fi
+
+# The rest of this script requires 1 argument: a phase id for the bracket on
+# smash.gg this can be found by going to the api page:
 # https://api.smash.gg/tournament/[tournament name here]?expand[]=phase&expand[]=groups&expand[]=event
 # and going to 'entities' > 'groups'. Each event (melee singles, melee doubles,
 # project m, etc) will have it's own number. Expand 1 of them, 'id' is the value
 # you will need for this script.
-#
 # Example:
 # I have a tournament: https://smash.gg/tournament/toronto-stock-exchange-7/events
 # I visit the api page:
 # https://api.smash.gg/tournament/toronto-stock-exchange-7?expand[]=phase&expand[]=groups&expand[]=event
 # After findidng the correct phase id (in this example, melee singles is
-# 577720) I run this script like
-# $ sh dlsmashgg.sh 577720
+# 577720) I run the rest of this script like
 # All that's needed now is to add the date for every set
-smashggurl="https://api.smash.gg/phase_group/${1}?expand[]=entrants&expand[]=event&expand[]=phase&expand[]=sets&expand[]=participants&mutations[]=playerData"
+smashggurl="https://api.smash.gg/phase_group/${chosenGroupId}?expand[]=entrants&expand[]=event&expand[]=phase&expand[]=sets&expand[]=participants&mutations[]=playerData"
 json=$(wget $smashggurl -q -O -)
 
 # Creates output of format:
