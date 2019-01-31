@@ -36,28 +36,11 @@ done
 # aka winners rounds 1 to x, then losers rounds 1 to x
 formatted_sets=$(echo -e -n "$formatted_sets" | sort -nk1 | cut -d ' ' -f2-9)
 
-# Creates output of format:
-# [player_id in tournament] [player_id_lasting]
-IFS=$'\n'
-declare -a nameinfo=($(echo "$json" \
-	| jq '.entities.entrants[] | .id,.participantIds[0]'))
-unset IFS
-let count=0;
-tourn_id_lasting_id=""
-for (( i = 0; i < ${#nameinfo[@]}; ++i )); do
-	let count=count+1;
-	if [[ count -ge 2 ]]; then
-		let count=0;
-		tourn_id_lasting_id+="$(echo "${nameinfo[$i]}")\n"
-	else
-		tourn_id_lasting_id+="$(echo "${nameinfo[$i]} ")"
-	fi
-done
-
-# Creates output of format '[player lasting id] "[first name]" "[last name]"'
+#    # Creates output of format '[player lasting id] "[first name]" "[last name]"'
+# Creates output of format '[player lasting id] "[name]" "[gamerTag]"'
 IFS=$'\n'
 declare -a id=($(echo "$json" \
-	| jq '.entities.participants[] | .id,.contactInfo.nameFirst,.contactInfo.nameLast'))
+	| jq '.entities.entrants[] | .id,.mutations.players[].name, .mutations.players[].gamerTag'));
 unset IFS
 player_id_conversion=""
 for (( i = 0; i < ${#id[@]}; ++i )); do
@@ -71,18 +54,34 @@ for (( i = 0; i < ${#id[@]}; ++i )); do
 	fi
 done
 
-
 # Change players names who didn't enter their names to a place holder
 player_id_conversion=$(echo "$player_id_conversion" | sed "s/\"\"/PLACEHOLDER/g")
-# Converts '[player lasting id] "[first name]" "[last name]"'
-#       to '[player lasting id] [first name][last name]'
-player_id_conversion=$(echo "$player_id_conversion" | sed "s/\" \"//g" | sed "s/\"//g")
+player_id_conversion=$(echo "$player_id_conversion" | sed "s/null/PLACEHOLDER/g")
+#player_id_conversion=$(echo "$player_id_conversion" | sed "s/\" \"//g")
+player_id_conversion=$(echo "$player_id_conversion" | sed "s/\"//g")
+
+# Create output of format '[player lasting id] "[name or gamerTag]"'
+# The purpose of this is to set a players name to their gamerTag if they
+# didn't provide a name or provided a blank one
+IFS=$'\n'
+player_id_conversion_safe=""
+for i in $(echo -e -n "${player_id_conversion[@]}"); do
+	lasting_id=$(echo "$i" | cut -d ' ' -f1)
+	name=$(echo "$i" | cut -d ' ' -f2)
+	gamerTag=$(echo "$i" | cut -d ' ' -f3)
+	# If the user did not provide a name
+	if [[ "$name" == "PLACEHOLDER" ]]; then
+		name="$gamerTag"
+	fi
+	player_id_conversion_safe+="$(echo -e "$lasting_id $name")\n";
+done
+unset IFS
 
 # Converts '[player lasting id] [first name][last name]'
 #       to '[player temp id] [first name][last name]'
 IFS=$'\n'
 tourn_id_name=$tourn_id_lasting_id
-for i in $(echo -e -n "$player_id_conversion"); do
+for i in $(echo -e -n "$player_id_conversion_safe"); do
 	tourn_player_id=$(echo "$i" | cut -d ' ' -f1)
 	lasting_player_id=$(echo "$i" | cut -d ' ' -f2)
 	tourn_id_name=$(echo -e -n "$tourn_id_name" | sed "s/${tourn_player_id}/${lasting_player_id}/g")
@@ -93,10 +92,11 @@ unset IFS
 # [Set Number] [player 1 lasting id] [player 2 lasting id] [player 1 game count] [player 2 game count]
 IFS=$'\n'
 sets_with_player_names=$formatted_sets
-for i in $(echo -e -n "$tourn_id_name"); do
+for i in $(echo -e -n "${player_id_conversion_safe[@]}"); do
 	lasting_id=$(echo "$i" | cut -d ' ' -f1)
 	name=$(echo "$i" | cut -d ' ' -f2)
-	sets_with_player_names=$(echo -e -n "$sets_with_player_names" | sed "s/${lasting_id}/${name}/g")
+	sets_with_player_names=$(echo -e -n "$sets_with_player_names" \
+		| sed "s/${lasting_id}/${name}/g")
 done
 unset IFS
 
