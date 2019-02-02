@@ -40,36 +40,25 @@ json=$(wget $smashggurl -q -O -)
 
 # Creates output of format:
 # [Set Number] [player 1 tournament id] [player 2 tournament id] [player 1 game count] [player 2 game count]
-setinfo=$(echo "$json" \
-	| jq -r '.entities.sets[] | select( .entrant2Id != null ) | select( .entrant1Id != null ) | .id,.entrant1Id,.entrant2Id,.entrant1Score,.entrant2Score,.isGF,.completedAt')
-let count=0;
-formatted_sets=""
-for i in $(echo $setinfo); do
-	let count=count+1;
-	if [[ count -ge 7 ]]; then
-		let count=0;
-		formatted_sets+="$(date -d @${i} "+%d %m %Y")\n"
-	else
-		formatted_sets+="$(echo "$i ")"
-	fi
-done
+date=$(date "+%d %m %Y")
+formatted_sets=$(echo "$json" \
+	| jq -jr --arg date "$date" '.entities.sets[] | select( .entrant2Id != null ) | select( .entrant1Id != null ) | .id, " ", .entrant1Id, " ", .entrant2Id, " ", .entrant1Score, " ", .entrant2Score, " ", .isGF, " ", $date, "\n"')
 
 # Sort the sets to be in the correct order
 # aka winners rounds 1 to x, then losers rounds 1 to x
 formatted_sets=$(echo -e -n "$formatted_sets" | sort -nk1 | cut -d ' ' -f2-9)
 
-#    # Creates output of format '[player lasting id] "[first name]" "[last name]"'
-# Creates output of format '[player lasting id] "[name]" "[gamerTag]"'
+# Creates output of format '[player lasting id] "[name]" "[gamerTag]"' with
+# no spaces in the names or gamerTags
 IFS=$'\n'
 declare -a id=($(echo "$json" \
-	| jq '.entities.entrants[] | .id,.mutations.players[].name, .mutations.players[].gamerTag'));
+	| jq '.entities.entrants[] | .id, .mutations.players[].name, .mutations.players[].gamerTag'));
 unset IFS
 player_id_conversion=""
 for (( i = 0; i < ${#id[@]}; ++i )); do
 	let count=count+1;
 	if [[ count -ge 3 ]]; then
 		let count=0;
-		# Remove spaces in names that are made of multiple names Ex. "Martinez Gracey"
 		player_id_conversion+="$(echo "${id[$i]}" | sed "s/ //g")\n"
 	else
 		player_id_conversion+="$(echo "${id[$i]}" | sed "s/ //g") "
@@ -77,10 +66,8 @@ for (( i = 0; i < ${#id[@]}; ++i )); do
 done
 
 # Change players names who didn't enter their names to a place holder
-player_id_conversion=$(echo "$player_id_conversion" | sed "s/\"\"/PLACEHOLDER/g")
-player_id_conversion=$(echo "$player_id_conversion" | sed "s/null/PLACEHOLDER/g")
-#player_id_conversion=$(echo "$player_id_conversion" | sed "s/\" \"//g")
-player_id_conversion=$(echo "$player_id_conversion" | sed "s/\"//g")
+player_id_conversion=$(echo "$player_id_conversion" | sed "s/\"\"/PLACEHOLDER/g" \
+	| sed "s/null/PLACEHOLDER/g" | sed "s/\"//g")
 
 # Create output of format '[player lasting id] "[name or gamerTag]"'
 # The purpose of this is to set a players name to their gamerTag if they
