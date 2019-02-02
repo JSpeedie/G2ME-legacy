@@ -4,4 +4,4 @@ date=$(wget $1 -q -O - \
 
 wget $1 -q -O - | grep -oP "\[\'TournamentStore\'\] =.*?\};" \
 	| sed "s/\['TournamentStore'\] = //g" | sed "s/\};$/\}/g" \
-	| jq -j --arg date "$date" '.matches_by_round[] | .[] |  .player1.display_name, " ", .player2.display_name, " ", .scores[0], " ", .scores[1], " ", $date, "\n"'
+	| jq -jr --arg date "$date" '.matches_by_round[] | .[] |  "\"", .player1.display_name, "\" \"", .player2.display_name, "\" ", .scores[0], " ", .scores[1], " ", $date, "\n"'
