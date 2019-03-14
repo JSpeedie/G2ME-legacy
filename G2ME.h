@@ -5,6 +5,14 @@
 #define LEXIO 1
 
 extern char flag_output_to_stdout;
+extern char colour_output;
+extern char f_flag_used;
+extern char p_flag_used;
+extern char verbose;
+extern char print_ties;
+extern char player_dir[MAX_FILE_PATH_LEN];
+extern int pr_minimum_events;
+extern char filter_file_path[MAX_FILE_PATH_LEN];
 
 typedef struct entry {
 	unsigned short opp_id;
@@ -36,45 +44,49 @@ typedef struct record {
 	char last_outcomes[MAX_NAME_LEN];
 }Record;
 
-int check_if_dir(char *, char *);
-char *file_path_with_player_dir(char *);
-void clear_file(char *);
+
+
+
 void write_entry_from_input(char *);
-void print_player(struct player *);
-void print_entry_verbose(struct entry);
-void print_entry(struct entry);
-void print_entry_name_verbose(struct entry, int, \
-	int, int, int, int, int, int, int, int, int, int, int, int);
-void print_entry_name(struct entry, int, int, int, int, int, int, int);
-int print_player_file_verbose(char *);
-int print_player_file(char *);
+
+/* Player dir stuff */
+char *file_path_with_player_dir(char *);
+int reset_players(void);
+int check_and_create_player_dir(void);
+char *players_in_player_dir(char *, int *, char);
+
+
+/* Records */
+int get_record(char *, char *, struct record *);
+struct record *get_all_records(char *, int *);
+
+
+/* Adjustments */
+void adjust_absent_player(char *, char, char, short, char *);
+void adjust_absent_players_no_file(char, char, short, char *);
+void adjust_absent_players(char *, char, char, short, char *);
+
+
+/* Basic file ops */
+int check_if_dir(char *, char *);
+void clear_file(char *);
+
+
 void init_player_from_entry(struct player *, struct entry *);
 struct entry create_entry(struct player *, char *, char *, \
 	char, char, char, char, short, char *, short);
 void update_player_on_outcome(char *, char *, struct player *, \
 	struct player *, char *, char *, char, char, short, char *, short);
-void adjust_absent_player(char *, char, char, short, char *);
-void adjust_absent_players_no_file(char, char, short, char *);
-void adjust_absent_players(char *, char, char, short, char *);
 int update_players(char *, short);
 int run_single_bracket(char *);
 int run_brackets(char *);
 void merge(struct entry *, int, struct entry *, int, struct entry *);
 void merge_sort_pr_entry_array(struct entry *, int);
-int generate_ratings_file(char *, char *);
-int generate_ratings_file_full(char *);
 void merge_player_records(struct record *, int, \
 	struct record *, int, struct record *);
+int generate_ratings_file(char *, char *);
+int generate_ratings_file_full(char *);
 void merge_sort_player_records(struct record *, int);
-int print_player_records(char *);
-void print_player_attended(char *, int);
 void num_players_in_player_dir(int *);
-char *players_in_player_dir(char *, int *, char);
-int get_record(char *, char *, struct record *);
-struct record *get_all_records(char *, int *);
 unsigned long int longest_name(char *, int);
 int filter_player_list(char **, int *, char *);
-void print_matchup_table(void);
-void print_matchup_table_csv(void);
-int reset_players(void);
-int check_and_create_player_dir(void);
