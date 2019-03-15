@@ -17,8 +17,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "glicko2.h"
 #include "G2ME.h"
+#include "player_dir.h"
 
 char *entry_file_get_events_attended(char *, int *);
 int entry_file_get_outcome_count(char *);
@@ -848,7 +848,7 @@ int entry_file_append_pr_entry_to_file_verbose(struct entry* E, char* file_path,
 		entry_file = stdout;
 	}
 
-	char *full_player_path = file_path_with_player_dir(E->name);
+	char *full_player_path = player_dir_file_path_with_player_dir(E->name);
 	int attended_count;
 	entry_file_get_events_attended(full_player_path, &attended_count);
 	int outcome_count = entry_file_get_outcome_count(full_player_path);

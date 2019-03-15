@@ -16,9 +16,13 @@
 #include <windows.h>
 #endif
 
-#include "glicko2.h"
+#include "G2ME.h"
 #include "entry_file.h"
+#include "fileops.h"
+#include "glicko2.h"
+#include "player_dir.h"
 #include "printing.h"
+#include "sorting.h"
 
 char COMMENT_SYMBOL[] = { "#" };
 #ifdef __linux__
@@ -50,7 +54,7 @@ char calc_absent_players = 1;
 char calc_absent_players_with_file = 0;
 double outcome_weight = 1;
 /* TODO: make it dynamically realloc */
-char tournament_names[128][128];
+char tournament_names[256][256];
 unsigned char tournament_names_len = 0;
 char filter_file_path[MAX_FILE_PATH_LEN];
 char f_flag_used = 0;
@@ -62,95 +66,6 @@ struct record *get_all_records(char *, int *);
 
 struct entry temp;
 
-int check_if_dir(char *dir_path, char *file_name) {
-	char original_dir[MAX_FILE_PATH_LEN + 1];
-	int ret = 1;
-	if (NULL == getcwd(original_dir, MAX_FILE_PATH_LEN)) {
-		perror("getcwd (check_if_dir)");
-		return -1;
-	}
-	if (0 != chdir(dir_path)) {
-		perror("chdir (check_if_dir)");
-		return -2;
-	}
-	char fixed_dir[MAX_FILE_PATH_LEN + 1];
-	if (NULL == getcwd(fixed_dir, MAX_FILE_PATH_LEN)) {
-		perror("getcwd (check_if_dir)");
-		ret = -3;
-	}
-
-	struct stat file_info;
-	if(stat(file_name, &file_info) < 0) {
-		perror("stat (check_if_dir)");
-		ret = -4;
-	}
-	if (0 != chdir(original_dir)) {
-		perror("chdir (check_if_dir)");
-		ret = -5;
-	}
-	if (S_ISDIR(file_info.st_mode)) {
-		return 0;
-	}
-	return ret;
-}
-
-char *file_path_with_player_dir(char *s) {
-	int new_path_size = sizeof(char) * (MAX_FILE_PATH_LEN - MAX_NAME_LEN);
-	char *new_path = (char *) malloc(new_path_size);
-	/* 0 all elements in the new string */
-	memset(new_path, 0, new_path_size);
-
-	/* Copy the player directory file path into the return string */
-	strncpy(new_path, player_dir, new_path_size - 1);
-	/* If the last character in the player directory path is not a '/' */
-	if (new_path[strlen(new_path) - 1] != DIR_TERMINATOR) {
-		/* Append a '/' or '\' */
-		new_path[strlen(new_path)] = DIR_TERMINATOR;
-	}
-
-	/* Append the player file to the player dir file path */
-	strncat(new_path, s, new_path_size - strlen(new_path) - 1);
-
-	return new_path;
-}
-
-/** Writes nothing to a file, clearing it.
- *
- * \param '*file' the file path for the file to be wiped
- * \return void
- */
-void clear_file(char* file) {
-
-#ifdef __linux__
-	FILE* victim = fopen(file, "w");
-	if (victim == NULL) {
-		perror("fopen (clear_file)");
-		return;
-	}
-	fprintf(victim, "");
-	fclose(victim);
-#elif _WIN32
-	/* Open the file, with read and write, Share for reading,
-	* no security, open regardless, normal file with no attributes */
-	HANDLE victim = CreateFile(file, GENERIC_WRITE | GENERIC_READ,
-		FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL,
-		NULL);
-	long unsigned ret;
-	WriteFile(victim, "", sizeof(""), &ret, NULL);
-	CloseHandle(victim);
-#else
-	FILE* victim = fopen(file, "w");
-	if (victim == NULL) {
-		perror("fopen (clear_file)");
-		return;
-	}
-	fprintf(victim, "");
-	fclose(victim);
-#endif
-
-	return;
-}
-
 /** Appends an entry created from user input to a file.
  *
  * \param '*file_path' the file path that you want to append the entry to
@@ -159,7 +74,7 @@ void clear_file(char* file) {
 void write_entry_from_input(char* file_path) {
 	fprintf(stdout, "[name] [opp_name] [rating] [RD] [vol] [gc] [opp_gc] "\
 		"[day] [month] [year] [t_name]: ");
-	char *full_path = file_path_with_player_dir(file_path);
+	char *full_path = player_dir_file_path_with_player_dir(file_path);
 
 	struct entry input_entry;
 	scanf("%s %s %lf %lf %lf %hhd %hhd %hhd %hhd %hd %s",
@@ -250,8 +165,8 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	struct player* p1, struct player* p2, char* p1_gc, char* p2_gc,
 	char day, char month, short year, char* t_name, short season_id) {
 
-	char *full_p1_path = file_path_with_player_dir(p1_name);
-	char *full_p2_path = file_path_with_player_dir(p2_name);
+	char *full_p1_path = player_dir_file_path_with_player_dir(p1_name);
+	char *full_p2_path = player_dir_file_path_with_player_dir(p2_name);
 	/* If the file does not exist, init the player struct to defaults */
 #ifdef __linux__
 	if (access(full_p1_path, R_OK | W_OK) == -1) {
@@ -342,20 +257,21 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
 
 	/* If the player who did not compete has a player file */
 #ifdef __linux__
-	if (access(file_path_with_player_dir(player_file), \
+	if (access(player_dir_file_path_with_player_dir(player_file), \
 		R_OK | W_OK) != -1) {
 #elif _WIN32
-	if (_access(file_path_with_player_dir(player_file), \
+	if (_access(player_dir_file_path_with_player_dir(player_file), \
 		R_OK | W_OK) != -1) {
 #else
-	if (access(file_path_with_player_dir(player_file), \
+	if (access(player_dir_file_path_with_player_dir(player_file), \
 		R_OK | W_OK) != -1) {
 #endif
 		struct player P;
 		struct entry latest_ent;
 		if (0 == \
-			entry_file_read_last_entry(file_path_with_player_dir(player_file), \
-			&latest_ent)) {
+			entry_file_read_last_entry(
+				player_dir_file_path_with_player_dir(player_file), \
+				&latest_ent)) {
 
 			/* If this adjustment is taking place on a different
 			 * day from their last entry */
@@ -385,7 +301,7 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
 				latest_ent.t_name[strlen(latest_ent.t_name)] = '\0';
 				latest_ent.len_t_name = strlen(latest_ent.t_name);
 				entry_file_append_entry_to_file(&latest_ent, \
-					file_path_with_player_dir(player_file));
+					player_dir_file_path_with_player_dir(player_file));
 			}
 		}
 	}
@@ -724,7 +640,7 @@ int run_brackets(char *bracket_list_file_path) {
 	while ((entry = readdir(p_dir)) != NULL) {
 		/* If the directory item is a directory, skip */
 		if (0 == check_if_dir(player_dir, entry->d_name)) continue;
-		char *full_player_path = file_path_with_player_dir(entry->d_name);
+		char *full_player_path = player_dir_file_path_with_player_dir(entry->d_name);
 		if (access(full_player_path, R_OK | W_OK) == -1) {
 			fprintf(stderr, ERROR_PLAYER_DNE);
 			return -1;
@@ -817,70 +733,6 @@ int run_brackets(char *bracket_list_file_path) {
 	return 0;
 }
 
-void merge(struct entry *first_array, int first_length, \
-	struct entry *second_array, int second_length, struct entry *output_array) {
-
-	int first_index = 0;
-	int second_index = 0;
-	int final_index = 0;
-
-	while (first_index < first_length && second_index < second_length) {
-		/* If the next element in the first array is greater than the second... */
-		if (first_array[first_index].rating >= second_array[second_index].rating) {
-			/* Add the first array element to the final array */
-			output_array[final_index] = first_array[first_index];
-			first_index++;
-		} else {
-			/* Add the second array element to the final array */
-			output_array[final_index] = second_array[second_index];
-			second_index++;
-		}
-		final_index++;
-	}
-	int elements_to_add = first_length - first_index;
-	/* When one side array has been added to the output array before the
-	 * other has been fully added */
-	for (int i = 0; i < elements_to_add; i++) {
-		output_array[final_index] = first_array[first_index];
-		first_index++;
-		final_index++;
-	}
-	elements_to_add = second_length - second_index;
-	for (int i = 0; i < elements_to_add; i++) {
-		output_array[final_index] = second_array[second_index];
-		second_index++;
-		final_index++;
-	}
-}
-
-void merge_sort_pr_entry_array(struct entry *pr_entries, int array_size) {
-	if (array_size <= 1) {
-		return;
-	} else if (array_size == 2) {
-		if (pr_entries[0].rating < pr_entries[1].rating) {
-			struct entry swap = pr_entries[0];
-			pr_entries[0] = pr_entries[1];
-			pr_entries[1] = swap;
-		} else {
-			return;
-		}
-	} else {
-		/* split into 2 calls and recurse */
-		int middle_index = (int) floor(array_size / 2.00);
-		int len_sec_half = (int) ceil(array_size / 2.00);
-		merge_sort_pr_entry_array(pr_entries, middle_index);
-		merge_sort_pr_entry_array(&pr_entries[middle_index], len_sec_half);
-		/* merge 2 resulting arrays */
-		struct entry ret[array_size];
-		merge(pr_entries, middle_index, &pr_entries[middle_index], len_sec_half, &ret[0]);
-		/* Copy merged array contents into original array */
-		for (int i = 0; i < array_size; i++) {
-			pr_entries[i] = ret[i];
-		}
-		return;
-	}
-}
-
 /** Creates a file listing the player's glicko details at the location
  * 'output_file_path'.
  *
@@ -925,7 +777,7 @@ int generate_ratings_file(char* file_path, char* output_file_path) {
 			return -2;
 		}
 		*end_of_line = '\0';
-		char *full_player_path = file_path_with_player_dir(line);
+		char *full_player_path = player_dir_file_path_with_player_dir(line);
 		/* If player in filter file does NOT have a player file */
 #ifdef __linux__
 		if (access(full_player_path, R_OK | W_OK) == -1) {
@@ -1042,7 +894,7 @@ int generate_ratings_file_full(char *output_file_path) {
 		while ((entry = readdir(p_dir)) != NULL) {
 			// Make sure it doesn't count directories
 			if (1 == check_if_dir(player_dir, entry->d_name)) {
-				char *full_player_path = file_path_with_player_dir(entry->d_name);
+				char *full_player_path = player_dir_file_path_with_player_dir(entry->d_name);
 				/* If the player file was able to be read properly... */
 				if (0 == entry_file_read_last_entry(full_player_path, &temp)) {
 					int num_events;
@@ -1121,166 +973,6 @@ int generate_ratings_file_full(char *output_file_path) {
 	}
 }
 
-void merge_player_records(struct record *first_array, int first_length, \
-	struct record *second_array, int second_length, struct record *output_array) {
-
-	int first_index = 0;
-	int second_index = 0;
-	int final_index = 0;
-
-	while (first_index < first_length && second_index < second_length) {
-		/* If the second name is < the first name */
-		if (strcmp(second_array[second_index].opp_name, first_array[first_index].opp_name) < 0) {
-			output_array[final_index] = second_array[second_index];
-			second_index++;
-		/* If the first name is < the second name */
-		} else {
-			output_array[final_index] = first_array[first_index];
-			first_index++;
-		}
-		final_index++;
-	}
-	int elements_to_add = first_length - first_index;
-	/* When one side array has been added to the output array before the
-	 * other has been fully added */
-	for (int i = 0; i < elements_to_add; i++) {
-		/* Add the first array element to the final array */
-		output_array[final_index] = first_array[first_index];
-		first_index++;
-		final_index++;
-	}
-	elements_to_add = second_length - second_index;
-	for (int i = 0; i < elements_to_add; i++) {
-		/* Add the second array element to the final array */
-		output_array[final_index] = second_array[second_index];
-		second_index++;
-		final_index++;
-	}
-}
-
-void merge_sort_player_records(struct record *records, int array_size) {
-	if (array_size <= 1) {
-		return;
-	} else if (array_size == 2) {
-		/* If there is less data on the first player or if there is equal
-		 * data, but the second name < first name */
-		if (strcmp(records[1].opp_name, records[0].opp_name) < 0) {
-			struct record swap;
-			/* Save data from first player to swap variables */
-			swap = records[0];
-			/* Put second player data in first player spot */
-			records[0] = records[1];
-			/* Put first player (swap) data in second player spot */
-			records[1] = swap;
-		} else {
-			return;
-		}
-	} else {
-		/* split into 2 calls and recurse */
-		int middle_index = (int) floor(array_size / 2.00);
-		int len_sec_half = (int) ceil(array_size / 2.00);
-		merge_sort_player_records(records, middle_index);
-		merge_sort_player_records(&records[middle_index], len_sec_half);
-		/* merge 2 resulting arrays */
-		struct record ret[array_size];
-		merge_player_records(records, middle_index, \
-			&records[middle_index], len_sec_half, ret);
-		/* Copy merged array contents into original array */
-		for (int i = 0; i < array_size; i++) {
-			records[i] = ret[i];
-		}
-		return;
-	}
-}
-
-/* Takes a pointer to an integer, modifies '*num_of_players' to the
- * number of players in the 'player_dir'. Really just counts the number
- * of non-directory "files" in the player directory.
- *
- * \param '*num_of_players' an int pointer that will be modified to contain
- *     the number of player names in the directory.
- * \return a pointer to the return array.
- */
-void num_players_in_player_dir(int *num_of_players) {
-	DIR *p_dir;
-	struct dirent *entry;
-
-	if ((p_dir = opendir(player_dir)) != NULL) {
-		*num_of_players = 0;
-		while ((entry = readdir(p_dir)) != NULL) {
-			// Make sure it doesn't count directories
-			if (1 == check_if_dir(player_dir, entry->d_name)) {
-				*num_of_players = (*num_of_players) + 1;
-			}
-		}
-		closedir(p_dir);
-	}
-}
-
-/* Takes a char pointer created by malloc or calloc and a pointer
- * to an integer. Gets the name of every player in the player directory
- * 'player_dir' into the array in lexiographical order. Modifies '*num'
- * to point to the numer of elements in the array upon completion.
- *
- * \param '*players' a char pointer created by calloc or malloc which
- *     will be modified to contain all the player names,
- *     'MAX_NAME_LEN' apart and in lexiographical order.
- * \param '*num' a int pointer that will be modified to contain
- *     the number of player names in the array when this function
- *     has completed.
- * \param 'type' a char representing the type of sort the returned
- *     array should be of. Options are 'LEXIO' for a lexiograpically
- *     sorted array. Any value that is not 'LEXIO' will make
- *     this function return an orderless array.
- * \return a pointer to the return array.
- */
-// TODO: change to check syscalls and to return int
-char *players_in_player_dir(char *players, int *num, char type) {
-	DIR *p_dir;
-	struct dirent *entry;
-	// TODO: reallocate '*players' if necessary make it required that
-	// '*players' is a pointer made by a calloc or malloc call
-
-	if ((p_dir = opendir(player_dir)) != NULL) {
-		*num = 0;
-		while ((entry = readdir(p_dir)) != NULL) {
-			// Make sure it doesn't count directories
-			if (1 == check_if_dir(player_dir, entry->d_name)) {
-				int num_events;
-				char *full_player_path = \
-					file_path_with_player_dir(entry->d_name);
-				entry_file_get_events_attended(full_player_path, &num_events);
-				// If the player attended the minimum number of events
-				if (num_events >= pr_minimum_events) {
-					if (type == LEXIO) {
-						int i = MAX_NAME_LEN * (*(num) - 1);
-						// Find the right index to insert the name at
-						while (strcmp(&players[i], entry->d_name) > 0 \
-							&& i >= 0) {
-
-							// Move later-occuring name further in the array
-							strncpy(&players[i + MAX_NAME_LEN], &players[i], \
-								MAX_NAME_LEN);
-							i -= MAX_NAME_LEN;
-						}
-						strncpy(&players[i + MAX_NAME_LEN], entry->d_name, \
-							MAX_NAME_LEN);
-					} else {
-						strncpy(&players[MAX_NAME_LEN * *(num)], \
-							entry->d_name, MAX_NAME_LEN);
-					}
-					// Add null terminator to each name
-					players[MAX_NAME_LEN * (*(num) + 1)] = '\0';
-					*num = *(num) + 1;
-				}
-				free(full_player_path);
-			}
-		}
-		closedir(p_dir);
-	}
-	return players;
-}
-
 /* Takes 2 entry-file file paths and a struct record, modifies the
  * given struct record to be the first players
  * record/head-to-head/matchup on the other player.
@@ -1295,7 +987,7 @@ char *players_in_player_dir(char *players, int *num, char type) {
  */
 int get_record(char *player1, char *player2, struct record *ret) {
 
-	char *full_player1_path = file_path_with_player_dir(player1);
+	char *full_player1_path = player_dir_file_path_with_player_dir(player1);
 	/* Read the starter data in the file */
 	struct entry ent;
 	entry_file_read_start_from_file(full_player1_path, &ent);
@@ -1532,58 +1224,6 @@ int filter_player_list(char **players_pointer, int *num_players, \
 	return 0;
 }
 
-/* Deletes every player file in the player directory 'player_dir'.
- *
- * \return an int representing if the function succeeded or not.
- *     Negative if there was an error, 0 on success.
- */
-int reset_players(void) {
-	DIR *p_dir;
-	struct dirent *entry;
-	if ((p_dir = opendir(player_dir)) != NULL) {
-		while ((entry = readdir(p_dir)) != NULL) {
-			// Make sure it doesn't count directories
-			if (1 == check_if_dir(player_dir, entry->d_name)) {
-				char *full_player_path = \
-					file_path_with_player_dir(entry->d_name);
-				remove(full_player_path);
-				free(full_player_path);
-			}
-		}
-		closedir(p_dir);
-		return 0;
-	} else {
-		perror("opendir (reset_players)");
-		return -1;
-	}
-}
-
-int check_and_create_player_dir(void) {
-	/* 2. Check if player_dir exists */
-	DIR *d = opendir(player_dir);
-	/* If 'player_dir' DOES exist */
-	if (d) closedir(d);
-	else if (errno == ENOENT) {
-		fprintf(stderr, \
-			"G2ME: Warning: 'player_dir' did not exist, creating...\n");
-		/* If there was an error making the player_directory */
-#ifdef __linux__
-		if (0 != mkdir(player_dir, 0700)) {
-#elif _WIN32
-		if (0 != mkdir(player_dir)) {
-#else
-		if (0 != mkdir(player_dir, 0700)) {
-#endif
-			perror("mkdir (main)");
-			return -1;
-		}
-	} else {
-		perror("opendir (main)");
-		return -2;
-	}
-	return 0;
-}
-
 int main(int argc, char **argv) {
 
 
@@ -1639,9 +1279,9 @@ int main(int argc, char **argv) {
 
 	while ((opt = getopt_long(argc, argv, opt_string, opt_table, NULL)) != -1) {
 		if (opt == 'A') {
-			if (0 == check_and_create_player_dir()) {
+			if (0 == player_dir_check_and_create()) {
 				int count;
-				char *full_player_path = file_path_with_player_dir(optarg);
+				char *full_player_path = player_dir_file_path_with_player_dir(optarg);
 				char *attended = \
 					entry_file_get_events_attended(full_player_path, &count);
 				print_player_attended(attended, count);
@@ -1652,8 +1292,8 @@ int main(int argc, char **argv) {
 						"or does not exist");
 			}
 		} else if (opt == 'c') {
-			if (0 == check_and_create_player_dir()) {
-				char *full_player_path = file_path_with_player_dir(optarg);
+			if (0 == player_dir_check_and_create()) {
+				char *full_player_path = player_dir_file_path_with_player_dir(optarg);
 				fprintf(stdout, "%d\n", \
 					entry_file_get_outcome_count(full_player_path));
 				free(full_player_path);
@@ -1662,8 +1302,8 @@ int main(int argc, char **argv) {
 			memset(player_dir, 0, sizeof(player_dir));
 			strncpy(player_dir, optarg, sizeof(player_dir) - 1);
 		} else if (opt == 'h') {
-			if (0 == check_and_create_player_dir()) {
-				char *full_player_path = file_path_with_player_dir(optarg);
+			if (0 == player_dir_check_and_create()) {
+				char *full_player_path = player_dir_file_path_with_player_dir(optarg);
 				if (access(full_player_path, R_OK | W_OK) == -1) {
 					fprintf(stderr, ERROR_PLAYER_DNE);
 					return -1;
@@ -1673,8 +1313,8 @@ int main(int argc, char **argv) {
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		} else if (opt == 'l') {
-			if (0 == check_and_create_player_dir()) {
-				char *full_player_path = file_path_with_player_dir(optarg);
+			if (0 == player_dir_check_and_create()) {
+				char *full_player_path = player_dir_file_path_with_player_dir(optarg);
 				if (access(full_player_path, R_OK | W_OK) == -1) {
 					fprintf(stderr, ERROR_PLAYER_DNE);
 					return -1;
@@ -1686,8 +1326,8 @@ int main(int argc, char **argv) {
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		} else if (opt == 'r') {
-			if (0 == check_and_create_player_dir()) {
-				char *full_player_path = file_path_with_player_dir(optarg);
+			if (0 == player_dir_check_and_create()) {
+				char *full_player_path = player_dir_file_path_with_player_dir(optarg);
 				if (access(full_player_path, R_OK | W_OK) == -1) {
 					fprintf(stderr, ERROR_PLAYER_DNE);
 					return -1;
@@ -1696,8 +1336,8 @@ int main(int argc, char **argv) {
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		} else if (opt == 'R') {
-			if (0 == check_and_create_player_dir()) {
-				char *full_player_path = file_path_with_player_dir(optarg);
+			if (0 == player_dir_check_and_create()) {
+				char *full_player_path = player_dir_file_path_with_player_dir(optarg);
 				if (access(full_player_path, R_OK | W_OK) == -1) {
 					fprintf(stderr, ERROR_PLAYER_DNE);
 					return -1;
@@ -1706,8 +1346,8 @@ int main(int argc, char **argv) {
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		} else if (opt == 'x') {
-			if (0 == check_and_create_player_dir()) {
-				char *full_player_path = file_path_with_player_dir(optarg);
+			if (0 == player_dir_check_and_create()) {
+				char *full_player_path = player_dir_file_path_with_player_dir(optarg);
 				entry_file_remove_entry(full_player_path);
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
@@ -1716,29 +1356,29 @@ int main(int argc, char **argv) {
 		switch (opt) {
 			case '0': calc_absent_players = 0; break;
 			case 'a':
-				if (0 == check_and_create_player_dir()) {
-					write_entry_from_input(file_path_with_player_dir(optarg));
+				if (0 == player_dir_check_and_create()) {
+					write_entry_from_input(player_dir_file_path_with_player_dir(optarg));
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'b':
-				if (0 == check_and_create_player_dir()) {
-					if (keep_players == 0) reset_players();
+				if (0 == player_dir_check_and_create()) {
+					if (keep_players == 0) player_dir_reset_players();
 					run_single_bracket(optarg);
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'C':
-				if (0 == check_and_create_player_dir()) {
+				if (0 == player_dir_check_and_create()) {
 					print_matchup_table_csv(); break;
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 			case 'B':
-				if (0 == check_and_create_player_dir()) {
-					if (keep_players == 0) reset_players();
+				if (0 == player_dir_check_and_create()) {
+					if (keep_players == 0) player_dir_reset_players();
 					run_brackets(optarg);
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'e':
-				if (0 == check_and_create_player_dir()) {
-					reset_players();
+				if (0 == player_dir_check_and_create()) {
+					player_dir_reset_players();
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'f':
@@ -1761,7 +1401,7 @@ int main(int argc, char **argv) {
 				strncpy(player_list_file, optarg, sizeof(player_list_file) - 1);
 				break;
 			case 'o':
-				if (0 == check_and_create_player_dir()) {
+				if (0 == player_dir_check_and_create()) {
 					if (f_flag_used) {
 						int ret = generate_ratings_file(filter_file_path, optarg);
 						if (ret != 0) return ret;
@@ -1772,7 +1412,7 @@ int main(int argc, char **argv) {
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'O':
-				if (0 == check_and_create_player_dir()) {
+				if (0 == player_dir_check_and_create()) {
 					flag_output_to_stdout = 1;
 					if (f_flag_used) {
 						int ret = generate_ratings_file(filter_file_path, optarg);

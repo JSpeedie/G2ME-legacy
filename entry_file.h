@@ -1,16 +1,30 @@
-#include <dirent.h>
-#include <errno.h>
-#include <getopt.h>
-#include <libgen.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
+#ifndef G2ME_ENTRY_FILE
+#define G2ME_ENTRY_FILE
 
-#include "G2ME.h"
+#include <stdio.h>
+
+#define MAX_NAME_LEN 256
+
+typedef struct entry {
+	unsigned short opp_id;
+	unsigned short tournament_id;
+	unsigned short season_id;
+	unsigned char len_name;
+	unsigned char len_opp_name;
+	char name[MAX_NAME_LEN];
+	char opp_name[MAX_NAME_LEN];
+	double rating;
+	double RD;
+	double vol;
+	signed char gc;
+	signed char opp_gc;
+	unsigned char is_competitor;
+	unsigned char day;
+	unsigned char month;
+	unsigned short year;
+	unsigned char len_t_name;
+	char t_name[MAX_NAME_LEN];
+}Entry;
 
 double entry_file_get_glicko_change_since_last_event(char *);
 int entry_file_contains_opponent(char *, char *);
@@ -38,3 +52,5 @@ int entry_file_remove_entry(char *);
 int entry_file_get_outcome_count(char *);
 char *entry_file_get_events_attended(char *, int *);
 double entry_file_get_glicko_change_since_last_event(char*);
+
+#endif

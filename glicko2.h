@@ -1,3 +1,6 @@
+#ifndef G2ME_GLICKO2
+#define G2ME_GLICKO2
+
 #define DEF_VOL 0.06
 #define DEF_RATING 1500.0
 #define DEF_RD 350.0
@@ -25,3 +28,5 @@ double _g(double);
 void _preRatingRD(struct player*);
 double _newVol(struct player*, double*, int, double*, double*, double);
 double _v(struct player*, double*, int, double*);
+
+#endif
