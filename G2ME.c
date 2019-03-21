@@ -1240,10 +1240,9 @@ int main(int argc, char **argv) {
 		{ "time",			no_argument,		NULL,	't' },
 		{ "verbose",		no_argument,		NULL,	'v' },
 		{ "weight",			required_argument,	NULL,	'w' },
-		{ "remove-entries",	required_argument,	NULL,	'x' },
 		{ 0, 0, 0, 0 }
 	};
-	char opt_string[] = { "0A:b:B:c:Cd:ef:gh:km:MnNo:OpP:r:R:tvw:x:" };
+	char opt_string[] = { "0A:b:B:c:Cd:ef:gh:km:MnNo:OpP:r:R:tvw:" };
 
 	/* 1. Initialize player_dir to the file path for the player directory */
 	memset(player_dir, 0, sizeof(player_dir));
@@ -1305,12 +1304,6 @@ int main(int argc, char **argv) {
 					return -1;
 				}
 				print_player_records(full_player_path);
-				free(full_player_path);
-			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
-		} else if (opt == 'x') {
-			if (0 == player_dir_check_and_create()) {
-				char *full_player_path = player_dir_file_path_with_player_dir(optarg);
-				entry_file_remove_entry(full_player_path);
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		}
