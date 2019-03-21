@@ -66,29 +66,6 @@ struct record *get_all_records(char *, int *);
 
 struct entry temp;
 
-/** Appends an entry created from user input to a file.
- *
- * \param '*file_path' the file path that you want to append the entry to
- * \return void
- */
-void write_entry_from_input(char* file_path) {
-	fprintf(stdout, "[name] [opp_name] [rating] [RD] [vol] [gc] [opp_gc] "\
-		"[day] [month] [year] [t_name]: ");
-	char *full_path = player_dir_file_path_with_player_dir(file_path);
-
-	struct entry input_entry;
-	scanf("%s %s %lf %lf %lf %hhd %hhd %hhd %hhd %hd %s",
-		input_entry.name, input_entry.opp_name, &input_entry.rating,
-		&input_entry.RD, &input_entry.vol, &input_entry.gc,
-		&input_entry.opp_gc, &input_entry.day, &input_entry.month,
-		&input_entry.year, input_entry.t_name);
-	input_entry.len_name = strlen(input_entry.name);
-	input_entry.len_opp_name = strlen(input_entry.opp_name);
-	input_entry.len_t_name = strlen(input_entry.t_name);
-	entry_file_append_entry_to_file(&input_entry, file_path);
-	free(full_path);
-}
-
 /** Initializes a struct player based off of the information found in a
  * struct entry.
  *
@@ -1234,7 +1211,6 @@ int main(int argc, char **argv) {
 		{ "no-adjustment",	no_argument,		NULL,	'0' },
 		/* Add (or create if necessary) a player entry/player entry file
 		 * from user input */
-		{ "add-entry",		required_argument,	NULL,	'a' },
 		{ "events-attended",required_argument,	NULL,	'A' },
 		/* Run through a given bracket file making the necessary updates
 		 * to the glicko2 scores */
@@ -1355,11 +1331,6 @@ int main(int argc, char **argv) {
 
 		switch (opt) {
 			case '0': calc_absent_players = 0; break;
-			case 'a':
-				if (0 == player_dir_check_and_create()) {
-					write_entry_from_input(player_dir_file_path_with_player_dir(optarg));
-				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
-				break;
 			case 'b':
 				if (0 == player_dir_check_and_create()) {
 					if (keep_players == 0) player_dir_reset_players();
