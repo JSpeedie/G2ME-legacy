@@ -1227,7 +1227,6 @@ int main(int argc, char **argv) {
 		/* Don't delete the player files when running a new bracket */
 		{ "keep-players",	no_argument,		NULL,	'k' },
 		/* Output last entry in given player file in human readable form */
-		{ "last-entry",		required_argument,	NULL,	'l' },
 		{ "min-events",		required_argument,	NULL,	'm' },
 		{ "matchup-table",	required_argument,	NULL,	'M' },
 		{ "no-colour",		required_argument,	NULL,	'n' },
@@ -1244,7 +1243,7 @@ int main(int argc, char **argv) {
 		{ "remove-entries",	required_argument,	NULL,	'x' },
 		{ 0, 0, 0, 0 }
 	};
-	char opt_string[] = { "0a:A:b:B:c:Cd:ef:gh:kl:m:MnNo:OpP:r:R:tvw:x:" };
+	char opt_string[] = { "0A:b:B:c:Cd:ef:gh:km:MnNo:OpP:r:R:tvw:x:" };
 
 	/* 1. Initialize player_dir to the file path for the player directory */
 	memset(player_dir, 0, sizeof(player_dir));
@@ -1286,19 +1285,6 @@ int main(int argc, char **argv) {
 				}
 				if (verbose == 1) print_player_file_verbose(full_player_path);
 				else print_player_file(full_player_path);
-				free(full_player_path);
-			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
-		} else if (opt == 'l') {
-			if (0 == player_dir_check_and_create()) {
-				char *full_player_path = player_dir_file_path_with_player_dir(optarg);
-				if (access(full_player_path, R_OK | W_OK) == -1) {
-					fprintf(stderr, ERROR_PLAYER_DNE);
-					return -1;
-				}
-				if (0 == entry_file_read_last_entry(full_player_path, &temp)) {
-					if (verbose == 1) print_entry_verbose(temp);
-					else print_entry(temp);
-				}
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		} else if (opt == 'r') {
