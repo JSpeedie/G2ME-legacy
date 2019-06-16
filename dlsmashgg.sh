@@ -116,4 +116,5 @@ unset IFS
 grand_finals_sets=$(echo -e "$sets_with_player_names" | grep "true")
 correct_order_sets=$(echo -e "$sets_with_player_names" | grep -v "true"; echo -e $grand_finals_sets;)
 
+echo
 echo -e "$correct_order_sets" | cut -d ' ' -f1-4,6-8

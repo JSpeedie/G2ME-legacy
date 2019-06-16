@@ -626,18 +626,14 @@ long int entry_file_get_last_entry_offset(char* file_path) {
 	/* Read to the end of the starter data in the file */
 	int ret = entry_file_get_to_entries(entry_file);
 	if (ret != 0) printf("entry_file_get_to_entries (entry_file_get_last_entry_offset) returned %d", ret);
-	long int last_entry_offset = ftell(entry_file);
 	/* [short | opp_id] [3 double | glicko data]
 	 * [4 char | game counts and date] [2 short | year and tournament_id] */
 	long int size_of_an_entry = \
 		(1 * sizeof(short)) + (3 * sizeof(double)) \
 		+ (4 * sizeof(char)) + (3 * sizeof(short));
-	void *temp = malloc(size_of_an_entry);
 
-	/* Attempt to read a whole entry at a time, when it fails, exit */
-	while (1 == fread(temp, size_of_an_entry, 1, entry_file)) {
-		last_entry_offset = ftell(entry_file) - size_of_an_entry;
-	}
+	fseek(entry_file, 0, SEEK_END);
+	long int last_entry_offset = ftell(entry_file) - size_of_an_entry;
 
 	fclose(entry_file);
 
