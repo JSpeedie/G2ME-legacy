@@ -874,9 +874,10 @@ int generate_ratings_file_full(char *output_file_path) {
 				char *full_player_path = player_dir_file_path_with_player_dir(entry->d_name);
 				/* If the player file was able to be read properly... */
 				if (0 == entry_file_read_last_entry(full_player_path, &temp)) {
-					int num_events;
-					entry_file_get_events_attended(full_player_path, &num_events);
+					int num_events = \
+						entry_file_number_of_events(full_player_path);
 					if (longest_attended < num_events) longest_attended = num_events;
+
 					int num_outcomes = entry_file_get_outcome_count(full_player_path);
 					if (longest_outcomes < num_outcomes) {
 						longest_outcomes = num_outcomes;
