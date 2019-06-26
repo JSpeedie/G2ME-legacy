@@ -158,8 +158,8 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	} else {
 		/* Read latest entries into usable data */
 		struct entry p1_latest;
-		int t;
-		if (0 == (t = entry_file_read_last_entry(full_p1_path, &p1_latest))) {
+		int ret;
+		if (0 == (ret = entry_file_read_last_entry(full_p1_path, &p1_latest))) {
 			init_player_from_entry(p1, &p1_latest);
 			/* If this outcome was not a part of a season, write the season
 			 * as the same as the latest season the player was in */
@@ -167,7 +167,8 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 				season_id = p1_latest.season_id;
 			}
 		} else {
-			perror("entry_file_read_last_entry (update_player_on_outcome)");
+			printf("entry_file_read_last_entry (%d) (update_player_on_outcome)", ret);
+			perror("");
 		}
 	}
 	/* If the file does not exist, init the player struct to defaults */
@@ -184,10 +185,12 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	} else {
 		/* Read latest entries into usable data */
 		struct entry p2_latest;
-		if (0 == entry_file_read_last_entry(full_p2_path, &p2_latest)) {
+		int ret;
+		if (0 == (ret = entry_file_read_last_entry(full_p2_path, &p2_latest))) {
 			init_player_from_entry(p2, &p2_latest);
 		} else {
-			perror("entry_file_read_last_entry (update_player_on_outcome)");
+			printf("entry_file_read_last_entry (%d) (update_player_on_outcome)", ret);
+			perror("");
 		}
 	}
 
@@ -874,6 +877,8 @@ int generate_ratings_file_full(char *output_file_path) {
 				char *full_player_path = player_dir_file_path_with_player_dir(entry->d_name);
 				/* If the player file was able to be read properly... */
 				if (0 == entry_file_read_last_entry(full_player_path, &temp)) {
+					// TODO: finish this, if the m flag isn't used, no need to do all this
+					//if (pr_minimum_events > 0) {
 					int num_events = \
 						entry_file_number_of_events(full_player_path);
 					if (longest_attended < num_events) longest_attended = num_events;
