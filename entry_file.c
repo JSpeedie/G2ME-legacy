@@ -42,14 +42,15 @@ int entry_file_contains_opponent(char *opp_name, char* file_path) {
 	char ln;
 	unsigned short num_opp;
 	if (1 != fread(&ln, sizeof(char), 1, base_file)) return -3;
-	char name[ln];
-	if ((size_t) ln != fread(&name[0], sizeof(char), ln, base_file)) return -4;
 
-	/* Skip past number of outcomes/tournaments attended */
-	if (0 != fseek(base_file, 2 * sizeof(long), SEEK_CUR)) return -5;
+	/* Skip past name and number of outcomes/tournaments attended */
+	long name_and_counts = ln * sizeof(char) + 2 * sizeof(long);
+	if (0 != fseek(base_file, name_and_counts, SEEK_CUR)) return -5;
 
 	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) return -7;
 
+// TODO: implement faster check for names (check as you read characters so
+// you don't read the whole name?
 	char temp_name[MAX_NAME_LEN];
 	for (int i = 0; i < num_opp; i++) {
 		int j = 0;
@@ -173,11 +174,9 @@ int entry_file_contains_tournament(char *t_name, char* file_path) {
 	char ln;
 	unsigned short num_opp, num_t;
 	if (1 != fread(&ln, sizeof(char), 1, base_file)) return -3;
-	char name[ln];
-	if ((size_t) ln != fread(&name[0], sizeof(char), ln, base_file)) return -4;
-
-	/* Skip past number of outcomes/tournaments attended */
-	if (0 != fseek(base_file, 2 * sizeof(long), SEEK_CUR)) return -5;
+	/* Skip past name and number of outcomes/tournaments attended */
+	long name_and_counts = ln * sizeof(char) + 2 * sizeof(long);
+	if (0 != fseek(base_file, name_and_counts, SEEK_CUR)) return -5;
 
 	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) return -6;
 	for (int i = 0; i < num_opp; i++) {
@@ -794,6 +793,7 @@ int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
 	/* Entry that is used later to check if this entry is at a new tournament */
 	struct entry E2;
 	int ret2;
+	// TODO: add check to see if there are any entries
 	/* If it failed to read the last entry, it is because this is a fresh file */
 	if (0 != (ret2 = entry_file_read_last_entry(file_path, &E2))) {
 		E2.t_name[0] = '\0';
