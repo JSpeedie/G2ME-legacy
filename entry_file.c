@@ -320,11 +320,11 @@ int entry_get_name_from_id(FILE *f, struct entry *E) {
 	if (1 != fread(&ln, sizeof(char), 1, f)) return -1;
 	char name[ln];
 	if ((size_t) ln != fread(&name[0], sizeof(char), ln, f)) return -2;
-	name[(int) ln] = '\0';
-	char temp[MAX_NAME_LEN];
 
-	/* Skip past number of outcomes/tournaments attended */
-	if (0 != fseek(f, 2 * sizeof(long), SEEK_CUR)) return -5;
+	/* Skip past name and number of outcomes/tournaments attended */
+	long name_and_counts = ln * sizeof(char) + 2 * sizeof(long);
+	if (0 != fseek(base_file, name_and_counts, SEEK_CUR)) return -5;
+	char temp[MAX_NAME_LEN];
 
 	/* Read number of opponents */
 	if (1 != fread(&num_opp, sizeof(short), 1, f)) return -3;
