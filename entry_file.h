@@ -50,6 +50,7 @@ int entry_file_read_start_from_file(char *, struct entry *);
 int entry_file_refactor_name(char *);
 int entry_file_remove_entry(char *);
 int entry_file_get_outcome_count(char *);
+int entry_file_get_events_attended_count(char *);
 char *entry_file_get_events_attended(char *, int *);
 double entry_file_get_glicko_change_since_last_event(char*);
 

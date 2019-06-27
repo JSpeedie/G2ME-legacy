@@ -880,7 +880,7 @@ int generate_ratings_file_full(char *output_file_path) {
 					// TODO: finish this, if the m flag isn't used, no need to do all this
 					//if (pr_minimum_events > 0) {
 					int num_events = \
-						entry_file_number_of_events(full_player_path);
+						entry_file_get_events_attended_count(full_player_path);
 					if (longest_attended < num_events) longest_attended = num_events;
 
 					int num_outcomes = entry_file_get_outcome_count(full_player_path);
