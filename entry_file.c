@@ -26,6 +26,44 @@ int entry_file_get_events_attended_count(char *);
 double entry_file_get_glicko_change_since_last_event(char *);
 int entry_file_read_start_from_file(char *, struct entry *);
 
+/** Takes an open entry file and moves the file cursor to the number of
+ * opponents data.
+ *
+ * TODO:
+ */
+int entry_file_open_skip_to_num_opp(FILE* f) {
+	char ln;
+	if (1 != fread(&ln, sizeof(char), 1, f)) return -1;
+
+	/* Skip past name and number of outcomes/tournaments attended,
+	 * relative offset for end of opps and relative offset for end
+	 * of tournaments */
+	long name_and_counts = ln * sizeof(char) + 4 * sizeof(long);
+	if (0 != fseek(f, name_and_counts, SEEK_CUR)) return -2;
+
+	return 0;
+}
+
+/** Takes an open entry file and moves the file cursor to the number of
+ * tournaments data.
+ *
+ * TODO:
+ */
+int entry_file_open_skip_to_num_t(FILE* f) {
+	char ln;
+	if (1 != fread(&ln, sizeof(char), 1, f)) return -1;
+
+	/* Skip past name and number of outcomes/tournaments attended */
+	long name_and_counts = ln * sizeof(char) + 2 * sizeof(long);
+	long end_of_opps_roffset;
+	if (0 != fseek(f, name_and_counts, SEEK_CUR)) return -2;
+	/* Read offset from current spot to end of opps list (num t data) */
+	if (1 != fread(&end_of_opps_roffset, sizeof(long), 1, f)) return -3;
+	if (0 != fseek(f, end_of_opps_roffset, SEEK_CUR)) return -4;
+
+	return 0;
+}
+
 /** Function takes an opponents name and a file path to the entry file you
  * want to check and returns an int representing whether it found the
  * opponent in the file to be examined.
@@ -39,14 +77,10 @@ int entry_file_contains_opponent(char *opp_name, char* file_path) {
 		perror("fopen (entry_file_contains_opponent)");
 		return -2;
 	}
-	char ln;
+
+	if (0 != entry_file_open_skip_to_num_opp(base_file)) return -3;
+
 	unsigned short num_opp;
-	if (1 != fread(&ln, sizeof(char), 1, base_file)) return -3;
-
-	/* Skip past name and number of outcomes/tournaments attended */
-	long name_and_counts = ln * sizeof(char) + 2 * sizeof(long);
-	if (0 != fseek(base_file, name_and_counts, SEEK_CUR)) return -5;
-
 	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) return -7;
 
 	for (int i = 0; i < num_opp; i++) {
@@ -90,6 +124,16 @@ int entry_file_add_new_opponent(struct entry *E, char* file_path) {
 	/* Skip past name and number of outcomes/tournaments attended */
 	long name_and_counts = ln * sizeof(char) + 2 * sizeof(long);
 	if (0 != fseek(base_file, name_and_counts, SEEK_CUR)) return -3;
+	/* Update relative offset to end of opponent list */
+	if (1 != fread(&offset, sizeof(long), 1, base_file)) return -4;
+	offset += E->len_opp_name + 1;
+	if (0 != fseek(base_file, -1 * sizeof(long), SEEK_CUR)) return -5;
+	if (1 != fwrite(&offset, sizeof(long), 1, base_file)) return -6;
+	/* Update relative offset to end of tournament list */
+	if (1 != fread(&offset, sizeof(long), 1, base_file)) return -4;
+	offset += E->len_opp_name + 1;
+	if (0 != fseek(base_file, -1 * sizeof(long), SEEK_CUR)) return -5;
+	if (1 != fwrite(&offset, sizeof(long), 1, base_file)) return -6;
 
 	/* Read number of opponents */
 	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) return -4;
@@ -165,20 +209,19 @@ int entry_file_contains_tournament(char *t_name, char* file_path) {
 		perror("fopen (entry_file_contains_tournament)");
 		return -2;
 	}
-	char ln;
-	unsigned short num_opp, num_t;
-	if (1 != fread(&ln, sizeof(char), 1, base_file)) return -3;
-	/* Skip past name and number of outcomes/tournaments attended */
-	long name_and_counts = ln * sizeof(char) + 2 * sizeof(long);
-	if (0 != fseek(base_file, name_and_counts, SEEK_CUR)) return -5;
 
-	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) return -6;
-	for (int i = 0; i < num_opp; i++) {
-		char read = '1';
-		while (read != '\0' && !(feof(base_file))) {
-			if (1 != fread(&read, sizeof(char), 1, base_file)) return -7;
-		}
-	}
+	if (0 != entry_file_open_skip_to_num_t(base_file)) return -3;
+
+	unsigned short num_t;
+	//unsigned short num_opp;
+	//if (1 != fread(&num_opp, sizeof(short), 1, base_file)) return -6;
+	//for (int i = 0; i < num_opp; i++) {
+	//	char read = '1';
+	//	while (read != '\0' && !(feof(base_file))) {
+	//		if (1 != fread(&read, sizeof(char), 1, base_file)) return -7;
+	//	}
+	//}
+
 	if (1 != fread(&num_t, sizeof(short), 1, base_file)) return -8;
 
 	char temp_tournament[MAX_NAME_LEN];
@@ -245,13 +288,20 @@ int entry_file_add_new_tournament(struct entry *E, char* file_path) {
 	name[(int) ln] = '\0';
 	if ((size_t) ln != fwrite(&name[0], sizeof(char), ln, new_file)) return -6;
 
-	unsigned long num_outcomes;
+	unsigned long temp;
 	/* Read number of outcomes and number of tournaments attended, write to
 	 * new file */
-	if (1 != fread(&num_outcomes, sizeof(long), 1, base_file)) return -7;
-	if (1 != fwrite(&num_outcomes, sizeof(long), 1, new_file)) return -8;
-	if (1 != fread(&num_outcomes, sizeof(long), 1, base_file)) return -9;
-	if (1 != fwrite(&num_outcomes, sizeof(long), 1, new_file)) return -10;
+	if (1 != fread(&temp, sizeof(long), 1, base_file)) return -7;
+	if (1 != fwrite(&temp, sizeof(long), 1, new_file)) return -8;
+	if (1 != fread(&temp, sizeof(long), 1, base_file)) return -9;
+	if (1 != fwrite(&temp, sizeof(long), 1, new_file)) return -10;
+	/* Read relative offset for end of opps and end of tournaments to new file */
+	if (1 != fread(&temp, sizeof(long), 1, base_file)) return -7;
+	if (1 != fwrite(&temp, sizeof(long), 1, new_file)) return -8;
+	if (1 != fread(&temp, sizeof(long), 1, base_file)) return -9;
+	/* Adjust offset accordingly */
+	temp += E->len_t_name + 1;
+	if (1 != fwrite(&temp, sizeof(long), 1, new_file)) return -10;
 
 	/* Read number of tournaments and write said number + 1 to temp file */
 	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) return -11;
@@ -308,17 +358,11 @@ int entry_file_add_new_tournament(struct entry *E, char* file_path) {
 int entry_get_name_from_id(FILE *f, struct entry *E) {
 	int ret = 0;
 	long int return_to = ftell(f);
-	char ln;
 	unsigned short num_opp;
-	fseek(f, 0, SEEK_SET);
-	if (1 != fread(&ln, sizeof(char), 1, f)) return -1;
-	char name[ln];
-	if ((size_t) ln != fread(&name[0], sizeof(char), ln, f)) return -2;
-
-	/* Skip past name and number of outcomes/tournaments attended */
-	long name_and_counts = ln * sizeof(char) + 2 * sizeof(long);
-	if (0 != fseek(base_file, name_and_counts, SEEK_CUR)) return -5;
 	char temp[MAX_NAME_LEN];
+	fseek(f, 0, SEEK_SET);
+
+	if (0 != entry_file_open_skip_to_num_opp(f)) return -2;
 
 	/* Read number of opponents */
 	if (1 != fread(&num_opp, sizeof(short), 1, f)) return -3;
@@ -350,30 +394,24 @@ int entry_get_name_from_id(FILE *f, struct entry *E) {
 int entry_file_get_tournament_name_from_id(FILE *f, struct entry *E) {
 	int ret = 0;
 	long int return_to = ftell(f);
-	char ln;
 	unsigned short num_opp;
 	unsigned short num_t;
-	fseek(f, 0, SEEK_SET);
-	if (1 != fread(&ln, sizeof(char), 1, f)) return -1;
-	char name[ln];
-	if ((size_t) ln != fread(&name[0], sizeof(char), ln, f)) return -2;
-	name[(int) ln] = '\0';
 	char temp[MAX_NAME_LEN];
+	fseek(f, 0, SEEK_SET);
 
-	/* Skip past number of outcomes/tournaments attended */
-	if (0 != fseek(f, 2 * sizeof(long), SEEK_CUR)) return -5;
+	if (0 != entry_file_open_skip_to_num_t(f)) return -2;
 
-	/* Read number of opponents */
-	if (1 != fread(&num_opp, sizeof(short), 1, f)) return -3;
+	///* Read number of opponents */
+	//if (1 != fread(&num_opp, sizeof(short), 1, f)) return -3;
 
-	/* Read all the names of the opponents */
-	for (int i = 0; i < num_opp; i++) {
-		char read = '1';
-		if (1 != fread(&read, sizeof(char), 1, f)) return -4;
-		while (read != '\0' && !(feof(f))) {
-			if (1 != fread(&read, sizeof(char), 1, f)) return -5;
-		}
-	}
+	///* Read all the names of the opponents */
+	//for (int i = 0; i < num_opp; i++) {
+	//	char read = '1';
+	//	if (1 != fread(&read, sizeof(char), 1, f)) return -4;
+	//	while (read != '\0' && !(feof(f))) {
+	//		if (1 != fread(&read, sizeof(char), 1, f)) return -5;
+	//	}
+	//}
 
 	/* Read number of tournaments */
 	if (1 != fread(&num_t, sizeof(short), 1, f)) return -6;
@@ -455,46 +493,45 @@ int entry_file_read_entry(FILE *f, struct entry *E) {
  *
  * \param '*base_file' a player entry file opened in 'rb' mode
  */
-int entry_file_get_to_entries(FILE *base_file) {
-	char ln;
+int entry_file_get_to_entries(FILE *f) {
 	short num_opp, num_t;
-	if (1 != fread(&ln, sizeof(char), 1, base_file)) {
-		return -1;
-	}
-	char name[ln];
-	// TODO: combine with following fseek for efficiency/speed
-	if ((size_t) ln != fread(&name[0], sizeof(char), ln, base_file)) {
-		return -2;
-	}
 
-	int ret;
-	/* Skip past number of outcomes/tournaments attended */
-	if (0 != (ret = fseek(base_file, 2 * sizeof(long), SEEK_CUR))) { return -3; }
+	char ln;
+	if (1 != fread(&ln, sizeof(char), 1, f)) return -1;
 
-	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) {
-		return -3;
-	}
+	/* Skip past name and number of outcomes/tournaments attended, and
+	 * past the end of opps relative offset */
+	long name_and_counts = ln * sizeof(char) + 3 * sizeof(long);
+	long end_of_t_roffset;
+	if (0 != fseek(f, name_and_counts, SEEK_CUR)) return -2;
+	/* Read offset from current spot to end of opps list (num t data) */
+	if (1 != fread(&end_of_t_roffset, sizeof(long), 1, f)) return -3;
+	if (0 != fseek(f, end_of_t_roffset, SEEK_CUR)) return -4;
 
-	for (int i = 0; i < num_opp; i++) {
-		char read = '\1';
-		if (1 != fread(&read, sizeof(char), 1, base_file)) return -5;
-		while (read != '\0' && !(feof(base_file))) {
-			if (1 != fread(&read, sizeof(char), 1, base_file)) return -6;
-		}
-	}
-
-	if (1 != fread(&num_t, sizeof(short), 1, base_file)) {
-		return -7;
-	}
-
-	for (int i = 0; i < num_t; i++) {
-		char read = '\1';
-		if (1 != fread(&read, sizeof(char), 1, base_file)) return -8;
-		while (read != '\0' && !(feof(base_file))) {
-			if (1 != fread(&read, sizeof(char), 1, base_file)) return -9;
-		}
-	}
 	return 0;
+
+//	if (0 != entry_file_open_skip_to_num_t(f)) return -2;
+
+	//if (1 != fread(&num_opp, sizeof(short), 1, f)) { return -3; }
+
+	//for (int i = 0; i < num_opp; i++) {
+	//	char read = '\1';
+	//	if (1 != fread(&read, sizeof(char), 1, f)) return -5;
+	//	while (read != '\0' && !(feof(f))) {
+	//		if (1 != fread(&read, sizeof(char), 1, f)) return -6;
+	//	}
+	//}
+
+//	if (1 != fread(&num_t, sizeof(short), 1, f)) { return -7; }
+//
+//	for (int i = 0; i < num_t; i++) {
+//		char read = '\1';
+//		if (1 != fread(&read, sizeof(char), 1, f)) return -8;
+//		while (read != '\0' && !(feof(f))) {
+//			if (1 != fread(&read, sizeof(char), 1, f)) return -9;
+//		}
+//	}
+//	return 0;
 }
 
 int entry_file_number_of_opponents(char *file_path) {
@@ -504,17 +541,9 @@ int entry_file_number_of_opponents(char *file_path) {
 		perror("fopen (entry_file_number_of_opponents)");
 		ret = -1;
 	}
-	char ln;
 	short num_opp;
-	if (1 != fread(&ln, sizeof(char), 1, base_file)) ret = -1;
-	char name[ln];
-	// TODO: combine with following fseek call
-	if ((size_t) ln != fread(&name[0], sizeof(char), ln, base_file)) {
-		ret = -2;
-	}
 
-	/* Skip past number of outcomes/tournaments attended */
-	if (0 != fseek(base_file, 2 * sizeof(long), SEEK_CUR)) ret = -3;
+	if (0 != entry_file_open_skip_to_num_opp(base_file)) return -2;
 
 	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) ret = -3;
 
@@ -540,17 +569,9 @@ int entry_file_number_of_events(char *file_path) {
 		perror("fopen (entry_file_number_of_events)");
 		ret = -1;
 	}
-	char ln;
 	short num_opp, num_t;
-	if (1 != fread(&ln, sizeof(char), 1, base_file)) ret = -1;
-	char name[ln];
-	// TODO: combine with following fseek call
-	if ((size_t) ln != fread(&name[0], sizeof(char), ln, base_file)) {
-		ret = -2;
-	}
 
-	/* Skip past number of outcomes/tournaments attended */
-	if (0 != fseek(base_file, 2 * sizeof(long), SEEK_CUR)) ret = -2;
+	if (0 != entry_file_open_skip_to_num_opp(base_file)) return -2;
 
 	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) ret = -3;
 
@@ -774,6 +795,12 @@ int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
 		unsigned long lzero = 0;
 		if (1 != fwrite(&lzero, sizeof(long), 1, entry_file)) return -4;
 		if (1 != fwrite(&lzero, sizeof(long), 1, entry_file)) return -5;
+		/* Write the relative offsets.
+		 * For a freshly created file, it must be 10 and 4 */
+		unsigned long lten = 10;
+		unsigned long lfour = 4;
+		if (1 != fwrite(&lten, sizeof(long), 1, entry_file)) return -4;
+		if (1 != fwrite(&lfour, sizeof(long), 1, entry_file)) return -5;
 		/* Write the number of opponents and tournaments this player has
 		 * attended. If you are creating the file, it must be 0 and 0 */
 		unsigned short zero = 0;
