@@ -771,8 +771,10 @@ int generate_ratings_file(char* file_path, char* output_file_path) {
 
 		/* If the player file was able to be read properly... */
 		if (0 == entry_file_read_last_entry(full_player_path, &temp)) {
-			int num_events;
-			entry_file_get_events_attended(full_player_path, &num_events);
+			//int num_events;
+			// TODO: something here
+			//entry_file_get_events_attended(full_player_path, &num_events);
+			int num_events = entry_file_get_events_attended_count(file_path);
 			if (longest_attended < num_events) longest_attended = num_events;
 			int num_outcomes = entry_file_get_outcome_count(full_player_path);
 			if (longest_outcomes < num_outcomes) {
