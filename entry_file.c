@@ -26,6 +26,12 @@ int entry_file_get_events_attended_count(char *);
 double entry_file_get_glicko_change_since_last_event(char *);
 int entry_file_read_start_from_file(char *, struct entry *);
 
+/* [short | opp_id] [3 double | glicko data]
+ * [4 char | game counts and date] [2 short | year and tournament_id] */
+long int SIZE_OF_AN_ENTRY = \
+	(1 * sizeof(short)) + (3 * sizeof(double)) \
+	+ (4 * sizeof(char)) + (3 * sizeof(short));
+
 /** Takes an open entry file and moves the file cursor to the number of
  * opponents data.
  *
@@ -698,14 +704,9 @@ long int entry_file_get_last_entry_offset(char* file_path) {
 	fseek(entry_file, 0, SEEK_SET);
 	int ret = entry_file_get_to_entries(entry_file);
 	if (ret != 0) printf("entry_file_get_to_entries (entry_file_get_last_entry_offset) returned %d", ret);
-	/* [short | opp_id] [3 double | glicko data]
-	 * [4 char | game counts and date] [2 short | year and tournament_id] */
-	long int size_of_an_entry = \
-		(1 * sizeof(short)) + (3 * sizeof(double)) \
-		+ (4 * sizeof(char)) + (3 * sizeof(short));
 
 	fseek(entry_file, 0, SEEK_END);
-	long int last_entry_offset = ftell(entry_file) - size_of_an_entry;
+	long int last_entry_offset = ftell(entry_file) - SIZE_OF_AN_ENTRY;
 
 	fclose(entry_file);
 
@@ -727,19 +728,9 @@ int entry_file_read_last_entry(char* file_path, struct entry *ret) {
 		return -1;
 	}
 
-	/* Read the player's name from the file */
-	if (0 != entry_file_read_start_from_file(file_path, ret)) {
-		perror("entry_file_read_start_from_file (entry_file_read_last_entry)");
-		return -2;
-	}
-	/* Set file position to be at the latest entry for that player */
-	long int offset = entry_file_get_last_entry_offset(file_path);
-	fseek(p_file, offset, SEEK_SET);
+	fseek(p_file, -SIZE_OF_AN_ENTRY, SEEK_END);
 	/* If reading the last entry failed */
-	int t;
-	if (0 != (t = entry_file_read_entry(p_file, ret))) {
-		return -3;
-	}
+	if (0 != entry_file_read_entry(p_file, ret)) return -2;
 	fclose(p_file);
 
 	return 0;
