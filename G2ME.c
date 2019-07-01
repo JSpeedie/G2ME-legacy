@@ -159,8 +159,8 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 		/* Read latest entries into usable data */
 		struct entry p1_latest;
 		int ret;
-		if (0 == (ret = entry_file_read_last_entry(full_p1_path, &p1_latest))) {
-			init_player_from_entry(p1, &p1_latest);
+		if (0 == (ret = entry_file_read_last_entry_minimal(full_p1_path, &p1_latest))) {
+			init_player_from_entry(&p1, &p1_latest);
 			/* If this outcome was not a part of a season, write the season
 			 * as the same as the latest season the player was in */
 			if (season_id == -1) {
@@ -186,8 +186,8 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 		/* Read latest entries into usable data */
 		struct entry p2_latest;
 		int ret;
-		if (0 == (ret = entry_file_read_last_entry(full_p2_path, &p2_latest))) {
-			init_player_from_entry(p2, &p2_latest);
+		if (0 == (ret = entry_file_read_last_entry_minimal(full_p2_path, &p2_latest))) {
+			init_player_from_entry(&p2, &p2_latest);
 		} else {
 			printf("entry_file_read_last_entry (%d) (update_player_on_outcome)", ret);
 			perror("");
@@ -280,11 +280,11 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
 				strncpy(latest_ent.t_name, t_name, MAX_NAME_LEN - 1);
 				latest_ent.t_name[strlen(latest_ent.t_name)] = '\0';
 				latest_ent.len_t_name = strlen(latest_ent.t_name);
-				entry_file_append_entry_to_file(&latest_ent, \
-					player_dir_file_path_with_player_dir(player_file));
+				entry_file_append_entry_to_file(&latest_ent, full_file_path);
 			}
 		}
 	}
+	free(full_file_path);
 	/* If they do not then they have never competed, so skip them */
 	return;
 }
@@ -626,7 +626,7 @@ int run_brackets(char *bracket_list_file_path) {
 			return -1;
 		}
 		struct entry temp;
-		if (0 == (entry_file_read_last_entry(full_player_path, &temp))) {
+		if (0 == entry_file_read_last_entry_minimal(full_player_path, &temp)) {
 			if (temp.season_id > latest_season_id) {
 				latest_season_id = temp.season_id;
 			}
