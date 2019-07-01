@@ -23,19 +23,18 @@
 char *player_dir_file_path_with_player_dir(char *s) {
 	int new_path_size = sizeof(char) * (MAX_FILE_PATH_LEN - MAX_NAME_LEN);
 	char *new_path = (char *) malloc(new_path_size);
-	/* 0 all elements in the new string */
-	memset(new_path, 0, new_path_size);
 
 	/* Copy the player directory file path into the return string */
 	strncpy(new_path, player_dir, new_path_size - 1);
+	size_t len_new_path = strlen(new_path);
 	/* If the last character in the player directory path is not a '/' */
-	if (new_path[strlen(new_path) - 1] != DIR_TERMINATOR) {
+	if (new_path[len_new_path - 1] != DIR_TERMINATOR) {
 		/* Append a '/' or '\' */
-		new_path[strlen(new_path)] = DIR_TERMINATOR;
+		new_path[len_new_path] = DIR_TERMINATOR;
 	}
 
 	/* Append the player file to the player dir file path */
-	strncat(new_path, s, new_path_size - strlen(new_path) - 1);
+	strncat(new_path, s, new_path_size - len_new_path - 1);
 
 	return new_path;
 }

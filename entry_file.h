@@ -35,6 +35,7 @@ int entry_get_name_from_id(FILE *, struct entry *);
 int entry_file_get_tournament_name_from_id(FILE *, struct entry *);
 int entry_file_read_entry(FILE *, struct entry *);
 int entry_file_read_entry_minimal(FILE *, struct entry *);
+int entry_file_read_entry_absent(FILE *, struct entry *);
 int entry_file_get_to_entries(FILE *);
 int entry_file_get_number_of_entries(char *);
 int entry_file_number_of_opponents(char *);
@@ -44,6 +45,7 @@ long *entry_file_get_all_number_of_outcomes_against(char *);
 long int entry_file_get_last_entry_offset(char *);
 int entry_file_read_last_entry(char *, struct entry *);
 int entry_file_read_last_entry_minimal(char *, struct entry *);
+int entry_file_read_last_entry_absent(char *, struct entry *);
 int entry_file_append_entry_to_file(struct entry *, char *);
 int entry_file_append_pr_entry_to_file(struct entry *, char *, int);
 int entry_file_append_pr_entry_to_file_verbose(\

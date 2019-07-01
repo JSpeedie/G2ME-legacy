@@ -543,6 +543,49 @@ int entry_file_read_entry_minimal(FILE *f, struct entry *E) {
 	return 0;
 }
 
+/** Reads contents of a player file to a struct entry. Returns 0 upon success,
+ * and a negative number upon failure.Function expects that starter data
+ * has already been passed and that the FILE is on an entry
+ *
+ * Note: this function doesn't read the entire entry into the
+ * struct entry. It is the absent version and reads only the glicko2 data,
+ * the date data, the tournament and season id.
+ *
+ * \param '*f' the file being read
+ * \param '*E' the struct entry to store an entry found in the file too
+ * \return 0 upon success, or a negative number upon failure.
+ */
+int entry_file_read_entry_absent(FILE *f, struct entry *E) {
+	/* SKip over opp id */
+	if (0 != fseek(f, sizeof(short), SEEK_CUR)) { return -1; } //2
+	if (1 != fread(&E->rating, sizeof(double), 1, f)) { return -3; } //8 10
+	if (1 != fread(&E->RD, sizeof(double), 1, f)) { return -4; } // 8 18
+	if (1 != fread(&E->vol, sizeof(double), 1, f)) { return -5; } //8 26
+	if (0 != fseek(f, sizeof(char) * 2, SEEK_CUR)) { return -1; } //2
+	if (1 != fread(&E->day, sizeof(char), 1, f)) { return -8; } //1 29
+	/* If 'day' bitwise ANDed with 10000000 != 0, then this is a
+	 * non-competitor entry */
+	if ( (E->day & (1 << ((sizeof(E->day) * 8) - 1))) != 0) {
+		E->is_competitor = 0;
+		/* Set leftmost bit to 0 so it becomes a normal char */
+		E->day = E->day &  ~(1 << ((sizeof(E->day) * 8) - 1));
+	} else {
+		E->is_competitor = 1;
+	}
+	if (1 != fread(&E->month, sizeof(char), 1, f)) { return -9; } //1 30
+	if (1 != fread(&E->year, sizeof(short), 1, f)) { return -10; } //2 32
+	if (1 != fread(&E->tournament_id, sizeof(short), 1, f)) { return -11; } //2 32
+	if (1 != fread(&E->season_id, sizeof(short), 1, f)) { return -12; } //2 34
+	/* Sets t_name and len_t_name of E to be according to tournament
+	 * name E->tournament_id */
+	if (0 != entry_file_get_tournament_name_from_id(f, E)) {
+		perror("entry_file_get_tournament_name_from_id (read_entry)");
+		return -13;
+	}
+
+	return 0;
+}
+
 /** Reads the all the starter data in a player entry file leaving
  * the FILE '*base_file' at a position where it can start reading entries
  *
@@ -740,6 +783,35 @@ long int entry_file_get_last_entry_offset(char* file_path) {
 	return last_entry_offset;
 }
 
+/** Modifies a struct entry to be that of the last entry found in a player file.
+ *
+ * \param '*file_path' the file path of the player file to be read
+ * \param '*ret' a struct entry pointer to have the data read into.
+ * \return 0 upon success, a negative int upon failure.
+ */
+int entry_file_read_last_entry(char* file_path, struct entry *ret) {
+	/* Open files for reading contents */
+	FILE *p_file = fopen(file_path, "rb");
+	if (p_file == NULL) {
+		perror("fopen (entry_file_read_last_entry)");
+		/* If the file could not be read for any reason, return accordingly */
+		return -1;
+	}
+
+	/* Read the player's name from the file */
+	if (0 != entry_file_open_read_start_from_file(p_file, ret)) {
+		perror("entry_file_open_read_start_from_file (entry_file_read_last_entry)");
+		return -2;
+	}
+
+	fseek(p_file, -SIZE_OF_AN_ENTRY, SEEK_END);
+	/* If reading the last entry failed */
+	if (0 != entry_file_read_entry(p_file, ret)) return -1;
+	fclose(p_file);
+
+	return 0;
+}
+
 /** Modifies a struct entry to be that of the last entry found in a player
  * file. Note that this function doesn't read the entire entry into the
  * struct entry. It is the minimal version and reads only the glicko2 data
@@ -766,13 +838,16 @@ int entry_file_read_last_entry_minimal(char* file_path, struct entry *ret) {
 	return 0;
 }
 
-/** Modifies a struct entry to be that of the last entry found in a player file.
+/** Modifies a struct entry to be that of the last entry found in a player
+ * file. Note that this function doesn't read the entire entry into the
+ * struct entry. It is the absentee version and reads only the glicko2 data,
+ * the date, the tournament and season id.
  *
  * \param '*file_path' the file path of the player file to be read
  * \param '*ret' a struct entry pointer to have the data read into.
  * \return 0 upon success, a negative int upon failure.
  */
-int entry_file_read_last_entry(char* file_path, struct entry *ret) {
+int entry_file_read_last_entry_absent(char* file_path, struct entry *ret) {
 	/* Open files for reading contents */
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
@@ -781,15 +856,9 @@ int entry_file_read_last_entry(char* file_path, struct entry *ret) {
 		return -1;
 	}
 
-	/* Read the player's name from the file */
-	if (0 != entry_file_open_read_start_from_file(p_file, ret)) {
-		perror("entry_file_open_read_start_from_file (entry_file_read_last_entry)");
-		return -2;
-	}
-
 	fseek(p_file, -SIZE_OF_AN_ENTRY, SEEK_END);
 	/* If reading the last entry failed */
-	if (0 != entry_file_read_entry(p_file, ret)) return -1;
+	if (0 != entry_file_read_entry_absent(p_file, ret)) return -1;
 	fclose(p_file);
 
 	return 0;

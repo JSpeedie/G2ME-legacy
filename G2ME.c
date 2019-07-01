@@ -54,7 +54,7 @@ char calc_absent_players = 1;
 char calc_absent_players_with_file = 0;
 double outcome_weight = 1;
 /* TODO: make it dynamically realloc */
-char tournament_names[256][256];
+char tournament_names[MAX_NAME_LEN][512];
 unsigned char tournament_names_len = 0;
 char filter_file_path[MAX_FILE_PATH_LEN];
 char f_flag_used = 0;
@@ -185,8 +185,7 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	} else {
 		/* Read latest entries into usable data */
 		struct entry p2_latest;
-		int ret;
-		if (0 == (ret = entry_file_read_last_entry_minimal(full_p2_path, &p2_latest))) {
+		if (0 == entry_file_read_last_entry_minimal(full_p2_path, &p2_latest)) {
 			init_player_from_entry(&p2, &p2_latest);
 		} else {
 			printf("entry_file_read_last_entry (%d) (update_player_on_outcome)", ret);
@@ -235,23 +234,20 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 void adjust_absent_player(char *player_file, char day, char month, short year, \
 	char *t_name) {
 
+	char* full_file_path = player_dir_file_path_with_player_dir(player_file);
+
 	/* If the player who did not compete has a player file */
 #ifdef __linux__
-	if (access(player_dir_file_path_with_player_dir(player_file), \
-		R_OK | W_OK) != -1) {
+	if (access(full_file_path, R_OK | W_OK) != -1) {
 #elif _WIN32
-	if (_access(player_dir_file_path_with_player_dir(player_file), \
-		R_OK | W_OK) != -1) {
+	if (_access(full_file_path) != -1) {
 #else
-	if (access(player_dir_file_path_with_player_dir(player_file), \
-		R_OK | W_OK) != -1) {
+	if (access(full_file_path, R_OK | W_OK) != -1) {
 #endif
 		struct player P;
 		struct entry latest_ent;
-		if (0 == \
-			entry_file_read_last_entry(
-				player_dir_file_path_with_player_dir(player_file), \
-				&latest_ent)) {
+		//if (0 == entry_file_read_last_entry(full_file_path, &latest_ent)) {
+		if (0 == entry_file_read_last_entry_absent(full_file_path, &latest_ent)) {
 
 			/* If this adjustment is taking place on a different
 			 * day from their last entry */
