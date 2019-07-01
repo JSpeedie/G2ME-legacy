@@ -160,7 +160,7 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 		int ret;
 		struct entry p1_latest;
 		if (0 == (ret = entry_file_read_last_entry_minimal(full_p1_path, &p1_latest))) {
-			init_player_from_entry(&p1, &p1_latest);
+			init_player_from_entry(p1, &p1_latest);
 			/* If this outcome was not a part of a season, write the season
 			 * as the same as the latest season the player was in */
 			if (season_id == -1) {
@@ -187,7 +187,7 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 		int ret;
 		struct entry p2_latest;
 		if (0 == (ret = entry_file_read_last_entry_minimal(full_p2_path, &p2_latest))) {
-			init_player_from_entry(&p2, &p2_latest);
+			init_player_from_entry(p2, &p2_latest);
 		} else {
 			printf("entry_file_read_last_entry (%d) (update_player_on_outcome)", ret);
 			perror("");
