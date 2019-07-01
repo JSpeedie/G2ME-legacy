@@ -47,6 +47,7 @@ int entry_file_append_pr_entry_to_file(struct entry *, char *, int);
 int entry_file_append_pr_entry_to_file_verbose(\
 	struct entry *, char *, int, int, int);
 int entry_file_read_start_from_file(char *, struct entry *);
+int entry_file_open_read_start_from_file(FILE *, struct entry *);
 int entry_file_refactor_name(char *);
 int entry_file_remove_entry(char *);
 int entry_file_get_outcome_count(char *);

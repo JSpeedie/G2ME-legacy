@@ -728,9 +728,15 @@ int entry_file_read_last_entry(char* file_path, struct entry *ret) {
 		return -1;
 	}
 
+	/* Read the player's name from the file */
+	if (0 != entry_file_open_read_start_from_file(p_file, ret)) {
+		perror("entry_file_open_read_start_from_file (entry_file_read_last_entry)");
+		return -2;
+	}
+
 	fseek(p_file, -SIZE_OF_AN_ENTRY, SEEK_END);
 	/* If reading the last entry failed */
-	if (0 != entry_file_read_entry(p_file, ret)) return -2;
+	if (0 != entry_file_read_entry(p_file, ret)) return -1;
 	fclose(p_file);
 
 	return 0;
@@ -1039,6 +1045,25 @@ int entry_file_read_start_from_file(char *file_path, struct entry *E) {
 	E->name[E->len_name] = '\0';
 
 	fclose(entry_file);
+	return 0;
+}
+
+/** Reads a open player file, reads the "Player 1"
+ * data into the given entry parameter.
+ *
+ * \param '*f' the FILE pointer of the file to be read
+ * \return 0 upon success, or a negative number upon failure.
+ */
+int entry_file_open_read_start_from_file(FILE *f, struct entry *E) {
+	/* Read the starter data in the file */
+	if (1 != fread(&E->len_name, sizeof(char), 1, f)) {
+		return -2;
+	}
+	if (E->len_name != fread(E->name, sizeof(char), E->len_name, f)) {
+		return -3;
+	}
+	E->name[E->len_name] = '\0';
+
 	return 0;
 }
 
