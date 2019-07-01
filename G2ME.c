@@ -157,8 +157,8 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 		p1->vol = DEF_VOL;
 	} else {
 		/* Read latest entries into usable data */
-		struct entry p1_latest;
 		int ret;
+		struct entry p1_latest;
 		if (0 == (ret = entry_file_read_last_entry_minimal(full_p1_path, &p1_latest))) {
 			init_player_from_entry(&p1, &p1_latest);
 			/* If this outcome was not a part of a season, write the season
@@ -184,8 +184,9 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 		p2->vol = DEF_VOL;
 	} else {
 		/* Read latest entries into usable data */
+		int ret;
 		struct entry p2_latest;
-		if (0 == entry_file_read_last_entry_minimal(full_p2_path, &p2_latest)) {
+		if (0 == (ret = entry_file_read_last_entry_minimal(full_p2_path, &p2_latest))) {
 			init_player_from_entry(&p2, &p2_latest);
 		} else {
 			printf("entry_file_read_last_entry (%d) (update_player_on_outcome)", ret);
