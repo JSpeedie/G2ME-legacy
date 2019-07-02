@@ -739,7 +739,6 @@ int generate_ratings_file(char* filter_file_path, char* output_file_path) {
 	int longest_name_length = 0;
 	int longest_attended = 0;
 	int longest_outcomes = 0;
-	double longest_glicko_change = 0;
 	/* Create a starting point pr entry array */
 	int pr_entries_size = SIZE_PR_ENTRY;
 	struct entry *players_pr_entries = \
@@ -776,11 +775,6 @@ int generate_ratings_file(char* filter_file_path, char* output_file_path) {
 			int num_outcomes = entry_file_get_outcome_count(full_player_path);
 			if (longest_outcomes < num_outcomes) {
 				longest_outcomes = num_outcomes;
-			}
-			double num_glicko_change = \
-				entry_file_get_glicko_change_since_last_event(full_player_path);
-			if (fabs(longest_glicko_change) < fabs(num_glicko_change)) {
-				longest_glicko_change = num_glicko_change;
 			}
 			// If the player attended the minimum number of events
 			if (num_events >= pr_minimum_events) {
@@ -863,7 +857,6 @@ int generate_ratings_file_full(char *output_file_path) {
 		int longest_name_length = 0;
 		int longest_attended = 0;
 		int longest_outcomes = 0;
-		double longest_glicko_change = 0;
 		/* Create a starting point pr entry array */
 		int pr_entries_size = SIZE_PR_ENTRY;
 		struct entry *players_pr_entries = \
@@ -885,11 +878,6 @@ int generate_ratings_file_full(char *output_file_path) {
 					int num_outcomes = entry_file_get_outcome_count(full_player_path);
 					if (longest_outcomes < num_outcomes) {
 						longest_outcomes = num_outcomes;
-					}
-					double num_glicko_change = \
-						entry_file_get_glicko_change_since_last_event(full_player_path);
-					if (fabs(longest_glicko_change) < fabs(num_glicko_change)) {
-						longest_glicko_change = num_glicko_change;
 					}
 					// If the player attended the minimum number of events
 					if (num_events >= pr_minimum_events) {

@@ -1556,6 +1556,5 @@ double entry_file_get_glicko_change_since_last_event(char* file_path) {
 	}
 	fclose(p_file);
 
-	ret = actual_last.rating - second_last_entry.rating;
-	return ret;
+	return actual_last.rating - second_last_entry.rating;
 }
