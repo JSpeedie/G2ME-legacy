@@ -57,7 +57,7 @@ This program was made out of necessity to make an accurate PR (Power Ranking) fo
 ## What it is
 
 If you've ever played dota2, csgo, or followed chess, glicko2 is very similar
-to MMR from dota, or ranks from cs go and it is a literal improvement on an
+to MMR from dota, ranks from cs go, and is a literal improvement on an
 improvement (glicko) of elo from chess.
 
 
@@ -72,14 +72,14 @@ for outputting this data in meaningful ways such as a list of players from
 highest to lowest rating, being able to view a players records against
 all other players in the system or even a full table of record/matchup data.
 
-*G2ME makes it easy to track players using Glicko 2 and easy make use
+*G2ME makes it easy to track players using Glicko 2 and easy to make use
 of the data stored by the program*
 
 
 
 ## Installation
 
-<details><summary>Click to Expand</summary><p>
+<details><summary>Linux/MacOS (Click to Expand)</summary><p>
 To get up and running, launch a terminal and run the following commands
 
 ```
@@ -88,9 +88,21 @@ $ cd G2MEGit
 $ sudo make all
 ```
 
+You are now ready to follow the rest of the guide! Note that you should
+always `cd` into the directory containing this project before running
+any commands. You can choose not to, but you may have to specify the player
+directory for every `G2ME` command you run by using `-d` (which is a hassle).
+</p></details>
+
+<details><summary>Windows (Click to Expand)</summary><p>
+It's recommended you use the GUI and set the binary path to be one of the 2
+exe's provided. If you wish to use it in the shell for windows, it's even
+simpler. Just download one of the exe's, change into it's directory and you're
+off to the races, just replace the "G2ME" command at the start of all examples
+with "G2ME32.exe" or "G2ME64.exe".
 
 You are now ready to follow the rest of the guide! Note that you should
-always cd into the directory containing this project before running
+always `cd` into the directory containing this project before running
 any commands. You can choose not to, but you may have to specify the player
 directory for every `G2ME` command you run by using `-d` (which is a hassle).
 </p></details>
@@ -121,7 +133,7 @@ $ G2ME -b ExampleBracket
 The Glicko2 data is now stored in 4 files found in `.players/`
 
 ```
-$ ls -1 .players
+$ ls -1 .players/
 TheBestPlayer
 AGoodPlayer
 AnOkayPlayer
@@ -168,8 +180,8 @@ TheBestPlayer  1-0-0       1-0-0        -             -
 The previous walkthough is fine if you only ever want to run one small bracket,
 but if you want a season of brackets, running `G2ME -kb ...` many times
 becomes very tedious. `G2ME` has a solution however. Introducing the `-B` flag!
-The "B" may as well stand for **B**read and **B**utter because it is the flag
-you will likely use the most.
+The "B" may as well stand for **B**read and (dairy-free) **B**utter because
+it is the flag you will likely use the most.
 
 Say after ExampleBracket, there were 2 more brackets SecondBracket and
 ThirdBracket. While you could run:
@@ -200,7 +212,8 @@ running ThirdBracket
 ```
 
 This becomes very useful when you have seasons with lots of events, which,
-let's face it, is the only time you should use Glicko2 as to ensure accuracy.
+let's face it, is the only time you should use Glicko2 since all "objective"
+rating systems flounder under lack of data.
 
 </p></details>
 
