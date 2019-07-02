@@ -7,8 +7,6 @@
 * [Why it makes Glicko 2 Easier](#why-it-makes-glicko-2-easier)
 * [Installation](#installation)
 * [Example Walkthroughs](#example-walkthroughs)
-	* [Starter Walkthrough](#starter-walkthrough)
-	* [Season Walkthrough](#season-walkthrough)
 	* [FAQ/General Usage Walkthrough](#faqgeneral-usage-walkthrough)
 * [Converting Challonge Brackets](#converting-challonge-brackets)
 * [Usage](#usage)
@@ -21,23 +19,21 @@
 	* [The 'C' flag](#the-c-flag-1)
 	* [The 'd' flag](#the-d-flag)
 	* [The 'e' flag](#the-e-flag)
+	* [The 'f' flag](#the-f-flag)
 	* [The 'g' flag](#the-g-flag)
 	* [The 'h' flag](#the-h-flag)
 	* [The 'k' flag](#the-k-flag)
-	* [The 'l' flag](#the-l-flag)
 	* [The 'm' flag](#the-m-flag)
 	* [The 'M' flag](#the-m-flag-1)
 	* [The 'n' flag](#the-n-flag)
 	* [The 'N' flag](#the-n-flag-1)
 	* [The 'o' flag](#the-o-flag)
-	* [The 'p' flag](#the-p-flag)
 	* [The 'P' flag](#the-p-flag-1)
 	* [The 'r' flag](#the-r-flag)
 	* [The 'R' flag](#the-r-flag-1)
 	* [The 't' flag](#the-t-flag)
 	* [The 'v' flag](#the-v-flag)
 	* [The 'w' flag](#the-w-flag)
-	* [The 'x' flag](#the-x-flag)
 * [The Glicko2 System Explained](#the-glicko2-system-explained)
 * [The Player File Format](#the-player-file-format)
 </p></details>
@@ -109,9 +105,7 @@ directory for every `G2ME` command you run by using `-d` (which is a hassle).
 
 ## Example Walkthroughs
 
-### Starter Walkthrough
-
-<details><summary>Click to Expand</summary><p>
+<details><summary>Starter Walkthrough (Click to Expand)</summary><p>
 After installation, you are ready to start using the program!
 First you need to create a bracket file. For instance, a single elimination
 tournament of 4 players could look like this:
@@ -173,9 +167,7 @@ TheBestPlayer  1-0-0       1-0-0        -             -
 ```
 </p></details>
 
-### Season Walkthrough
-
-<details><summary>Click to Expand</summary><p>
+<details><summary>Season Walkthrough (Click to Expand)</summary><p>
 
 The previous walkthough is fine if you only ever want to run one small bracket,
 but if you want a season of brackets, running `G2ME -kb ...` many times
@@ -336,7 +328,7 @@ $ vim [filter_file_here]
 $ cat [filter_file_here]
 TheBestPlayer
 $ G2ME -b ExampleBracket
-$ G2ME -p [filter_file_here] -o pr_output
+$ G2ME -f [filter_file_here] -o pr_output
 TheBestPlayer  1791.9  247.5  0.05999983
 ```
 
@@ -558,6 +550,25 @@ Takes no arguments, removes all player files in the directory
 'player_dir' which is either $(pwd)/.players/ or whatever it was set
 to by a previous `-d` flag.
 
+### The 'f' flag
+
+`G2ME -f filterUTSCStudents -vO`
+
+This flag is used in conjunction with the `-o` flag to filter the output.
+This flag takes an input of a player list file where each line is a file
+path (or file path from `player_dir`) to a player file created by `G2ME`.
+
+An example input file:
+
+```
+Bilal
+Julian
+Steven
+Jon
+Isaiah
+Andrew
+```
+
 ### The 'g' flag
 
 `G2ME -g -b test`
@@ -604,16 +615,9 @@ removing the usual step of `$ rm .players/*`, but if you want to run
 consecutive brackets/bracket file, you can use this flag to prevent `G2ME`
 from deleting all the files.
 
-### The 'l' flag
-
-`G2ME -l Julian`
-
-Stands for Output-**L**ast-Line. Not really useful except for debugging. Same
-as `-h` except it's only the last line.
-
 ### The 'm' flag
 
-`G2ME -p pr -m 3 -o prForPlayersWhoAttendedAtLeast3Events`
+`G2ME -f pr -m 3 -o prForPlayersWhoAttendedAtLeast3Events`
 
 Stands for **m**inimum events attended. Useful for outputting a meaningful pr
 that won't have the people who only showed up once or twice. Useless flag
@@ -654,17 +658,17 @@ that can never have ties.
 ### The 'o' flag
 
 ```
-G2ME -p pr -o 2017pr
+G2ME -f pr -o 2017pr
 G2ME -o 2017pr
 ```
 
 Stands for **o**utput-path. The `-o` flag can be used in conjunction
-with the `-p` flag to, for instance, filter out players in the system who
+with the `-f` flag to, for instance, filter out players in the system who
 are not eligible to be on the pr. Takes an argument of a file path where a
 pr is to be
 written. When the 2 flags are used together, `G2ME` outputs a sorted list of
-all the players listed in the file specified by `-p` into the file specified
-by `-o`. It can be used without the `-p` flag which will make it output a pr
+all the players listed in the file specified by `-f` into the file specified
+by `-o`. It can be used without the `-f` flag which will make it output a pr
 containing all players in `player_dir`.
 
 Example output (aka `2017pr` after running the command above):
@@ -681,27 +685,6 @@ Edward  1695.6   86.7  0.05998215
  Bilal  1669.7   72.6  0.05998048
 Jerome  1622.6   87.8  0.05999483
  Kriss  1580.8   83.7  0.05997938
-```
-
-### The 'p' flag
-
-`G2ME -p pr`
-
-This flag is used in conjunction with the `-o` flag to output a pr. This flag
-takes an input of a player list file where each line is a file path to
-a player file created by `G2ME`.
-
-An example input file:
-
-```
-Bilal
-Julian
-Steven
-Jon
-Ron
-Isaiah
-Santos
-Andrew
 ```
 
 ### The 'P' flag
@@ -734,10 +717,10 @@ the player file's Player 1 data to have the new name.
 
 `G2ME -R Julian`
 
-The `-R` flag takes a player file, and prints the set or game (if you used
-the `-g` flag to run the brackets) counts for the given player against
-every player they have played that the system knows about. Most useful
-for getting stats for commentary or for smack talking :^].
+Stands for "get **R**ecords". The `-R` flag takes a player file, and prints
+the set (or game, if you used the `-g` flag to run the brackets) counts for the
+given player against every player they have played that the system knows about.
+Most useful for getting stats for commentary or for smack talking :^].
 
 Example output:
 
@@ -766,13 +749,6 @@ This flag requires a following `-b` flag call as it affects how the bracket
 will affect player's Glicko2 data. This flag multiplies the change in a
 player's Glicko2 data after a set/game by the given value. **This flag is
 not recommended for use.**
-
-### The 'x' flag
-
-`G2ME -x Julian`
-
-This flag will remove the last entry in the given player file.
-
 
 ## The Glicko2 System Explained
 
