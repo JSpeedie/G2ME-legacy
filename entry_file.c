@@ -425,6 +425,43 @@ int entry_get_name_from_id(FILE *f, struct entry *E) {
 		if (i == E->opp_id) {
 			strncpy(E->opp_name, &temp[0], MAX_NAME_LEN);
 			E->len_opp_name = strlen(E->opp_name);
+			break;
+		}
+	}
+	/* Leave the FILE the way it was found */
+	fseek(f, return_to, SEEK_SET);
+	return ret;
+}
+
+int entry_file_get_id_from_name(FILE *f, struct entry *E) {
+	int ret = 0;
+	long int return_to = ftell(f);
+	unsigned short num_opp;
+	char temp[MAX_NAME_LEN];
+	fseek(f, 0, SEEK_SET);
+
+	if (0 != entry_file_open_skip_to_num_opp(f)) return -2;
+
+	/* Read number of opponents */
+	if (1 != fread(&num_opp, sizeof(short), 1, f)) return -3;
+
+	for (int i = 0; i < num_opp; i++) {
+		int j = 0;
+		char read = '1';
+		if (1 != fread(&read, sizeof(char), 1, f)) return -4;
+		temp[j] = read;
+		j++;
+		while (read != '\0' && j < MAX_NAME_LEN && !(feof(f))) {
+			if (1 != fread(&read, sizeof(char), 1, f)) return -5;
+			temp[j] = read;
+			j++;
+		}
+		temp[j] = '\0';
+		/* If this is the name being searched for, add a null terminator
+		 * and set len_opp_name */
+		if (0 == strcmp(E->opp_name, &temp[0])) {
+			E->opp_id = i;
+			break;
 		}
 	}
 	/* Leave the FILE the way it was found */
@@ -496,6 +533,64 @@ int entry_file_read_entry(FILE *f, struct entry *E) {
 		E->is_competitor = 1;
 	}
 	if (1 != fread(&E->month, sizeof(char), 1, f)) { return -9; } //1 30
+	if (1 != fread(&E->year, sizeof(short), 1, f)) { return -10; } //2 32
+	if (1 != fread(&E->tournament_id, sizeof(short), 1, f)) { return -11; } //2 32
+	if (1 != fread(&E->season_id, sizeof(short), 1, f)) { return -12; } //2 34
+	/* Sets opp_name and len_opp_name of E to be according to opponent
+	 * name E->opp_id */
+	int r;
+	if (0 != (r = entry_get_name_from_id(f, E))) {
+		perror("entry_get_name_from_id (read_entry)");
+		return -12;
+	}
+	/* Sets t_name and len_t_name of E to be according to tournament
+	 * name E->tournament_id */
+	if (0 != (r = entry_file_get_tournament_name_from_id(f, E))) {
+		perror("entry_file_get_tournament_name_from_id (read_entry)");
+		return -13;
+	}
+
+	return 0;
+}
+
+/** Reads contents of a player file to a struct entry. Returns 0 upon success,
+ * and a negative number upon failure. Function expects that starter data
+ * has already been passed and that the FILE is on an entry
+ *
+ * \param '*f' the file being read
+ * \param '*E' the struct entry to store an entry found in the file too
+ * \return 0 upon success, or a negative number upon failure.
+ */
+int entry_file_read_next_opp_entry(FILE *f, struct entry *E, short opp_id) {
+	/* Set to starter data. No opp_id will ever be negative, just starts
+	 * the loop */
+	if (1 != fread(&E->opp_id, sizeof(short), 1, f)) { return -1; } //2
+
+	while (E->opp_id != opp_id) {
+		/* If the entry isn't for the opp being searched for, skip to next entry */
+		if (0 != fseek(f, SIZE_OF_AN_ENTRY - sizeof(short), SEEK_CUR)) {
+			return -2;
+		}
+		if (1 != fread(&E->opp_id, sizeof(short), 1, f)) { return -1; } //2
+	}
+	if (1 != fread(&E->rating, sizeof(double), 1, f)) { return -3; } //8 10
+	if (1 != fread(&E->RD, sizeof(double), 1, f)) { return -4; } // 8 18
+	if (1 != fread(&E->vol, sizeof(double), 1, f)) { return -5; } //8 26
+
+	if (1 != fread(&E->gc, sizeof(char), 1, f)) { return -6; } //1 27
+	if (1 != fread(&E->opp_gc, sizeof(char), 1, f)) { return -7; } //1 28
+	if (1 != fread(&E->day, sizeof(char), 1, f)) { return -8; } //1 29
+	/* If 'day' bitwise ANDed with 10000000 != 0, then this is a
+	 * non-competitor entry */
+	if ( (E->day & (1 << ((sizeof(E->day) * 8) - 1))) != 0) {
+		E->is_competitor = 0;
+		/* Set leftmost bit to 0 so it becomes a normal char */
+		E->day = E->day &  ~(1 << ((sizeof(E->day) * 8) - 1));
+	} else {
+		E->is_competitor = 1;
+	}
+	if (1 != fread(&E->month, sizeof(char), 1, f)) { return -9; } //1 30
+
 	if (1 != fread(&E->year, sizeof(short), 1, f)) { return -10; } //2 32
 	if (1 != fread(&E->tournament_id, sizeof(short), 1, f)) { return -11; } //2 32
 	if (1 != fread(&E->season_id, sizeof(short), 1, f)) { return -12; } //2 34

@@ -998,7 +998,9 @@ int get_record(char *player1, char *player2, struct record *ret) {
 		return -2;
 	}
 
-	while (entry_file_read_entry(p_file, &ent) == 0) {
+	if (0 != entry_file_get_id_from_name(p_file, &ent)) return -3;
+
+	while (entry_file_read_next_opp_entry(p_file, &ent, ent.opp_id) == 0) {
 		/* If the opponent for the given entry is the player of interest */
 		if (0 == strcmp(ent.opp_name, player2)) {
 			if (ent.gc > ent.opp_gc) ret->wins += 1;
