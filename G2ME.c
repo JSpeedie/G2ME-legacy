@@ -720,8 +720,8 @@ int run_brackets(char *bracket_list_file_path) {
  * \return void
  */
 // TODO: Combine with generate_ratings_file_full once it has been divided
-int generate_ratings_file(char* file_path, char* output_file_path) {
-	FILE *players = fopen(file_path, "r");
+int generate_ratings_file(char* filter_file_path, char* output_file_path) {
+	FILE *players = fopen(filter_file_path, "r");
 	if (players == NULL) {
 		perror("fopen (generate_ratings_file)");
 		return -1;
@@ -771,7 +771,7 @@ int generate_ratings_file(char* file_path, char* output_file_path) {
 			//int num_events;
 			// TODO: something here
 			//entry_file_get_events_attended(full_player_path, &num_events);
-			int num_events = entry_file_get_events_attended_count(file_path);
+			int num_events = entry_file_get_events_attended_count(full_player_path);
 			if (longest_attended < num_events) longest_attended = num_events;
 			int num_outcomes = entry_file_get_outcome_count(full_player_path);
 			if (longest_outcomes < num_outcomes) {
@@ -934,9 +934,6 @@ int generate_ratings_file_full(char *output_file_path) {
 		 * in longest_attended */
 		sprintf(string_rep, "%d", longest_outcomes);
 		longest_outcomes = strlen(string_rep);
-		/* Store how long in characters the longest_glicko_change count would take
-		 * in longest_glicko_change */
-		sprintf(string_rep, "%5.1f", longest_glicko_change);
 		/* Append each entry pr file */
 		for (int i = 0; i < pr_entries_num; i++) {
 			if (verbose == 1) {
