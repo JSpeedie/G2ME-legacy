@@ -28,8 +28,7 @@ int entry_file_read_start_from_file(char *, struct entry *);
 
 /* [short | opp_id] [3 double | glicko data]
  * [4 char | game counts and date] [2 short | year and tournament_id] */
-long int SIZE_OF_AN_ENTRY = \
-	(1 * sizeof(short)) + (3 * sizeof(double)) \
+long int SIZE_OF_AN_ENTRY = (1 * sizeof(short)) + (3 * sizeof(double)) \
 	+ (4 * sizeof(char)) + (3 * sizeof(short));
 
 /** Takes an open entry file and moves the file cursor to the number of
@@ -1520,18 +1519,14 @@ char *entry_file_get_events_attended(char *file_path, int *ret_count) {
 double entry_file_get_glicko_change_since_last_event(char* file_path) {
 
 	double ret = 0;
-	struct entry second_last_entry;
 	struct entry last_entry;
 	struct entry actual_last;
-	second_last_entry.rating = 0.0;
-	last_entry.rating = 0.0;
 	/* Set starting values of 'second_last_entry' such that if they have only
 	 * been to one event, this function returns the right value */
-	second_last_entry.rating = DEF_RATING;
-	second_last_entry.RD = DEF_RD;
-	second_last_entry.vol = DEF_VOL;
+	last_entry.rating = DEF_RATING;
 
 	if (0 != entry_file_read_last_entry(file_path, &actual_last)) return 0;
+	ret = actual_last.rating - last_entry.rating;
 
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
@@ -1539,22 +1534,35 @@ double entry_file_get_glicko_change_since_last_event(char* file_path) {
 		return 0;
 	}
 
-	entry_file_get_to_entries(p_file);
+	if (0 != entry_file_get_to_entries(p_file)) return 0;
+	unsigned long entries_begin = ftell(p_file);
 
-	/* TODO: Read backwards until t_name differs instead */
-	while (0 == entry_file_read_entry(p_file, &last_entry)) {
-		/* If it reads an entry that is the last event or an event
-		 * that occurred on the same day as the last event (an
-		 * amateur bracket for instance) */
-		if (0 == strcmp(last_entry.t_name, actual_last.t_name)
-			|| (last_entry.day == actual_last.day
-			&& last_entry.month == actual_last.month
-			&& last_entry.year == actual_last.year)) {
+	/* If they didn't attend the last event, return 0 */
+	if (actual_last.is_competitor == 0) return 0;
+	/* If this is their first event,
+	 * return their current rating - the default */
+	if (actual_last.tournament_id == 0) return ret;
+
+	/* Go to the second last entry */
+	if (0 != fseek(p_file, -2 * SIZE_OF_AN_ENTRY, SEEK_END)) return 0;
+
+	while (ftell(p_file) >= entries_begin \
+		&& 0 == entry_file_read_entry(p_file, &last_entry) ) {
+		/* If it reads an entry has a different name and date to the last
+		 * tournament */
+		if (0 != strcmp(last_entry.t_name, actual_last.t_name)
+			&& (last_entry.day != actual_last.day
+			|| last_entry.month != actual_last.month
+			|| last_entry.year != actual_last.year)) {
+
+			ret = actual_last.rating - last_entry.rating;
 			break;
 		}
-		second_last_entry = last_entry;
+		/* Go back one entry */
+		if (0 != fseek(p_file, -2 * SIZE_OF_AN_ENTRY, SEEK_CUR)) return 0;
 	}
+
 	fclose(p_file);
 
-	return actual_last.rating - second_last_entry.rating;
+	return ret;
 }
