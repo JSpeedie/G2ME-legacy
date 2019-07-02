@@ -785,19 +785,39 @@ a volatility pr/consistency pr.
 ## The Player File Format
 
 In case someone wants to reverse-engineer the player files or fork this and
-write the player files in a different format, currently it has the first
-few bytes as:
-1. `sizeof(char)` the length of the player-1's name
-2. `len_p1_name` bytes are the characters in the first players name.
-3. `sizeof(short)` the number of opponents in this players record
-4. repeated strings ending in `\0` representing the opponent names,
-in order
-4. `sizeof(short)` the number of tournaments in this players record
-5. repeated strings ending in `\0` representing the tournament names,
+write the player files in a different format, here's the layout:
+
+`[len_name][name][num_valid_out][num_valid_atten_ev][roffset_end_opp_list][roffset_end_of_T_list][num_opps][opps_list][num_t][t_list][entries]`
+
+There are 2 main sections to the entry file. First is the starter data like
+which player these outcomes belong to, the number of valid sets they've played,
+etc. Then there's the second part which is a (usually) long list of
+sets/outcomes. Starting with the starter data section (the first byte of the
+file):
+
+1. `sizeof(char)` the length of the player-1's name.
+2. `$1 * sizeof(char)` bytes are the characters in the first players name.
+3. `sizeof(long)` an unsigned long representing the number of valid
+outcomes/sets this player has in their file.
+4. `sizeof(long)` an unsigned long representing the number of valid
+tournaments/events this player has attended.
+5. `sizeof(long)` an unsigned long representing the number of bytes
+(after reading this long) you have to keep reading until you reach
+the end of the opponents list (more on that list later). Internally,
+this is often referred to as the "relative opp list offset".
+6. `sizeof(long)` an unsigned long representing the number of bytes
+(after reading this long) you have to keep reading until you reach
+the end of the tournaments list (more on that list later). Internally,
+this is often referred to as the "relative T list offset".
+7. `sizeof(short)` the number of opponents in the opponents list/array.
+8. repeated strings ending in `\0`, representing the opponent names,
+in order.
+9. `sizeof(short)` the number of tournaments in the tournaments list/array.
+10. repeated strings ending in `\0` representing the tournament names,
 in order
 
 After that it takes the repeated form of:
-`[p2_id][p1_rating_after][p1_RD_after][p1_vol_after][p1_game_count][p2_game_count][day][month][year][event_id]`
+`[p2_id][p1_rating_after][p1_RD_after][p1_vol_after][p1_game_count][p2_game_count][day][month][year][event_id][season_id]`
 In terms of bytes:
 
 1. `sizeof(short)` bytes representing the player 2 id
@@ -810,6 +830,7 @@ In terms of bytes:
 7. `sizeof(char)` the month
 8. `sizeof(short)` bytes are the year.
 9. `sizeof(short)` the event id
+10. `sizeof(short)` the season this outcome belongs to
 
 
 
