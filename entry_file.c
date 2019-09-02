@@ -1112,7 +1112,7 @@ int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
 		}
 		number_of_outcomes++;
 		/* Move back to the point in file where number of outcomes resides */
-		if (0 != fseek(entry_file2, -1 * 2 * sizeof(long), SEEK_CUR)) {
+		if (0 != fseek(entry_file2, -1 * 2 * ((long int) sizeof(long)), SEEK_CUR)) {
 			return -6;
 		}
 		if (1 != fwrite(&number_of_outcomes, sizeof(long), 1, entry_file2)) { return -7; }

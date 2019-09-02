@@ -241,7 +241,8 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
 #ifdef __linux__
 	if (access(full_file_path, R_OK | W_OK) != -1) {
 #elif _WIN32
-	if (_access(full_file_path) != -1) {
+	//if (_access(full_file_path) != -1) {
+	if (access(full_file_path, R_OK | W_OK) != -1) {
 #else
 	if (access(full_file_path, R_OK | W_OK) != -1) {
 #endif
