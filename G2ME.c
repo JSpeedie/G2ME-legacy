@@ -9,6 +9,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
 /* Windows includes */
@@ -327,10 +328,20 @@ void adjust_absent_players_no_file(char day, char month, \
 		}
 
 		if (did_not_comp) {
-			adjust_absent_player(entry->d_name, day, month, year, t_name);
+			pid_t p = fork();
+			if (p == 0) {
+				adjust_absent_player(entry->d_name, day, month, year, t_name);
+				exit(0);
+			}
 		}
 	}
 	closedir(p_dir);
+
+	/* Wait for all the child processes to finish to avoid data errors */
+	pid_t wpid;
+	int status = 0;
+	while ((wpid = wait(&status)) > 0);
+	/* At this point all the kids have exited, parent can continue */
 }
 
 /** Takes a file path representing a file containing a list of file paths
@@ -572,8 +583,10 @@ int update_players(char* bracket_file_path, short season_id) {
 int run_single_bracket(char *bracket_file_path) {
 	if (use_games == 1) {
 		fprintf(stdout, "running \"%s\" using games ...", bracket_file_path);
+		fflush(stdout);
 	} else {
 		fprintf(stdout, "running \"%s\" ...", bracket_file_path);
+		fflush(stdout);
 	}
 	int ret = update_players(bracket_file_path, -1);
 	if (ret == 0) {
@@ -602,6 +615,10 @@ int run_brackets(char *bracket_list_file_path) {
 
 	short latest_season_id = -1;
 	char line[MAX_FILE_PATH_LEN + 2];
+	int bracket_paths_size = SIZE_PR_ENTRY;
+	char *bracket_paths = \
+		(char *)malloc((MAX_FILE_PATH_LEN + 1) * bracket_paths_size);
+
 	/* Get the latest season from a recent player */
 	/* search for a player with a non -1 season */
 	DIR *p_dir;
@@ -634,6 +651,7 @@ int run_brackets(char *bracket_list_file_path) {
 	}
 	closedir(p_dir);
 
+	int num_brk = 0;
 	while (fgets(line, sizeof(line), bracket_list_file)) {
 		/* Remove comments from text */
 		char parse_line = 0;
@@ -678,33 +696,36 @@ int run_brackets(char *bracket_list_file_path) {
 					*end_of_line = '\0';
 				}
 			}
-			if (p_flag_used == 1) {
-				char run_input = '\0';
-				fprintf(stdout, "run \"%s\"? [Y/n] ", line);
-				scanf(" %c", &run_input);
-				if (run_input == 'Y') {
-					if (use_games == 1) {
-						fprintf(stdout, "running \"%s\" using games ...", line);
-					} else {
-						fprintf(stdout, "running \"%s\" ...", line);
-					}
-					update_players(line, latest_season_id + 1);
-					fprintf(stdout, "DONE\n");
-				} else if (run_input == 'n') {
-						fprintf(stdout, "Skipping...\n");
-				} else {
-					fprintf(stderr, "ERROR: input not recognized\n");
+
+			/* If there is no space to add this bracket path, reallocate */
+			if (num_brk + 1 > bracket_paths_size) {
+				bracket_paths_size += REALLOC_BRACKET_PATHS_INC;
+				bracket_paths = (char *) realloc(bracket_paths, \
+					(MAX_FILE_PATH_LEN + 1) * bracket_paths_size);
+				if (bracket_paths == NULL) {
+					perror("realloc (generate_ratings_file)");
+					return -2;
 				}
-			} else {
-				if (use_games == 1) {
-					fprintf(stdout, "running \"%s\" using games ...", line);
-				} else {
-					fprintf(stdout, "running \"%s\" ...", line);
-				}
-				update_players(line, latest_season_id + 1);
-				fprintf(stdout, "DONE\n");
 			}
+			strncpy(&bracket_paths[num_brk * (MAX_FILE_PATH_LEN + 1)], \
+				&line[0], MAX_FILE_PATH_LEN);
+			num_brk++;
 		}
+	}
+
+	for (int j = 0; j < num_brk; j++) {
+		if (use_games == 1) {
+			fprintf(stdout, "running \"%s\" using games ...", \
+				&bracket_paths[j * (MAX_FILE_PATH_LEN + 1)]);
+			fflush(stdout);
+		} else {
+			fprintf(stdout, "running \"%s\" ...", \
+				&bracket_paths[j * (MAX_FILE_PATH_LEN + 1)]);
+			fflush(stdout);
+		}
+		update_players(&bracket_paths[j * (MAX_FILE_PATH_LEN + 1)], \
+			latest_season_id + 1);
+		fprintf(stdout, "DONE\n");
 	}
 
 	fclose(bracket_list_file);

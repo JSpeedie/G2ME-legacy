@@ -4,6 +4,8 @@
 #define MAX_FILE_PATH_LEN 512
 #define REALLOC_PR_ENTRIES_INC 4
 #define SIZE_PR_ENTRY 128
+#define REALLOC_BRACKET_PATHS_INC 8
+#define SIZE_BRACKET_PATHS 128
 #define LEXIO 1
 
 extern char flag_output_to_stdout;
