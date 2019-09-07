@@ -15,6 +15,9 @@
 #include "sorting.h" /* Includes G2ME.h -> glicko2.h, entry_file.h */
 #include "fileops.h"
 
+char OPP_FILE_NAME[] = { "of" };
+char OPP_ID_FILE_NAME[] = { "oif" };
+
 /** Takes a string and prepends the player directory file path to it.
  *
  * \return A string that is the file path to the player directory +
@@ -37,6 +40,46 @@ char *player_dir_file_path_with_player_dir(char *s) {
 	strncat(new_path, s, new_path_size - len_new_path - 1);
 
 	return new_path;
+}
+
+/** Takes a string and prepends the data directory file path to it.
+ *
+ * \return A string that is the file path to the data directory +
+ *     the given string.
+ */
+char *data_dir_file_path_with_data_dir(char *s) {
+	int new_path_size = sizeof(char) * (MAX_FILE_PATH_LEN - MAX_NAME_LEN);
+	char *new_path = (char *) malloc(new_path_size);
+
+	/* Copy the data directory file path into the return string */
+	strncpy(new_path, data_dir, new_path_size - 1);
+	size_t len_new_path = strlen(new_path);
+	/* If the last character in the data directory path is not a '/' */
+	if (new_path[len_new_path - 1] != DIR_TERMINATOR) {
+		/* Append a '/' or '\' */
+		new_path[len_new_path] = DIR_TERMINATOR;
+	}
+
+	/* Append the data file to the data dir file path */
+	strncat(new_path, s, new_path_size - len_new_path - 1);
+
+	return new_path;
+}
+
+/** Takes no arguments, returns the full file path to the opp file
+ *
+ * \return A string that is the file path to opp file.
+ */
+char *data_dir_file_path_opp_file(void) {
+	return data_dir_file_path_with_data_dir(OPP_FILE_NAME);
+}
+
+/** Takes no arguments, returns the full file path to the opp id file
+ *
+ * \return A string that is the file path to opp id file.
+ */
+char *data_dir_file_path_opp_id_file(void) {
+	return data_dir_file_path_with_data_dir(OPP_ID_FILE_NAME);
 }
 
 /* Deletes every player file in the player directory 'player_dir'.
@@ -63,6 +106,94 @@ int player_dir_reset_players(void) {
 		perror("opendir (reset_players)");
 		return -1;
 	}
+
+	/* Create universal G2ME files, necessary for usage */
+	short num_opp = 0;
+	char *full_opp_file_path = data_dir_file_path_opp_file();
+	FILE *opp_file = fopen(full_opp_file_path, "wb");
+	if (opp_file == NULL) {
+		perror("fopen (player_dir_check_and_create)");
+		return -1;
+	}
+	if (1 != fwrite(&num_opp, sizeof(short), 1, opp_file)) return -12;
+	free(full_opp_file_path);
+	fclose(opp_file);
+	
+	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
+	FILE *opp_id_file = fopen(full_opp_id_file_path, "wb");
+	if (opp_id_file == NULL) {
+		perror("fopen (player_dir_check_and_create)");
+		return -1;
+	}
+	if (1 != fwrite(&num_opp, sizeof(short), 1, opp_id_file)) return -12;
+	fclose(opp_id_file);
+	free(full_opp_id_file_path);
+
+	return 0;
+}
+
+int data_dir_check_and_create(void) {
+	DIR *d = opendir(data_dir);
+	/* If 'player_dir' DOES exist */
+	if (d) closedir(d);
+	else if (errno == ENOENT) {
+		fprintf(stderr, \
+			"G2ME: Warning: 'data_dir' did not exist, creating...\n");
+		/* If there was an error making the data directory */
+#ifdef __linux__
+		if (0 != mkdir(data_dir, 0700)) {
+#elif _WIN32
+		if (0 != mkdir(data_dir)) {
+#else
+		if (0 != mkdir(data_dir, 0700)) {
+#endif
+			perror("mkdir (main)");
+			return -1;
+		}
+	} else {
+		perror("opendir (main)");
+		return -2;
+	}
+
+	/* Get file paths for universal files */
+	char *full_opp_file_path = data_dir_file_path_opp_file();
+	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
+#ifdef __linux__
+	char of_exist = access(full_opp_file_path, R_OK) != -1;
+	char oif_exist = access(full_opp_id_file_path, R_OK) != -1;
+#elif _WIN32
+	char of_exist = _access(full_opp_file_path, 0) != -1;
+	char oif_exist = _access(full_opp_id_file_path, 0) != -1;
+#else
+	char of_exist = access(full_opp_file_path, R_OK) != -1;
+	char oif_exist = access(full_opp_id_file_path, R_OK) != -1;
+#endif
+	short num_opp = 0;
+	/* If of doesn't exist, create it */
+	if (!of_exist) {
+		FILE *opp_file = fopen(full_opp_file_path, "wb");
+		if (opp_file == NULL) {
+			perror("fopen (player_dir_check_and_create)");
+			return -1;
+		}
+		if (1 != fwrite(&num_opp, sizeof(short), 1, opp_file)) return -12;
+		free(full_opp_file_path);
+		fclose(opp_file);
+	}
+	
+	/* If oif doesn't exist, create it */
+	if (!oif_exist) {
+		FILE *opp_id_file = fopen(full_opp_id_file_path, "wb");
+		if (opp_id_file == NULL) {
+			perror("fopen (player_dir_check_and_create)");
+			return -1;
+		}
+		if (1 != fwrite(&num_opp, sizeof(short), 1, opp_id_file)) return -12;
+		fclose(opp_id_file);
+		free(full_opp_id_file_path);
+	}
+
+	return 0;
 }
 
 /** Checks if the player directory exists. If it does not,
@@ -92,8 +223,10 @@ int player_dir_check_and_create(void) {
 		perror("opendir (main)");
 		return -2;
 	}
-	return 0;
+
+	return data_dir_check_and_create();
 }
+
 
 /* Takes a pointer to an integer, modifies '*num_of_players' to the
  * number of players in the 'player_dir'. Really just counts the number
@@ -122,7 +255,7 @@ void player_dir_num_players(int *num_of_players) {
 /* Takes a char pointer created by malloc or calloc and a pointer
  * to an integer. Gets the name of every player in the player directory
  * 'player_dir' into the array in lexiographical order. Modifies '*num'
- * to point to the numer of elements in the array upon completion.
+ * to point to the number of elements in the array upon completion.
  *
  * \param '*players' a char pointer created by calloc or malloc which
  *     will be modified to contain all the player names,

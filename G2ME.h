@@ -15,6 +15,7 @@ extern char p_flag_used;
 extern char verbose;
 extern char print_ties;
 extern char player_dir[MAX_FILE_PATH_LEN];
+extern char data_dir[MAX_FILE_PATH_LEN];
 extern int pr_minimum_events;
 extern char filter_file_path[MAX_FILE_PATH_LEN];
 extern char DIR_TERMINATOR;

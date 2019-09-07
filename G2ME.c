@@ -28,12 +28,15 @@
 char COMMENT_SYMBOL[] = { "#" };
 #ifdef __linux__
 char PLAYER_DIR[] = { ".players/" };
+char DATA_DIR[] = { ".data/" };
 char DIR_TERMINATOR = '/';
 #elif _WIN32
 char PLAYER_DIR[] = { ".players\\" };
+char DATA_DIR[] = { ".data\\" };
 char DIR_TERMINATOR = '\\';
 #else
 char PLAYER_DIR[] = { ".players/" };
+char DATA_DIR[] = { ".data/" };
 char DIR_TERMINATOR = '/';
 #endif
 
@@ -61,6 +64,7 @@ char filter_file_path[MAX_FILE_PATH_LEN];
 char f_flag_used = 0;
 char p_flag_used = 0;
 char player_dir[MAX_FILE_PATH_LEN];
+char data_dir[MAX_FILE_PATH_LEN];
 
 int get_record(char *, char *, struct record *);
 struct record *get_all_records(char *, int *);
@@ -1264,9 +1268,12 @@ int main(int argc, char **argv) {
 	};
 	char opt_string[] = { "0A:b:B:c:Cd:ef:gh:km:MnNo:OpP:r:R:tvw:" };
 
-	/* 1. Initialize player_dir to the file path for the player directory */
+	/* 1.1. Initialize player_dir to the file path for the player directory */
 	memset(player_dir, 0, sizeof(player_dir));
 	strncpy(player_dir, PLAYER_DIR, sizeof(player_dir) - 1);
+	/* 1.2. Initialize data_dir to the file path for the data directory */
+	memset(data_dir, 0, sizeof(data_dir));
+	strncpy(data_dir, DATA_DIR, sizeof(data_dir) - 1);
 
 	clock_t t;
 	t = clock();

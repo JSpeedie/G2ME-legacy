@@ -132,9 +132,11 @@ int entry_file_contains_opponent(char *opp_name, char* file_path) {
 
 int entry_file_add_new_opponent(struct entry *E, char* file_path) {
 #ifdef __linux__
-	FILE *base_file = fopen(file_path, "rb");
-	if (base_file == NULL) {
-		perror("fopen (entry_file_add_new_tournament)");
+	char *full_opp_file_path = data_dir_file_path_opp_file();
+
+	FILE *opp_file = fopen(full_opp_file_path, "rb");
+	if (opp_file == NULL) {
+		perror("fopen (entry_file_add_new_opponent)");
 		return -1;
 	}
 
@@ -715,6 +717,7 @@ int entry_file_get_to_entries(FILE *f) {
 
 int entry_file_number_of_opponents(char *file_path) {
 
+	return 5;
 }
 
 // TODO: description innaccurate, and there's a faster method to do
@@ -729,6 +732,7 @@ int entry_file_number_of_opponents(char *file_path) {
  *     this function returns a negative integer depending on the error.
  */
 int entry_file_number_of_events(char *file_path) {
+	return 6;
 }
 
 /** Reads a player file at the given file path and returns the number
