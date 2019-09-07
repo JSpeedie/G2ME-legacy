@@ -31,8 +31,6 @@ int entry_file_read_start_from_file(char *, struct entry *);
 long int SIZE_OF_AN_ENTRY = (1 * sizeof(short)) + (3 * sizeof(double)) \
 	+ (4 * sizeof(char)) + (3 * sizeof(short));
 
-///** Takes an open entry file and moves the file cursor to the number of
-
 /** Takes an open entry file and moves the file cursor to the number of
  * tournaments data.
  *
@@ -48,25 +46,13 @@ int entry_file_open_skip_to_num_t(FILE* f) {
 	if (0 != fseek(f, name_and_counts, SEEK_CUR)) return -2;
 
 	return 0;
-//	char ln;
-//	if (1 != fread(&ln, sizeof(char), 1, f)) return -1;
-//
-//	/* Skip past name and number of outcomes/tournaments attended */
-//	long name_and_counts = ln * sizeof(char) + 2 * sizeof(long);
-//	long end_of_opps_roffset;
-//	if (0 != fseek(f, name_and_counts, SEEK_CUR)) return -2;
-//	/* Read offset from current spot to end of opps list (num t data) */
-//	if (1 != fread(&end_of_opps_roffset, sizeof(long), 1, f)) return -3;
-//	if (0 != fseek(f, end_of_opps_roffset, SEEK_CUR)) return -4;
-//
-//	return 0;
 }
 
 /** Function takes an opponents name and a file path to the entry file you
  * want to check and returns an int representing whether it found the
  * opponent in the file to be examined.
  *
- * TODO: finish
+ * TODO: finish (file_path unused?
  */
 int entry_file_contains_opponent(char *opp_name, char* file_path) {
 
@@ -126,8 +112,6 @@ int entry_file_contains_opponent(char *opp_name, char* file_path) {
 	/* The opponent name was not found, return -1 */
 	return ret;
 }
-
-
 
 
 int entry_file_add_new_opponent(struct entry *E, char* file_path) {
@@ -255,8 +239,6 @@ int entry_file_add_new_opponent(struct entry *E, char* file_path) {
 }
 
 int entry_file_contains_tournament(char *t_name, char* file_path) {
-
-
 
 	int ret = -1;
 	FILE* base_file = fopen(file_path, "rb");
@@ -409,6 +391,7 @@ int entry_file_add_new_tournament(struct entry *E, char* file_path) {
 }
 
 /* Sets opp_name based on opp_id */
+// TODO: write doc
 int entry_get_name_from_id(FILE *f, struct entry *E) {
 
 	int j = 0;
@@ -551,7 +534,8 @@ int entry_file_read_entry(FILE *f, struct entry *E) {
 	 * name E->opp_id */
 	int r;
 	if (0 != (r = entry_get_name_from_id(f, E))) {
-		perror("entry_get_name_from_id (read_entry)");
+		fprintf(stderr, "Error (%d) on entry_get_name_from_id(): ", r);
+		perror("");
 		return -12;
 	}
 	/* Sets t_name and len_t_name of E to be according to tournament
@@ -701,9 +685,6 @@ int entry_file_get_to_entries(FILE *f) {
 	char ln;
 	if (1 != fread(&ln, sizeof(char), 1, f)) return -1;
 
-	///* Skip past name and number of outcomes/tournaments attended, and
-	// * past the end of opps relative offset */
-	//long name_and_counts = ln * sizeof(char) + 3 * sizeof(long);
 	/* Skip past name and number of outcomes/tournaments attended */
 	long name_and_counts = ln * sizeof(char) + 2 * sizeof(long);
 	long end_of_t_roffset;
@@ -715,11 +696,40 @@ int entry_file_get_to_entries(FILE *f) {
 	return 0;
 }
 
+// TODO: incorrect, change to have new long that counts num of unique, valid opps
 int entry_file_number_of_opponents(char *file_path) {
 
-	return 5;
+	char *full_opp_file_path = data_dir_file_path_opp_file();
+
+	FILE* opp_file = fopen(full_opp_file_path, "rb+");
+	if (opp_file == NULL) {
+		perror("fopen (entry_file_contains_opponent)");
+		return -1;
+	}
+
+	unsigned short num_opp;
+	if (1 != fread(&num_opp, sizeof(short), 1, opp_file)) return -2;
+
+	return num_opp;
+//	int ret = 0;
+//	FILE *base_file = fopen(file_path, "rb");
+//	if (base_file == NULL) {
+//		perror("fopen (entry_file_number_of_opponents)");
+//		ret = -1;
+//	}
+//	short num_opp;
+//
+//	if (0 != entry_file_open_skip_to_num_opp(base_file)) return -2;
+//
+//	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) ret = -3;
+//
+//	fclose(base_file);
+//	/* If there were no errors, return the number of opponents */
+//	if (ret == 0) ret = num_opp;
+//	return ret;
 }
 
+// TODO: incorrect with opp_file
 // TODO: description innaccurate, and there's a faster method to do
 // what is described in this doc using new attended long in file
 /** Takes a file path to a player file and returns the number of
@@ -984,25 +994,19 @@ int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
 		if (1 != fwrite(&lzero, sizeof(long), 1, entry_file)) return -5;
 		/* Write the relative offsets.
 		 * For a freshly created file, it must be 10 and 4 */
-		//unsigned long lten = 10;
-		//unsigned long lfour = 4;
 		unsigned long ltwo = 2;
-		//if (1 != fwrite(&lten, sizeof(long), 1, entry_file)) return -4;
-		//if (1 != fwrite(&lfour, sizeof(long), 1, entry_file)) return -5;
 		if (1 != fwrite(&ltwo, sizeof(long), 1, entry_file)) return -5;
-		/* Write the number of opponents and tournaments this player has
-		 * attended. If you are creating the file, it must be 0 and 0 */
+		/* Write the number of tournaments this player has
+		 * attended. If you are creating the file, it must be 0 */
 		unsigned short zero = 0;
-		//if (1 != fwrite(&zero, sizeof(short), 1, entry_file)) return -4;
 		if (1 != fwrite(&zero, sizeof(short), 1, entry_file)) return -5;
 		fclose(entry_file);
 	}
 
 	/* Entry that is used later to check if this entry is at a new tournament */
 	struct entry E2;
-	/* If this file has no outcomes, it has no entries, and is brand new */
-	if (0 == entry_file_get_outcome_count(file_path)) {
-		E2.t_name[0] = '\0';
+	if (0 != entry_file_get_outcome_count(file_path)) {
+		if (0 != entry_file_read_last_entry(file_path, &E2)) return -6;
 	}
 
 	int ret;
@@ -1044,7 +1048,6 @@ int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
 		perror("fopen (entry_file_append_entry_to_file)");
 		return -10;
 	}
-	//fwrite(test, sizeof(char), 34, entry_file);
 	/* Write length of opp name and opp name */
 	if (1 != fwrite(&E->opp_id, sizeof(short), 1, entry_file)) { return -9; } // 2
 	/* Write glicko data */
@@ -1097,7 +1100,9 @@ int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
 		if (1 != fwrite(&number_of_outcomes, sizeof(long), 1, entry_file2)) { return -7; }
 		/* Only increase number of tournaments attended if this outcome is
 		 * at a new tournament */
-		if (0 != strncmp(E2.t_name, E->t_name, E->len_t_name)) {
+		if (E2.tournament_id != E->tournament_id || \
+			0 == entry_file_get_outcome_count(file_path)) {
+
 			number_of_tournaments_attended++;
 			if (1 != fwrite(&number_of_tournaments_attended, sizeof(long), 1, entry_file2)) { return -8; }
 		}
