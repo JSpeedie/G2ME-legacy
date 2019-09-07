@@ -676,6 +676,33 @@ int entry_file_read_entry_absent(FILE *f, struct entry *E) {
 	return 0;
 }
 
+/** Reads contents of a player file to a struct entry. Returns 0 upon success,
+ * and a negative number upon failure. Function expects that starter data
+ * has already been passed and that the FILE is on an entry
+ *
+ * \param '*f' the file being read
+ * \param '*E' the struct entry to store an entry found in the file too
+ * \return 0 upon success, or a negative number upon failure.
+ */
+int entry_file_read_entry_tournament_id(FILE *f, struct entry *E) {
+	/* Skip all entry data up until tournament id */
+	if (0 != fseek(f, \
+		sizeof(short) + \
+		sizeof(double) + \
+		sizeof(double) + \
+		sizeof(double) + \
+		sizeof(char) + \
+		sizeof(char) + \
+		sizeof(char) + \
+		sizeof(char) + \
+		sizeof(short), SEEK_CUR)) { return -1; }
+	/* Read tournament id and seek to the end of the entry */
+	if (1 != fread(&E->tournament_id, sizeof(short), 1, f)) { return -2; }
+	if (0 != fseek(f, sizeof(short), SEEK_CUR)) { return -3; }
+
+	return 0;
+}
+
 /** Reads the all the starter data in a player entry file leaving
  * the FILE '*base_file' at a position where it can start reading entries
  *
@@ -943,6 +970,32 @@ int entry_file_read_last_entry_absent(char* file_path, struct entry *ret) {
 	return 0;
 }
 
+/** Modifies a struct entry to be that of the last entry found in a player
+ * file. Note that this function doesn't read the entire entry into the
+ * struct entry. It is the tournament_id version and reads only the
+ * tournament id.
+ *
+ * \param '*file_path' the file path of the player file to be read
+ * \param '*ret' a struct entry pointer to have the data read into.
+ * \return 0 upon success, a negative int upon failure.
+ */
+int entry_file_read_last_entry_tournament_id(char* file_path, struct entry *ret) {
+	/* Open files for reading contents */
+	FILE *p_file = fopen(file_path, "rb");
+	if (p_file == NULL) {
+		perror("fopen (entry_file_read_last_entry)");
+		/* If the file could not be read for any reason, return accordingly */
+		return -1;
+	}
+
+	fseek(p_file, -SIZE_OF_AN_ENTRY, SEEK_END);
+	/* If reading the last entry failed */
+	if (0 != entry_file_read_entry_tournament_id(p_file, ret)) return -1;
+	fclose(p_file);
+
+	return 0;
+}
+
 /** Appends an entry to a given player file and return an int representing
  * whether the function succeeded or not.
  *
@@ -1005,8 +1058,9 @@ int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
 
 	/* Entry that is used later to check if this entry is at a new tournament */
 	struct entry E2;
-	if (0 != entry_file_get_outcome_count(file_path)) {
-		if (0 != entry_file_read_last_entry(file_path, &E2)) return -6;
+	unsigned long out_count = entry_file_get_outcome_count(file_path);
+	if (0 != out_count) {
+		if (0 != entry_file_read_last_entry_tournament_id(file_path, &E2)) return -6;
 	}
 
 	int ret;
@@ -1101,7 +1155,7 @@ int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
 		/* Only increase number of tournaments attended if this outcome is
 		 * at a new tournament */
 		if (E2.tournament_id != E->tournament_id || \
-			0 == entry_file_get_outcome_count(file_path)) {
+			0 == out_count) {
 
 			number_of_tournaments_attended++;
 			if (1 != fwrite(&number_of_tournaments_attended, sizeof(long), 1, entry_file2)) { return -8; }
