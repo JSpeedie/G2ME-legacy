@@ -855,7 +855,7 @@ long *entry_file_get_all_number_of_outcomes_against(char *file_path) {
 	entry_file_get_to_entries(base_file);
 	/* While the function is still able to read entries from the old file */
 	while (0 == entry_file_read_entry(base_file, &cur_entry)) {
-		entries[cur_entry.opp_id] = entries[cur_entry.opp_id] + 1;
+		entries[cur_entry.opp_id] += 1;
 	}
 	fclose(base_file);
 

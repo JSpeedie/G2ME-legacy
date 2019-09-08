@@ -311,35 +311,70 @@ void adjust_absent_players_no_file(char day, char month, \
 	/* If the directory could not be accessed, print error and return */
 	if ((p_dir = opendir(player_dir)) == NULL) {
 		perror("opendir (adjust_absent_players_no_file)");
+		closedir(p_dir);
 		return;
 	}
 
-	/* Get list of player names that did not compete
-	 * apply step 6 to them and append to player file */
+	int max_forks = 8;
+	int num_players = 0;
+	player_dir_num_players(&num_players);
+	char file_names[num_players][MAX_NAME_LEN + 1];
+	int i = 0;
+	pid_t p;
+	//printf("number of players in directory %d\n", num_players);
+	/* Create a list of player files */
 	while ((entry = readdir(p_dir)) != NULL) {
 		/* If the directory item is a directory, skip */
 		if (0 == check_if_dir(player_dir, entry->d_name)) continue;
+		strncpy(&file_names[i][0], entry->d_name, MAX_NAME_LEN + 1);
+		//printf("adding file %s\n", &file_names[i][0]);
+		i++;
+	}
+	closedir(p_dir);
+	unsigned long adj_per_process = num_players / max_forks;
+	unsigned long extra = 0;
+	//printf("each fork must adj %d players\n", adj_per_process);
+	//printf("making %d kid processes\n", max_forks - 1);
+	for (i = 0; i < max_forks - 1; i++) {
+		p = fork();
+		if (p == 0) break;
+	}
+	/* If this is the parent process, catch any straggling adjustments */
+	if (p != 0) {
+		extra = num_players - ((num_players / max_forks) * max_forks);
+		//printf("parent adjusts %d players of %d\n", adj_per_process, num_players);
+	}
+	/* Get list of player names that did not compete
+	 * apply step 6 to them and append to player file */
+	//printf("process with i of %d\n", i);
+	// TODO: loop is incorrect. For parent, adj_per_process changes, fucks up offset
+	for (int j = i * adj_per_process; j < (i + 1) * adj_per_process + extra; j++) {
+		/* If the directory item is a directory, skip */
+		//if (0 == check_if_dir(player_dir, &file_names[j][0])) continue;
 
 		/* Reset variable to assume player did not compete */
 		did_not_comp = 1;
-		for (int i = 0; i < tournament_names_len; i++) {
+		for (int k = 0; k < tournament_names_len; k++) {
 			/* If the one of the player who the system manager wants to track
 			 * is found in the list of competitors at the tourney */
-			if (0 == strcmp(entry->d_name, tournament_names[i])) {
+			if (0 == strcmp(&file_names[j][0], tournament_names[k])) {
 				did_not_comp = 0;
 				break;
 			}
 		}
 
 		if (did_not_comp) {
-			pid_t p = fork();
-			if (p == 0) {
-				adjust_absent_player(entry->d_name, day, month, year, t_name);
-				exit(0);
-			}
+			//pid_t p = fork();
+			//if (p == 0) {
+				adjust_absent_player(&file_names[j][0], day, month, year, t_name);
+			//	exit(0);
+			//}
 		}
 	}
-	closedir(p_dir);
+	if (p == 0) {
+		//printf("child exiting\n");
+		exit(0);
+	}
 
 	/* Wait for all the child processes to finish to avoid data errors */
 	pid_t wpid;
@@ -1100,9 +1135,9 @@ struct record *get_all_records(char *file_path, int *num_of_records) {
 	while (entry_file_read_entry(p_file, &ent) == 0) {
 		// CONSIDER: OPT: replace this triple check every entry with a function
 		//            that sets names once.
-		/* If this is the first time updating a player's record */
-		if (ret[ent.opp_id].wins == 0
-			&& ret[ent.opp_id].ties == 0
+		/* if this is the first time updating the player's record */
+		if (ret[ent.opp_id].wins == 0 \
+			&& ret[ent.opp_id].ties == 0 \
 			&& ret[ent.opp_id].losses == 0) {
 
 			// TODO: actually get player2 name from their file.

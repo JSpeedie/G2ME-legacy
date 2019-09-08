@@ -248,8 +248,8 @@ void player_dir_num_players(int *num_of_players) {
 				*num_of_players = (*num_of_players) + 1;
 			}
 		}
-		closedir(p_dir);
 	}
+	closedir(p_dir);
 }
 
 /* Takes a char pointer created by malloc or calloc and a pointer
