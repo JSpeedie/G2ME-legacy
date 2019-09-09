@@ -280,9 +280,10 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
 				latest_ent.day = latest_ent.day | (1 << ((sizeof(latest_ent.day) * 8) - 1));
 				latest_ent.month = month;
 				latest_ent.year = year;
-				strncpy(latest_ent.t_name, t_name, MAX_NAME_LEN - 1);
-				latest_ent.t_name[strlen(latest_ent.t_name)] = '\0';
-				latest_ent.len_t_name = strlen(latest_ent.t_name);
+				strncpy(latest_ent.t_name, t_name, MAX_NAME_LEN);
+				long len_t_name = strlen(latest_ent.t_name);
+				latest_ent.t_name[len_t_name] = '\0';
+				latest_ent.len_t_name = len_t_name;
 				entry_file_append_entry_to_file(&latest_ent, full_file_path);
 			}
 		}
@@ -336,14 +337,11 @@ void adjust_absent_players_no_file(char day, char month, \
 		/* If the directory item is a directory, skip */
 		if (0 == check_if_dir(player_dir, entry->d_name)) continue;
 		strncpy(&file_names[i][0], entry->d_name, MAX_NAME_LEN + 1);
-		//printf("adding file %s\n", &file_names[i][0]);
 		i++;
 	}
 	closedir(p_dir);
 	unsigned long adj_per_process = num_players / max_forks;
 	unsigned long extra = 0;
-	//printf("each fork must adj %d players\n", adj_per_process);
-	//printf("making %d kid processes\n", max_forks - 1);
 	for (i = 0; i < max_forks - 1; i++) {
 		p = fork();
 		if (p == 0) break;
@@ -351,16 +349,10 @@ void adjust_absent_players_no_file(char day, char month, \
 	/* If this is the parent process, catch any straggling adjustments */
 	if (p != 0) {
 		extra = num_players - ((num_players / max_forks) * max_forks);
-		//printf("parent adjusts %d players of %d\n", adj_per_process, num_players);
 	}
-	/* Get list of player names that did not compete
+	/* Get this processes' list of player names that did not compete and
 	 * apply step 6 to them and append to player file */
-	//printf("process with i of %d\n", i);
-	// TODO: loop is incorrect. For parent, adj_per_process changes, fucks up offset
 	for (int j = i * adj_per_process; j < (i + 1) * adj_per_process + extra; j++) {
-		/* If the directory item is a directory, skip */
-		//if (0 == check_if_dir(player_dir, &file_names[j][0])) continue;
-
 		/* Reset variable to assume player did not compete */
 		did_not_comp = 1;
 		for (int k = 0; k < tournament_names_len; k++) {
@@ -373,17 +365,11 @@ void adjust_absent_players_no_file(char day, char month, \
 		}
 
 		if (did_not_comp) {
-			//pid_t p = fork();
-			//if (p == 0) {
-				adjust_absent_player(&file_names[j][0], day, month, year, t_name);
-			//	exit(0);
-			//}
+			adjust_absent_player(&file_names[j][0], day, month, year, t_name);
 		}
 	}
-	if (p == 0) {
-		//printf("child exiting\n");
-		exit(0);
-	}
+
+	if (p == 0) exit(0);
 
 	/* Wait for all the child processes to finish to avoid data errors */
 	pid_t wpid;

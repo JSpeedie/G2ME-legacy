@@ -17,6 +17,8 @@
 
 char OPP_FILE_NAME[] = { "of" };
 char OPP_ID_FILE_NAME[] = { "oif" };
+char T_FILE_NAME[] = { "tf" };
+char T_ID_FILE_NAME[] = { "tif" };
 
 /** Takes a string and prepends the player directory file path to it.
  *
@@ -82,6 +84,22 @@ char *data_dir_file_path_opp_id_file(void) {
 	return data_dir_file_path_with_data_dir(OPP_ID_FILE_NAME);
 }
 
+/** Takes no arguments, returns the full file path to the tournament file
+ *
+ * \return A string that is the file path to tournament file.
+ */
+char *data_dir_file_path_t_file(void) {
+	return data_dir_file_path_with_data_dir(T_FILE_NAME);
+}
+
+/** Takes no arguments, returns the full file path to the tournament id file
+ *
+ * \return A string that is the file path to tournament id file.
+ */
+char *data_dir_file_path_t_id_file(void) {
+	return data_dir_file_path_with_data_dir(T_ID_FILE_NAME);
+}
+
 /* Deletes every player file in the player directory 'player_dir'.
  *
  * \return an int representing if the function succeeded or not.
@@ -129,6 +147,27 @@ int player_dir_reset_players(void) {
 	fclose(opp_id_file);
 	free(full_opp_id_file_path);
 
+	short num_t = 0;
+	char *full_t_file_path = data_dir_file_path_t_file();
+	FILE *t_file = fopen(full_t_file_path, "wb");
+	if (t_file == NULL) {
+		perror("fopen (player_dir_check_and_create)");
+		return -1;
+	}
+	if (1 != fwrite(&num_t, sizeof(short), 1, t_file)) return -12;
+	free(full_t_file_path);
+	fclose(t_file);
+	
+	char *full_t_id_file_path = data_dir_file_path_t_id_file();
+	FILE *t_id_file = fopen(full_t_id_file_path, "wb");
+	if (t_id_file == NULL) {
+		perror("fopen (player_dir_check_and_create)");
+		return -1;
+	}
+	if (1 != fwrite(&num_t, sizeof(short), 1, t_id_file)) return -12;
+	fclose(t_id_file);
+	free(full_t_id_file_path);
+
 	return 0;
 }
 
@@ -158,17 +197,26 @@ int data_dir_check_and_create(void) {
 	/* Get file paths for universal files */
 	char *full_opp_file_path = data_dir_file_path_opp_file();
 	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
+	char *full_t_file_path = data_dir_file_path_t_file();
+	char *full_t_id_file_path = data_dir_file_path_t_id_file();
 #ifdef __linux__
 	char of_exist = access(full_opp_file_path, R_OK) != -1;
 	char oif_exist = access(full_opp_id_file_path, R_OK) != -1;
+	char tf_exist = access(full_t_file_path, R_OK) != -1;
+	char tif_exist = access(full_t_id_file_path, R_OK) != -1;
 #elif _WIN32
 	char of_exist = _access(full_opp_file_path, 0) != -1;
 	char oif_exist = _access(full_opp_id_file_path, 0) != -1;
+	char tf_exist = _access(full_t_file_path, 0) != -1;
+	char tif_exist = _access(full_t_id_file_path, 0) != -1;
 #else
 	char of_exist = access(full_opp_file_path, R_OK) != -1;
 	char oif_exist = access(full_opp_id_file_path, R_OK) != -1;
+	char tf_exist = access(full_t_file_path, R_OK) != -1;
+	char tif_exist = access(full_t_id_file_path, R_OK) != -1;
 #endif
 	short num_opp = 0;
+	short num_t = 0;
 	/* If of doesn't exist, create it */
 	if (!of_exist) {
 		FILE *opp_file = fopen(full_opp_file_path, "wb");
@@ -191,6 +239,29 @@ int data_dir_check_and_create(void) {
 		if (1 != fwrite(&num_opp, sizeof(short), 1, opp_id_file)) return -12;
 		fclose(opp_id_file);
 		free(full_opp_id_file_path);
+	}
+	/* If tf doesn't exist, create it */
+	if (!tf_exist) {
+		FILE *t_file = fopen(full_t_file_path, "wb");
+		if (t_file == NULL) {
+			perror("fopen (player_dir_check_and_create)");
+			return -1;
+		}
+		if (1 != fwrite(&num_t, sizeof(short), 1, t_file)) return -12;
+		free(full_t_file_path);
+		fclose(t_file);
+	}
+	
+	/* If tif doesn't exist, create it */
+	if (!tif_exist) {
+		FILE *t_id_file = fopen(full_t_id_file_path, "wb");
+		if (t_id_file == NULL) {
+			perror("fopen (player_dir_check_and_create)");
+			return -1;
+		}
+		if (1 != fwrite(&num_t, sizeof(short), 1, t_id_file)) return -12;
+		fclose(t_id_file);
+		free(full_t_id_file_path);
 	}
 
 	return 0;
