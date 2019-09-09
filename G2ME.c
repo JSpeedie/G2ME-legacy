@@ -315,7 +315,16 @@ void adjust_absent_players_no_file(char day, char month, \
 		return;
 	}
 
-	int max_forks = 8;
+	int max_forks;
+/* Set the max number of forks to the number of processors available */
+#ifdef _WIN32
+	SYSTEM_INFO info;
+	GetSystemInfo(&info);
+	max_forks = info.dwNumberOfProcessors;
+#else
+	max_forks = sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+	if (max_forks < 1) max_forks = 8;
 	int num_players = 0;
 	player_dir_num_players(&num_players);
 	char file_names[num_players][MAX_NAME_LEN + 1];
