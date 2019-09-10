@@ -100,6 +100,86 @@ char *data_dir_file_path_t_id_file(void) {
 	return data_dir_file_path_with_data_dir(T_ID_FILE_NAME);
 }
 
+/* Deletes every file in the data directory 'data_dir'.
+ *
+ * \return an int representing if the function succeeded or not.
+ *     Negative if there was an error, 0 on success.
+ */
+int data_dir_reset(void) {
+	char *full_opp_file_path = data_dir_file_path_opp_file();
+	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
+	char *full_t_file_path = data_dir_file_path_t_file();
+	char *full_t_id_file_path = data_dir_file_path_t_id_file();
+	remove(full_opp_file_path);
+	remove(full_opp_id_file_path);
+	remove(full_t_file_path);
+	remove(full_t_id_file_path);
+
+	/* Create universal G2ME files, necessary for usage */
+	/* Writes the only name required by the system */
+	int write_rd_adj_name_with_id(FILE *f) { // {{{
+		char zero = '\0';
+		short szero = 0;
+		if (1 != fwrite(&szero, sizeof(short), 1, f)) return -14;
+		if (1 != fwrite("-", sizeof(char), 1, f)) return -14;
+		for (int i = 0; i < MAX_NAME_LEN + 1 - strlen("-"); i++) {
+			if (1 != fwrite(&zero, sizeof(char), 1, f)) return -14;
+		}
+		return 0;
+	} // }}}
+	int write_rd_adj_name(FILE *f) { // {{{
+		char zero = '\0';
+		if (1 != fwrite("-", sizeof(char), 1, f)) return -14;
+		for (int i = 0; i < MAX_NAME_LEN + 1 - strlen("-"); i++) {
+			if (1 != fwrite(&zero, sizeof(char), 1, f)) return -14;
+		}
+		return 0;
+	} // }}}
+
+	short num_opp = 1; /* 1 because we add the rd adjustment name */
+	short num_t = 0;
+
+	FILE *opp_file = fopen(full_opp_file_path, "wb+");
+	if (opp_file == NULL) {
+		perror("fopen (player_dir_reset_players)");
+		return -1;
+	}
+	if (1 != fwrite(&num_opp, sizeof(short), 1, opp_file)) return -12;
+	write_rd_adj_name_with_id(opp_file);
+	fclose(opp_file);
+	free(full_opp_file_path);
+	
+	FILE *opp_id_file = fopen(full_opp_id_file_path, "wb+");
+	if (opp_id_file == NULL) {
+		perror("fopen (player_dir_reset_players)");
+		return -1;
+	}
+	if (1 != fwrite(&num_opp, sizeof(short), 1, opp_id_file)) return -12;
+	write_rd_adj_name(opp_id_file);
+	fclose(opp_id_file);
+	free(full_opp_id_file_path);
+
+	FILE *t_file = fopen(full_t_file_path, "wb+");
+	if (t_file == NULL) {
+		perror("fopen (player_dir_reset_players)");
+		return -1;
+	}
+	if (1 != fwrite(&num_t, sizeof(short), 1, t_file)) return -12;
+	fclose(t_file);
+	free(full_t_file_path);
+	
+	FILE *t_id_file = fopen(full_t_id_file_path, "wb+");
+	if (t_id_file == NULL) {
+		perror("fopen (player_dir_reset_players)");
+		return -1;
+	}
+	if (1 != fwrite(&num_t, sizeof(short), 1, t_id_file)) return -12;
+	fclose(t_id_file);
+	free(full_t_id_file_path);
+
+	return 0;
+}
+
 /* Deletes every player file in the player directory 'player_dir'.
  *
  * \return an int representing if the function succeeded or not.
@@ -121,54 +201,11 @@ int player_dir_reset_players(void) {
 		closedir(p_dir);
 		return 0;
 	} else {
-		perror("opendir (reset_players)");
+		perror("opendir (player_dir_reset_players)");
 		return -1;
 	}
 
-	/* Create universal G2ME files, necessary for usage */
-	short num_opp = 0;
-	char *full_opp_file_path = data_dir_file_path_opp_file();
-	FILE *opp_file = fopen(full_opp_file_path, "wb");
-	if (opp_file == NULL) {
-		perror("fopen (player_dir_check_and_create)");
-		return -1;
-	}
-	if (1 != fwrite(&num_opp, sizeof(short), 1, opp_file)) return -12;
-	free(full_opp_file_path);
-	fclose(opp_file);
-	
-	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
-	FILE *opp_id_file = fopen(full_opp_id_file_path, "wb");
-	if (opp_id_file == NULL) {
-		perror("fopen (player_dir_check_and_create)");
-		return -1;
-	}
-	if (1 != fwrite(&num_opp, sizeof(short), 1, opp_id_file)) return -12;
-	fclose(opp_id_file);
-	free(full_opp_id_file_path);
-
-	short num_t = 0;
-	char *full_t_file_path = data_dir_file_path_t_file();
-	FILE *t_file = fopen(full_t_file_path, "wb");
-	if (t_file == NULL) {
-		perror("fopen (player_dir_check_and_create)");
-		return -1;
-	}
-	if (1 != fwrite(&num_t, sizeof(short), 1, t_file)) return -12;
-	free(full_t_file_path);
-	fclose(t_file);
-	
-	char *full_t_id_file_path = data_dir_file_path_t_id_file();
-	FILE *t_id_file = fopen(full_t_id_file_path, "wb");
-	if (t_id_file == NULL) {
-		perror("fopen (player_dir_check_and_create)");
-		return -1;
-	}
-	if (1 != fwrite(&num_t, sizeof(short), 1, t_id_file)) return -12;
-	fclose(t_id_file);
-	free(full_t_id_file_path);
-
-	return 0;
+	return data_dir_reset();
 }
 
 int data_dir_check_and_create(void) {
@@ -186,11 +223,11 @@ int data_dir_check_and_create(void) {
 #else
 		if (0 != mkdir(data_dir, 0700)) {
 #endif
-			perror("mkdir (main)");
+			perror("mkdir (data_dir_check_and_create)");
 			return -1;
 		}
 	} else {
-		perror("opendir (main)");
+		perror("opendir (data_dir_check_and_create)");
 		return -2;
 	}
 
@@ -199,52 +236,68 @@ int data_dir_check_and_create(void) {
 	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
 	char *full_t_file_path = data_dir_file_path_t_file();
 	char *full_t_id_file_path = data_dir_file_path_t_id_file();
-#ifdef __linux__
-	char of_exist = access(full_opp_file_path, R_OK) != -1;
-	char oif_exist = access(full_opp_id_file_path, R_OK) != -1;
-	char tf_exist = access(full_t_file_path, R_OK) != -1;
-	char tif_exist = access(full_t_id_file_path, R_OK) != -1;
-#elif _WIN32
+#ifdef _WIN32
 	char of_exist = _access(full_opp_file_path, 0) != -1;
 	char oif_exist = _access(full_opp_id_file_path, 0) != -1;
 	char tf_exist = _access(full_t_file_path, 0) != -1;
 	char tif_exist = _access(full_t_id_file_path, 0) != -1;
 #else
-	char of_exist = access(full_opp_file_path, R_OK) != -1;
-	char oif_exist = access(full_opp_id_file_path, R_OK) != -1;
-	char tf_exist = access(full_t_file_path, R_OK) != -1;
-	char tif_exist = access(full_t_id_file_path, R_OK) != -1;
+	char of_exist = access(full_opp_file_path, R_OK | W_OK) != -1;
+	char oif_exist = access(full_opp_id_file_path, R_OK | W_OK) != -1;
+	char tf_exist = access(full_t_file_path, R_OK | W_OK) != -1;
+	char tif_exist = access(full_t_id_file_path, R_OK | W_OK) != -1;
 #endif
-	short num_opp = 0;
+	/* Writes the only name required by the system */
+	int write_rd_adj_name_with_id(FILE *f) { // {{{
+		char zero = '\0';
+		short szero = 0;
+		if (1 != fwrite(&szero, sizeof(short), 1, f)) return -14;
+		if (1 != fwrite("-", sizeof(char), 1, f)) return -14;
+		for (int i = 0; i < MAX_NAME_LEN + 1 - strlen("-"); i++) {
+			if (1 != fwrite(&zero, sizeof(char), 1, f)) return -14;
+		}
+		return 0;
+	} // }}}
+	int write_rd_adj_name(FILE *f) { // {{{
+		char zero = '\0';
+		if (1 != fwrite("-", sizeof(char), 1, f)) return -14;
+		for (int i = 0; i < MAX_NAME_LEN + 1 - strlen("-"); i++) {
+			if (1 != fwrite(&zero, sizeof(char), 1, f)) return -14;
+		}
+		return 0;
+	} // }}}
+	short num_opp = 1; /* 1 because we add the rd adjustment name */
 	short num_t = 0;
 	/* If of doesn't exist, create it */
 	if (!of_exist) {
-		FILE *opp_file = fopen(full_opp_file_path, "wb");
+		FILE *opp_file = fopen(full_opp_file_path, "wb+");
 		if (opp_file == NULL) {
-			perror("fopen (player_dir_check_and_create)");
+			perror("fopen (data_dir_check_and_create)");
 			return -1;
 		}
 		if (1 != fwrite(&num_opp, sizeof(short), 1, opp_file)) return -12;
+		write_rd_adj_name_with_id(opp_file);
 		free(full_opp_file_path);
 		fclose(opp_file);
 	}
 	
 	/* If oif doesn't exist, create it */
 	if (!oif_exist) {
-		FILE *opp_id_file = fopen(full_opp_id_file_path, "wb");
+		FILE *opp_id_file = fopen(full_opp_id_file_path, "wb+");
 		if (opp_id_file == NULL) {
-			perror("fopen (player_dir_check_and_create)");
+			perror("fopen (data_dir_check_and_create)");
 			return -1;
 		}
 		if (1 != fwrite(&num_opp, sizeof(short), 1, opp_id_file)) return -12;
+		write_rd_adj_name(opp_id_file);
 		fclose(opp_id_file);
 		free(full_opp_id_file_path);
 	}
 	/* If tf doesn't exist, create it */
 	if (!tf_exist) {
-		FILE *t_file = fopen(full_t_file_path, "wb");
+		FILE *t_file = fopen(full_t_file_path, "wb+");
 		if (t_file == NULL) {
-			perror("fopen (player_dir_check_and_create)");
+			perror("fopen (data_dir_check_and_create)");
 			return -1;
 		}
 		if (1 != fwrite(&num_t, sizeof(short), 1, t_file)) return -12;
@@ -254,9 +307,9 @@ int data_dir_check_and_create(void) {
 	
 	/* If tif doesn't exist, create it */
 	if (!tif_exist) {
-		FILE *t_id_file = fopen(full_t_id_file_path, "wb");
+		FILE *t_id_file = fopen(full_t_id_file_path, "wb+");
 		if (t_id_file == NULL) {
-			perror("fopen (player_dir_check_and_create)");
+			perror("fopen (data_dir_check_and_create)");
 			return -1;
 		}
 		if (1 != fwrite(&num_t, sizeof(short), 1, t_id_file)) return -12;
@@ -287,11 +340,11 @@ int player_dir_check_and_create(void) {
 #else
 		if (0 != mkdir(player_dir, 0700)) {
 #endif
-			perror("mkdir (main)");
+			perror("mkdir (player_dir_check_and_create)");
 			return -1;
 		}
 	} else {
-		perror("opendir (main)");
+		perror("opendir (player_dir_check_and_create)");
 		return -2;
 	}
 

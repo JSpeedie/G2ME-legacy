@@ -60,7 +60,8 @@ int entry_file_contains_opponent(char *opp_name, char* file_path) {
 
 	FILE* opp_file = fopen(full_opp_file_path, "rb+");
 	if (opp_file == NULL) {
-		perror("fopen (entry_file_contains_opponent)");
+		fprintf(stderr, "Error opening file %s (entry_file_contains_opponent): ", full_opp_file_path);
+		perror("");
 		return -2;
 	}
 
@@ -120,7 +121,8 @@ int entry_file_add_new_opponent(struct entry *E, char* file_path) {
 
 	FILE *opp_file = fopen(full_opp_file_path, "rb");
 	if (opp_file == NULL) {
-		perror("fopen (entry_file_add_new_opponent)");
+		fprintf(stderr, "Error opening file %s (entry_file_add_new_opponent): ", full_opp_file_path);
+		perror("");
 		return -1;
 	}
 
@@ -131,7 +133,8 @@ int entry_file_add_new_opponent(struct entry *E, char* file_path) {
 
 	FILE *new_file = fopen(new_file_name, "wb+");
 	if (new_file == NULL) {
-		perror("fopen (entry_file_add_new_opponent)");
+		fprintf(stderr, "Error opening file %s (entry_file_add_new_opponent): ", new_file_name);
+		perror("");
 		return -2;
 	}
 //#elif _WIN32
@@ -220,7 +223,8 @@ int entry_file_add_new_opponent(struct entry *E, char* file_path) {
 	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
 	FILE *opp_id_file = fopen(full_opp_id_file_path, "rb+");
 	if (opp_id_file == NULL) {
-		perror("fopen (entry_file_add_new_opponent)");
+		fprintf(stderr, "Error opening file %s (entry_file_add_new_opponent): ", full_opp_id_file_path);
+		perror("");
 		return -1;
 	}
 	/* Update counter at start of file */
@@ -591,7 +595,8 @@ int entry_get_name_from_id(FILE *f, struct entry *E) {
 	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
 	FILE* opp_id_file = fopen(full_opp_id_file_path, "rb+");
 	if (opp_id_file == NULL) {
-		perror("fopen (entry_file_contains_opponent)");
+		fprintf(stderr, "Error opening file %s (entry_get_name_from_id): ", full_opp_id_file_path);
+		perror("");
 		return -1;
 	}
 
@@ -1002,7 +1007,7 @@ int entry_file_number_of_opponents(char *file_path) {
 
 	FILE* opp_file = fopen(full_opp_file_path, "rb+");
 	if (opp_file == NULL) {
-		perror("fopen (entry_file_contains_opponent)");
+		perror("fopen (entry_file_number_of_opponent)");
 		return -1;
 	}
 
