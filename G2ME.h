@@ -6,6 +6,8 @@
 #define SIZE_PR_ENTRY 128
 #define REALLOC_BRACKET_PATHS_INC 8
 #define SIZE_BRACKET_PATHS 128
+#define REALLOC_OUTCOMES_INC 16
+#define SIZE_OUTCOMES 128
 #define LEXIO 1
 
 extern char flag_output_to_stdout;

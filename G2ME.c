@@ -447,7 +447,7 @@ int update_players(char* bracket_file_path, short season_id) {
 	tournament_names_len = 0;
 	FILE *bracket_file = fopen(bracket_file_path, "r");
 	if (bracket_file == NULL) {
-		perror("fopen (bracket_file)");
+		perror("fopen (update_players)");
 		return -1;
 	}
 
@@ -463,6 +463,11 @@ int update_players(char* bracket_file_path, short season_id) {
 	memset(t_name, 0, sizeof(t_name));
 	strncpy(t_name, basename(bracket_file_path), sizeof(t_name));
 
+	int outcomes_size = SIZE_OUTCOMES;
+	char *outcomes = \
+		(char *)malloc((MAX_FILE_PATH_LEN + 1) * outcomes_size);
+
+	int num_outcomes = 0;
 	while (fgets(line, sizeof(line), bracket_file)) {
 		/* Remove comments from text */
 		char parse_line = 0;
@@ -494,109 +499,127 @@ int update_players(char* bracket_file_path, short season_id) {
 			i++;
 		}
 		if (parse_line == 1) {
-			/* Read data from one line of bracket file into all the variables */
-#ifdef __linux__
-			sscanf(line, "%s %s %hhd %hhd %hhd %hhd %hd",
-				p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
-#elif _WIN32
-
-			char *token = strtok(line, " ");
-			int temp;
-
-			if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
-			strncpy(p1_name, token, MAX_NAME_LEN);
-
-			token = strtok(NULL, " ");
-			if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
-			strncpy(p2_name, token, MAX_NAME_LEN);
-
-			token = strtok(NULL, " ");
-			if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
-			sscanf(token, "%d", &temp);
-			p1_gc = (char)temp;
-
-			token = strtok(NULL, " ");
-			if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
-			sscanf(token, "%d", &temp);
-			p2_gc = (char)temp;
-
-			token = strtok(NULL, " ");
-			if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
-			sscanf(token, "%d", &temp);
-			day = (char)temp;
-
-			token = strtok(NULL, " ");
-			if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
-			sscanf(token, "%d", &temp);
-			month = (char)temp;
-
-			token = strtok(NULL, " ");
-			if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
-			sscanf(token, "%d", &temp);
-			year = (short)temp;
-#else
-			sscanf(line, "%s %s %hhd %hhd %hhd %hhd %hd",
-				p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
-#endif
-
-			if (calc_absent_players_with_file || calc_absent_players == 1) {
-				char already_in = 0;
-				char already_in2 = 0;
-				for (int i = 0; i < tournament_names_len; i++) {
-					/* If the name already exists in the list of entrants,
-					 * don't add */
-					if (0 == strcmp(p1_name, tournament_names[i])) {
-						already_in = 1;
-						break;
-					}
-					if (0 == strcmp(p2_name, tournament_names[i])) {
-						already_in2 = 1;
-						break;
-					}
-				}
-				if (!already_in) {
-					strncpy(tournament_names[tournament_names_len], \
-						p1_name, MAX_NAME_LEN);
-					tournament_names_len++;
-				}
-				if (!already_in2) {
-					strncpy(tournament_names[tournament_names_len], \
-						p2_name, MAX_NAME_LEN);
-					tournament_names_len++;
+			/* If there is no space to add this bracket path, reallocate */
+			if (num_outcomes + 1 > outcomes_size) {
+				outcomes_size += REALLOC_OUTCOMES_INC;
+				outcomes = (char *) realloc(outcomes, \
+					(MAX_FILE_PATH_LEN + 1) * outcomes_size);
+				if (outcomes == NULL) {
+					perror("realloc (update_players)");
+					return -2;
 				}
 			}
-
-			struct player p1;
-			struct player p2;
-			char p1_out;
-			char p2_out;
-			if (use_games == 1) {
-				p1_out = 1;
-				p2_out = 0;
-				for (int i = 0; i < p1_gc; i++) {
-					update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
-						&p1_out, &p2_out, day, month, year, t_name, season_id);
-					update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
-						&p2_out, &p1_out, day, month, year, t_name, season_id);
-				}
-				p1_out = 0;
-				p2_out = 1;
-				for (int i = 0; i < p2_gc; i++) {
-					update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
-						&p1_out, &p2_out, day, month, year, t_name, season_id);
-					update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
-						&p2_out, &p1_out, day, month, year, t_name, season_id);
-				}
-			} else {
-				update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
-					&p1_gc, &p2_gc, day, month, year, t_name, season_id);
-				update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
-					&p2_gc, &p1_gc, day, month, year, t_name, season_id);
-			}
+			strncpy(&outcomes[num_outcomes * (MAX_FILE_PATH_LEN + 1)], \
+				&line[0], MAX_FILE_PATH_LEN);
+			num_outcomes++;
 		}
 	}
 
 	fclose(bracket_file);
+
+	for (int j = 0; j < num_outcomes; j++) {
+		/* Read data from one line of bracket file into all the variables */
+#ifdef __linux__
+		sscanf(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], \
+			"%s %s %hhd %hhd %hhd %hhd %hd", \
+			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
+#elif _WIN32
+
+		char *token = \
+			strtok(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], " ");
+		int temp;
+
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		strncpy(p1_name, token, MAX_NAME_LEN);
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		strncpy(p2_name, token, MAX_NAME_LEN);
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		sscanf(token, "%d", &temp);
+		p1_gc = (char)temp;
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		sscanf(token, "%d", &temp);
+		p2_gc = (char)temp;
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		sscanf(token, "%d", &temp);
+		day = (char)temp;
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		sscanf(token, "%d", &temp);
+		month = (char)temp;
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		sscanf(token, "%d", &temp);
+		year = (short)temp;
+#else
+		sscanf(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], \
+			"%s %s %hhd %hhd %hhd %hhd %hd", \
+			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
+#endif
+		if (calc_absent_players_with_file || calc_absent_players == 1) {
+			char already_in = 0;
+			char already_in2 = 0;
+			for (int i = 0; i < tournament_names_len; i++) {
+				/* If the name already exists in the list of entrants,
+				 * don't add */
+				if (0 == strcmp(p1_name, tournament_names[i])) {
+					already_in = 1;
+					break;
+				}
+				if (0 == strcmp(p2_name, tournament_names[i])) {
+					already_in2 = 1;
+					break;
+				}
+			}
+			if (!already_in) {
+				strncpy(tournament_names[tournament_names_len], \
+					p1_name, MAX_NAME_LEN);
+				tournament_names_len++;
+			}
+			if (!already_in2) {
+				strncpy(tournament_names[tournament_names_len], \
+					p2_name, MAX_NAME_LEN);
+				tournament_names_len++;
+			}
+		}
+
+		struct player p1;
+		struct player p2;
+		char p1_out;
+		char p2_out;
+		if (use_games == 1) {
+			p1_out = 1;
+			p2_out = 0;
+			for (int i = 0; i < p1_gc; i++) {
+				update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
+					&p1_out, &p2_out, day, month, year, t_name, season_id);
+				update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
+					&p2_out, &p1_out, day, month, year, t_name, season_id);
+			}
+			p1_out = 0;
+			p2_out = 1;
+			for (int i = 0; i < p2_gc; i++) {
+				update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
+					&p1_out, &p2_out, day, month, year, t_name, season_id);
+				update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
+					&p2_out, &p1_out, day, month, year, t_name, season_id);
+			}
+		} else {
+			update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
+				&p1_gc, &p2_gc, day, month, year, t_name, season_id);
+			update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
+				&p2_gc, &p1_gc, day, month, year, t_name, season_id);
+		}
+	}
 
 	if (calc_absent_players == 1) {
 		adjust_absent_players_no_file(day, month, year, t_name);
@@ -648,8 +671,8 @@ int run_brackets(char *bracket_list_file_path) {
 	}
 
 	short latest_season_id = -1;
-	char line[MAX_FILE_PATH_LEN + 2];
-	int bracket_paths_size = SIZE_PR_ENTRY;
+	char line[MAX_FILE_PATH_LEN + 2]; /* + 1 for \n and +1 for \0 */
+	int bracket_paths_size = SIZE_BRACKET_PATHS;
 	char *bracket_paths = \
 		(char *)malloc((MAX_FILE_PATH_LEN + 1) * bracket_paths_size);
 
