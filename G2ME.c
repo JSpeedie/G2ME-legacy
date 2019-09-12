@@ -143,9 +143,9 @@ struct entry create_entry(struct player* P, char* name, char* opp_name,
  *     took place at.
  * \return void
  */
-void update_player_on_outcome(char* p1_name, char* p2_name,
-	struct player* p1, struct player* p2, char* p1_gc, char* p2_gc,
-	char day, char month, short year, char* t_name, short season_id) {
+void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, char* p2_name, \
+	struct player* p1, struct player* p2, char* p1_gc, char* p2_gc, \
+	char day, char month, short year, short t_id, char* t_name, short season_id) {
 
 	char *full_p1_path = player_dir_file_path_with_player_dir(p1_name);
 	char *full_p2_path = player_dir_file_path_with_player_dir(p2_name);
@@ -215,7 +215,9 @@ void update_player_on_outcome(char* p1_name, char* p2_name,
 	new_p1.vol = p1->vol + ((new_p1.vol - p1->vol) * outcome_weight);
 	struct entry p1_new_entry =
 		create_entry(&new_p1, p1_name, p2_name, *p1_gc, *p2_gc, day, month, year, t_name, season_id);
-	int ret = entry_file_append_entry_to_file(&p1_new_entry, full_p1_path);
+	p1_new_entry.opp_id = p2_id;
+	p1_new_entry.tournament_id = t_id;
+	int ret = entry_file_append_entry_to_file_id(&p1_new_entry, full_p1_path);
 	if (ret != 0) {
 		fprintf(stderr, "Error appending entry to file \"%s\"\n", full_p1_path);
 	}
@@ -284,7 +286,7 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
 				long len_t_name = strlen(latest_ent.t_name);
 				latest_ent.t_name[len_t_name] = '\0';
 				latest_ent.len_t_name = len_t_name;
-				entry_file_append_entry_to_file(&latest_ent, full_file_path);
+				entry_file_append_entry_to_file_id(&latest_ent, full_file_path);
 			}
 		}
 	}
@@ -331,7 +333,6 @@ void adjust_absent_players_no_file(char day, char month, \
 	char file_names[num_players][MAX_NAME_LEN + 1];
 	int i = 0;
 	pid_t p;
-	//printf("number of players in directory %d\n", num_players);
 	/* Create a list of player files */
 	while ((entry = readdir(p_dir)) != NULL) {
 		/* If the directory item is a directory, skip */
@@ -463,6 +464,26 @@ int update_players(char* bracket_file_path, short season_id) {
 	memset(t_name, 0, sizeof(t_name));
 	strncpy(t_name, basename(bracket_file_path), sizeof(t_name));
 
+	struct entry Et;
+	strncpy(Et.t_name, t_name, sizeof(t_name));
+	Et.len_t_name = strlen(Et.t_name);
+	int ret = 0;
+	/* If the entry file does not already contain an id for this tournament */
+	if (-1 == (ret = entry_file_contains_tournament(Et.t_name, ""))) {
+		/* Add the new tournament to the entry file. This also corrects
+		 * the t_id if it is incorrect */
+		if (0 != entry_file_add_new_tournament(&Et, "")) return -8;
+	/* If there was an error */
+	} else if (ret < -1) {
+		return -9;
+	/* If the entry file does contain an id for this tournament */
+	} else {
+		/* Fix the tournament_id in case it wasn't set */
+		Et.tournament_id = (unsigned short) ret;
+	}
+
+	// TODO: change to reallocate
+	short tournament_names_id[512];
 	int outcomes_size = SIZE_OUTCOMES;
 	char *outcomes = \
 		(char *)malloc((MAX_FILE_PATH_LEN + 1) * outcomes_size);
@@ -580,16 +601,71 @@ int update_players(char* bracket_file_path, short season_id) {
 					break;
 				}
 			}
+			int ret = 0;
 			if (!already_in) {
-				strncpy(tournament_names[tournament_names_len], \
+				strncpy(&tournament_names[tournament_names_len][0], \
 					p1_name, MAX_NAME_LEN);
+
+				/* Get opp_ids for all players who attended this tournament */
+				/* If the entry file does not already contain an id for this opponent */
+				struct entry E;
+				if (-1 == (ret = \
+					entry_file_contains_opponent(&tournament_names[tournament_names_len][0], ""))) {
+					/* Add the new opponent to the entry file. This also corrects
+					 * the t_id if it is incorrect */
+					strncpy(&E.opp_name[0], &tournament_names[tournament_names_len][0], MAX_NAME_LEN);
+					E.len_opp_name = strlen(E.opp_name);
+					if (0 != entry_file_add_new_opponent(&E, "")) return -8;
+				/* If there was an error */
+				} else if (ret < -1) {
+					return -9;
+				/* If the entry file does contain an id for this opponent */
+				} else {
+					/* Fix the opp_id in case it wasn't set */
+					E.opp_id = (unsigned short) ret;
+				}
+				tournament_names_id[tournament_names_len] = E.opp_id;
 				tournament_names_len++;
 			}
 			if (!already_in2) {
-				strncpy(tournament_names[tournament_names_len], \
+				strncpy(&tournament_names[tournament_names_len][0], \
 					p2_name, MAX_NAME_LEN);
+				/* Get opp_ids for all players who attended this tournament */
+				/* If the entry file does not already contain an id for this opponent */
+				struct entry E;
+				if (-1 == (ret = \
+					entry_file_contains_opponent(&tournament_names[tournament_names_len][0], ""))) {
+					/* Add the new opponent to the entry file. This also corrects
+					 * the t_id if it is incorrect */
+					strncpy(&E.opp_name[0], &tournament_names[tournament_names_len][0], MAX_NAME_LEN);
+					E.len_opp_name = strlen(E.opp_name);
+					if (0 != entry_file_add_new_opponent(&E, "")) return -8;
+				/* If there was an error */
+				} else if (ret < -1) {
+					return -9;
+				/* If the entry file does contain an id for this opponent */
+				} else {
+					/* Fix the opp_id in case it wasn't set */
+					E.opp_id = (unsigned short) ret;
+				}
+				tournament_names_id[tournament_names_len] = E.opp_id;
 				tournament_names_len++;
 			}
+		}
+		short p1_id;
+		short p2_id;
+		char p1_found = 0;
+		char p2_found = 0;
+		for (int k = 0; k < tournament_names_len; k++) {
+			if (0 == strncmp(p1_name, tournament_names[k], MAX_NAME_LEN)) {
+				p1_id = tournament_names_id[k];
+				p1_found = 1;
+			}
+			if (0 == strncmp(p2_name, tournament_names[k], MAX_NAME_LEN)) {
+				p2_id = tournament_names_id[k];
+				p2_found = 1;
+			}
+			if (p1_found == 1 && p2_found == 1) break;
 		}
 
 		struct player p1;
@@ -600,24 +676,24 @@ int update_players(char* bracket_file_path, short season_id) {
 			p1_out = 1;
 			p2_out = 0;
 			for (int i = 0; i < p1_gc; i++) {
-				update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
-					&p1_out, &p2_out, day, month, year, t_name, season_id);
-				update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
-					&p2_out, &p1_out, day, month, year, t_name, season_id);
+				update_player_on_outcome(p1_id, p1_name, p2_id, p2_name, &p1, &p2, \
+					&p1_out, &p2_out, day, month, year, Et.tournament_id, t_name, season_id);
+				update_player_on_outcome(p2_id, p2_name, p1_id, p1_name, &p2, &p1, \
+					&p2_out, &p1_out, day, month, year, Et.tournament_id, t_name, season_id);
 			}
 			p1_out = 0;
 			p2_out = 1;
 			for (int i = 0; i < p2_gc; i++) {
-				update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
-					&p1_out, &p2_out, day, month, year, t_name, season_id);
-				update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
-					&p2_out, &p1_out, day, month, year, t_name, season_id);
+				update_player_on_outcome(p1_id, p1_name, p2_id, p2_name, &p1, &p2, \
+					&p1_out, &p2_out, day, month, year, Et.tournament_id, t_name, season_id);
+				update_player_on_outcome(p2_id, p2_name, p1_id, p1_name, &p2, &p1, \
+					&p2_out, &p1_out, day, month, year, Et.tournament_id, t_name, season_id);
 			}
 		} else {
-			update_player_on_outcome(p1_name, p2_name, &p1, &p2, \
-				&p1_gc, &p2_gc, day, month, year, t_name, season_id);
-			update_player_on_outcome(p2_name, p1_name, &p2, &p1, \
-				&p2_gc, &p1_gc, day, month, year, t_name, season_id);
+			update_player_on_outcome(p1_id, p1_name, p2_id, p2_name, &p1, &p2, \
+				&p1_gc, &p2_gc, day, month, year, Et.tournament_id, t_name, season_id);
+			update_player_on_outcome(p2_id, p2_name, p1_id, p1_name, &p2, &p1, \
+				&p2_gc, &p1_gc, day, month, year, Et.tournament_id, t_name, season_id);
 		}
 	}
 

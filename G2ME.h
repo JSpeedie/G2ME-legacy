@@ -53,8 +53,8 @@ struct entry create_entry(struct player *, char *, char *, \
 
 
 void write_entry_from_input(char *);
-void update_player_on_outcome(char *, char *, struct player *, \
-	struct player *, char *, char *, char, char, short, char *, short);
+void update_player_on_outcome(short, char *, short, char *, struct player *, \
+	struct player *, char *, char *, char, char, short, short, char *, short);
 int update_players(char *, short);
 int run_single_bracket(char *);
 int run_brackets(char *);

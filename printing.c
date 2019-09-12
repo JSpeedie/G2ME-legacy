@@ -260,6 +260,7 @@ int print_player_file_verbose(char* file_path) {
 		if (strlen(temp) > longest_opp_gc) longest_opp_gc = strlen(temp);
 		sprintf(temp, "%d", line.tournament_id);
 		if (strlen(temp) > longest_t_id) longest_t_id = strlen(temp);
+
 		if (strlen(line.t_name) > longest_t_name) {
 			longest_t_name = strlen(line.t_name);
 		}

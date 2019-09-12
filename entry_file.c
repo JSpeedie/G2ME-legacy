@@ -62,13 +62,13 @@ int entry_file_contains_opponent(char *opp_name, char* file_path) {
 	if (opp_file == NULL) {
 		fprintf(stderr, "Error opening file %s (entry_file_contains_opponent): ", full_opp_file_path);
 		perror("");
-		return -2;
+		return -1;
 	}
 
 	int ret = -1;
 	unsigned short num_opp;
 	char temp_name[MAX_NAME_LEN + 1];
-	if (1 != fread(&num_opp, sizeof(short), 1, opp_file)) return -7;
+	if (1 != fread(&num_opp, sizeof(short), 1, opp_file)) return -2;
 
 	/* Binary search on file to find given name's id */
 	long L = 0;
@@ -82,15 +82,15 @@ int entry_file_contains_opponent(char *opp_name, char* file_path) {
 		/* Read corresponding opp_id of the array[m] */
 		unsigned long start_of_m = ftell(opp_file);
 		short opp_id = -1;
-		if (1 != fread(&opp_id, sizeof(short), 1, opp_file)) return -8;
+		if (1 != fread(&opp_id, sizeof(short), 1, opp_file)) return -3;
 
 		/* Read opp name of the array[m] */
 		int j = 0;
-		if (1 != fread(&temp_name[j], sizeof(char), 1, opp_file)) return -11;
+		if (1 != fread(&temp_name[j], sizeof(char), 1, opp_file)) return -4;
 		/* Provided it hasn't hit a null terminator or end of file */
 		while (temp_name[j] != '\0' && j < MAX_NAME_LEN && !(feof(opp_file))) {
 			j++;
-			if (1 != fread(&temp_name[j], sizeof(char), 1, opp_file)) return -11;
+			if (1 != fread(&temp_name[j], sizeof(char), 1, opp_file)) return -5;
 		}
 		/* Seek to start of array[m] so fseek to next spot isn't offset */
 		fseek(opp_file, start_of_m, SEEK_SET);
@@ -255,7 +255,10 @@ int entry_file_contains_tournament(char *t_name, char* file_path) {
 
 	FILE* t_file = fopen(full_t_file_path, "rb+");
 	if (t_file == NULL) {
-		perror("fopen (entry_file_contains_tournament)");
+		fprintf(stderr, \
+			"Error opening file %s (entry_file_contains_tournament): ", \
+			full_t_file_path);
+		perror("");
 		return -2;
 	}
 
@@ -315,7 +318,10 @@ int entry_file_add_new_tournament(struct entry *E, char* file_path) {
 
 	FILE *t_file = fopen(full_t_file_path, "rb");
 	if (t_file == NULL) {
-		perror("fopen (entry_file_add_new_tournament)");
+		fprintf(stderr, \
+			"Error opening file %s (entry_file_add_new_tournament): ", \
+			full_t_file_path);
+		perror("");
 		return -1;
 	}
 
@@ -326,7 +332,10 @@ int entry_file_add_new_tournament(struct entry *E, char* file_path) {
 
 	FILE *new_file = fopen(new_file_name, "wb+");
 	if (new_file == NULL) {
-		perror("fopen (entry_file_add_new_tournament)");
+		fprintf(stderr, \
+			"Error opening file %s (entry_file_add_new_tournament): ", \
+			new_file_name);
+		perror("");
 		return -2;
 	}
 //#elif _WIN32
@@ -415,7 +424,10 @@ int entry_file_add_new_tournament(struct entry *E, char* file_path) {
 	char *full_t_id_file_path = data_dir_file_path_t_id_file();
 	FILE *t_id_file = fopen(full_t_id_file_path, "rb+");
 	if (t_id_file == NULL) {
-		perror("fopen (entry_file_add_new_tournament)");
+		fprintf(stderr, \
+			"Error opening file %s (entry_file_add_new_tournament): ", \
+			full_t_id_file_path);
+		perror("");
 		return -1;
 	}
 	/* Update counter at start of file */
@@ -662,15 +674,24 @@ int entry_file_get_id_from_name(FILE *f, struct entry *E) {
 }
 
 
-/* Sets t_name based on tournament_id */
-// TODO: write doc
+/** Takes an open file, and an entry containing the tournament id to be
+ * searched for. Updates the entry's t_name field, given the id of a
+ * tournament. Returns a negative value if there was an error.
+ *
+ * \param '*f' the open file to be searched.
+ * \param '*E' the struct entry containing the tournament id to be
+ *     searched for and which will have its t_name field updated to
+ *     the name if this function is successful.
+ * \return 0 upon success, and negative value if there was an error.
+ */
 int entry_file_get_tournament_name_from_id(FILE *f, struct entry *E) {
-
-	int j = 0;
 	char *full_t_id_file_path = data_dir_file_path_t_id_file();
 	FILE* t_id_file = fopen(full_t_id_file_path, "rb+");
 	if (t_id_file == NULL) {
-		perror("fopen (entry_file_contains_tournament)");
+		fprintf(stderr, \
+			"Error opening file %s (entry_file_get_tournament_name_from_id): ", \
+			full_t_id_file_path);
+		perror("");
 		return -1;
 	}
 
@@ -681,6 +702,7 @@ int entry_file_get_tournament_name_from_id(FILE *f, struct entry *E) {
 	/* Seek to the location of the name in the file by using its id */
 	fseek(t_id_file, sizeof(short) + E->tournament_id * (MAX_NAME_LEN + 1), SEEK_SET);
 
+	int j = 0;
 	/* Read first byte and add to name */
 	if (1 != fread(&E->t_name[j], sizeof(char), 1, t_id_file )) return -4;
 	/* Provided it hasn't hit a null terminator or end of file */
@@ -696,28 +718,40 @@ int entry_file_get_tournament_name_from_id(FILE *f, struct entry *E) {
 	return 0;
 }
 
+/** Takes an open file, and an entry containing the tournament name to be
+ * searched for. Returns the id of a tournament, given the name of a
+ * tournament. Returns -1 if the tournament of that name could not be found.
+ * Returns < -1 if there was an error.
+ *
+ * \param '*f' the open file to be searched.
+ * \param '*E' the struct entry containing the tournament name to be
+ *     searched for and which will have its tournament_id field updated to
+ *     the id if this function is successful.
+ * \return non-negative number upon success, -1 if the name could not be found,
+ *     and < -1 if there was an error.
+ */
 int entry_file_get_tournament_id_from_name(FILE *f, struct entry *E) {
 
 	fseek(f, 0, SEEK_SET);
 	unsigned short num_t;
-	if (1 != fread(&num_t, sizeof(short), 1, f)) return -7;
+	if (1 != fread(&num_t, sizeof(short), 1, f)) return -2;
 
 	// TODO: change to binary search
 	for (int i = 0; i < num_t; i++) {
 		/* Read corresponding t_id */
 		short t_id = -1;
-		if (1 != fread(&t_id, sizeof(short), 1, f)) return -8;
+		if (1 != fread(&t_id, sizeof(short), 1, f)) return -3;
 
 		int j = 0;
 		char read = '\1';
 		char right_name = 1;
 		/* Read first byte and add to temp name */
-		if (1 != fread(&read, sizeof(char), 1, f)) return -9;
+		if (1 != fread(&read, sizeof(char), 1, f)) return -4;
 		if (read != E->t_name[j]) { right_name = 0; }
 		j++;
 		/* Provided it hasn't hit a null terminator or end of file */
 		while (read != '\0' && j < MAX_NAME_LEN && !(feof(f))) {
-			if (1 != fread(&read, sizeof(char), 1, f)) return -11;
+			if (1 != fread(&read, sizeof(char), 1, f)) return -5;
 			/* If the name differs at any point, it isn't the same name */
 			if (read != E->t_name[j]) {
 				right_name = 0;
@@ -784,13 +818,13 @@ int entry_file_get_tournament_id_from_name(FILE *f, struct entry *E) {
  */
 int entry_file_read_entry(FILE *f, struct entry *E) {
 	// Read opponent name id
-	if (1 != fread(&E->opp_id, sizeof(short), 1, f)) { return -1; } //2
-	if (1 != fread(&E->rating, sizeof(double), 1, f)) { return -3; } //8 10
-	if (1 != fread(&E->RD, sizeof(double), 1, f)) { return -4; } // 8 18
-	if (1 != fread(&E->vol, sizeof(double), 1, f)) { return -5; } //8 26
-	if (1 != fread(&E->gc, sizeof(char), 1, f)) { return -6; } //1 27
-	if (1 != fread(&E->opp_gc, sizeof(char), 1, f)) { return -7; } //1 28
-	if (1 != fread(&E->day, sizeof(char), 1, f)) { return -8; } //1 29
+	if (1 != fread(&E->opp_id, sizeof(short), 1, f)) { return -1; }
+	if (1 != fread(&E->rating, sizeof(double), 1, f)) { return -2; }
+	if (1 != fread(&E->RD, sizeof(double), 1, f)) { return -3; }
+	if (1 != fread(&E->vol, sizeof(double), 1, f)) { return -4; }
+	if (1 != fread(&E->gc, sizeof(char), 1, f)) { return -5; }
+	if (1 != fread(&E->opp_gc, sizeof(char), 1, f)) { return -6; }
+	if (1 != fread(&E->day, sizeof(char), 1, f)) { return -7; }
 	/* If 'day' bitwise ANDed with 10000000 != 0, then this is a
 	 * non-competitor entry */
 	if ( (E->day & (1 << ((sizeof(E->day) * 8) - 1))) != 0) {
@@ -800,22 +834,21 @@ int entry_file_read_entry(FILE *f, struct entry *E) {
 	} else {
 		E->is_competitor = 1;
 	}
-	if (1 != fread(&E->month, sizeof(char), 1, f)) { return -9; } //1 30
-	if (1 != fread(&E->year, sizeof(short), 1, f)) { return -10; } //2 32
-	if (1 != fread(&E->tournament_id, sizeof(short), 1, f)) { return -11; } //2 32
-	if (1 != fread(&E->season_id, sizeof(short), 1, f)) { return -12; } //2 34
+	if (1 != fread(&E->month, sizeof(char), 1, f)) { return -8; }
+	if (1 != fread(&E->year, sizeof(short), 1, f)) { return -9; }
+	if (1 != fread(&E->tournament_id, sizeof(short), 1, f)) { return -10; }
+	if (1 != fread(&E->season_id, sizeof(short), 1, f)) { return -11; }
 	/* Sets opp_name and len_opp_name of E to be according to opponent
 	 * name E->opp_id */
 	int r;
 	if (0 != (r = entry_get_name_from_id(f, E))) {
-		fprintf(stderr, "Error (%d) on entry_get_name_from_id(): ", r);
-		perror("");
+		fprintf(stderr, "Error (%d) on entry_get_name_from_id() searching for id (%d)\n", r, E->opp_id);
 		return -12;
 	}
 	/* Sets t_name and len_t_name of E to be according to tournament
 	 * name E->tournament_id */
 	if (0 != (r = entry_file_get_tournament_name_from_id(f, E))) {
-		perror("entry_file_get_tournament_name_from_id (read_entry)");
+		fprintf(stderr, "Error (%d) on entry_get_tournament_name_from_id() searching for id (%d)\n", r, E->tournament_id);
 		return -13;
 	}
 
@@ -1189,7 +1222,11 @@ int entry_file_read_last_entry(char* file_path, struct entry *ret) {
 
 	fseek(p_file, -SIZE_OF_AN_ENTRY, SEEK_END);
 	/* If reading the last entry failed */
-	if (0 != entry_file_read_entry(p_file, ret)) return -1;
+	int r = 0;
+	if (0 != (r = entry_file_read_entry(p_file, ret))) {
+		fprintf(stderr, "Error (%d) on entry_file_read_entry()\n", r);
+		return -3;
+	}
 	fclose(p_file);
 
 	return 0;
@@ -1273,6 +1310,145 @@ int entry_file_read_last_entry_tournament_id(char* file_path, struct entry *ret)
 	return 0;
 }
 
+/** Appends an entry to a given player file and return an int representing
+ * whether the function succeeded or not.
+ *
+ * \param '*E' the struct entry to be appended
+ * \param '*file_path' the file path of the player file
+ * \return int that is 0 upon the function succeeding and negative upon
+ *     any sort of failure.
+ */
+int entry_file_append_entry_to_file_id(struct entry* E, char* file_path) {
+	/* If the file did not exist */
+#ifdef __linux__
+	char existed = access(file_path, R_OK) != -1;
+#elif _WIN32
+	char existed = _access(file_path, 0) != -1;
+#else
+	char existed = access(file_path, R_OK) != -1;
+#endif
+	/* If the player entry file did not exist, create a new one with the
+	 * standard starting infomartion of length of name, name, and 2 zeros
+	 * because they have 0 opponents or tournaments played/attedned */
+	if (!existed) {
+/* #ifdef _WIN32 */
+/* 		/\* Open the file, with read and write, Share for reading, */
+/* 		* no security, open regardless, normal file with no attributes *\/ */
+/* 		HANDLE victim = CreateFile(file_path, GENERIC_WRITE | GENERIC_READ, */
+/* 			FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL); */
+/* 		WriteFile(victim, "", sizeof(""), NULL, NULL); */
+/* 		fprintf(stderr, " GetLastError(0x%x) = %s\n", GetLastError(), */
+/* 		(LPCTSTR) "hi"); */
+/* 		CloseHandle(victim); */
+/* #endif */
+		/* Open file for appending */
+		FILE *entry_file = fopen(file_path, "ab+");
+		if (entry_file == NULL) {
+			perror("fopen (entry_file_append_entry_to_file)");
+			return -1;
+		}
+
+		int len_name = strlen(E->name);
+		if (1 != fwrite(&len_name, sizeof(char), 1, entry_file)) return -2;
+		if (strlen(E->name)
+			!= fwrite(E->name, sizeof(char), strlen(E->name), entry_file)) {
+			return -3;
+		}
+		/* Write the number of outcomes and tournaments attended this player
+		 * has. If you are creating the file, it must be 0 and 0 */
+		unsigned long lzero = 0;
+		if (1 != fwrite(&lzero, sizeof(long), 1, entry_file)) return -4;
+		if (1 != fwrite(&lzero, sizeof(long), 1, entry_file)) return -5;
+		/* Write the relative offsets.
+		 * For a freshly created file, it must be 10 and 4 */
+		//unsigned long ltwo = 2;
+		//if (1 != fwrite(&ltwo, sizeof(long), 1, entry_file)) return -5;
+		if (1 != fwrite(&lzero, sizeof(long), 1, entry_file)) return -5;
+		///* Write the number of tournaments this player has
+		// * attended. If you are creating the file, it must be 0 */
+		//unsigned short zero = 0;
+		//if (1 != fwrite(&zero, sizeof(short), 1, entry_file)) return -5;
+		fclose(entry_file);
+	}
+
+	/* Entry that is used later to check if this entry is at a new tournament */
+	struct entry E2;
+	unsigned long out_count = entry_file_get_outcome_count(file_path);
+	if (0 != out_count) {
+		if (0 != entry_file_read_last_entry_tournament_id(file_path, &E2)) return -6;
+	}
+
+	int ret;
+
+	/* Open file for appending */
+	FILE *entry_file = fopen(file_path, "ab+");
+	if (entry_file == NULL) {
+		perror("fopen (entry_file_append_entry_to_file)");
+		return -10;
+	}
+	/* Write length of opp name and opp name */
+	if (1 != fwrite(&E->opp_id, sizeof(short), 1, entry_file)) { return -9; } // 2
+	/* Write glicko data */
+	if (1 != fwrite(&E->rating, sizeof(double), 1, entry_file)) { return -10; } // 8 10
+	if (1 != fwrite(&E->RD, sizeof(double), 1, entry_file)) { return -11; } // 8 18
+	if (1 != fwrite(&E->vol, sizeof(double), 1, entry_file)) { return -12; } //8 26
+	/* Write game counts */
+	if (1 != fwrite(&E->gc, sizeof(char), 1, entry_file)) { return -13; } //1 27
+	if (1 != fwrite(&E->opp_gc, sizeof(char), 1, entry_file)) { return -14; } //1 28
+	/* Write date data */
+	if (1 != fwrite(&E->day, sizeof(char), 1, entry_file)) { return -15; } //1 29
+	if (1 != fwrite(&E->month, sizeof(char), 1, entry_file)) { return -16; } //1 30
+	if (1 != fwrite(&E->year, sizeof(short), 1, entry_file)) { return -17; } //2 32
+	if (1 != fwrite(&E->tournament_id, sizeof(short), 1, entry_file)) { return -18; } //2 34
+	if (1 != fwrite(&E->season_id, sizeof(short), 1, entry_file)) { return -19; } //2 36
+
+	fclose(entry_file);
+
+	// TODO: make this its own function
+	/* If this entry is a competitor entry */
+	if ( (E->day & (1 << ((sizeof(E->day) * 8) - 1))) == 0) {
+		/* Update the number of outcome data in the entry file */
+		FILE *entry_file2 = fopen(file_path, "rb+");
+		if (entry_file2 == NULL) {
+			perror("fopen (entry_file_append_entry_to_file)");
+			return -11;
+		}
+		/* Read the starter data in the file */
+		char ln;
+		if (1 != fread(&ln, sizeof(char), 1, entry_file2)) {
+			return -2;
+		}
+		/* Move to point in file where number of outcomes resides */
+		if (0 != fseek(entry_file2, ln * sizeof(char), SEEK_CUR)) {
+			return -3;
+		}
+		unsigned long number_of_outcomes;
+		unsigned long number_of_tournaments_attended;
+		if (1 != fread(&number_of_outcomes, sizeof(long), 1, entry_file2)) {
+			return -4;
+		}
+		if (1 != fread(&number_of_tournaments_attended, sizeof(long), 1, entry_file2)) {
+			return -5;
+		}
+		number_of_outcomes++;
+		/* Move back to the point in file where number of outcomes resides */
+		if (0 != fseek(entry_file2, -1 * 2 * ((long int) sizeof(long)), SEEK_CUR)) {
+			return -6;
+		}
+		if (1 != fwrite(&number_of_outcomes, sizeof(long), 1, entry_file2)) { return -7; }
+		/* Only increase number of tournaments attended if this outcome is
+		 * at a new tournament */
+		if (E2.tournament_id != E->tournament_id || \
+			0 == out_count) {
+
+			number_of_tournaments_attended++;
+			if (1 != fwrite(&number_of_tournaments_attended, sizeof(long), 1, entry_file2)) { return -8; }
+		}
+		fclose(entry_file2);
+	}
+
+	return 0;
+}
 /** Appends an entry to a given player file and return an int representing
  * whether the function succeeded or not.
  *
@@ -1372,7 +1548,6 @@ int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
 		/* Fix the tournament_id in case it wasn't set */
 		E->tournament_id = (unsigned short) ret;
 	}
-
 
 	/* Open file for appending */
 	FILE *entry_file = fopen(file_path, "ab+");

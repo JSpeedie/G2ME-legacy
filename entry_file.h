@@ -50,6 +50,7 @@ int entry_file_read_last_entry(char *, struct entry *);
 int entry_file_read_last_entry_minimal(char *, struct entry *);
 int entry_file_read_last_entry_absent(char *, struct entry *);
 int entry_file_append_entry_to_file(struct entry *, char *);
+int entry_file_append_entry_to_file_id(struct entry *, char *);
 int entry_file_append_pr_entry_to_file(struct entry *, char *, int);
 int entry_file_append_pr_entry_to_file_verbose(\
 	struct entry *, char *, int, int, int);
