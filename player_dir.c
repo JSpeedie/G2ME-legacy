@@ -141,7 +141,7 @@ int data_dir_reset(void) {
 
 	FILE *opp_file = fopen(full_opp_file_path, "wb+");
 	if (opp_file == NULL) {
-		perror("fopen (player_dir_reset_players)");
+		perror("fopen (data_dir_reset_players)");
 		return -1;
 	}
 	if (1 != fwrite(&num_opp, sizeof(short), 1, opp_file)) return -12;
@@ -151,7 +151,7 @@ int data_dir_reset(void) {
 	
 	FILE *opp_id_file = fopen(full_opp_id_file_path, "wb+");
 	if (opp_id_file == NULL) {
-		perror("fopen (player_dir_reset_players)");
+		perror("fopen (data_dir_reset_players)");
 		return -1;
 	}
 	if (1 != fwrite(&num_opp, sizeof(short), 1, opp_id_file)) return -12;
@@ -161,7 +161,7 @@ int data_dir_reset(void) {
 
 	FILE *t_file = fopen(full_t_file_path, "wb+");
 	if (t_file == NULL) {
-		perror("fopen (player_dir_reset_players)");
+		perror("fopen (data_dir_reset_players)");
 		return -1;
 	}
 	if (1 != fwrite(&num_t, sizeof(short), 1, t_file)) return -12;
@@ -170,7 +170,7 @@ int data_dir_reset(void) {
 	
 	FILE *t_id_file = fopen(full_t_id_file_path, "wb+");
 	if (t_id_file == NULL) {
-		perror("fopen (player_dir_reset_players)");
+		perror("fopen (data_dir_reset_players)");
 		return -1;
 	}
 	if (1 != fwrite(&num_t, sizeof(short), 1, t_id_file)) return -12;
@@ -199,13 +199,13 @@ int player_dir_reset_players(void) {
 			}
 		}
 		closedir(p_dir);
-		return 0;
 	} else {
 		perror("opendir (player_dir_reset_players)");
 		return -1;
 	}
 
-	return data_dir_reset();
+	int r = data_dir_reset();
+	return r;
 }
 
 int data_dir_check_and_create(void) {

@@ -1378,8 +1378,6 @@ int entry_file_append_entry_to_file_id(struct entry* E, char* file_path) {
 		if (0 != entry_file_read_last_entry_tournament_id(file_path, &E2)) return -6;
 	}
 
-	int ret;
-
 	/* Open file for appending */
 	FILE *entry_file = fopen(file_path, "ab+");
 	if (entry_file == NULL) {

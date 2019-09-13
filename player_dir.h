@@ -5,6 +5,7 @@ char *data_dir_file_path_opp_id_file(void);
 char *data_dir_file_path_t_file(void);
 char *data_dir_file_path_t_id_file(void);
 int player_dir_reset_players(void);
+int data_dir_reset(void);
 int player_dir_check_and_create(void);
 int data_dir_check_and_create(void);
 char *player_dir_players_list(char *, int *, char);
