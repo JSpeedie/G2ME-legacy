@@ -240,7 +240,7 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, char* p2_
  * \param '*t_name' the name of the event that they were absent from.
  */
 void adjust_absent_player(char *player_file, char day, char month, short year, \
-	char *t_name) {
+	short t_id, char *t_name) {
 
 	char* full_file_path = player_dir_file_path_with_player_dir(player_file);
 
@@ -282,6 +282,7 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
 				latest_ent.day = latest_ent.day | (1 << ((sizeof(latest_ent.day) * 8) - 1));
 				latest_ent.month = month;
 				latest_ent.year = year;
+				latest_ent.tournament_id = t_id;
 				strncpy(latest_ent.t_name, t_name, MAX_NAME_LEN);
 				long len_t_name = strlen(latest_ent.t_name);
 				latest_ent.t_name[len_t_name] = '\0';
@@ -306,7 +307,7 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
  * \return void.
 */
 void adjust_absent_players_no_file(char day, char month, \
-	short year, char* t_name) {
+	short year, short t_id, char* t_name) {
 
 	char did_not_comp = 1;
 	DIR *p_dir;
@@ -366,7 +367,7 @@ void adjust_absent_players_no_file(char day, char month, \
 		}
 
 		if (did_not_comp) {
-			adjust_absent_player(&file_names[j][0], day, month, year, t_name);
+			adjust_absent_player(&file_names[j][0], day, month, year, t_id, t_name);
 		}
 	}
 
@@ -389,7 +390,7 @@ void adjust_absent_players_no_file(char day, char month, \
  * \return void.
  */
 void adjust_absent_players(char* player_list, char day, char month, \
-	short year, char* t_name) {
+	short year, short t_id, char* t_name) {
 
 	FILE *player_file = fopen(player_list, "r");
 	if (player_file == NULL) {
@@ -424,7 +425,7 @@ void adjust_absent_players(char* player_list, char day, char month, \
 		}
 
 		if (did_not_comp) {
-			adjust_absent_player(line, day, month, year, t_name);
+			adjust_absent_player(line, day, month, year, t_id, t_name);
 		}
 	}
 
@@ -698,9 +699,9 @@ int update_players(char* bracket_file_path, short season_id) {
 	}
 
 	if (calc_absent_players == 1) {
-		adjust_absent_players_no_file(day, month, year, t_name);
+		adjust_absent_players_no_file(day, month, year, Et.tournament_id, t_name);
 	} else if (calc_absent_players_with_file) {
-		adjust_absent_players(player_list_file, day, month, year, t_name);
+		adjust_absent_players(player_list_file, day, month, year, Et.tournament_id, t_name);
 	}
 
 	return 0;

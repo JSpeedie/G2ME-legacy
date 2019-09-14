@@ -601,7 +601,7 @@ int entry_file_add_new_tournament(struct entry *E, char* file_path) {
 
 /* Sets opp_name based on opp_id */
 // TODO: write doc
-int entry_get_name_from_id(FILE *f, struct entry *E) {
+int entry_file_get_name_from_id(FILE *f, struct entry *E) {
 
 	int j = 0;
 	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
@@ -841,8 +841,8 @@ int entry_file_read_entry(FILE *f, struct entry *E) {
 	/* Sets opp_name and len_opp_name of E to be according to opponent
 	 * name E->opp_id */
 	int r;
-	if (0 != (r = entry_get_name_from_id(f, E))) {
-		fprintf(stderr, "Error (%d) on entry_get_name_from_id() searching for id (%d)\n", r, E->opp_id);
+	if (0 != (r = entry_file_get_name_from_id(f, E))) {
+		fprintf(stderr, "Error (%d) on entry_file_get_name_from_id() searching for id (%d)\n", r, E->opp_id);
 		return -12;
 	}
 	/* Sets t_name and len_t_name of E to be according to tournament
@@ -899,8 +899,8 @@ int entry_file_read_next_opp_entry(FILE *f, struct entry *E, short opp_id) {
 	/* Sets opp_name and len_opp_name of E to be according to opponent
 	 * name E->opp_id */
 	int r;
-	if (0 != (r = entry_get_name_from_id(f, E))) {
-		perror("entry_get_name_from_id (read_entry)");
+	if (0 != (r = entry_file_get_name_from_id(f, E))) {
+		perror("entry_file_get_name_from_id (read_entry)");
 		return -12;
 	}
 	/* Sets t_name and len_t_name of E to be according to tournament
@@ -1033,37 +1033,64 @@ int entry_file_get_to_entries(FILE *f) {
 	return 0;
 }
 
-// TODO: incorrect, change to have new long that counts num of unique, valid opps
-int entry_file_number_of_opponents(char *file_path) {
+long entry_file_number_of_opponents(char *file_path, short **ret_opp_id_list) {
 
-	char *full_opp_file_path = data_dir_file_path_opp_file();
+//	char *full_opp_file_path = data_dir_file_path_opp_file();
+//
+//	FILE* opp_file = fopen(full_opp_file_path, "rb+");
+//	if (opp_file == NULL) {
+//		perror("fopen (entry_file_number_of_opponent)");
+//		return -1;
+//	}
+//
+//	unsigned short num_opp;
+//	if (1 != fread(&num_opp, sizeof(short), 1, opp_file)) return -2;
+//
+//	return num_opp;
 
-	FILE* opp_file = fopen(full_opp_file_path, "rb+");
-	if (opp_file == NULL) {
-		perror("fopen (entry_file_number_of_opponent)");
-		return -1;
+	int ret = 0;
+	FILE *p_file = fopen(file_path, "rb");
+	if (p_file == NULL) {
+		perror("fopen (entry_file_number_of_opponents)");
+		ret = -1;
+	}
+	long opp_id_list_size = 64;
+	short *opp_id_list = (short *)malloc(sizeof(short) * opp_id_list_size);
+	short num_opp_ids = 0;
+	struct entry E;
+
+	entry_file_get_to_entries(p_file);
+	/* While the function is still able to read entries from the old file */
+	while (0 == entry_file_read_entry(p_file, &E)) {
+		char already_in = 0;
+		int i = 0;
+		for (i = 0; i < num_opp_ids; i++) {
+			if (E.opp_id == opp_id_list[i]) {
+				already_in = 1;
+				break;
+			}
+		}
+		if (already_in == 0) {
+			num_opp_ids++;
+			/* If there is no space to add this tournament, reallocate */
+			if (num_opp_ids + 1 > opp_id_list_size) {
+				opp_id_list_size = (opp_id_list_size * 3)/2 + 1;
+				opp_id_list = (short *)\
+					realloc(opp_id_list, sizeof(short) * opp_id_list_size);
+				if (opp_id_list == NULL) {
+					perror("realloc (entry_file_number_of_opponents)");
+					return 0;
+				}
+			}
+			opp_id_list[num_opp_ids - 1] = E.opp_id;
+		}
 	}
 
-	unsigned short num_opp;
-	if (1 != fread(&num_opp, sizeof(short), 1, opp_file)) return -2;
-
-	return num_opp;
-//	int ret = 0;
-//	FILE *base_file = fopen(file_path, "rb");
-//	if (base_file == NULL) {
-//		perror("fopen (entry_file_number_of_opponents)");
-//		ret = -1;
-//	}
-//	short num_opp;
-//
-//	if (0 != entry_file_open_skip_to_num_opp(base_file)) return -2;
-//
-//	if (1 != fread(&num_opp, sizeof(short), 1, base_file)) ret = -3;
-//
-//	fclose(base_file);
-//	/* If there were no errors, return the number of opponents */
-//	if (ret == 0) ret = num_opp;
-//	return ret;
+	fclose(p_file);
+	*ret_opp_id_list = opp_id_list;
+	/* If there were no errors, return the number of opponents */
+	if (ret == 0) ret = num_opp_ids;
+	return ret;
 }
 
 // TODO: incorrect with opp_file
@@ -1151,25 +1178,32 @@ int entry_file_get_number_of_outcomes_against(char *file_path, char *player2) {
  * \param '*file_path' the file path of the file to be read.
  * \return NULL upon failure, an array of longs (pointer) upon success.
  */
-long *entry_file_get_all_number_of_outcomes_against(char *file_path) {
-	long array_size = entry_file_number_of_opponents(file_path);
+long *entry_file_get_all_number_of_outcomes_against(char *file_path, \
+	long num_opp_ids, short *opp_id_list) {
+
 	FILE *base_file = fopen(file_path, "rb");
 	if (base_file == NULL) {
 		perror("fopen (entry_file_get_all_number_of_outcomes_against)");
 		return NULL;
 	}
 
-	long *entries = (long *)calloc(array_size, sizeof(long));
+	long *outcomes = (long *)calloc(num_opp_ids, sizeof(long));
 	/* Read entry from old file */
-	struct entry cur_entry;
+	struct entry E;
 	entry_file_get_to_entries(base_file);
 	/* While the function is still able to read entries from the old file */
-	while (0 == entry_file_read_entry(base_file, &cur_entry)) {
-		entries[cur_entry.opp_id] += 1;
+	while (0 == entry_file_read_entry(base_file, &E)) {
+		int i = 0;
+		for (i = 0; i < num_opp_ids; i++) {
+			if (E.opp_id == opp_id_list[i]) {
+				break;
+			}
+		}
+		outcomes[i] += 1;
 	}
 	fclose(base_file);
 
-	return entries;
+	return outcomes;
 }
 
 /** Returns the offset within a player file at which the last entry begins.
@@ -1447,6 +1481,8 @@ int entry_file_append_entry_to_file_id(struct entry* E, char* file_path) {
 
 	return 0;
 }
+
+
 /** Appends an entry to a given player file and return an int representing
  * whether the function succeeded or not.
  *

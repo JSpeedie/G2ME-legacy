@@ -41,9 +41,9 @@ struct record *get_all_records(char *, int *);
 
 
 /* Adjustments */
-void adjust_absent_player(char *, char, char, short, char *);
-void adjust_absent_players_no_file(char, char, short, char *);
-void adjust_absent_players(char *, char, char, short, char *);
+void adjust_absent_player(char *, char, char, short, short, char *);
+void adjust_absent_players_no_file(char, char, short, short, char *);
+void adjust_absent_players(char *, char, char, short, short, char *);
 
 
 void init_player_from_entry(struct player *, struct entry *);
