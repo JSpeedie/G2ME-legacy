@@ -11,7 +11,6 @@
 * [Converting Challonge Brackets](#converting-challonge-brackets)
 * [Usage](#usage)
 	* [The '0' flag](#the-0-flag)
-	* [The 'a' flag](#the-a-flag)
 	* [The 'A' flag](#the-A-flag-1)
 	* [The 'b' flag](#the-b-flag)
 	* [The 'B' flag](#the-b-flag-1)
@@ -28,10 +27,7 @@
 	* [The 'n' flag](#the-n-flag)
 	* [The 'N' flag](#the-n-flag-1)
 	* [The 'o' flag](#the-o-flag)
-	* [The 'P' flag](#the-p-flag-1)
-	* [The 'r' flag](#the-r-flag)
 	* [The 'R' flag](#the-r-flag-1)
-	* [The 't' flag](#the-t-flag)
 	* [The 'v' flag](#the-v-flag)
 	* [The 'w' flag](#the-w-flag)
 * [The Glicko2 System Explained](#the-glicko2-system-explained)
@@ -41,35 +37,39 @@
 
 
 ## Technical Description
-C implementation of glicko + the real program that makes handling a glicko system with many people more manageable.
+C implementation of glicko 2 + the real program that makes handling a glicko
+system with many people more manageable.
 
 
 ## Purpose
 
-This program was made out of necessity to make an accurate PR (Power Ranking) for the UTSC Smash Club.
-
+This program was made out of a necessity to make an accurate power ranking
+(list of players from highest to lowest rating) for the UTSC Smash Club.
 
 
 ## What it is
 
 If you've ever played dota2, csgo, or followed chess, glicko2 is very similar
-to MMR from dota, ranks from cs go, and is a literal improvement on an
-improvement (glicko) of elo from chess.
+to MMR from dota, ranks from cs go, and is version 2 of an improvement
+of elo from chess.
 
 
 
 ## Why it makes Glicko 2 Easier
 
-This is a complete implementation of glicko. This code saves player data
-in binary files (to reduce storage costs since they store every change in
-rating), takes bracket files (or even season files) as inputs and
-calculates the new glicko ratings for all the players. It also has features
-for outputting this data in meaningful ways such as a list of players from
-highest to lowest rating, being able to view a players records against
-all other players in the system or even a full table of record/matchup data.
+Not only is this a complete implementation of glicko 2, (as opposed to just the
+glicko2 mathematical functions rewritten in a programming language), but it is
+a data management system. This program comes with features outside of glicko2,
+providing the user with more data.
 
-*G2ME makes it easy to track players using Glicko 2 and easy to make use
-of the data stored by the program*
+This program saves player data in binary files, takes bracket files (or season files, a list of bracket files)
+as inputs, and calculates the glicko ratings for all the players. It also
+has features for outputting this data in meaningful ways such as a list of
+players from highest to lowest rating, being able to view a players records
+against all other players in the system, or even a full table of record/matchup
+data for all the players in the system.
+
+*G2ME provides a way to track players over periods of time using Glicko 2.*
 
 
 
@@ -84,31 +84,36 @@ $ cd G2MEGit
 $ sudo make all
 ```
 
-You are now ready to follow the rest of the guide! Note that you should
-always `cd` into the directory containing this project before running
-any commands. You can choose not to, but you may have to specify the player
+You are now ready to use `G2ME`! You can skip to the Walkthrough section, if you
+would like.
+
+Note that if you plan on using this program from the terminal, you should
+always `cd` into the directory containing this project before running any
+commands. You can choose not to, but you may have to specify the player
 directory for every `G2ME` command you run by using `-d` (which is a hassle).
 </p></details>
 
 <details><summary>Windows (Click to Expand)</summary><p>
 It's recommended you use the GUI and set the binary path to be one of the 2
 exe's provided. If you wish to use it in the shell for windows, it's even
-simpler. Just download one of the exe's, change into it's directory and you're
-off to the races, just replace the "G2ME" command at the start of all examples
+simpler. Just download one of the exe's, change into its directory and you're
+off to the races. Just replace the "G2ME" command at the start of all examples
 with "G2ME32.exe" or "G2ME64.exe".
 
-You are now ready to follow the rest of the guide! Note that you should
-always `cd` into the directory containing this project before running
-any commands. You can choose not to, but you may have to specify the player
+You are now ready to use `G2ME`! You can skip to the Walkthrough section, if you
+would like.
+
+Note that if you plan on using this program from the terminal, you should
+always `cd` into the directory containing this project before running any
+commands. You can choose not to, but you may have to specify the player
 directory for every `G2ME` command you run by using `-d` (which is a hassle).
 </p></details>
 
 ## Example Walkthroughs
 
 <details><summary>Starter Walkthrough (Click to Expand)</summary><p>
-After installation, you are ready to start using the program!
 First you need to create a bracket file. For instance, a single elimination
-tournament of 4 players could look like this:
+tournament of 4 players could have a bracket file like this:
 
 ```
 TheBestPlayer ABadPlayer 3 0 1 1 2018
@@ -116,15 +121,15 @@ AGoodPlayer AnOkayPlayer 3 1 1 1 2018
 TheBestPlayer AGoodPlayer 3 2 1 1 2018
 ```
 
-For this example, let's call this file `ExampleBracket`. Depending on how
-you want the data calculated, you have several ways of continuing. For the
-example, let's assume you want RD adjustments for absence.
+Let's call this file `ExampleBracket`. Depending on how you want the data
+calculated, you have several ways of continuing. For the example, let's assume
+you want RD adjustments for absence (standard Glicko2 practice).
 
 ```
 $ G2ME -b ExampleBracket
 ```
 
-The Glicko2 data is now stored in 4 files found in `.players/`
+The Glicko2 data is now stored in 4 files found in `.players/`...
 
 ```
 $ ls -1 .players/
@@ -134,14 +139,17 @@ AnOkayPlayer
 ABadPlayer
 ```
 
-From here you can interact with the data as you want. Common operations are:
+...along with some other data in `.data/`, but you shouldn't manually edit the
+data in either directory.
 
-* Printing player info in a human readable form
+From here, you can interact with the data as you want. Common operations are:
+
+* Printing a player's outcome/set history
 
 ```
 $ G2ME -h TheBestPlayer
-TheBestPlayer  ABadPlayer   1662.3  290.3  0.060000  1-0  1/1/2018  ExampleBracket
-TheBestPlayer  AGoodPlayer  1791.9  247.5  0.060000  1-0  1/1/2018  ExampleBracket
+TheBestPlayer  ABadPlayer   1662.3  290.3  0.060000  3-0  1/1/2018  ExampleBracket
+TheBestPlayer  AGoodPlayer  1791.9  247.5  0.060000  3-2  1/1/2018  ExampleBracket
 ```
 
 * Creating a pr of all the players in the system
@@ -153,6 +161,14 @@ TheBestPlayer  1791.9  247.5  0.05999983
   AGoodPlayer  1564.6  245.8  0.05999914
  AnOkayPlayer  1383.4  286.9  0.05999919
    ABadPlayer  1383.4  286.9  0.05999919
+```
+
+* Printing a single player's head-to-heads/records
+
+```
+$ G2ME -R AGoodPlayer
+AGoodPlayer vs AnOkayPlayer = 1-0-0
+AGoodPlayer vs TheBestPlayer = 0-0-1
 ```
 
 * Print matchup data for all the players in the system
@@ -184,23 +200,28 @@ $ G2ME -kb SecondBracket
 $ G2ME -kb ThirdBracket
 ```
 
-Note the `-kb` instead of `-b` after the first `-b` call. `G2ME` by default
+(Note the `-kb` instead of `-b` after the first `-b` call. `G2ME` by default
 deletes all player data before running a bracket. This may seem annoying,
 but it saves a lot of `rm .players/*` and since the recommended usage is
-using `-B`, it's a non-issue.
+using `-B`, it's a non-issue.)
 
-The recommended way to do it is:
+The recommended way to do it is to create a season file, a file in which every
+line is a file path to a bracket file. For example a file named
+`ExampleSeason.sea` could have the contents:
 
 ```
-$ vim ExampleSeason.sea
-$ cat ExampleSeason.sea
 ExampleBracket
 SecondBracket
 ThirdBracket
+```
+
+We could then run the season file as input:
+
+```
 $ G2ME -B ExampleSeason.sea
-running ExampleBracket
-running SecondBracket
-running ThirdBracket
+running "ExampleBracket" ...DONE
+running "SecondBracket" ...DONE
+running "ThirdBracket" ...DONE
 ```
 
 This becomes very useful when you have seasons with lots of events, which,
@@ -223,12 +244,12 @@ This walkthrough will discuss how to do the following:
 
 ```
 $ G2ME -B TSE1ToTSE6
-running TSE1
-running TSE2
-running TSE3
-running TSE4
-running TSE5
-running TSE6
+running "TSE1" ...DONE
+running "TSE2" ...DONE
+running "TSE3" ...DONE
+running "TSE4" ...DONE
+running "TSE5" ...DONE
+running "TSE6" ...DONE
 $ G2ME -A [player_name_here]
 TSE1
 TSE2
@@ -272,8 +293,8 @@ AnOkayPlayer,-,0-0-1,-,-,
 TheBestPlayer,1-0-0,1-0-0,-,-,
 ```
 
-You can copy the output of this command and open it in something like excel
-to make a clean spreadsheet of matchup data.
+You can save the output of this command to a file, and open it in Excel (or
+your favourite alternative) to make a clean spreadsheet of matchup data.
 </p></details>
 
 #### 4. Calculate Glicko2 data using game counts instead of set counts
@@ -283,10 +304,10 @@ to make a clean spreadsheet of matchup data.
 $ G2ME -g -b ExampleBracket
 ```
 
-Start any G2ME file-changing command (`-b`, `-B`)
+Start any G2ME bracket-running command (`-b`, `-B`)
 with `-g` to calculate the Glicko2 numbers using
-game counts rather than set counts. This is **NOT** recommended as
-most of the time, it's been found to produce less accurate results
+game counts rather than set counts. This is **not** recommended as
+most of the time, it has been found to produce less accurate results
 and it is susceptible to players sandbagging.
 </p></details>
 
@@ -310,9 +331,9 @@ they won over ABadPlayer.
 
 ```
 $ G2ME -B ExampleSeason.sea
-running ExampleBracket
-running SecondBracket
-running ThirdBracket
+running "ExampleBracket" ...DONE
+running "SecondBracket" ...DONE
+running "ThirdBracket" ...DONE
 $ G2ME -m [x_here] -o pr_output
 ```
 
@@ -328,11 +349,11 @@ $ vim [filter_file_here]
 $ cat [filter_file_here]
 TheBestPlayer
 $ G2ME -b ExampleBracket
-$ G2ME -f [filter_file_here] -o pr_output
+$ G2ME -f [filter_file_here] -O
 TheBestPlayer  1791.9  247.5  0.05999983
 ```
 
-Same output a `-o` but only includes players whose name matches
+Same output a `-O`, but only includes players whose name matches
 one of the lines in `[filter_file_here]`.
 </p></details>
 
@@ -355,10 +376,10 @@ record against every player they've played so far.
 
 <details><summary>Click to Expand</summary><p>
 
-One of the most useful parts of this project is that it works quite nicely
-with Challonge, the free bracket site. In this repo there is a simple
-shell script I have written that takes the url to a challonge bracket,
-and converts it into a `G2ME` compliant bracket file. Here's an example:
+One of the most useful parts of this project is that it works quite nicely with
+Challonge, the free bracket site. In this repo there is a simple shell script I
+have written that takes the url to a challonge bracket, and converts it
+(nearly) into a `G2ME` compliant bracket file. Here's an example:
 
 ```
 $ sh convchallonge.sh [challonge_url_here] > [output_file_here]
@@ -379,7 +400,7 @@ Note that it surrounds every player tag with quotations marks. It
 is recommended that you don't use player tags for storing player
 data and rather use a player's first name and last name since
 they are less prone to change. Here's what a recommended change
-could like look when completed:
+could look like when completed:
 
 ```
 $ vim [output_file_here]
@@ -409,14 +430,6 @@ player data in the system, make sure to use the `-k` flag!
 Takes no arguments. Players no longer have their RD adjusted for missing
 an event. Default behaviour is to apply Step 6 of the Glicko2 Formula
 to each player that misses an event.
-
-### The 'a' flag
-
-`G2ME -a Julian`
-
-Takes a file path, prompts user for space-delimited entry information and then
-appends it to the given file. If you use G2ME as intended, you should never
-have to use this. Used almost exclusively for debugging and last minute fixes.
 
 ### The 'A' flag
 
@@ -475,11 +488,12 @@ the bracket, updating all the player data. For our example, in pseudo code
 it looks like:
 
 ```
+# If not given a -k flag, reset the player directory (reset player data)
 for line $i in season.sea
-	G2ME -b $i
+	G2ME -kb $i
 ```
 
-An example file
+Possible contents of `season.sea`:
 
 ```
 TSE1
@@ -595,17 +609,17 @@ using the `-g` flag only if you have few tournaments with lots of large sets
 
 `G2ME -h Julian`
 
-Stands for Output-File-in-**H**uman-Readable-Form. Can be used with shell
-commands for data parsing.
+Stands for Glicko2 **H**istory. Can be used with shell commands for data
+parsing.
 
 Example output (from command above):
 
 ```
-Julian  Mirza    1698.8  69.3  0.059960  0-1  24/11/2017  TT7
-Julian  Jonah    1694.1  69.3  0.059959  0-1  1/12/2017   TT8
-Julian  Andrew   1698.9  69.3  0.059957  1-0  1/12/2017   TT8
-Julian  Edward   1710.7  68.8  0.059957  1-0  1/12/2017   TT8
-Julian  Mirza    1700.3  68.4  0.059955  0-1  1/12/2017   TT8
+Julian  Mirza   1698.8   69.3  0.059960  0-3  24/11/2017  TT7
+Julian  Jonah   1694.1   69.3  0.059959  0-2  1/12/2017   TT8
+Julian  Andrew  1698.8   69.3  0.059957  2-1  1/12/2017   TT8
+Julian  Edward  1710.7   68.8  0.059957  2-1  1/12/2017   TT8
+Julian  Mirza   1700.3   68.3  0.059955  1-3  1/12/2017   TT8
 ```
 
 ### The 'k' flag
@@ -674,44 +688,18 @@ containing all players in `player_dir`.
 Example output (aka `2017pr` after running the command above):
 
 ```
-   Jon  2119.9   95.0  0.05998555
- Jonah  1948.9   81.9  0.05997680
-Isaiah  1870.7   81.6  0.05997892
-  Josh  1800.0   90.0  0.05998035
- Ralph  1776.5  101.5  0.05998667
-  DeZy  1770.8   90.9  0.05998575
-Julian  1719.9   69.9  0.05996194
-Edward  1695.6   86.7  0.05998215
- Bilal  1669.7   72.6  0.05998048
-Jerome  1622.6   87.8  0.05999483
- Kriss  1580.8   83.7  0.05997938
+   Jon  2096.9   86.4  0.05998253
+ Jonah  1952.7   78.9  0.05997614
+Isaiah  1868.1   81.7  0.05997935
+  Josh  1855.0   84.5  0.05997642
+ Mirza  1769.3   79.0  0.05997854
+Julian  1700.3   68.3  0.05995536
+ Bilal  1696.7   68.9  0.05997426
+Edward  1664.1   83.9  0.05998085
+Jerome  1622.1   89.0  0.05999465
+ Kriss  1580.9   84.8  0.05997963
+  Theo  1579.3   97.0  0.05997789
 ```
-
-### The 'P' flag
-
-`G2ME -P pr -b bracket`
-
-The `-P` flag is to be used before the `-b` flag. It makes the system adjust
-player's data if they were not present in the given bracket. It takes the same
-format as the pr file as it is a player list file. For example:
-
-```
-Julian
-Isaiah
-James
-```
-
-Now when doing the Glicko 2 calculations, if `Julian`, `Isaiah`, or `James`
-did not attend a given event, they will receive the absence punishment which
-in Glicko 2 terms means a function is applied to their rd that raises it
-slightly.
-
-### The 'r' flag
-
-`G2ME -r Julian`
-
-The `-r` flag takes a player file, prompts the user for a new name and changes
-the player file's Player 1 data to have the new name.
 
 ### The 'R' flag
 
@@ -731,11 +719,6 @@ Julian vs Bilal = 1-0-3
 Julian vs John = 4-0-0
 ```
 
-### The 't' flag
-
-Takes no arguments. After running all flags, outputs a line to
-`stdout` stating how long running all the flags took in seconds.
-
 ### The 'v' flag
 
 Takes no arguments. Modifies the output of some option flags (like
@@ -752,24 +735,29 @@ not recommended for use.**
 
 ## The Glicko2 System Explained
 
-In chess they use only one number to represent skill. Your elo.
-There are several possible issues with this. The same rating from 2 players
-playing for vastly different amounts of time have no tangible difference.
-Glicko fixes this by adding `RD` aka Rating Deviation (literally the
-Standard Deviation of that players Rating). This allows future calculations
-to factor in the certainty of someones rating. The more sure the system is of
-the loser's rating, (usually) the larger the change in the winner's rating.
-Glicko2 also uses one other number. Volatility. This number usually defaults
-to 0.06 (although it depends on the system and who's managing it) and the
-higher it is, the more erratic that players results have been. This number
-is also used in calculations to reduce the effect on a player who was upset
-by a player with erratic placings and inversely, to reduce the increase in
-rating for the erratic player who just upset someone.
+In chess they often use elo to generate a number that represents your skill.
+Some have raised concerns with elo as a rating system. For instance, consider 2
+players with the same rating, but who have been playing for vastly different
+amounts of time. One who has only just played their first set, the other who
+has been playing at this club (or what have you) for years. In ELO, They have
+no discernible difference. They have only one number representing
+each of them and no way of representing novelty. Glicko2 fixes this by
+adding `RD` aka Rating Deviation (literally the Standard Deviation of that
+players Rating). This allows future calculations to factor in the certainty of
+someones rating. The more sure the system is of the loser's rating, (usually)
+the larger the change in the winner's rating.  Glicko2 also uses one other
+number. Volatility. This number usually defaults to 0.06 (although it depends
+on the system and who's managing it) and the higher it is, the more erratic
+that player's results have been. This number is also used in calculations to
+reduce the effect on a player who was upset (lost a set/game as the favourite) by
+a player with erratic placings and inversely, to reduce the increase in rating
+for the erratic player who just upset someone.
 
-Long story short, the rating is still the most important number but the manager
-can use RD (and/or volatility) to determine if they have enough concrete data
-on a player to include them in their pr, for example. Other uses include just
-a volatility pr/consistency pr.
+Long story short, Glicko2 adds 2 other numbers to help represent a player and
+facilitate more accurate ratings. To the end user, the rating is still the most
+important number, but the manager can use RD (and/or volatility) to determine
+if they have enough concrete data on a player to include them in their pr, for
+example. Other uses include just a volatility pr/consistency pr.
 
 ## The Player File Format
 
