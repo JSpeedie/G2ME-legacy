@@ -67,7 +67,7 @@ char player_dir[MAX_FILE_PATH_LEN];
 char data_dir[MAX_FILE_PATH_LEN];
 
 int get_record(char *, char *, struct record *);
-struct record *get_all_records(char *, int *);
+struct record *get_all_records(char *, long *);
 
 struct entry temp;
 
@@ -1189,9 +1189,11 @@ int get_record(char *player1, char *player2, struct record *ret) {
  * \return a pointer to a 'struct record' that is an array of 'struct record's
  *     indexed by 'opp_id'. Returns NULL on failure.
  */
-struct record *get_all_records(char *file_path, int *num_of_records) {
+struct record *get_all_records(char *file_path, long *num_of_records) {
 
-	*num_of_records = entry_file_number_of_opponents(file_path);
+	short *opp_id_list = NULL;
+	short **p_opp_id_list = &opp_id_list;
+	*num_of_records = entry_file_number_of_opponents(file_path, p_opp_id_list);
 	struct record *ret = (struct record *)malloc(sizeof(struct record) * *num_of_records);
 	/* Read the starter data in the file */
 	struct entry ent;
@@ -1210,9 +1212,16 @@ struct record *get_all_records(char *file_path, int *num_of_records) {
 		ret[i].ties = 0;
 	}
 
-	// CONSIDER: get number of entries for every opponent (long array) (only if verbose?)
-	long *num_outcome_all = entry_file_get_all_number_of_outcomes_against(file_path);
-	// Array containing the current number of entries for a given opponent
+	/* Get number of entries for every opponent */
+	// CONSIDER: only do if verbose? (Only used if verbose)
+	long *num_outcome_all = \
+		entry_file_get_all_number_of_outcomes_against(file_path, *num_of_records, opp_id_list);
+	for (int k = 0; k < *num_of_records; k++) {
+		struct entry E2;
+		E2.opp_id = opp_id_list[k];
+		entry_file_get_name_from_id(0, &E2);
+	}
+	/* Array containing the current number of entries for a given opponent */
 	int *cur_opp_ent_num = calloc(*num_of_records, sizeof(int));
 	struct record temp;
 	unsigned long num_of_last_outcomes = sizeof(temp.last_outcomes) - 1;
@@ -1228,51 +1237,62 @@ struct record *get_all_records(char *file_path, int *num_of_records) {
 
 	short prev_entrys_season = 0;
 	while (entry_file_read_entry(p_file, &ent) == 0) {
-		// CONSIDER: OPT: replace this triple check every entry with a function
+		int j = 0;
+		/* Find position (j) of opp_id being searched for */
+		for (j = 0; j < *num_of_records; j++) {
+			if (ent.opp_id == opp_id_list[j]) {
+				break;
+			}
+		}
+		// CONSIDER: OPT: replace this triple check every entry with a fu nction
 		//            that sets names once.
 		/* if this is the first time updating the player's record */
-		if (ret[ent.opp_id].wins == 0 \
-			&& ret[ent.opp_id].ties == 0 \
-			&& ret[ent.opp_id].losses == 0) {
+		if (ret[j].wins == 0 \
+			&& ret[j].ties == 0 \
+			&& ret[j].losses == 0) {
 
 			// TODO: actually get player2 name from their file.
 			// '*player2' is just a file name
-			strncpy(ret[ent.opp_id].opp_name, ent.opp_name, MAX_NAME_LEN);
+			strncpy(ret[j].opp_name, ent.opp_name, MAX_NAME_LEN);
 		}
 
-		/* If the entry is a non-competitor (RD-adjustment), ignore */
-		if (ent.is_competitor == 0) continue;
-		if (ent.gc > ent.opp_gc) ret[ent.opp_id].wins += 1;
-		else if (ent.gc == ent.opp_gc) ret[ent.opp_id].ties += 1;
-		else if (ent.gc < ent.opp_gc) ret[ent.opp_id].losses += 1;
+		/* Only update if the player has sets against this opponent */
+		if (num_outcome_all[j] > 0) {
+			/* If the entry is a non-competitor (RD-adjustment), ignore */
+			if (ent.is_competitor == 0) continue;
+			if (ent.gc > ent.opp_gc) ret[j].wins += 1;
+			else if (ent.gc == ent.opp_gc) ret[j].ties += 1;
+			else if (ent.gc < ent.opp_gc) ret[j].losses += 1;
 
-		/* If the season changed, add season markers to output strings */
-		if (ent.season_id != prev_entrys_season) {
-			for (int i = 0; i < *num_of_records; i++) {
-				ret[i].last_outcomes[cur_opp_ent_num[i]] = '|';
-				cur_opp_ent_num[i]++;
+			/* If the season changed, add season markers to output strings */
+			if (ent.season_id != prev_entrys_season) {
+				for (int i = 0; i < *num_of_records; i++) {
+					ret[i].last_outcomes[cur_opp_ent_num[i]] = '|';
+					cur_opp_ent_num[i]++;
+				}
+				prev_entrys_season = ent.season_id;
 			}
-			prev_entrys_season = ent.season_id;
-		}
-		/* If the current entry is one of the last x many,
-		 * add it to the recent outcome list */
-		if ((unsigned long)(num_outcome_all[ent.opp_id] - cur_opp_ent_num[ent.opp_id] + prev_entrys_season)
-			< num_of_last_outcomes) {
+			/* If the current entry is one of the last x many,
+			 * add it to the recent outcome list */
+			if ((unsigned long)(num_outcome_all[j] - cur_opp_ent_num[j] + prev_entrys_season)
+				< num_of_last_outcomes) {
 
-			if (ent.gc > ent.opp_gc) {
-				ret[ent.opp_id].last_outcomes[cur_opp_ent_num[ent.opp_id]] = 'W';
-			} else if (ent.gc == ent.opp_gc) {
-				ret[ent.opp_id].last_outcomes[cur_opp_ent_num[ent.opp_id]] = 'T';
-			/* Assert: (ent.gc < ent.opp_gc) */
-			} else {
-				ret[ent.opp_id].last_outcomes[cur_opp_ent_num[ent.opp_id]] = 'L';
+				if (ent.gc > ent.opp_gc) {
+					ret[j].last_outcomes[cur_opp_ent_num[j]] = 'W';
+				} else if (ent.gc == ent.opp_gc) {
+					ret[j].last_outcomes[cur_opp_ent_num[j]] = 'T';
+				/* Assert: (ent.gc < ent.opp_gc) */
+				} else {
+					ret[j].last_outcomes[cur_opp_ent_num[j]] = 'L';
+				}
 			}
+			cur_opp_ent_num[j]++;
 		}
-		cur_opp_ent_num[ent.opp_id]++;
 	}
 	for (int i = 0; i < *num_of_records; i++) {
 		ret[i].last_outcomes[cur_opp_ent_num[i]] = '\0';
 	}
+	free(opp_id_list);
 	free(num_outcome_all);
 	free(cur_opp_ent_num);
 	fclose(p_file);

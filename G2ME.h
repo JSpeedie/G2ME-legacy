@@ -37,7 +37,7 @@ typedef struct record {
 
 /* Records */
 int get_record(char *, char *, struct record *);
-struct record *get_all_records(char *, int *);
+struct record *get_all_records(char *, long *);
 
 
 /* Adjustments */

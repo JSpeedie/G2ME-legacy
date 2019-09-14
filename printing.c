@@ -362,7 +362,7 @@ int print_player_file(char* file_path) {
 // TODO: improve efficiency for checking players pass filters
 int print_player_records(char *file_path) {
 	/* Get all records and sort them alphabetically */
-	int num_rec = 0;
+	long num_rec = 0;
 	// TODO: add filter to get_all_records, array indexed by opp_id, contains ret array index
 	struct record *records = get_all_records(file_path, &num_rec);
 	merge_sort_player_records(records, num_rec);
@@ -381,21 +381,24 @@ int print_player_records(char *file_path) {
 		 * RD adjustments don't have player files */
 		// TODO: add is_competitor to records struct
 		if (0 != strcmp(records[i].opp_name, "-")) {
-			char *full_player_path = \
-				player_dir_file_path_with_player_dir(records[i].opp_name);
-			entry_file_get_events_attended(full_player_path, &attended_count);
-			free(full_player_path);
-		}
-
-		if (attended_count >= pr_minimum_events) {
-			passes_filter = 1;
-			/* If there is no record data (this should only be executed
-			 * for the RD adjustment name "-" */
+			/* If there is no record data */
 			if (records[i].wins == 0
 				&& records[i].ties == 0
 				&& records[i].losses == 0) {
 				continue;
+			} else {
+				// TODO: re implement
+				//char *full_player_path = \
+				//	player_dir_file_path_with_player_dir(records[i].opp_name);
+				//entry_file_get_events_attended(full_player_path, &attended_count);
+				//free(full_player_path);
 			}
+		} else {
+			continue;
+		}
+
+		if (attended_count >= pr_minimum_events) {
+			passes_filter = 1;
 			/* Filter players to be the ones in the given '-f' flag file */
 			if (f_flag_used == 1) {
 				passes_filter = 0;
@@ -453,8 +456,8 @@ int print_player_records(char *file_path) {
 			}
 
 			fprintf(stdout, "%s vs %s%s%s = %d",
-					records[i].name, output_colour_player, records[i].opp_name, \
-					reset_colour_player, records[i].wins);
+				records[i].name, output_colour_player, records[i].opp_name, \
+				reset_colour_player, records[i].wins);
 			// If the user wants ties to be printed
 			if (print_ties == 1) {
 				fprintf(stdout, "-%d", records[i].ties);
