@@ -46,7 +46,6 @@ const char ERROR_PLAYER_DNE[] = { "Error: the given player could not be found "
 	"in working directory or the given player directory\n"};
 
 char flag_output_to_stdout = 0;
-char flag_time_program = 0;
 char verbose = 0;
 char use_games = 0;
 char keep_players = 0;
@@ -55,21 +54,17 @@ char colour_output = 1;
 char print_ties = 1;
 char player_list_file[MAX_FILE_PATH_LEN];
 char calc_absent_players = 1;
-char calc_absent_players_with_file = 0;
 double outcome_weight = 1;
 /* TODO: make it dynamically realloc */
 char tournament_names[MAX_NAME_LEN][512];
 unsigned char tournament_names_len = 0;
 char filter_file_path[MAX_FILE_PATH_LEN];
 char f_flag_used = 0;
-char p_flag_used = 0;
 char player_dir[MAX_FILE_PATH_LEN];
 char data_dir[MAX_FILE_PATH_LEN];
 
 int get_record(char *, char *, struct record *);
 struct record *get_all_records(char *, long *);
-
-struct entry temp;
 
 /** Initializes a struct player based off of the information found in a
  * struct entry.
@@ -380,57 +375,6 @@ void adjust_absent_players_no_file(char day, char month, \
 	/* At this point all the kids have exited, parent can continue */
 }
 
-/** Takes a file path representing a file containing a list of file paths
- * to player files. All players who did not compete but are in the list,
- * get their Glicko2 data adjusted. Unless their last RD adjustment
- * was within the same day.
- *
- * \param '*player_list' the file path of the player list file.
- * \param '*t_name' a string containing the name of the tournament.
- * \return void.
- */
-void adjust_absent_players(char* player_list, char day, char month, \
-	short year, short t_id, char* t_name) {
-
-	FILE *player_file = fopen(player_list, "r");
-	if (player_file == NULL) {
-		perror("fopen (adjust_absent_players)");
-		return;
-	}
-
-	char line[MAX_FILE_PATH_LEN];
-	char did_not_comp = 1;
-	/* get list of player names that did not compete
-	 * apply step 6 to them and append to player file */
-
-	/* Iterate through list of all the players the system manager wants
-	 * to track */
-	while (fgets(line, sizeof(line), player_file)) {
-		/* Reset variable to assume player did not compete */
-		did_not_comp = 1;
-		/* Replace newline with null terminator */
-		char *end_of_line = strchr(line, '\n');
-		if (end_of_line == NULL) {
-			perror("strchr (filter_player_list)");
-			return;
-		}
-		*end_of_line = '\0';
-		for (int i = 0; i < tournament_names_len; i++) {
-			/* If the one of the player who the system manager wants to track
-			 * is found in the list of competitors at the tourney */
-			if (0 == strcmp(line, tournament_names[i])) {
-				did_not_comp = 0;
-				break;
-			}
-		}
-
-		if (did_not_comp) {
-			adjust_absent_player(line, day, month, year, t_id, t_name);
-		}
-	}
-
-	fclose(player_file);
-}
 
 /** Takes a bracket file and updates the ratings of all the players
  * mentioned in the bracket file as well as those specified in TODO another
@@ -587,7 +531,7 @@ int update_players(char* bracket_file_path, short season_id) {
 			"%s %s %hhd %hhd %hhd %hhd %hd", \
 			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
 #endif
-		if (calc_absent_players_with_file || calc_absent_players == 1) {
+		if (calc_absent_players == 1) {
 			char already_in = 0;
 			char already_in2 = 0;
 			for (int i = 0; i < tournament_names_len; i++) {
@@ -700,8 +644,6 @@ int update_players(char* bracket_file_path, short season_id) {
 
 	if (calc_absent_players == 1) {
 		adjust_absent_players_no_file(day, month, year, Et.tournament_id, t_name);
-	} else if (calc_absent_players_with_file) {
-		adjust_absent_players(player_list_file, day, month, year, Et.tournament_id, t_name);
 	}
 
 	return 0;
@@ -1377,7 +1319,6 @@ int filter_player_list(char **players_pointer, int *num_players, \
 
 int main(int argc, char **argv) {
 
-
 	int opt;
 	struct option opt_table[] = {
 		/* Don't make RD adjustments for players absent
@@ -1397,7 +1338,7 @@ int main(int argc, char **argv) {
 		{ "filter",		required_argument,	NULL,	'f' },
 		{ "use-games",		no_argument,		NULL,	'g' },
 		/* Output given player file in human readable form */
-		{ "human",			required_argument,	NULL,	'h' },
+		{ "history",			required_argument,	NULL,	'h' },
 		/* Don't delete the player files when running a new bracket */
 		{ "keep-players",	no_argument,		NULL,	'k' },
 		/* Output last entry in given player file in human readable form */
@@ -1407,16 +1348,12 @@ int main(int argc, char **argv) {
 		{ "no-ties",		required_argument,	NULL,	'N' },
 		{ "output",			required_argument,	NULL,	'o' },
 		{ "stdout",			no_argument,	NULL,	'O' },
-		{ "prompt",				no_argument,	NULL,	'p' },
-		{ "P",				required_argument,	NULL,	'P' },
-		{ "refactor",		required_argument,	NULL,	'r' },
 		{ "records",		required_argument,	NULL,	'R' },
-		{ "time",			no_argument,		NULL,	't' },
 		{ "verbose",		no_argument,		NULL,	'v' },
 		{ "weight",			required_argument,	NULL,	'w' },
 		{ 0, 0, 0, 0 }
 	};
-	char opt_string[] = { "0A:b:B:c:Cd:ef:gh:km:MnNo:OpP:r:R:tvw:" };
+	char opt_string[] = { "0A:b:B:c:Cd:ef:gh:km:MnNo:OR:vw:" };
 
 	/* 1.1. Initialize player_dir to the file path for the player directory */
 	memset(player_dir, 0, sizeof(player_dir));
@@ -1424,9 +1361,6 @@ int main(int argc, char **argv) {
 	/* 1.2. Initialize data_dir to the file path for the data directory */
 	memset(data_dir, 0, sizeof(data_dir));
 	strncpy(data_dir, DATA_DIR, sizeof(data_dir) - 1);
-
-	clock_t t;
-	t = clock();
 
 	while ((opt = getopt_long(argc, argv, opt_string, opt_table, NULL)) != -1) {
 		if (opt == 'A') {
@@ -1463,16 +1397,6 @@ int main(int argc, char **argv) {
 				else print_player_file(full_player_path);
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
-		} else if (opt == 'r') {
-			if (0 == player_dir_check_and_create()) {
-				char *full_player_path = player_dir_file_path_with_player_dir(optarg);
-				if (access(full_player_path, R_OK | W_OK) == -1) {
-					fprintf(stderr, ERROR_PLAYER_DNE);
-					return -1;
-				}
-				entry_file_refactor_name(full_player_path);
-				free(full_player_path);
-			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		} else if (opt == 'R') {
 			if (0 == player_dir_check_and_create()) {
 				char *full_player_path = player_dir_file_path_with_player_dir(optarg);
@@ -1493,16 +1417,16 @@ int main(int argc, char **argv) {
 					run_single_bracket(optarg);
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
-			case 'C':
-				if (0 == player_dir_check_and_create()) {
-					print_matchup_table_csv(); break;
-				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 			case 'B':
 				if (0 == player_dir_check_and_create()) {
 					if (keep_players == 0) player_dir_reset_players();
 					run_brackets(optarg);
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
+			case 'C':
+				if (0 == player_dir_check_and_create()) {
+					print_matchup_table_csv(); break;
+				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 			case 'e':
 				if (0 == player_dir_check_and_create()) {
 					player_dir_reset_players();
@@ -1519,14 +1443,6 @@ int main(int argc, char **argv) {
 			case 'M': print_matchup_table(); break;
 			case 'n': colour_output = 0; break;
 			case 'N': print_ties = 0; break;
-			case 'w': outcome_weight = strtod(optarg, NULL); break;
-			case 'p':
-				p_flag_used = 1;
-				break;
-			case 'P':
-				calc_absent_players_with_file = 1;
-				strncpy(player_list_file, optarg, sizeof(player_list_file) - 1);
-				break;
 			case 'o':
 				if (0 == player_dir_check_and_create()) {
 					if (f_flag_used) {
@@ -1551,15 +1467,9 @@ int main(int argc, char **argv) {
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'v': verbose = 1; break;
-			case 't': flag_time_program = 1; break;
+			case 'w': outcome_weight = strtod(optarg, NULL); break;
 		}
 	}
 
-	if (flag_time_program == 1) {
-		t = clock() - t;
-		/* Convert to seconds */
-		double time_taken = ((double)t)/CLOCKS_PER_SEC;
-    	fprintf(stdout, "NOTE: took %lf seconds\n", time_taken);
-	}
     return 0;
 }

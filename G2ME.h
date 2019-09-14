@@ -13,7 +13,6 @@
 extern char flag_output_to_stdout;
 extern char colour_output;
 extern char f_flag_used;
-extern char p_flag_used;
 extern char verbose;
 extern char print_ties;
 extern char player_dir[MAX_FILE_PATH_LEN];
@@ -35,32 +34,38 @@ typedef struct record {
 }Record;
 
 
-/* Records */
-int get_record(char *, char *, struct record *);
-struct record *get_all_records(char *, long *);
-
-
-/* Adjustments */
-void adjust_absent_player(char *, char, char, short, short, char *);
-void adjust_absent_players_no_file(char, char, short, short, char *);
-void adjust_absent_players(char *, char, char, short, short, char *);
-
-
+/* struct player and struct entry helpers */
 void init_player_from_entry(struct player *, struct entry *);
 struct entry create_entry(struct player *, char *, char *, \
 	char, char, char, char, short, char *, short);
 
 
-
-void write_entry_from_input(char *);
 void update_player_on_outcome(short, char *, short, char *, struct player *, \
 	struct player *, char *, char *, char, char, short, short, char *, short);
+
+
+/* Adjustments */
+void adjust_absent_player(char *, char, char, short, short, char *);
+void adjust_absent_players_no_file(char, char, short, short, char *);
+
+
+/* Glicko2 number crunching functions */
 int update_players(char *, short);
 int run_single_bracket(char *);
 int run_brackets(char *);
+
+
+/* Generate Ratings */
 int generate_ratings_file(char *, char *);
 int generate_ratings_file_full(char *);
-void num_players_in_player_dir(int *);
+
+
+/* Records */
+int get_record(char *, char *, struct record *);
+struct record *get_all_records(char *, long *);
+
+
+/* Random helper functions */
 unsigned long int longest_name(char *, int);
 int filter_player_list(char **, int *, char *);
 
