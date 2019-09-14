@@ -270,8 +270,8 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
 				latest_ent.RD = getRd(&P);
 				/* Change qualities of the entry to reflect
 				 * that it was not a real set, but a
-				 * did_not_compete */
-				strcpy(latest_ent.opp_name, "-");
+				 * did_not_compete. opp_id of 0 is the opp_id of "-" */
+				latest_ent.opp_id = 0;
 				latest_ent.len_opp_name = strlen(latest_ent.opp_name);
 				latest_ent.gc = 0;
 				latest_ent.opp_gc = 0;
