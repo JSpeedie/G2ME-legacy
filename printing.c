@@ -387,11 +387,15 @@ int print_player_records(char *file_path) {
 				&& records[i].losses == 0) {
 				continue;
 			} else {
-				// TODO: re implement
-				//char *full_player_path = \
-				//	player_dir_file_path_with_player_dir(records[i].opp_name);
-				//entry_file_get_events_attended(full_player_path, &attended_count);
-				//free(full_player_path);
+				/* No need to retrieve attended_count if the minimum
+				 * criteria is zero */
+				if (pr_minimum_events != 0) {
+					char *full_player_path = \
+						player_dir_file_path_with_player_dir(records[i].opp_name);
+					attended_count = \
+						entry_file_get_events_attended_count(full_player_path);
+					free(full_player_path);
+				}
 			}
 		} else {
 			continue;
