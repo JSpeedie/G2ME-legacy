@@ -821,6 +821,16 @@ int entry_file_get_to_entries(FILE *f) {
 	return 0;
 }
 
+
+/** Reads the all entries in a player file, returns the number of unique
+ * opponents within, and alters '**ret_opp_id_list' to pointer to an
+ * array of shorts containing all the unique opponent ids.
+ *
+ * \param '*file_path' file path to a player file.
+ * \param '**ret_opp_id_list' pointer to a short pointer. The short pointer
+ *     will be updated to memory address of a opp_id_list created in this
+ *     function. It must be freed after.
+ */
 long entry_file_number_of_opponents(char *file_path, short **ret_opp_id_list) {
 	int ret = 0;
 	FILE *p_file = fopen(file_path, "rb");
