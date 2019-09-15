@@ -154,12 +154,12 @@ int opp_file_add_new_opponent(struct entry *E) {
 
 	FILE *opp_file = fopen(file_path, "rb");
 	if (opp_file == NULL) {
-		perror("fopen (entry_file_add_new_tournament)");
+		perror("fopen (t_file_add_new_tournament)");
 		return -1;
 	}
 	FILE *new_file = fopen(new_file_name, "wb+");
 	if (new_file == NULL) {
-		perror("fopen (entry_file_add_new_tournament)");
+		perror("fopen (t_file_add_new_tournament)");
 		return -2;
 	}
 #endif
@@ -313,7 +313,7 @@ int t_file_add_new_tournament(struct entry *E) {
 	FILE *t_file = fopen(full_t_file_path, "rb");
 	if (t_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (entry_file_add_new_tournament): ", \
+			"Error opening file %s (t_file_add_new_tournament): ", \
 			full_t_file_path);
 		perror("");
 		return -1;
@@ -327,7 +327,7 @@ int t_file_add_new_tournament(struct entry *E) {
 	FILE *new_file = fopen(new_file_name, "wb+");
 	if (new_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (entry_file_add_new_tournament): ", \
+			"Error opening file %s (t_file_add_new_tournament): ", \
 			new_file_name);
 		perror("");
 		return -2;
@@ -354,12 +354,12 @@ int t_file_add_new_tournament(struct entry *E) {
 
 	FILE *t_file = fopen(file_path, "rb");
 	if (t_file == NULL) {
-		perror("fopen (entry_file_add_new_tournament)");
+		perror("fopen (t_file_add_new_tournament)");
 		return -1;
 	}
 	FILE *new_file = fopen(new_file_name, "wb+");
 	if (new_file == NULL) {
-		perror("fopen (entry_file_add_new_tournament)");
+		perror("fopen (t_file_add_new_tournament)");
 		return -2;
 	}
 #endif
@@ -419,7 +419,7 @@ int t_file_add_new_tournament(struct entry *E) {
 	FILE *t_id_file = fopen(full_t_id_file_path, "rb+");
 	if (t_id_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (entry_file_add_new_tournament): ", \
+			"Error opening file %s (t_file_add_new_tournament): ", \
 			full_t_id_file_path);
 		perror("");
 		return -1;
@@ -440,9 +440,14 @@ int t_file_add_new_tournament(struct entry *E) {
 }
 
 
-/* Sets opp_name based on opp_id */
-// TODO: write doc
-int entry_file_get_name_from_id(FILE *f, struct entry *E) {
+/** Takes a struct entry with a set 'opp_id', finds its associated
+ * opp_name and fills in the struct entry's 'opp_name' with it.
+ *
+ * \param '*E' the struct entry with a set 'opp_id'
+ * \return integer representing whether the function failed or succeeded.
+ *     It will return < 0 if the function failed, and 0 if it succeeded.
+ */
+int opp_file_get_name_from_id(struct entry *E) {
 
 	int j = 0;
 	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
@@ -475,32 +480,46 @@ int entry_file_get_name_from_id(FILE *f, struct entry *E) {
 	return 0;
 }
 
-int entry_file_get_id_from_name(FILE *f, struct entry *E) {
 
-	fseek(f, 0, SEEK_SET);
+/** Takes a struct entry with a set 'opp_name', finds its associated
+ * opp_id and fills in the struct entry's 'opp_id with it.
+ *
+ * \param '*E' the struct entry with a set 'opp_name'
+ * \return integer representing whether the function failed or succeeded.
+ *     It will return < 0 if the function failed, and 0 if it succeeded.
+ */
+int opp_file_get_id_from_name(struct entry *E) {
+	char *full_opp_file_path = data_dir_file_path_opp_file();
+	FILE* opp_file = fopen(full_opp_file_path, "rb+");
+	if (opp_file == NULL) {
+		fprintf(stderr, "Error opening file %s (opp_file_get_id_from_name): ", full_opp_file_path);
+		perror("");
+		return -1;
+	}
+
 	unsigned short num_opp;
-	if (1 != fread(&num_opp, sizeof(short), 1, f)) return -7;
+	if (1 != fread(&num_opp, sizeof(short), 1, opp_file)) return -7;
 
 	// TODO: change to binary search
 	for (int i = 0; i < num_opp; i++) {
 		/* Read corresponding opp_id */
 		short opp_id = -1;
-		if (1 != fread(&opp_id, sizeof(short), 1, f)) return -8;
+		if (1 != fread(&opp_id, sizeof(short), 1, opp_file)) return -8;
 
 		int j = 0;
 		char read = '\1';
 		char right_name = 1;
 		/* Read first byte and add to temp name */
-		if (1 != fread(&read, sizeof(char), 1, f)) return -9;
+		if (1 != fread(&read, sizeof(char), 1, opp_file)) return -9;
 		if (read != E->opp_name[j]) { right_name = 0; }
 		j++;
 		/* Provided it hasn't hit a null terminator or end of file */
-		while (read != '\0' && j < MAX_NAME_LEN && !(feof(f))) {
-			if (1 != fread(&read, sizeof(char), 1, f)) return -11;
+		while (read != '\0' && j < MAX_NAME_LEN && !(feof(opp_file))) {
+			if (1 != fread(&read, sizeof(char), 1, opp_file)) return -11;
 			/* If the name differs at any point, it isn't the same name */
 			if (read != E->opp_name[j]) {
 				right_name = 0;
-				fseek(f, MAX_NAME_LEN - j, SEEK_CUR);
+				fseek(opp_file, MAX_NAME_LEN - j, SEEK_CUR);
 			}
 			j++;
 		}
@@ -510,6 +529,7 @@ int entry_file_get_id_from_name(FILE *f, struct entry *E) {
 			break;
 		}
 	}
+	fclose(opp_file);
 	/* The opponent name was not found, return -1 */
 	return E->opp_id;
 }
@@ -644,8 +664,8 @@ int entry_file_read_entry(FILE *f, struct entry *E) {
 	/* Sets opp_name and len_opp_name of E to be according to opponent
 	 * name E->opp_id */
 	int r;
-	if (0 != (r = entry_file_get_name_from_id(f, E))) {
-		fprintf(stderr, "Error (%d) on entry_file_get_name_from_id() searching for id (%d)\n", r, E->opp_id);
+	if (0 != (r = opp_file_get_name_from_id(E))) {
+		fprintf(stderr, "Error (%d) on opp_file_get_name_from_id() searching for id (%d)\n", r, E->opp_id);
 		return -12;
 	}
 	/* Sets t_name and len_t_name of E to be according to tournament
@@ -702,8 +722,8 @@ int entry_file_read_next_opp_entry(FILE *f, struct entry *E, short opp_id) {
 	/* Sets opp_name and len_opp_name of E to be according to opponent
 	 * name E->opp_id */
 	int r;
-	if (0 != (r = entry_file_get_name_from_id(f, E))) {
-		perror("entry_file_get_name_from_id (read_entry)");
+	if (0 != (r = opp_file_get_name_from_id(E))) {
+		perror("opp_file_get_name_from_id (read_entry)");
 		return -12;
 	}
 	/* Sets t_name and len_t_name of E to be according to tournament

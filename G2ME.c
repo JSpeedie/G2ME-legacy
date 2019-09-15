@@ -1087,7 +1087,7 @@ int get_record(char *player1, char *player2, struct record *ret) {
 		perror("fopen (get_record)");
 		return -1;
 	}
-	if (0 != entry_file_get_id_from_name(opp_file, &ent)) return -3;
+	if (0 != opp_file_get_id_from_name(&ent)) return -3;
 
 	while (entry_file_read_next_opp_entry(p_file, &ent, ent.opp_id) == 0) {
 		/* If the opponent for the given entry is the player of interest */
@@ -1161,7 +1161,7 @@ struct record *get_all_records(char *file_path, long *num_of_records) {
 	for (int k = 0; k < *num_of_records; k++) {
 		struct entry E2;
 		E2.opp_id = opp_id_list[k];
-		entry_file_get_name_from_id(0, &E2);
+		opp_file_get_name_from_id(&E2);
 	}
 	/* Array containing the current number of entries for a given opponent */
 	int *cur_opp_ent_num = calloc(*num_of_records, sizeof(int));

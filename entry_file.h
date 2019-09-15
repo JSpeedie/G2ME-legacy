@@ -38,8 +38,8 @@ int t_file_add_new_tournament(struct entry *);
 
 
 /* Opp file conversion functions */
-int entry_file_get_name_from_id(FILE *, struct entry *);
-int entry_file_get_id_from_name(FILE *, struct entry *);
+int opp_file_get_name_from_id(struct entry *);
+int opp_file_get_id_from_name(struct entry *);
 
 
 /* Tournament file conversion functions */
