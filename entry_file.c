@@ -489,6 +489,7 @@ int opp_file_get_name_from_id(struct entry *E) {
  *     It will return < 0 if the function failed, and 0 if it succeeded.
  */
 int opp_file_get_id_from_name(struct entry *E) {
+
 	char *full_opp_file_path = data_dir_file_path_opp_file();
 	FILE* opp_file = fopen(full_opp_file_path, "rb+");
 	if (opp_file == NULL) {
@@ -535,29 +536,29 @@ int opp_file_get_id_from_name(struct entry *E) {
 }
 
 
-/** Takes an open file, and an entry containing the tournament id to be
- * searched for. Updates the entry's t_name field, given the id of a
- * tournament. Returns a negative value if there was an error.
+/** Takes an entry containing the tournament id to be searched for. Updates the
+ * struct entry's 't_name' field to the tournament name associated with the
+ * given 'tournament_id'.
  *
- * \param '*f' the open file to be searched.
  * \param '*E' the struct entry containing the tournament id to be
- *     searched for and which will have its t_name field updated to
- *     the name if this function is successful.
- * \return 0 upon success, and negative value if there was an error.
+ *     searched for, and which will have its 't_name' field updated to
+ *     the name, if this function is successful.
+ * \return 0 upon success, and a negative value if there was an error.
  */
-int entry_file_get_tournament_name_from_id(FILE *f, struct entry *E) {
+int t_file_get_tournament_name_from_id(struct entry *E) {
+
 	char *full_t_id_file_path = data_dir_file_path_t_id_file();
 	FILE* t_id_file = fopen(full_t_id_file_path, "rb+");
 	if (t_id_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (entry_file_get_tournament_name_from_id): ", \
+			"Error opening file %s (t_file_get_tournament_name_from_id): ", \
 			full_t_id_file_path);
 		perror("");
 		return -1;
 	}
 
 	unsigned short num_t;
-	if (1 != fread(&num_t, sizeof(short), 1, t_id_file )) return -2;
+	if (1 != fread(&num_t, sizeof(short), 1, t_id_file)) return -2;
 	/* If the id is outside of the range of the array */
 	if (E->tournament_id >= num_t) return -3;
 	/* Seek to the location of the name in the file by using its id */
@@ -579,44 +580,50 @@ int entry_file_get_tournament_name_from_id(FILE *f, struct entry *E) {
 	return 0;
 }
 
-/** Takes an open file, and an entry containing the tournament name to be
+/** Takes an struct entry containing the tournament name to be
  * searched for. Returns the id of a tournament, given the name of a
  * tournament. Returns -1 if the tournament of that name could not be found.
  * Returns < -1 if there was an error.
  *
- * \param '*f' the open file to be searched.
  * \param '*E' the struct entry containing the tournament name to be
  *     searched for and which will have its tournament_id field updated to
  *     the id if this function is successful.
- * \return non-negative number upon success, -1 if the name could not be found,
- *     and < -1 if there was an error.
+ * \return non-negative number upon success (the tournament's id), -1 if the
+ *     name could not be found, and < -1 if there was an error.
  */
-int entry_file_get_tournament_id_from_name(FILE *f, struct entry *E) {
+int t_file_get_tournament_id_from_name(struct entry *E) {
 
-	fseek(f, 0, SEEK_SET);
+	char *full_t_file_path = data_dir_file_path_t_file();
+	FILE* t_file = fopen(full_t_file_path, "rb+");
+	if (t_file == NULL) {
+		fprintf(stderr, "Error opening file %s (t_file_get_tournament_id_from_name): ", full_t_file_path);
+		perror("");
+		return -1;
+	}
+
 	unsigned short num_t;
-	if (1 != fread(&num_t, sizeof(short), 1, f)) return -2;
+	if (1 != fread(&num_t, sizeof(short), 1, t_file)) return -2;
 
 	// TODO: change to binary search
 	for (int i = 0; i < num_t; i++) {
 		/* Read corresponding t_id */
 		short t_id = -1;
-		if (1 != fread(&t_id, sizeof(short), 1, f)) return -3;
+		if (1 != fread(&t_id, sizeof(short), 1, t_file)) return -3;
 
 		int j = 0;
 		char read = '\1';
 		char right_name = 1;
 		/* Read first byte and add to temp name */
-		if (1 != fread(&read, sizeof(char), 1, f)) return -4;
+		if (1 != fread(&read, sizeof(char), 1, t_file)) return -4;
 		if (read != E->t_name[j]) { right_name = 0; }
 		j++;
 		/* Provided it hasn't hit a null terminator or end of file */
-		while (read != '\0' && j < MAX_NAME_LEN && !(feof(f))) {
-			if (1 != fread(&read, sizeof(char), 1, f)) return -5;
+		while (read != '\0' && j < MAX_NAME_LEN && !(feof(t_file))) {
+			if (1 != fread(&read, sizeof(char), 1, t_file)) return -5;
 			/* If the name differs at any point, it isn't the same name */
 			if (read != E->t_name[j]) {
 				right_name = 0;
-				fseek(f, MAX_NAME_LEN - j, SEEK_CUR);
+				fseek(t_file, MAX_NAME_LEN - j, SEEK_CUR);
 			}
 			j++;
 		}
@@ -626,6 +633,7 @@ int entry_file_get_tournament_id_from_name(FILE *f, struct entry *E) {
 			break;
 		}
 	}
+	fclose(t_file);
 	/* The tournament name was not found, return -1 */
 	return E->tournament_id;
 }
@@ -670,7 +678,7 @@ int entry_file_read_entry(FILE *f, struct entry *E) {
 	}
 	/* Sets t_name and len_t_name of E to be according to tournament
 	 * name E->tournament_id */
-	if (0 != (r = entry_file_get_tournament_name_from_id(f, E))) {
+	if (0 != (r = t_file_get_tournament_name_from_id(E))) {
 		fprintf(stderr, "Error (%d) on entry_get_tournament_name_from_id() searching for id (%d)\n", r, E->tournament_id);
 		return -13;
 	}
@@ -728,8 +736,8 @@ int entry_file_read_next_opp_entry(FILE *f, struct entry *E, short opp_id) {
 	}
 	/* Sets t_name and len_t_name of E to be according to tournament
 	 * name E->tournament_id */
-	if (0 != (r = entry_file_get_tournament_name_from_id(f, E))) {
-		perror("entry_file_get_tournament_name_from_id (read_entry)");
+	if (0 != (r = t_file_get_tournament_name_from_id(E))) {
+		perror("t_file_get_tournament_name_from_id (read_entry)");
 		return -13;
 	}
 
@@ -801,8 +809,8 @@ int entry_file_read_entry_absent(FILE *f, struct entry *E) {
 	if (1 != fread(&E->season_id, sizeof(short), 1, f)) { return -12; } //2 34
 	/* Sets t_name and len_t_name of E to be according to tournament
 	 * name E->tournament_id */
-	if (0 != entry_file_get_tournament_name_from_id(f, E)) {
-		perror("entry_file_get_tournament_name_from_id (read_entry)");
+	if (0 != t_file_get_tournament_name_from_id(E)) {
+		perror("t_file_get_tournament_name_from_id (read_entry)");
 		return -13;
 	}
 

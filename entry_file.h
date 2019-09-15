@@ -43,8 +43,8 @@ int opp_file_get_id_from_name(struct entry *);
 
 
 /* Tournament file conversion functions */
-int entry_file_get_tournament_name_from_id(FILE *, struct entry *);
-int entry_file_get_tournament_id_from_name(FILE *, struct entry *);
+int t_file_get_tournament_name_from_id(struct entry *);
+int t_file_get_tournament_id_from_name(struct entry *);
 
 /* Read next entry functions */
 int entry_file_read_entry(FILE *, struct entry *);
