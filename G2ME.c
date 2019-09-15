@@ -58,7 +58,7 @@ double outcome_weight = 1;
 /* TODO: make it dynamically realloc */
 char tournament_names[MAX_NAME_LEN][512];
 unsigned char tournament_names_len = 0;
-char filter_file_path[MAX_FILE_PATH_LEN];
+char filter_file_path[MAX_OUTCOME_STRING_LEN];
 char f_flag_used = 0;
 char player_dir[MAX_FILE_PATH_LEN];
 char data_dir[MAX_FILE_PATH_LEN];
@@ -414,10 +414,10 @@ int update_players(char* bracket_file_path, short season_id) {
 	Et.len_t_name = strlen(Et.t_name);
 	int ret = 0;
 	/* If the entry file does not already contain an id for this tournament */
-	if (-1 == (ret = entry_file_contains_tournament(Et.t_name, ""))) {
+	if (-1 == (ret = t_file_contains_tournament(Et.t_name))) {
 		/* Add the new tournament to the entry file. This also corrects
 		 * the t_id if it is incorrect */
-		if (0 != entry_file_add_new_tournament(&Et, "")) return -8;
+		if (0 != t_file_add_new_tournament(&Et)) return -8;
 	/* If there was an error */
 	} else if (ret < -1) {
 		return -9;
@@ -555,12 +555,12 @@ int update_players(char* bracket_file_path, short season_id) {
 				/* If the entry file does not already contain an id for this opponent */
 				struct entry E;
 				if (-1 == (ret = \
-					opp_file_contains_opponent(&tournament_names[tournament_names_len][0], ""))) {
+					opp_file_contains_opponent(&tournament_names[tournament_names_len][0]))) {
 					/* Add the new opponent to the entry file. This also corrects
 					 * the t_id if it is incorrect */
 					strncpy(&E.opp_name[0], &tournament_names[tournament_names_len][0], MAX_NAME_LEN);
 					E.len_opp_name = strlen(E.opp_name);
-					if (0 != opp_file_add_new_opponent(&E, "")) return -8;
+					if (0 != opp_file_add_new_opponent(&E)) return -8;
 				/* If there was an error */
 				} else if (ret < -1) {
 					return -9;
@@ -579,12 +579,12 @@ int update_players(char* bracket_file_path, short season_id) {
 				/* If the entry file does not already contain an id for this opponent */
 				struct entry E;
 				if (-1 == (ret = \
-					opp_file_contains_opponent(&tournament_names[tournament_names_len][0], ""))) {
+					opp_file_contains_opponent(&tournament_names[tournament_names_len][0]))) {
 					/* Add the new opponent to the entry file. This also corrects
 					 * the t_id if it is incorrect */
 					strncpy(&E.opp_name[0], &tournament_names[tournament_names_len][0], MAX_NAME_LEN);
 					E.len_opp_name = strlen(E.opp_name);
-					if (0 != opp_file_add_new_opponent(&E, "")) return -8;
+					if (0 != opp_file_add_new_opponent(&E)) return -8;
 				/* If there was an error */
 				} else if (ret < -1) {
 					return -9;

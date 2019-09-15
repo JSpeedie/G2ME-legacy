@@ -20,11 +20,13 @@
 #include "G2ME.h"
 #include "player_dir.h"
 
-char *entry_file_get_events_attended(char *, int *);
+
+int entry_file_read_start_from_file(char *, struct entry *);
 int entry_file_get_outcome_count(char *);
 int entry_file_get_events_attended_count(char *);
+char *entry_file_get_events_attended(char *, int *);
 double entry_file_get_glicko_change_since_last_event(char *);
-int entry_file_read_start_from_file(char *, struct entry *);
+
 
 /* [short | opp_id] [3 double | glicko data]
  * [4 char | game counts and date] [2 short | year and tournament_id] */
@@ -242,14 +244,13 @@ int opp_file_add_new_opponent(struct entry *E) {
  *
  * TODO: finish (file_path unused?)
  */
-int entry_file_contains_tournament(char *t_name, char* file_path) {
-
+int t_file_contains_tournament(char *t_name) {
 	char *full_t_file_path = data_dir_file_path_t_file();
 
 	FILE* t_file = fopen(full_t_file_path, "rb+");
 	if (t_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (entry_file_contains_tournament): ", \
+			"Error opening file %s (t_file_contains_tournament): ", \
 			full_t_file_path);
 		perror("");
 		return -2;
@@ -305,7 +306,7 @@ int entry_file_contains_tournament(char *t_name, char* file_path) {
 }
 
 
-int entry_file_add_new_tournament(struct entry *E, char* file_path) {
+int t_file_add_new_tournament(struct entry *E) {
 #ifdef __linux__
 	char *full_t_file_path = data_dir_file_path_t_file();
 
@@ -1331,10 +1332,10 @@ int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
 
 	int ret;
 	/* If the entry file does not already contain an id for this opponent */
-	if (-1 == (ret = opp_file_contains_opponent(E->opp_name, file_path))) {
+	if (-1 == (ret = opp_file_contains_opponent(E->opp_name))) {
 		/* Add the new opponent to the entry file. This also corrects
 		 * the opp_id if it is incorrect */
-		if (0 != (ret = opp_file_add_new_opponent(E, file_path))) {
+		if (0 != (ret = opp_file_add_new_opponent(E))) {
 			fprintf(stderr, "Error (%d) on opp_file_add_new_opponent(E, %s)\n", ret, file_path);
 			return -6;
 		}
@@ -1348,10 +1349,10 @@ int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
 		E->opp_id = (unsigned short) ret;
 	}
 	/* If the entry file does not already contain an id for this tournament */
-	if (-1 == (ret = entry_file_contains_tournament(E->t_name, file_path))) {
+	if (-1 == (ret = t_file_contains_tournament(E->t_name))) {
 		/* Add the new tournament to the entry file. This also corrects
 		 * the t_id if it is incorrect */
-		if (0 != entry_file_add_new_tournament(E, file_path)) return -8;
+		if (0 != t_file_add_new_tournament(E)) return -8;
 	/* If there was an error */
 	} else if (ret < -1) {
 		return -9;

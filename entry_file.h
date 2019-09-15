@@ -33,8 +33,8 @@ int opp_file_add_new_opponent(struct entry *);
 
 
 /* Tournament file operations */
-int entry_file_contains_tournament(char *, char *);
-int entry_file_add_new_tournament(struct entry *, char *);
+int t_file_contains_tournament(char *);
+int t_file_add_new_tournament(struct entry *);
 
 
 /* Opp file conversion functions */
