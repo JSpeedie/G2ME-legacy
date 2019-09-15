@@ -9,6 +9,7 @@
 #define REALLOC_OUTCOMES_INC 16
 #define SIZE_OUTCOMES 128
 #define LEXIO 1
+#define MAX_OUTCOME_STRING_LEN 128
 
 extern char flag_output_to_stdout;
 extern char colour_output;
@@ -18,7 +19,7 @@ extern char print_ties;
 extern char player_dir[MAX_FILE_PATH_LEN];
 extern char data_dir[MAX_FILE_PATH_LEN];
 extern int pr_minimum_events;
-extern char filter_file_path[MAX_FILE_PATH_LEN];
+extern char filter_file_path[MAX_OUTCOME_STRING_LEN];
 extern char DIR_TERMINATOR;
 
 #include "entry_file.h"

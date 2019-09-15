@@ -816,7 +816,6 @@ int entry_file_get_to_entries(FILE *f) {
 
 	/* Skip past name and number of outcomes/tournaments attended */
 	long name_and_counts = ln * sizeof(char) + 2 * sizeof(long);
-	long end_of_t_roffset;
 	if (0 != fseek(f, name_and_counts, SEEK_CUR)) return -2;
 
 	return 0;
@@ -880,7 +879,7 @@ long entry_file_number_of_opponents(char *file_path, short **ret_opp_id_list) {
  *     of opponents this player has played. Upon failure of any kind,
  *     this function returns a negative integer depending on the error.
  */
-int entry_file_number_of_events(char *file_path) {
+long entry_file_number_of_events(char *file_path) {
 	return 6;
 }
 
@@ -921,7 +920,7 @@ int entry_file_get_number_of_entries(char *file_path) {
  * \param '*player2' the file name (not path) of a player file
  * \return 0 upon success, or a negative number upon failure.
  */
-int entry_file_get_number_of_outcomes_against(char *file_path, char *player2) {
+long entry_file_get_number_of_outcomes_against(char *file_path, char *player2) {
 	FILE *base_file = fopen(file_path, "rb");
 	if (base_file == NULL) {
 		perror("fopen (entry_file_get_number_of_outcomes_against)");
