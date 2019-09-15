@@ -81,7 +81,8 @@ To get up and running, launch a terminal and run the following commands
 ```
 $ git clone https://www.github.com/JSpeedie/G2ME G2MEGit
 $ cd G2MEGit
-$ sudo make all
+$ make
+$ sudo make install
 ```
 
 You are now ready to use `G2ME`! You can skip to the Walkthrough section, if you
