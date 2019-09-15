@@ -27,6 +27,7 @@ typedef struct entry {
 	char t_name[MAX_NAME_LEN];
 }Entry;
 
+
 /* Opp file operations */
 int opp_file_contains_opponent(char *);
 int opp_file_add_new_opponent(struct entry *);
@@ -46,6 +47,7 @@ int opp_file_get_id_from_name(struct entry *);
 int t_file_get_tournament_name_from_id(struct entry *);
 int t_file_get_tournament_id_from_name(struct entry *);
 
+
 /* Read next entry functions */
 int entry_file_read_entry(FILE *, struct entry *);
 int entry_file_read_next_opp_entry(FILE *, struct entry *, short);
@@ -55,6 +57,7 @@ int entry_file_read_next_opp_entry(FILE *, struct entry *, short);
 int entry_file_read_entry_minimal(FILE *, struct entry *);
 int entry_file_read_entry_absent(FILE *, struct entry *);
 int entry_file_read_entry_tournament_id(FILE *, struct entry *);
+
 
 /* Seeking functions */
 int entry_file_get_to_entries(FILE *);

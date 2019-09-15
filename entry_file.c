@@ -238,11 +238,13 @@ int opp_file_add_new_opponent(struct entry *E) {
 }
 
 
-/** Function takes an tournaments name and a file path to the entry file you
- * want to check and returns an int representing whether it found the
- * tournament in the file to be examined.
+/** Takes an tournaments name and returns an int representing whether it
+ * found the tournament in the system.
  *
- * TODO: finish (file_path unused?)
+ * \param '*t_name' the name of the tournament to be searched for.
+ * \return integer representing whether the function failed or succeeded.
+ *     It will return < 0 if the function failed, and tournament's id (>=0)
+ *     if it succeeded.
  */
 int t_file_contains_tournament(char *t_name) {
 	char *full_t_file_path = data_dir_file_path_t_file();
@@ -306,6 +308,13 @@ int t_file_contains_tournament(char *t_name) {
 }
 
 
+/** Takes a struct entry containing a filled in 't_name' and set
+ * 'tournament_id', and adds it to the system.
+ *
+ * \param '*E' a struct entry with a set 't_name' and 'tournament_id'.
+ * \return integer representing whether the function failed or succeeded.
+ *     It will return < 0 if the function failed, and 0 if it succeeded.
+ */
 int t_file_add_new_tournament(struct entry *E) {
 #ifdef __linux__
 	char *full_t_file_path = data_dir_file_path_t_file();
@@ -641,10 +650,11 @@ int t_file_get_tournament_id_from_name(struct entry *E) {
 
 /** Reads contents of a player file to a struct entry. Returns 0 upon success,
  * and a negative number upon failure. Function expects that starter data
- * has already been passed and that the FILE is on an entry
+ * has already been passed and that the FILE is on an entry.
  *
- * \param '*f' the file being read
- * \param '*E' the struct entry to store an entry found in the file too
+ * \param '*f' the file being read.
+ * \param '*E' the struct entry which will have the read entry's contents
+ *     copied to.
  * \return 0 upon success, or a negative number upon failure.
  */
 int entry_file_read_entry(FILE *f, struct entry *E) {
@@ -692,6 +702,8 @@ int entry_file_read_entry(FILE *f, struct entry *E) {
  *
  * \param '*f' the file being read
  * \param '*E' the struct entry to store an entry found in the file too
+ * \param 'opp_id' the opp_id being searched for. The function will only
+ *     read an entry that has the same opp_id as the one provided.
  * \return 0 upon success, or a negative number upon failure.
  */
 int entry_file_read_next_opp_entry(FILE *f, struct entry *E, short opp_id) {
@@ -845,9 +857,9 @@ int entry_file_read_entry_tournament_id(FILE *f, struct entry *E) {
 }
 
 /** Reads the all the starter data in a player entry file leaving
- * the FILE '*base_file' at a position where it can start reading entries
+ * the FILE '*f' at a position where it can start reading entries.
  *
- * \param '*base_file' a player entry file opened in 'rb' mode
+ * \param '*f' a player entry file opened in 'rb' mode.
  */
 int entry_file_get_to_entries(FILE *f) {
 	char ln;
@@ -869,6 +881,8 @@ int entry_file_get_to_entries(FILE *f) {
  * \param '**ret_opp_id_list' pointer to a short pointer. The short pointer
  *     will be updated to memory address of a opp_id_list created in this
  *     function. It must be freed after.
+ * \return a long representing the number of unique opponents in this player
+ *     file.
  */
 long entry_file_number_of_opponents(char *file_path, short **ret_opp_id_list) {
 	int ret = 0;
@@ -916,7 +930,7 @@ long entry_file_number_of_opponents(char *file_path, short **ret_opp_id_list) {
 	return ret;
 }
 
-// TODO: incorrect with opp_file
+// TODO: needs to be updated a la ...number_of_opponents
 // TODO: description innaccurate, and there's a faster method to do
 // what is described in this doc using new attended long in file
 /** Takes a file path to a player file and returns the number of
@@ -993,12 +1007,17 @@ long entry_file_get_number_of_outcomes_against(char *file_path, char *player2) {
 }
 
 /** Reads a player file at the given file path and returns an array of longs
- * that represent the number of times player1 has met that player in an event.
- * The array is indexed by the opponent IDs set in the player1 player file.
- * NOTE: the return value is calloc'd and as such, free() must be called on it
- * once it is no longer being used.
+ * that represent the number of times player1 has played that player in an
+ * event. The array follows the order of '*opp_id_list', where '*opp_id_list'
+ * is an unordered list of all the unique opp_ids in this player file.
+ *
+ * NOTE: the return value is calloc'd and as such, free() must be called
+ * on it once it is no longer being used.
  *
  * \param '*file_path' the file path of the file to be read.
+ * \param 'num_opp_ids' the number of unique opponents in this file
+ * \param '*opp_id_list' an array of shorts representing every unique
+ *     opp_id in this player file.
  * \return NULL upon failure, an array of longs (pointer) upon success.
  */
 long *entry_file_get_all_number_of_outcomes_against(char *file_path, \
@@ -1036,7 +1055,7 @@ long *entry_file_get_all_number_of_outcomes_against(char *file_path, \
  * \return a long representing the offset within the file at which the last
  *     entry begins
  */
-long int entry_file_get_last_entry_offset(char* file_path) {
+long entry_file_get_last_entry_offset(char *file_path) {
 	FILE *entry_file = fopen(file_path, "rb");
 	if (entry_file == NULL) {
 		perror("fopen (entry_file_get_last_entry_offset)");
@@ -1056,13 +1075,14 @@ long int entry_file_get_last_entry_offset(char* file_path) {
 	return last_entry_offset;
 }
 
-/** Modifies a struct entry to be that of the last entry found in a player file.
+/** Modifies a struct entry to be that of the last entry found in a player
+ * file.
  *
- * \param '*file_path' the file path of the player file to be read
+ * \param '*file_path' the file path of the player file to be read.
  * \param '*ret' a struct entry pointer to have the data read into.
  * \return 0 upon success, a negative int upon failure.
  */
-int entry_file_read_last_entry(char* file_path, struct entry *ret) {
+int entry_file_read_last_entry(char *file_path, struct entry *ret) {
 	/* Open files for reading contents */
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
@@ -1094,7 +1114,7 @@ int entry_file_read_last_entry(char* file_path, struct entry *ret) {
  * struct entry. It is the minimal version and reads only the glicko2 data
  * plus the season id.
  *
- * \param '*file_path' the file path of the player file to be read
+ * \param '*file_path' the file path of the player file to be read.
  * \param '*ret' a struct entry pointer to have the data read into.
  * \return 0 upon success, a negative int upon failure.
  */
@@ -1120,7 +1140,7 @@ int entry_file_read_last_entry_minimal(char* file_path, struct entry *ret) {
  * struct entry. It is the absentee version and reads only the glicko2 data,
  * the date, the tournament and season id.
  *
- * \param '*file_path' the file path of the player file to be read
+ * \param '*file_path' the file path of the player file to be read.
  * \param '*ret' a struct entry pointer to have the data read into.
  * \return 0 upon success, a negative int upon failure.
  */
@@ -1146,7 +1166,7 @@ int entry_file_read_last_entry_absent(char* file_path, struct entry *ret) {
  * struct entry. It is the tournament_id version and reads only the
  * tournament id.
  *
- * \param '*file_path' the file path of the player file to be read
+ * \param '*file_path' the file path of the player file to be read.
  * \param '*ret' a struct entry pointer to have the data read into.
  * \return 0 upon success, a negative int upon failure.
  */
@@ -1170,12 +1190,15 @@ int entry_file_read_last_entry_tournament_id(char* file_path, struct entry *ret)
 /** Appends an entry to a given player file and return an int representing
  * whether the function succeeded or not.
  *
- * \param '*E' the struct entry to be appended
- * \param '*file_path' the file path of the player file
+ * NOTE: This is the 'id' version of this function, and it will expect
+ * that E->opp_id, and E->tournament_id have been correctly set.
+ *
+ * \param '*E' the struct entry to be appended.
+ * \param '*file_path' the file path of the player file.
  * \return int that is 0 upon the function succeeding and negative upon
  *     any sort of failure.
  */
-int entry_file_append_entry_to_file_id(struct entry* E, char* file_path) {
+int entry_file_append_entry_to_file_id(struct entry *E, char *file_path) {
 	/* If the file did not exist */
 #ifdef __linux__
 	char existed = access(file_path, R_OK) != -1;
@@ -1302,12 +1325,12 @@ int entry_file_append_entry_to_file_id(struct entry* E, char* file_path) {
 /** Appends an entry to a given player file and return an int representing
  * whether the function succeeded or not.
  *
- * \param '*E' the struct entry to be appended
- * \param '*file_path' the file path of the player file
+ * \param '*E' the struct entry to be appended.
+ * \param '*file_path' the file path of the player file.
  * \return int that is 0 upon the function succeeding and negative upon
  *     any sort of failure.
  */
-int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
+int entry_file_append_entry_to_file(struct entry *E, char *file_path) {
 	/* If the file did not exist */
 #ifdef __linux__
 	char existed = access(file_path, R_OK) != -1;
@@ -1464,11 +1487,11 @@ int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
 /** Appends a pr entry (the name and glicko2 data for a player) to a given
  * file. Returns an int representing success.
  *
- * \param '*E' the struct entry to append to the pr file
- * \param '*file_path' the file path for the pr file
+ * \param '*E' the struct entry to append to the pr file.
+ * \param '*file_path' the file path for the pr file.
  * \return 0 upon success, negative number on failure.
  */
-int entry_file_append_pr_entry_to_file(struct entry* E, char* file_path, \
+int entry_file_append_pr_entry_to_file(struct entry *E, char *file_path, \
 	int longest_name_length) {
 
 	FILE *entry_file;
@@ -1503,12 +1526,12 @@ int entry_file_append_pr_entry_to_file(struct entry* E, char* file_path, \
  * outcomes gone through, and glicko rating change since last event.
  * Changes with verbosity: Adds more decimals to output of glicko variables.
  *
- * \param '*E' the struct entry to append to the pr file
- * \param '*file_path' the file path for the pr file
+ * \param '*E' the struct entry to append to the pr file.
+ * \param '*file_path' the file path for the pr file.
  * \return 0 upon success, negative number on failure.
  */
-int entry_file_append_pr_entry_to_file_verbose(struct entry* E, char* file_path, \
-	int longest_name_length, int longest_attended_count, \
+int entry_file_append_pr_entry_to_file_verbose(struct entry *E, \
+	char *file_path, int longest_name_length, int longest_attended_count, \
 	int longest_outcome_count) {
 
 	FILE *entry_file;
@@ -1596,7 +1619,7 @@ int entry_file_read_start_from_file(char *file_path, struct entry *E) {
 	return 0;
 }
 
-/** Reads a open player file, reads the "Player 1"
+/** Takes an open player file and reads the "Player 1"
  * data into the given entry parameter.
  *
  * \param '*f' the FILE pointer of the file to be read
@@ -1616,6 +1639,14 @@ int entry_file_open_read_start_from_file(FILE *f, struct entry *E) {
 }
 
 
+/** Takes a file path to a entry file and returns the number of valid
+ * outcomes (or sets, games, what have you) this player has played in
+ * the history of the system.
+ *
+ * \param '*file_path' the file path to an entry file.
+ * \return an integer representing whether the function succeeded or not.
+ *     0 upon success, and a negative value upon failure.
+ */
 int entry_file_get_outcome_count(char *file_path) {
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
@@ -1633,6 +1664,15 @@ int entry_file_get_outcome_count(char *file_path) {
 	return num_outcomes;
 }
 
+
+/** Takes a file path to a entry file and returns the number of valid
+ * events (or tournaments, what have you) this player has played at in
+ * the history of the system.
+ *
+ * \param '*file_path' the file path to an entry file.
+ * \return an integer representing whether the function succeeded or not.
+ *     0 upon success, and a negative value upon failure.
+ */
 int entry_file_get_events_attended_count(char *file_path) {
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
@@ -1724,6 +1764,13 @@ char *entry_file_get_events_attended(char *file_path, int *ret_count) {
 	return tourneys;
 }
 
+/** Takes a file path to an entry file and returns the change in Glicko2
+ * rating since the last tournament.
+ *
+ * \param '*file_path' a file path to an entry file.
+ * \return a double representing the change in rating since the last tournament
+ *     this player attended.
+ */
 double entry_file_get_glicko_change_since_last_event(char* file_path) {
 
 	double ret = 0;
