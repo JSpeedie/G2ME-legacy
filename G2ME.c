@@ -301,7 +301,7 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
  * \param 'day' a char representing the day of the tournament
  * \param 'month' a char representing the month of the tournament
  * \param 'year' a char representing the year of the tournament
- * \param '*t_name' a short representing the id of the tournament.
+ * \param '*t_id' a short representing the id of the tournament.
  * \param '*t_name' a string containing the name of the tournament.
  * \return void.
 */
