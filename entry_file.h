@@ -28,8 +28,8 @@ typedef struct entry {
 }Entry;
 
 /* Opp file operations */
-int entry_file_contains_opponent(char *, char *);
-int entry_file_add_new_opponent(struct entry *, char *);
+int opp_file_contains_opponent(char *);
+int opp_file_add_new_opponent(struct entry *);
 
 
 /* Tournament file operations */

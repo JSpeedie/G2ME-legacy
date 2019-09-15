@@ -31,19 +31,22 @@ int entry_file_read_start_from_file(char *, struct entry *);
 long int SIZE_OF_AN_ENTRY = (1 * sizeof(short)) + (3 * sizeof(double)) \
 	+ (4 * sizeof(char)) + (3 * sizeof(short));
 
-/** Function takes an opponents name and a file path to the entry file you
- * want to check and returns an int representing whether it found the
- * opponent in the file to be examined.
+
+/** Takes an opponents name and returns an int representing whether it
+ * found the opponent in the system.
  *
- * TODO: finish (file_path unused?)
+ * \param '*opp_name' the name of the opponent to be searched for.
+ * \return integer representing whether the function failed or succeeded.
+ *     It will return < 0 if the function failed, and opponent's id (>=0)
+ *     if it succeeded.
  */
-int entry_file_contains_opponent(char *opp_name, char* file_path) {
+int opp_file_contains_opponent(char *opp_name) {
 
 	char *full_opp_file_path = data_dir_file_path_opp_file();
 
 	FILE* opp_file = fopen(full_opp_file_path, "rb+");
 	if (opp_file == NULL) {
-		fprintf(stderr, "Error opening file %s (entry_file_contains_opponent): ", full_opp_file_path);
+		fprintf(stderr, "Error opening file %s (opp_file_contains_opponent): ", full_opp_file_path);
 		perror("");
 		return -1;
 	}
@@ -98,13 +101,20 @@ int entry_file_contains_opponent(char *opp_name, char* file_path) {
 }
 
 
-int entry_file_add_new_opponent(struct entry *E, char* file_path) {
+/** Takes a struct entry containing a filled in 'opp_name' and set 'opp_id',
+ * and adds it to the system.
+ *
+ * \param '*E' a struct entry with a set 'opp_name' and 'opp_id'.
+ * \return integer representing whether the function failed or succeeded.
+ *     It will return < 0 if the function failed, and 0 if it succeeded.
+ */
+int opp_file_add_new_opponent(struct entry *E) {
 #ifdef __linux__
 	char *full_opp_file_path = data_dir_file_path_opp_file();
 
 	FILE *opp_file = fopen(full_opp_file_path, "rb");
 	if (opp_file == NULL) {
-		fprintf(stderr, "Error opening file %s (entry_file_add_new_opponent): ", full_opp_file_path);
+		fprintf(stderr, "Error opening file %s (opp_file_add_new_opponent): ", full_opp_file_path);
 		perror("");
 		return -1;
 	}
@@ -116,7 +126,7 @@ int entry_file_add_new_opponent(struct entry *E, char* file_path) {
 
 	FILE *new_file = fopen(new_file_name, "wb+");
 	if (new_file == NULL) {
-		fprintf(stderr, "Error opening file %s (entry_file_add_new_opponent): ", new_file_name);
+		fprintf(stderr, "Error opening file %s (opp_file_add_new_opponent): ", new_file_name);
 		perror("");
 		return -2;
 	}
@@ -206,7 +216,7 @@ int entry_file_add_new_opponent(struct entry *E, char* file_path) {
 	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
 	FILE *opp_id_file = fopen(full_opp_id_file_path, "rb+");
 	if (opp_id_file == NULL) {
-		fprintf(stderr, "Error opening file %s (entry_file_add_new_opponent): ", full_opp_id_file_path);
+		fprintf(stderr, "Error opening file %s (opp_file_add_new_opponent): ", full_opp_id_file_path);
 		perror("");
 		return -1;
 	}
@@ -1321,16 +1331,16 @@ int entry_file_append_entry_to_file(struct entry* E, char* file_path) {
 
 	int ret;
 	/* If the entry file does not already contain an id for this opponent */
-	if (-1 == (ret = entry_file_contains_opponent(E->opp_name, file_path))) {
+	if (-1 == (ret = opp_file_contains_opponent(E->opp_name, file_path))) {
 		/* Add the new opponent to the entry file. This also corrects
 		 * the opp_id if it is incorrect */
-		if (0 != (ret = entry_file_add_new_opponent(E, file_path))) {
-			fprintf(stderr, "Error (%d) on entry_file_add_new_opponent(E, %s)\n", ret, file_path);
+		if (0 != (ret = opp_file_add_new_opponent(E, file_path))) {
+			fprintf(stderr, "Error (%d) on opp_file_add_new_opponent(E, %s)\n", ret, file_path);
 			return -6;
 		}
 	/* If there was an error */
 	} else if (ret < -1) {
-		fprintf(stderr, "Error (%d) on entry_file_contains_opponent(%s, %s)\n", ret, E->opp_name, file_path);
+		fprintf(stderr, "Error (%d) on opp_file_contains_opponent(%s, %s)\n", ret, E->opp_name, file_path);
 		return -7;
 	/* If the entry file does contain an id for this opponent */
 	} else {
