@@ -507,41 +507,55 @@ int opp_file_get_id_from_name(struct entry *E) {
 		return -1;
 	}
 
+
+	int ret = -1;
 	unsigned short num_opp;
-	if (1 != fread(&num_opp, sizeof(short), 1, opp_file)) return -7;
+	char temp_name[MAX_NAME_LEN + 1];
+	if (1 != fread(&num_opp, sizeof(short), 1, opp_file)) return -2;
 
-	// TODO: change to binary search
-	for (int i = 0; i < num_opp; i++) {
-		/* Read corresponding opp_id */
+	/* Binary search on file to find given name's id */
+	long L = 0;
+	long R = num_opp - 1;
+	long m;
+	long oldm = 0;
+	while (L <= R) {
+		m = floor(((double) (L + R)) / 2.0);
+		/* Seek to mth spot of array */
+		fseek(opp_file, (m - oldm) * (MAX_NAME_LEN + 1 + sizeof(short)), SEEK_CUR);
+		/* Read corresponding opp_id of the array[m] */
+		unsigned long start_of_m = ftell(opp_file);
 		short opp_id = -1;
-		if (1 != fread(&opp_id, sizeof(short), 1, opp_file)) return -8;
+		if (1 != fread(&opp_id, sizeof(short), 1, opp_file)) return -3;
 
+		/* Read opp name of the array[m] */
 		int j = 0;
-		char read = '\1';
-		char right_name = 1;
-		/* Read first byte and add to temp name */
-		if (1 != fread(&read, sizeof(char), 1, opp_file)) return -9;
-		if (read != E->opp_name[j]) { right_name = 0; }
-		j++;
+		if (1 != fread(&temp_name[j], sizeof(char), 1, opp_file)) return -4;
 		/* Provided it hasn't hit a null terminator or end of file */
-		while (read != '\0' && j < MAX_NAME_LEN && !(feof(opp_file))) {
-			if (1 != fread(&read, sizeof(char), 1, opp_file)) return -11;
-			/* If the name differs at any point, it isn't the same name */
-			if (read != E->opp_name[j]) {
-				right_name = 0;
-				fseek(opp_file, MAX_NAME_LEN - j, SEEK_CUR);
-			}
+		while (temp_name[j] != '\0' && j < MAX_NAME_LEN && !(feof(opp_file))) {
 			j++;
+			if (1 != fread(&temp_name[j], sizeof(char), 1, opp_file)) return -5;
 		}
-		/* If this opponent name is already in the file */
-		if (right_name == 1) {
+		/* Seek to start of array[m] so fseek to next spot isn't offset */
+		fseek(opp_file, start_of_m, SEEK_SET);
+
+		int comp = strncmp(&temp_name[0], E->opp_name, MAX_NAME_LEN);
+		if (0 > comp) {
+			oldm = m;
+			L = m + 1;
+		} else if (0 < comp) {
+			oldm = m;
+			R = m - 1;
+		} else {
+			ret = opp_id;
 			E->opp_id = opp_id;
-			break;
+			R = L - 1; /* Terminate loop */
 		}
 	}
+
 	fclose(opp_file);
+	free(full_opp_file_path);
 	/* The opponent name was not found, return -1 */
-	return E->opp_id;
+	return ret;
 }
 
 
@@ -610,41 +624,52 @@ int t_file_get_tournament_id_from_name(struct entry *E) {
 		return -1;
 	}
 
+	int ret = -1;
 	unsigned short num_t;
-	if (1 != fread(&num_t, sizeof(short), 1, t_file)) return -2;
+	char temp_name[MAX_NAME_LEN + 1];
+	if (1 != fread(&num_t, sizeof(short), 1, t_file)) return -7;
 
-	// TODO: change to binary search
-	for (int i = 0; i < num_t; i++) {
-		/* Read corresponding t_id */
+	/* Binary search on file to find given name's id */
+	long L = 0;
+	long R = num_t - 1;
+	long m;
+	long oldm = 0;
+	while (L <= R) {
+		m = floor(((double) (L + R)) / 2.0);
+		/* Seek to mth spot of array */
+		fseek(t_file, (m - oldm) * (MAX_NAME_LEN + 1 + sizeof(short)), SEEK_CUR);
+		/* Read corresponding t_id of the array[m] */
+		unsigned long start_of_m = ftell(t_file);
 		short t_id = -1;
-		if (1 != fread(&t_id, sizeof(short), 1, t_file)) return -3;
+		if (1 != fread(&t_id, sizeof(short), 1, t_file)) return -8;
 
+		/* Read t name of the array[m] */
 		int j = 0;
-		char read = '\1';
-		char right_name = 1;
-		/* Read first byte and add to temp name */
-		if (1 != fread(&read, sizeof(char), 1, t_file)) return -4;
-		if (read != E->t_name[j]) { right_name = 0; }
-		j++;
+		if (1 != fread(&temp_name[j], sizeof(char), 1, t_file)) return -11;
 		/* Provided it hasn't hit a null terminator or end of file */
-		while (read != '\0' && j < MAX_NAME_LEN && !(feof(t_file))) {
-			if (1 != fread(&read, sizeof(char), 1, t_file)) return -5;
-			/* If the name differs at any point, it isn't the same name */
-			if (read != E->t_name[j]) {
-				right_name = 0;
-				fseek(t_file, MAX_NAME_LEN - j, SEEK_CUR);
-			}
+		while (temp_name[j] != '\0' && j < MAX_NAME_LEN && !(feof(t_file))) {
 			j++;
+			if (1 != fread(&temp_name[j], sizeof(char), 1, t_file)) return -11;
 		}
-		/* If this tournament name is already in the file */
-		if (right_name == 1) {
+		/* Seek to start of array[m] so fseek to next spot isn't offset */
+		fseek(t_file, start_of_m, SEEK_SET);
+
+		int comp = strncmp(&temp_name[0], E->t_name, MAX_NAME_LEN);
+		if (0 > comp) {
+			oldm = m;
+			L = m + 1;
+		} else if (0 < comp) {
+			oldm = m;
+			R = m - 1;
+		} else {
+			ret = t_id;
 			E->tournament_id = t_id;
-			break;
+			R = L - 1; /* Terminate loop */
 		}
 	}
-	fclose(t_file);
+
 	/* The tournament name was not found, return -1 */
-	return E->tournament_id;
+	return ret;
 }
 
 
