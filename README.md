@@ -765,7 +765,7 @@ example. Other uses include just a volatility pr/consistency pr.
 In case someone wants to reverse-engineer the player files or fork this and
 write the player files in a different format, here's the layout:
 
-`[len_name][name][num_valid_out][num_valid_atten_ev][roffset_end_opp_list][roffset_end_of_T_list][num_opps][opps_list][num_t][t_list][entries]`
+`[len_name][name][num_valid_out][num_valid_atten_ev][entries]`
 
 There are 2 main sections to the entry file. First is the starter data like
 which player these outcomes belong to, the number of valid sets they've played,
@@ -779,44 +779,79 @@ file):
 outcomes/sets this player has in their file.
 4. `sizeof(long)` an unsigned long representing the number of valid
 tournaments/events this player has attended.
-5. `sizeof(long)` an unsigned long representing the number of bytes
-(after reading this long) you have to keep reading until you reach
-the end of the opponents list (more on that list later). Internally,
-this is often referred to as the "relative opp list offset".
-6. `sizeof(long)` an unsigned long representing the number of bytes
-(after reading this long) you have to keep reading until you reach
-the end of the tournaments list (more on that list later). Internally,
-this is often referred to as the "relative T list offset".
-7. `sizeof(short)` the number of opponents in the opponents list/array.
-8. repeated strings ending in `\0`, representing the opponent names,
-in order.
-9. `sizeof(short)` the number of tournaments in the tournaments list/array.
-10. repeated strings ending in `\0` representing the tournament names,
-in order
+
+### Player File: Entry Format
 
 After that it takes the repeated form of:
 `[p2_id][p1_rating_after][p1_RD_after][p1_vol_after][p1_game_count][p2_game_count][day][month][year][event_id][season_id]`
 In terms of bytes:
 
-1. `sizeof(short)` bytes representing the player 2 id
+1. `sizeof(unsigned short)` bytes representing the player 2 id
 2. `sizeof(double)` bytes representing player-1's rating
 3. `sizeof(double)` bytes representing the player-1's RD
 3. `sizeof(double)` bytes representing the player-1's volatility
-4. `sizeof(char)` the player-1's game count
-5. `sizeof(char)` the player-2's game count
-6. `sizeof(char)` the day
-7. `sizeof(char)` the month
-8. `sizeof(short)` bytes are the year.
-9. `sizeof(short)` the event id
-10. `sizeof(short)` the season this outcome belongs to
+4. `sizeof(unsigned char)` the player-1's game count
+5. `sizeof(unsigned char)` the player-2's game count
+6. `sizeof(unsigned char)` the day. Note that the first bit
+of this element is used to mark this entry as a competitive entry
+or an RD adjustment entry. It must be processed accordingly.
+7. `sizeof(unsigned char)` the month
+8. `sizeof(unsigned short)` bytes are the year.
+9. `sizeof(unsigned short)` the event id
+10. `sizeof(unsigned short)` the season this outcome belongs to
 
+## Data Files and Their Formats
 
+### Opponent File Format
+
+`[num_opps][opps]`
+
+Where:
+
+1. `[num_opps]` is `sizeof(unsigned short)`, the number of (opponent id,
+   opponent name) pairs in this file. The size of the array, if you will.
+2. `[opps]` is `$1 * (sizeof(unsigned short) + MAX_NAME_LEN + 1)` bytes that
+   are compromised of an unsigned short representing that opponents global id,
+   followed by MAX_NAME_LEN + 1 characters containing the opponent's name.
+
+### Opponent ID File Format
+
+`[num_opps][opp_names]`
+
+Where:
+
+1. `[num_opps]` is `sizeof(unsigned short)`, the number of (opponent id,
+   opponent name) pairs in this file. The size of the array, if you will.
+2. `[opp_names]` is `$1 * (MAX_NAME_LEN + 1)` bytes that
+   are MAX_NAME_LEN + 1 characters containing the opponent's name.
+
+### Tournament File Format
+
+`[num_tournaments][tournaments]`
+
+Where:
+
+1. `[num_tournaments]` is `sizeof(unsigned short)`, the number of (tournament
+   id, tournament name) pairs in this file. The size of the array, if you will.
+2. `[tournaments]` is `$1 * (sizeof(unsigned short) + MAX_NAME_LEN + 1)` bytes that
+   are compromised of an unsigned short representing that tournament's global id,
+   followed by MAX_NAME_LEN + 1 characters containing the tournament's name.
+
+### Tournament ID File Format
+
+`[num_tournaments][tournament_names]`
+
+Where:
+
+1. `[num_tournaments]` is `sizeof(unsigned short)`, the number of (tournament id,
+   tournament name) pairs in this file. The size of the array, if you will.
+2. `[tournament_names]` is `$1 * (MAX_NAME_LEN + 1)` bytes that
+   are MAX_NAME_LEN + 1 characters containing the tournament's name.
 
 ## TODO
 
-* Write examples for man pages, finish examples for README
 * Add option for user to set time period where a player receives
 no RD adjustments for missing events (default 1 or 2 weeks?)
-* Clean up glicko2.c to meet code conventions (line length, doc string,
+* Make sure glicko2.c meets code conventions (line length, doc string,
 no TODOs)
 * Remove TODOs in G2ME.c, make sure invalid input/error checking is sound
