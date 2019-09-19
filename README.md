@@ -1,6 +1,7 @@
 # Table of Contents
 <details><summary>Click to Expand</summary><p>
 
+* [Screenshots](#screenshots)
 * [Technical Description](#technical-description)
 * [Purpose](#purpose)
 * [What it is](#what-it-is)
@@ -32,9 +33,14 @@
 	* [The 'w' flag](#the-w-flag)
 * [The Glicko2 System Explained](#the-glicko2-system-explained)
 * [The Player File Format](#the-player-file-format)
+* [Data Files and Their Formats](#data-files-and-their-formats)
 </p></details>
 
+## Screenshots
 
+![Power Rankings Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MEPowerRankingsPic.png)
+![Run Brackets Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MERunBracketsPic.png)
+![Player Info Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MEPlayerInfoPic.png)
 
 ## Technical Description
 C implementation of glicko 2 + the real program that makes handling a glicko
