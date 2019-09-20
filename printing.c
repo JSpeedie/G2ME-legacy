@@ -528,6 +528,7 @@ void print_matchup_table(void) {
 	char output[num_players + 1][1024];
 	// Empty the first line of output
 	memset(output[0], 0, 1024);
+	/* Create columns line */
 	snprintf(output[0], longest_n + space_between_columns, "%*s", \
 		longest_n + space_between_columns, "");
 	// Format column titles for output

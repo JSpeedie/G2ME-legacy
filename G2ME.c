@@ -57,7 +57,7 @@ char calc_absent_players = 1;
 double outcome_weight = 1;
 /* TODO: make it dynamically realloc */
 char tournament_names[MAX_NAME_LEN][512];
-unsigned char tournament_names_len = 0;
+unsigned long tournament_names_len = 0;
 char filter_file_path[MAX_OUTCOME_STRING_LEN];
 char f_flag_used = 0;
 char player_dir[MAX_FILE_PATH_LEN];
@@ -1063,10 +1063,12 @@ int get_record(char *player1, char *player2, struct record *ret) {
 
 	FILE *p_file = fopen(full_player1_path, "rb");
 	if (p_file == NULL) {
-		perror("fopen (get_record)");
+		fprintf(stderr, "Error opening file %s (get_record): ", full_player1_path);
+		perror("");
 		return -1;
 	}
 	strncpy(ret->name, ent.name, MAX_NAME_LEN);
+	strncpy(ent.opp_name, player2, MAX_NAME_LEN);
 	// TODO: actually get player2 name from their file.
 	// '*player2' is just a file name
 	strncpy(ret->opp_name, player2, MAX_NAME_LEN);
@@ -1078,19 +1080,15 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	int cur_opp_ent_num = 0;
 	unsigned long num_of_last_outcomes = sizeof(ret->last_outcomes) - 1;
 
+	/* If there was an error with this function */
+	if (opp_file_get_id_from_name(&ent) < 0) return -3;
+
 	/* Get to the entries in the player file */
 	int r = entry_file_get_to_entries(p_file);
 	if (r != 0) {
 		perror("get_record (entry_file_get_to_entries)");
 		return -2;
 	}
-
-	FILE *opp_file = fopen("opp_file", "rb");
-	if (opp_file == NULL) {
-		perror("fopen (get_record)");
-		return -1;
-	}
-	if (0 != opp_file_get_id_from_name(&ent)) return -3;
 
 	while (entry_file_read_next_opp_entry(p_file, &ent, ent.opp_id) == 0) {
 		/* If the opponent for the given entry is the player of interest */

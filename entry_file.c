@@ -495,7 +495,7 @@ int opp_file_get_name_from_id(struct entry *E) {
  *
  * \param '*E' the struct entry with a set 'opp_name'
  * \return integer representing whether the function failed or succeeded.
- *     It will return < 0 if the function failed, and 0 if it succeeded.
+ *     It will return < 0 if the function failed, and >= 0 if it succeeded.
  */
 int opp_file_get_id_from_name(struct entry *E) {
 
