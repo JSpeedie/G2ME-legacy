@@ -1,0 +1,26 @@
+{
+  "name": "g2me",
+  "version": "1.1.0",
+  "description": "Glicko2 Made Easy",
+  "main": "dlsmashgg.js",
+  "directories": {
+    "example": "examples"
+  },
+  "dependencies": {
+    "xmlhttprequest": "^1.8.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JSpeedie/G2ME.git"
+  },
+  "author": "Julian Speedie",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JSpeedie/G2ME/issues"
+  },
+  "homepage": "https://github.com/JSpeedie/G2ME#readme"
+}
