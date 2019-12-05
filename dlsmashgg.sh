@@ -8,8 +8,8 @@
 echo "fetching group IDs..."
 smashggurl="https://api.smash.gg/tournament/${1}?expand[]=phase&expand[]=groups&expand[]=event"
 json=$(wget $smashggurl -q -O -)
-groupIds=$(echo "$json" \
-	| jq -r '.entities.groups[] | .id');
+groupIds=$(echo "$json" | tr '\r\n' ' ' | jq -r '.entities.groups[] | .id');
+
 echo "all"
 echo "$groupIds"
 printf "Please enter one of the IDs listed above: "
