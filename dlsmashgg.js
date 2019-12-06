@@ -205,8 +205,8 @@ function process_bracket(group_id, callback) {
 			var t = d[i]
 			p1n = t.p1name
 			p2n = t.p2name
-			if (p1n === "") p1n = t.p1tag
-			if (p2n === "") p2n = t.p2tag
+			if (p1n == "" || p1n == null) p1n = t.p1tag
+			if (p2n == "" || p2n == null) p2n = t.p2tag
 
 			ret.push("\"" + p1n + "\" \"" + p2n + "\" "
 				+ t.p1score + " " + t.p2score + " " + t.date)
