@@ -41,19 +41,77 @@ function get_group_ids(tournament_url_ending, callback) {
 	groupidsurl="https://api.smash.gg/tournament/" + tournament_url_ending
 		+ "?expand[]=phase&expand[]=groups&expand[]=event"
 
-
 	send("GET", groupidsurl, null, function(err, res) {
-		var ret = []
+		var e = res.entities.event;
+		var events = []
+
+		// res.entities.event.0.name = "ult singles"
+		// res.entities.event.0.id = 410788
+		// res.entities.event.0.tournamentId = 180191
+		for (var i = 0; i < e.length; i++) {
+			events.push({
+				name : e[i].name,
+				id : e[i].id,
+				tid : e[i].tournamentId
+			});
+		}
+
+		var p = res.entities.phase;
+		var phases = []
+
+		// res.entities.phase.0.name = "amateur bracket"
+		// res.entities.phase.0.id = 687270
+		// res.entities.phase.0.eventId = 410788
+		for (var i = 0; i < p.length; i++) {
+			phases.push({
+				name : p[i].name,
+				id : p[i].id,
+				eid : p[i].eventId
+			});
+		}
+
 		var g = res.entities.groups
+		var groups = []
+
+		// res.entities.groups.0.id = 1118880
+		// res.entities.groups.0.phaseId = 687275
+		for (var i = 0; i < g.length; i++) {
+			groups.push({
+				id : g[i].id,
+				pid : g[i].phaseId
+			});
+		}
+
+		function convPhaseIdToFullPhaseName(x) {
+			var name = ""
+
+			for (var i = 0; i < phases.length; i++) {
+				var y = phases[i].id
+
+				if (x == y) {
+					name = phases[i].name; // += "Amateur Bracket", "Pro Bracket"
+					for (var j = 0; j < phases.length; j++) {
+						if (phases[i].eid === events[j].id) {
+							name = events[j].name + ": " + name
+							return name
+						}
+					}
+				}
+			}
+			return name;
+		}
+
+		var ret = []
 
 		for (var i = 0; i < g.length; i++) {
-			ret.push(g[i].id);
-			//console.log(g[i].id)
+			ret.push({
+				id : g[i].id,
+				name : convPhaseIdToFullPhaseName(g[i].phaseId)
+			});
 		}
 
 		callback(ret)
 	});
-
 }
 
 function process_bracket(group_id, callback) {
@@ -87,7 +145,6 @@ function process_bracket(group_id, callback) {
 				isgf : s.isGF,
 				date : convSecondsToDMY(s.createdAt)
 			})
-
 		}
 		/* }}} */
 
@@ -156,18 +213,21 @@ function process_bracket(group_id, callback) {
 
 		callback(ret)
 	});
-
 }
 
 
 
 readline.question("Please enter tournament identifier (Ex. \"toronto-stock-exchange-20\"): ", (t_name) => {
-	console.log("all");
+	console.log("    all");
 	get_group_ids(t_name, function(gids) {
+
 		for (var i = 0; i < gids.length; i++) {
-			console.log(gids[i])
+			console.log("    " + gids[i].id + "    " + gids[i].name)
 		}
-		readline.question("Please enter a group id or \"all\": ", (input) => {
+
+		if (gids.length < 1) return;
+
+		readline.question("Please enter a group id or \"all\" (Ex. \"" + gids[0].id + "\"): ", (input) => {
 			if (input === "all") {
 				for (var i = 0; i < gids.length; i++) {
 					process_bracket(gids[i], function(sets) {
