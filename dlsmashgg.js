@@ -10,6 +10,7 @@ var readline = readline.createInterface({
 	input: process.stdin,
 	output: process.stdout,
 });
+const fs = require('fs')
 
 function send(method, url, data, callback){
 	let xhr = new XMLHttpRequest();
@@ -229,23 +230,63 @@ readline.question("Please enter tournament identifier (Ex. \"toronto-stock-excha
 
 		readline.question("Please enter a group id or \"all\" (Ex. \"" + gids[0].id + "\"): ", (input) => {
 			if (input === "all") {
-				for (var i = 0; i < gids.length; i++) {
-					process_bracket(gids[i], function(sets) {
+
+				/* *p*rocess *b*racket recursive "loop" */
+				function pb(set_num) {
+					process_bracket(gids[set_num].id, function(sets) {
 						console.log("\n")
+
+						var data = ""
+
 						for (var i = 0; i < sets.length; i++) {
 							console.log(sets[i])
+							data += sets[i] + "\n"
 						}
+
+						console.log("\n")
+						readline.question("Write output to file (Ex. \"bracket.txt\"): ", (input) => {
+
+							fs.writeFile(input, data, (err) => {
+								if (err) throw err;
+
+								/* If we have not "looped" through all the
+								 * elements, continue looping */
+								if (set_num < gids.length - 1) {
+									set_num += 1;
+									pb(set_num)
+								} else {
+									readline.close()
+									return
+								}
+							});
+						});
 					});
 				}
+
+				/* Start recursive "loop" at first element */
+				var i = 0;
+				pb(i);
+
 			} else {
 				process_bracket(input, function(sets) {
 					console.log("\n")
+
+					var data = ""
+
 					for (var i = 0; i < sets.length; i++) {
 						console.log(sets[i])
+						data += sets[i] + "\n"
 					}
+
+					console.log("\n")
+					readline.question("Write output to file (Ex. \"bracket.txt\"): ", (input) => {
+						fs.writeFile(input, data, (err) => {
+							if (err) throw err;
+						});
+						readline.close()
+					});
 				});
 			}
-			readline.close()
 		})
 	})
 })
