@@ -126,45 +126,58 @@ function process_bracket(group_id, callback) {
 		/* Generate list of set data */
 		/* {{{ */
 		var sets = res.entities.sets
-		var set_json = []
-		var player_json = []
-		for (i = 0; i < sets.length; i++) {
+		if (sets != null ) {
+			var set_json = []
+			var player_json = []
 
-			var s = sets[i];
-			if (s.entrant1Id == null || s.entrant2Id == null) continue;
+			for (i = 0; i < sets.length; i++) {
 
-			set_json.push({
-				id : s.id,
-				p1id : s.entrant1Id,
-				p2id : s.entrant2Id,
-				p1name : "",
-				p2name : "",
-				p1tag : "",
-				p2tag : "",
-				p1score : s.entrant1Score,
-				p2score : s.entrant2Score,
-				isgf : s.isGF,
-				date : convSecondsToDMY(s.createdAt)
-			})
+				var s = sets[i];
+				if (s.entrant1Id == null || s.entrant2Id == null) continue;
+
+				set_json.push({
+					id : s.id,
+					p1id : s.entrant1Id,
+					p2id : s.entrant2Id,
+					p1name : "",
+					p2name : "",
+					p1tag : "",
+					p2tag : "",
+					p1score : s.entrant1Score,
+					p2score : s.entrant2Score,
+					isgf : s.isGF,
+					date : convSecondsToDMY(s.createdAt)
+				})
+			}
+		/* If there were no sets */
+		} else {
+			callback([]);
+			return
 		}
 		/* }}} */
 
 		/* Generate list of player id, player name pairs */
 		/* {{{ */
 		var players = res.entities.entrants
-		for (i = 0; i < players.length; i++) {
-			var p = players[i]
-			var realnameinfo = p.mutations.players
+		if (players != null) {
+			for (i = 0; i < players.length; i++) {
+				var p = players[i]
+				var realnameinfo = p.mutations.players
 
-			for (var x in realnameinfo) {
-				realname = realnameinfo[''+x].name
+				for (var x in realnameinfo) {
+					realname = realnameinfo[''+x].name
+				}
+
+				player_json.push({
+					id : p.id,
+					tag : p.name,
+					name : realname
+				})
 			}
-
-			player_json.push({
-				id : p.id,
-				tag : p.name,
-				name : realname
-			})
+		/* If there were no entrants */
+		} else {
+			callback([]);
+			return
 		}
 		/* }}} */
 
@@ -217,7 +230,6 @@ function process_bracket(group_id, callback) {
 }
 
 
-
 readline.question("Please enter tournament identifier (Ex. \"toronto-stock-exchange-20\"): ", (t_name) => {
 	console.log("    all");
 	get_group_ids(t_name, function(gids) {
@@ -235,6 +247,12 @@ readline.question("Please enter tournament identifier (Ex. \"toronto-stock-excha
 				function pb(set_num) {
 					process_bracket(gids[set_num].id, function(sets) {
 						console.log("\n")
+
+						if (sets.length == 0) {
+							console.log("ERROR: No sets were played in the given bracket. Were there any entrants?")
+							readline.close()
+							return
+						}
 
 						var data = ""
 
@@ -270,6 +288,12 @@ readline.question("Please enter tournament identifier (Ex. \"toronto-stock-excha
 			} else {
 				process_bracket(input, function(sets) {
 					console.log("\n")
+
+					if (sets.length == 0) {
+						console.log("ERROR: No sets were played in the given bracket. Were there any entrants?")
+						readline.close()
+						return
+					}
 
 					var data = ""
 
