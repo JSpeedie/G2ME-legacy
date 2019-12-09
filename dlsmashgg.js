@@ -231,27 +231,85 @@ function process_bracket(group_id, callback) {
 
 
 readline.question("Please enter tournament identifier (Ex. \"toronto-stock-exchange-20\"): ", (t_name) => {
-	console.log("    all");
-	get_group_ids(t_name, function(gids) {
+	function present_options() {
+		console.log("    all");
+		get_group_ids(t_name, function(gids) {
 
-		for (var i = 0; i < gids.length; i++) {
-			console.log("    " + gids[i].id + "    " + gids[i].name)
-		}
+			for (var i = 0; i < gids.length; i++) {
+				console.log("    " + gids[i].id + "    " + gids[i].name)
+			}
 
-		if (gids.length < 1) return;
+			if (gids.length < 1) return;
 
-		readline.question("Please enter a group id or \"all\" (Ex. \"" + gids[0].id + "\"): ", (input) => {
-			if (input === "all") {
+			readline.question("Please enter a group id or \"all\" (Ex. \"" + gids[0].id + "\", \"exit\" to exit): ", (input) => {
+				if (input === "exit") {
+					readline.close()
+					return 0
+				} else if (input === "all") {
 
-				/* *p*rocess *b*racket recursive "loop" */
-				function pb(set_num) {
-					process_bracket(gids[set_num].id, function(sets) {
+					/* *p*rocess *b*racket recursive "loop" */
+					function pb(set_num, callback) {
+						process_bracket(gids[set_num].id, function(sets) {
+							console.log("\n")
+
+							if (sets.length == 0) {
+								console.log("ERROR: No sets were played in the given bracket. Were there any entrants?")
+								return present_options()
+							}
+
+							var data = ""
+
+							for (var i = 0; i < sets.length; i++) {
+								console.log(sets[i])
+								data += sets[i] + "\n"
+							}
+
+							console.log("\n")
+							readline.question("Write output to file (Ex. \"bracket.txt\", \"skip\" to continue): ", (input) => {
+
+								/* {{{ */
+								function pb_next() {
+									/* If we have not "looped" through all the
+									 * brackets, continue looping */
+									if (set_num < gids.length - 1) {
+										set_num += 1;
+										pb(set_num, callback)
+									} else {
+										console.log("\n")
+										console.log("End of brackets")
+										console.log("\n")
+										callback()
+									}
+								}
+								/* }}} */
+
+								if (input != "skip") {
+									fs.writeFile(input, data, (err) => {
+										if (err) throw err;
+
+										pb_next()
+									});
+								} else {
+									console.log("Skipping...")
+									pb_next()
+								}
+							});
+						});
+					}
+
+					/* Start recursive "loop" at first element */
+					var i = 0;
+					pb(i, function() {
+						present_options();
+					});
+
+				} else {
+					process_bracket(input, function(sets) {
 						console.log("\n")
 
 						if (sets.length == 0) {
 							console.log("ERROR: No sets were played in the given bracket. Were there any entrants?")
-							readline.close()
-							return
+							return present_options()
 						}
 
 						var data = ""
@@ -263,68 +321,20 @@ readline.question("Please enter tournament identifier (Ex. \"toronto-stock-excha
 
 						console.log("\n")
 						readline.question("Write output to file (Ex. \"bracket.txt\", \"skip\" to continue): ", (input) => {
-
-							/* {{{ */
-							function pb_next() {
-								/* If we have not "looped" through all the
-								 * elements, continue looping */
-								if (set_num < gids.length - 1) {
-									set_num += 1;
-									pb(set_num)
-								} else {
-									readline.close()
-								}
-							}
-							/* }}} */
-
 							if (input != "skip") {
 								fs.writeFile(input, data, (err) => {
 									if (err) throw err;
-
-									pb_next()
+									return present_options()
 								});
 							} else {
 								console.log("Skipping...")
-								pb_next()
+								return present_options()
 							}
 						});
 					});
 				}
-
-				/* Start recursive "loop" at first element */
-				var i = 0;
-				pb(i);
-
-			} else {
-				process_bracket(input, function(sets) {
-					console.log("\n")
-
-					if (sets.length == 0) {
-						console.log("ERROR: No sets were played in the given bracket. Were there any entrants?")
-						readline.close()
-						return
-					}
-
-					var data = ""
-
-					for (var i = 0; i < sets.length; i++) {
-						console.log(sets[i])
-						data += sets[i] + "\n"
-					}
-
-					console.log("\n")
-					readline.question("Write output to file (Ex. \"bracket.txt\", \"skip\" to continue): ", (input) => {
-						if (input != "skip") {
-							fs.writeFile(input, data, (err) => {
-								if (err) throw err;
-							});
-						} else {
-							console.log("Skipping...")
-						}
-						readline.close()
-					});
-				});
-			}
+			})
 		})
-	})
+	}
+	present_options()
 })
