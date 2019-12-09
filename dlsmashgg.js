@@ -260,7 +260,7 @@ readline.question("Please enter tournament identifier (Ex. \"toronto-stock-excha
 							var data = ""
 
 							/* Print name of bracket */
-							console.log(gids[set_num].name)
+							console.log(gids[set_num].name + " (" + gids[set_num].id + ")")
 							console.log("")
 
 							/* Print (and store) set data */
