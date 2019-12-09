@@ -259,6 +259,11 @@ readline.question("Please enter tournament identifier (Ex. \"toronto-stock-excha
 
 							var data = ""
 
+							/* Print name of bracket */
+							console.log(gids[set_num].name)
+							console.log("")
+
+							/* Print (and store) set data */
 							for (var i = 0; i < sets.length; i++) {
 								console.log(sets[i])
 								data += sets[i] + "\n"
