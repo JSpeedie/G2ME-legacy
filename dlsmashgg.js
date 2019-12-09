@@ -262,11 +262,10 @@ readline.question("Please enter tournament identifier (Ex. \"toronto-stock-excha
 						}
 
 						console.log("\n")
-						readline.question("Write output to file (Ex. \"bracket.txt\"): ", (input) => {
+						readline.question("Write output to file (Ex. \"bracket.txt\", \"skip\" to continue): ", (input) => {
 
-							fs.writeFile(input, data, (err) => {
-								if (err) throw err;
-
+							/* {{{ */
+							function pb_next() {
 								/* If we have not "looped" through all the
 								 * elements, continue looping */
 								if (set_num < gids.length - 1) {
@@ -274,9 +273,20 @@ readline.question("Please enter tournament identifier (Ex. \"toronto-stock-excha
 									pb(set_num)
 								} else {
 									readline.close()
-									return
 								}
-							});
+							}
+							/* }}} */
+
+							if (input != "skip") {
+								fs.writeFile(input, data, (err) => {
+									if (err) throw err;
+
+									pb_next()
+								});
+							} else {
+								console.log("Skipping...")
+								pb_next()
+							}
 						});
 					});
 				}
@@ -303,10 +313,14 @@ readline.question("Please enter tournament identifier (Ex. \"toronto-stock-excha
 					}
 
 					console.log("\n")
-					readline.question("Write output to file (Ex. \"bracket.txt\"): ", (input) => {
-						fs.writeFile(input, data, (err) => {
-							if (err) throw err;
-						});
+					readline.question("Write output to file (Ex. \"bracket.txt\", \"skip\" to continue): ", (input) => {
+						if (input != "skip") {
+							fs.writeFile(input, data, (err) => {
+								if (err) throw err;
+							});
+						} else {
+							console.log("Skipping...")
+						}
 						readline.close()
 					});
 				});
