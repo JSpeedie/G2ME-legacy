@@ -123,9 +123,9 @@ First you need to create a bracket file. For instance, a single elimination
 tournament of 4 players could have a bracket file like this:
 
 ```
-TheBestPlayer ABadPlayer 3 0 1 1 2018
-AGoodPlayer AnOkayPlayer 3 1 1 1 2018
-TheBestPlayer AGoodPlayer 3 2 1 1 2018
+TheBestPlayer ABadPlayer 3 0 28 3 2018
+AGoodPlayer AnOkayPlayer 3 1 28 3 2018
+TheBestPlayer AGoodPlayer 3 2 28 3 2018
 ```
 
 Let's call this file `ExampleBracket`. Depending on how you want the data
@@ -155,8 +155,8 @@ From here, you can interact with the data as you want. Common operations are:
 
 ```
 $ G2ME -h TheBestPlayer
-TheBestPlayer  ABadPlayer   1662.3  290.3  0.060000  3-0  1/1/2018  ExampleBracket
-TheBestPlayer  AGoodPlayer  1791.9  247.5  0.060000  3-2  1/1/2018  ExampleBracket
+TheBestPlayer  ABadPlayer   1662.3  290.3  0.060000  3-0  28/3/2018  ExampleBracket
+TheBestPlayer  AGoodPlayer  1791.9  247.5  0.060000  3-2  28/3/2018  ExampleBracket
 ```
 
 * Creating a pr of all the players in the system
@@ -324,8 +324,8 @@ and it is susceptible to players sandbagging.
 ```
 $ G2ME -b ExampleBracket
 $ G2ME -h TheBestPlayer
-TheBestPlayer  ABadPlayer   1662.3  290.3  0.060000  1-0  1/1/2018  ExampleBracket
-TheBestPlayer  AGoodPlayer  1791.9  247.5  0.060000  1-0  1/1/2018  ExampleBracket
+TheBestPlayer  ABadPlayer   1662.3  290.3  0.060000  1-0  28/3/2018  ExampleBracket
+TheBestPlayer  AGoodPlayer  1791.9  247.5  0.060000  1-0  28/3/2018  ExampleBracket
 ```
 
 Pretty self-explanatory. The rating numbers represent their rating after the
@@ -398,9 +398,9 @@ ran it on Challonge.
 ```
 $ sh convchallonge.sh [challonge_url_here] > [output_file_here]
 $ cat [output_file_here]
-"TheBestPlayer" "ABadPlayer" 3 0 1 1 2018
-"AGoodPlayer" "AnOkayPlayer" 3 1 1 1 2018
-"TheBestPlayer" "AGoodPlayer" 3 2 1 1 2018
+"TheBestPlayer" "ABadPlayer" 3 0 28 3 2018
+"AGoodPlayer" "AnOkayPlayer" 3 1 28 3 2018
+"TheBestPlayer" "AGoodPlayer" 3 2 28 3 2018
 ```
 
 Note that it surrounds every player tag with quotations marks. It
@@ -412,9 +412,9 @@ could look like when completed:
 ```
 $ vim [output_file_here]
 $ cat [output_file_here]
-JohnSmith ZachStone 3 0 1 1 2018
-AaronAardvark VictoriaSmith 3 1 1 1 2018
-JohnSmith AaronAardvark 3 2 1 1 2018
+JohnSmith ZachStone 3 0 28 3 2018
+AaronAardvark VictoriaSmith 3 1 28 3 2018
+JohnSmith AaronAardvark 3 2 28 3 2018
 ```
 
 Challonge seemingly doesn't always get the date right. If this is
@@ -474,11 +474,11 @@ appear in any player file as they only store changes)).
 An example bracket file:
 
 ```
-Bilal Julian 0 3 1 1 2017
-Jon Jonah 3 1 1 1 2017
-Steven Andrew 3 2 1 1 2017
-Isaiah Santos 3 0 1 1 2017
-Ron Julian 4 3 1 1 2017
+Bilal Julian 0 3 14 9 2017
+Jon Jonah 3 1 14 9 2017
+Steven Andrew 3 2 14 9 2017
+Isaiah Santos 3 0 14 9 2017
+Ron Julian 4 3 14 9 2017
 ```
 
 ### The 'B' flag
