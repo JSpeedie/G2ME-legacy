@@ -128,6 +128,7 @@ AGoodPlayer AnOkayPlayer 3 1 28 3 2018
 TheBestPlayer AGoodPlayer 3 2 28 3 2018
 ```
 
+Note the structure: `[p1name] [p2name] [p1score] [p2score] [day] [month] [year]`.  
 Let's call this file `ExampleBracket`. Depending on how you want the data
 calculated, you have several ways of continuing. For the example, let's assume
 you want RD adjustments for absence (standard Glicko2 practice).
