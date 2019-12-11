@@ -10,6 +10,8 @@
 #define SIZE_OUTCOMES 128
 #define LEXIO 1
 #define MAX_OUTCOME_STRING_LEN 128
+#define REALLOC_TOURNAMENT_NAMES_FACTOR 2
+#define SIZE_TOURNAMENT_NAMES_LEN 64
 
 extern char flag_output_to_stdout;
 extern char colour_output;

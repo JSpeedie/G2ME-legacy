@@ -55,9 +55,9 @@ char print_ties = 1;
 char player_list_file[MAX_FILE_PATH_LEN];
 char calc_absent_players = 1;
 double outcome_weight = 1;
-/* TODO: make it dynamically realloc */
-char tournament_names[MAX_NAME_LEN][512];
+char *tournament_names;
 unsigned long tournament_names_len = 0;
+unsigned long tournament_names_size = SIZE_TOURNAMENT_NAMES_LEN;
 char filter_file_path[MAX_OUTCOME_STRING_LEN];
 char f_flag_used = 0;
 char player_dir[MAX_FILE_PATH_LEN];
@@ -359,7 +359,7 @@ void adjust_absent_players_no_file(char day, char month, \
 		for (int k = 0; k < tournament_names_len; k++) {
 			/* If the one of the player who the system manager wants to track
 			 * is found in the list of competitors at the tourney */
-			if (0 == strcmp(&file_names[j][0], tournament_names[k])) {
+			if (0 == strcmp(&file_names[j][0], &tournament_names[k * (MAX_NAME_LEN + 1)])) {
 				did_not_comp = 0;
 				break;
 			}
@@ -395,6 +395,9 @@ void adjust_absent_players_no_file(char day, char month, \
 int update_players(char* bracket_file_path, short season_id) {
 	/* Set to 0 since the bracket is beginning and no names are stored */
 	tournament_names_len = 0;
+	tournament_names = \
+		(char *)malloc((MAX_NAME_LEN + 1) * tournament_names_size);
+
 	FILE *bracket_file = fopen(bracket_file_path, "r");
 	if (bracket_file == NULL) {
 		perror("fopen (update_players)");
@@ -541,28 +544,38 @@ int update_players(char* bracket_file_path, short season_id) {
 			for (int i = 0; i < tournament_names_len; i++) {
 				/* If the name already exists in the list of entrants,
 				 * don't add */
-				if (0 == strcmp(p1_name, tournament_names[i])) {
+				if (0 == strcmp(p1_name, &tournament_names[i * (MAX_NAME_LEN + 1)])) {
 					already_in = 1;
 					break;
 				}
-				if (0 == strcmp(p2_name, tournament_names[i])) {
+				if (0 == strcmp(p2_name, &tournament_names[i * (MAX_NAME_LEN + 1)])) {
 					already_in2 = 1;
 					break;
 				}
 			}
 			int ret = 0;
 			if (!already_in) {
-				strncpy(&tournament_names[tournament_names_len][0], \
+				if (tournament_names_len + 1 > tournament_names_size) {
+					tournament_names_size *= REALLOC_TOURNAMENT_NAMES_FACTOR;
+					tournament_names = (char *) realloc(tournament_names, \
+						(MAX_NAME_LEN + 1) * tournament_names_size);
+					if (tournament_names == NULL) {
+						perror("realloc (update_players)");
+						return -2;
+					}
+				}
+				strncpy(&tournament_names[ \
+					tournament_names_len * (MAX_NAME_LEN + 1)], \
 					p1_name, MAX_NAME_LEN);
 
 				/* Get opp_ids for all players who attended this tournament */
 				/* If the entry file does not already contain an id for this opponent */
 				struct entry E;
 				if (-1 == (ret = \
-					opp_file_contains_opponent(&tournament_names[tournament_names_len][0]))) {
+					opp_file_contains_opponent(&tournament_names[tournament_names_len * (MAX_NAME_LEN + 1)]))) {
 					/* Add the new opponent to the entry file. This also corrects
 					 * the t_id if it is incorrect */
-					strncpy(&E.opp_name[0], &tournament_names[tournament_names_len][0], MAX_NAME_LEN);
+					strncpy(&E.opp_name[0], &tournament_names[tournament_names_len * (MAX_NAME_LEN + 1)], MAX_NAME_LEN);
 					E.len_opp_name = strlen(E.opp_name);
 					if (0 != opp_file_add_new_opponent(&E)) return -8;
 				/* If there was an error */
@@ -577,16 +590,25 @@ int update_players(char* bracket_file_path, short season_id) {
 				tournament_names_len++;
 			}
 			if (!already_in2) {
-				strncpy(&tournament_names[tournament_names_len][0], \
+				if (tournament_names_len + 1 > tournament_names_size) {
+					tournament_names_size *= REALLOC_TOURNAMENT_NAMES_FACTOR;
+					tournament_names = (char *) realloc(tournament_names, \
+						(MAX_NAME_LEN + 1) * tournament_names_size);
+					if (tournament_names == NULL) {
+						perror("realloc (update_players)");
+						return -2;
+					}
+				}
+				strncpy(&tournament_names[tournament_names_len * (MAX_NAME_LEN + 1)], \
 					p2_name, MAX_NAME_LEN);
 				/* Get opp_ids for all players who attended this tournament */
 				/* If the entry file does not already contain an id for this opponent */
 				struct entry E;
 				if (-1 == (ret = \
-					opp_file_contains_opponent(&tournament_names[tournament_names_len][0]))) {
+					opp_file_contains_opponent(&tournament_names[tournament_names_len * (MAX_NAME_LEN + 1)]))) {
 					/* Add the new opponent to the entry file. This also corrects
 					 * the t_id if it is incorrect */
-					strncpy(&E.opp_name[0], &tournament_names[tournament_names_len][0], MAX_NAME_LEN);
+					strncpy(&E.opp_name[0], &tournament_names[tournament_names_len * (MAX_NAME_LEN + 1)], MAX_NAME_LEN);
 					E.len_opp_name = strlen(E.opp_name);
 					if (0 != opp_file_add_new_opponent(&E)) return -8;
 				/* If there was an error */
@@ -606,11 +628,11 @@ int update_players(char* bracket_file_path, short season_id) {
 		char p1_found = 0;
 		char p2_found = 0;
 		for (int k = 0; k < tournament_names_len; k++) {
-			if (0 == strncmp(p1_name, tournament_names[k], MAX_NAME_LEN)) {
+			if (0 == strncmp(p1_name, &tournament_names[k * (MAX_NAME_LEN + 1)], MAX_NAME_LEN)) {
 				p1_id = tournament_names_id[k];
 				p1_found = 1;
 			}
-			if (0 == strncmp(p2_name, tournament_names[k], MAX_NAME_LEN)) {
+			if (0 == strncmp(p2_name, &tournament_names[k * (MAX_NAME_LEN + 1)], MAX_NAME_LEN)) {
 				p2_id = tournament_names_id[k];
 				p2_found = 1;
 			}
