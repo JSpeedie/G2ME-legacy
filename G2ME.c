@@ -325,7 +325,7 @@ void adjust_absent_players_no_file(char day, char month, \
 	GetSystemInfo(&info);
 	max_forks = info.dwNumberOfProcessors;
 #else
-	max_forks = sysconf(_SC_NPROCESSORS_ONLN);
+	//max_forks = sysconf(_SC_NPROCESSORS_ONLN);
 #endif
 	if (max_forks < 1) max_forks = 8;
 	int num_players = 0;
@@ -334,6 +334,8 @@ void adjust_absent_players_no_file(char day, char month, \
 	int total_num_adjustments = 0;
 	char did_not_comp = 1;
 
+	/* TODO: potentially faster through reading last entry and checking if
+	 * they entered that way? */
 	/* Create a list of player files */
 	while ((entry = readdir(p_dir)) != NULL) {
 		/* Reset variable to assume player did not compete */
@@ -359,12 +361,19 @@ void adjust_absent_players_no_file(char day, char month, \
 	closedir(p_dir);
 	unsigned long adj_per_process = total_num_adjustments / max_forks;
 	unsigned long extra = total_num_adjustments - ((total_num_adjustments / max_forks) * max_forks);
+	/* Calculate the appropriate maximum size for the array of names to
+	 * be adjusted */
+	unsigned long size_of_names = MINIMUM_ADJ_BEFORE_FORK;
+	if (size_of_names < adj_per_process + extra) {
+		size_of_names = adj_per_process + extra;
+	}
 	pthread_t thread_id[max_forks - 1];
+
 
 	/* Define a struct for passing arguments to the thread */
 	typedef struct thread_args {
 		unsigned long num_adjustments;
-		char files[adj_per_process + extra][MAX_NAME_LEN + 1];
+		char files[size_of_names][MAX_NAME_LEN + 1];
 		char day;
 		char month;
 		short year;
@@ -385,39 +394,85 @@ void adjust_absent_players_no_file(char day, char month, \
 		return NULL;
 	}
 
-	for (int f = 0; f < max_forks - 1; f++) {
-		/* Copy arguments need for player adjustment into argument struct */
-		args[f].num_adjustments = adj_per_process;
-		for (int k = 0; k < adj_per_process; k++) {
-			strncpy(&args[f].files[k][0], &file_names[(f * adj_per_process) + k][0], MAX_NAME_LEN);
+	/* If there is reason not to use every thread */
+	if (adj_per_process < MINIMUM_ADJ_BEFORE_FORK) {
+		int num_min_threads = total_num_adjustments / MINIMUM_ADJ_BEFORE_FORK;
+		printf("total num adj %d\n", total_num_adjustments);
+		printf("num min threads %d\n", num_min_threads);
+		for (int f = 0; f < num_min_threads; f++) {
+			/* Copy arguments need for player adjustment into argument struct */
+			args[f].num_adjustments = MINIMUM_ADJ_BEFORE_FORK;
+			for (int k = 0; k < MINIMUM_ADJ_BEFORE_FORK; k++) {
+				strncpy(&args[f].files[k][0], &file_names[(f * MINIMUM_ADJ_BEFORE_FORK) + k][0], MAX_NAME_LEN);
+			}
+			args[f].day = day;
+			args[f].month = month;
+			args[f].year = year;
+			args[f].t_id = t_id;
+			args[f].t_name = t_name;
+			/* Create new thread, RD adjusting list of players */
+			pthread_create(&thread_id[f], NULL, adjust_p, &args[f]);
 		}
-		args[f].day = day;
-		args[f].month = month;
-		args[f].year = year;
-		args[f].t_id = t_id;
-		args[f].t_name = t_name;
-		/* Create new thread, RD adjusting list of players */
-		pthread_create(&thread_id[f], NULL, adjust_p, &args[f]);
-	}
+		/* Player adjustment for parent thread. Catches stragglers
+		 * through the use of 'extra' */
+		extra = total_num_adjustments - (num_min_threads * MINIMUM_ADJ_BEFORE_FORK);
+		if (extra > 0) {
+			printf("extra %d\n", extra);
+			struct thread_args parent_arg;
+			parent_arg.num_adjustments = extra;
+			for (int k = 0; k < parent_arg.num_adjustments; k++) {
+				strncpy(&parent_arg.files[k][0], &file_names[((num_min_threads) * MINIMUM_ADJ_BEFORE_FORK) +  k][0], MAX_NAME_LEN);
+			}
+			parent_arg.day = day;
+			parent_arg.month = month;
+			parent_arg.year = year;
+			parent_arg.t_id = t_id;
+			parent_arg.t_name = t_name;
+			adjust_p(&parent_arg);
+		}
+
+		/* Wait for all threads to finish */
+		for (int f = 0; f < num_min_threads; f++) {
+			pthread_join(thread_id[f], NULL);
+		}
+	/* If there are more than 'MINIMUM_ADJ_BEFORE_FORK' adjustments per
+	 * thread, each thread has lots of work. Create a maximum
+	 * number of threads */
+	} else {
+		for (int f = 0; f < max_forks - 1; f++) {
+			/* Copy arguments need for player adjustment into argument struct */
+			args[f].num_adjustments = adj_per_process;
+			for (int k = 0; k < adj_per_process; k++) {
+				strncpy(&args[f].files[k][0], &file_names[(f * adj_per_process) + k][0], MAX_NAME_LEN);
+			}
+			args[f].day = day;
+			args[f].month = month;
+			args[f].year = year;
+			args[f].t_id = t_id;
+			args[f].t_name = t_name;
+			/* Create new thread, RD adjusting list of players */
+			pthread_create(&thread_id[f], NULL, adjust_p, &args[f]);
+		}
 
 
-	/* Player adjustment for parent thread. Catches stragglers
-	 * through the use of 'extra' */
-	struct thread_args parent_arg;
-	parent_arg.num_adjustments = adj_per_process + extra;
-	for (int k = 0; k < parent_arg.num_adjustments; k++) {
-		strncpy(&parent_arg.files[k][0], &file_names[((max_forks - 1) * adj_per_process) +  k][0], MAX_NAME_LEN);
-	}
-	parent_arg.day = day;
-	parent_arg.month = month;
-	parent_arg.year = year;
-	parent_arg.t_id = t_id;
-	parent_arg.t_name = t_name;
-	adjust_p(&parent_arg);
+		/* Player adjustment for parent thread. Catches stragglers
+		 * through the use of 'extra' */
+		struct thread_args parent_arg;
+		parent_arg.num_adjustments = adj_per_process + extra;
+		for (int k = 0; k < parent_arg.num_adjustments; k++) {
+			strncpy(&parent_arg.files[k][0], &file_names[((max_forks - 1) * adj_per_process) +  k][0], MAX_NAME_LEN);
+		}
+		parent_arg.day = day;
+		parent_arg.month = month;
+		parent_arg.year = year;
+		parent_arg.t_id = t_id;
+		parent_arg.t_name = t_name;
+		adjust_p(&parent_arg);
 
-	/* Wait for all threads to finish */
-	for (int f = 0; f < max_forks - 1; f++) {
-		pthread_join(thread_id[f], NULL);
+		/* Wait for all threads to finish */
+		for (int f = 0; f < max_forks - 1; f++) {
+			pthread_join(thread_id[f], NULL);
+		}
 	}
 }
 
