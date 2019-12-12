@@ -352,7 +352,6 @@ void adjust_absent_players_no_file(char day, char month, \
 			}
 		}
 		if (did_not_comp) {
-			//printf("%s didn ot comp\n", entry->d_name);
 			strncpy(&file_names[total_num_adjustments][0], entry->d_name, MAX_NAME_LEN + 1);
 			total_num_adjustments++;
 		}
@@ -397,8 +396,6 @@ void adjust_absent_players_no_file(char day, char month, \
 	/* If there is reason not to use every thread */
 	if (adj_per_process < MINIMUM_ADJ_BEFORE_FORK) {
 		int num_min_threads = total_num_adjustments / MINIMUM_ADJ_BEFORE_FORK;
-		printf("total num adj %d\n", total_num_adjustments);
-		printf("num min threads %d\n", num_min_threads);
 		for (int f = 0; f < num_min_threads; f++) {
 			/* Copy arguments need for player adjustment into argument struct */
 			args[f].num_adjustments = MINIMUM_ADJ_BEFORE_FORK;
@@ -417,7 +414,6 @@ void adjust_absent_players_no_file(char day, char month, \
 		 * through the use of 'extra' */
 		extra = total_num_adjustments - (num_min_threads * MINIMUM_ADJ_BEFORE_FORK);
 		if (extra > 0) {
-			printf("extra %d\n", extra);
 			struct thread_args parent_arg;
 			parent_arg.num_adjustments = extra;
 			for (int k = 0; k < parent_arg.num_adjustments; k++) {
