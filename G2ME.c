@@ -12,6 +12,7 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+#include <pthread.h>
 /* Windows includes */
 #ifdef _WIN32
 #include <windows.h>
@@ -308,7 +309,6 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
 void adjust_absent_players_no_file(char day, char month, \
 	short year, short t_id, char* t_name) {
 
-	char did_not_comp = 1;
 	DIR *p_dir;
 	struct dirent *entry;
 	/* If the directory could not be accessed, print error and return */
@@ -331,52 +331,94 @@ void adjust_absent_players_no_file(char day, char month, \
 	int num_players = 0;
 	player_dir_num_players(&num_players);
 	char file_names[num_players][MAX_NAME_LEN + 1];
-	int i = 0;
-	pid_t p;
+	int total_num_adjustments = 0;
+	char did_not_comp = 1;
+
 	/* Create a list of player files */
 	while ((entry = readdir(p_dir)) != NULL) {
-		/* If the directory item is a directory, skip */
-		if (0 == check_if_dir(player_dir, entry->d_name)) continue;
-		strncpy(&file_names[i][0], entry->d_name, MAX_NAME_LEN + 1);
-		i++;
-	}
-	closedir(p_dir);
-	unsigned long adj_per_process = num_players / max_forks;
-	unsigned long extra = 0;
-	for (i = 0; i < max_forks - 1; i++) {
-		p = fork();
-		if (p == 0) break;
-	}
-	/* If this is the parent process, catch any straggling adjustments */
-	if (p != 0) {
-		extra = num_players - ((num_players / max_forks) * max_forks);
-	}
-	/* Get this processes' list of player names that did not compete and
-	 * apply step 6 to them and append to player file */
-	for (int j = i * adj_per_process; j < (i + 1) * adj_per_process + extra; j++) {
 		/* Reset variable to assume player did not compete */
 		did_not_comp = 1;
+		/* If the directory item is a directory, skip */
+		if (0 == check_if_dir(player_dir, entry->d_name)) continue;
+
 		for (int k = 0; k < tournament_names_len; k++) {
-			/* If the one of the player who the system manager wants to track
-			 * is found in the list of competitors at the tourney */
-			if (0 == strcmp(&file_names[j][0], &tournament_names[k * (MAX_NAME_LEN + 1)])) {
+			/* If this player file corresponds to someone who was
+			 * at the  tournament, ignore them */
+			if (0 == strcmp(entry->d_name, &tournament_names[k * (MAX_NAME_LEN + 1)])) {
 				did_not_comp = 0;
 				break;
 			}
 		}
-
 		if (did_not_comp) {
-			adjust_absent_player(&file_names[j][0], day, month, year, t_id, t_name);
+			//printf("%s didn ot comp\n", entry->d_name);
+			strncpy(&file_names[total_num_adjustments][0], entry->d_name, MAX_NAME_LEN + 1);
+			total_num_adjustments++;
 		}
 	}
 
-	if (p == 0) exit(0);
+	closedir(p_dir);
+	unsigned long adj_per_process = total_num_adjustments / max_forks;
+	unsigned long extra = total_num_adjustments - ((total_num_adjustments / max_forks) * max_forks);
+	pthread_t thread_id[max_forks - 1];
 
-	/* Wait for all the child processes to finish to avoid data errors */
-	pid_t wpid;
-	int status = 0;
-	while ((wpid = wait(&status)) > 0);
-	/* At this point all the kids have exited, parent can continue */
+	/* Define a struct for passing arguments to the thread */
+	typedef struct thread_args {
+		unsigned long num_adjustments;
+		char files[adj_per_process + extra][MAX_NAME_LEN + 1];
+		char day;
+		char month;
+		short year;
+		short t_id;
+		char * t_name;
+	}ThreadArgs;
+
+	struct thread_args args[max_forks - 1];
+
+	/* Function for adjusting a list of players */
+	void *adjust_p(void *arg) {
+		struct thread_args *t = (struct thread_args *) arg;
+		/* Get this processes' list of player names that did not compete and
+		 * apply step 6 to them and append to player file */
+		for (int j = 0; j < t->num_adjustments; j++) {
+			adjust_absent_player(&(t->files[j][0]), t->day, t->month, t->year, t->t_id, t->t_name);
+		}
+		return NULL;
+	}
+
+	for (int f = 0; f < max_forks - 1; f++) {
+		/* Copy arguments need for player adjustment into argument struct */
+		args[f].num_adjustments = adj_per_process;
+		for (int k = 0; k < adj_per_process; k++) {
+			strncpy(&args[f].files[k][0], &file_names[(f * adj_per_process) + k][0], MAX_NAME_LEN);
+		}
+		args[f].day = day;
+		args[f].month = month;
+		args[f].year = year;
+		args[f].t_id = t_id;
+		args[f].t_name = t_name;
+		/* Create new thread, RD adjusting list of players */
+		pthread_create(&thread_id[f], NULL, adjust_p, &args[f]);
+	}
+
+
+	/* Player adjustment for parent thread. Catches stragglers
+	 * through the use of 'extra' */
+	struct thread_args parent_arg;
+	parent_arg.num_adjustments = adj_per_process + extra;
+	for (int k = 0; k < parent_arg.num_adjustments; k++) {
+		strncpy(&parent_arg.files[k][0], &file_names[((max_forks - 1) * adj_per_process) +  k][0], MAX_NAME_LEN);
+	}
+	parent_arg.day = day;
+	parent_arg.month = month;
+	parent_arg.year = year;
+	parent_arg.t_id = t_id;
+	parent_arg.t_name = t_name;
+	adjust_p(&parent_arg);
+
+	/* Wait for all threads to finish */
+	for (int f = 0; f < max_forks - 1; f++) {
+		pthread_join(thread_id[f], NULL);
+	}
 }
 
 
@@ -538,6 +580,10 @@ int update_players(char* bracket_file_path, short season_id) {
 			"%s %s %hhd %hhd %hhd %hhd %hd", \
 			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
 #endif
+		char p1_found = 0;
+		char p2_found = 0;
+		unsigned long p1_index;
+		unsigned long p2_index;
 		if (calc_absent_players == 1) {
 			char already_in = 0;
 			char already_in2 = 0;
@@ -546,11 +592,23 @@ int update_players(char* bracket_file_path, short season_id) {
 				 * don't add */
 				if (0 == strcmp(p1_name, &tournament_names[i * (MAX_NAME_LEN + 1)])) {
 					already_in = 1;
-					break;
+					p1_found = 1;
+					p1_index = i;
+					/* If both names need to be added, get to work. No need
+					 * to search further */
+					if (already_in2 == 1) {
+						break;
+					}
 				}
 				if (0 == strcmp(p2_name, &tournament_names[i * (MAX_NAME_LEN + 1)])) {
 					already_in2 = 1;
-					break;
+					p2_found = 1;
+					p2_index = i;
+					/* If both names need to be added, get to work. No need
+					 * to search further */
+					if (already_in == 1) {
+						break;
+					}
 				}
 			}
 			int ret = 0;
@@ -625,18 +683,28 @@ int update_players(char* bracket_file_path, short season_id) {
 		}
 		short p1_id;
 		short p2_id;
-		char p1_found = 0;
-		char p2_found = 0;
-		for (int k = 0; k < tournament_names_len; k++) {
-			if (0 == strncmp(p1_name, &tournament_names[k * (MAX_NAME_LEN + 1)], MAX_NAME_LEN)) {
-				p1_id = tournament_names_id[k];
-				p1_found = 1;
+		if (p1_found == 1) {
+			p1_id = tournament_names_id[p1_index];
+		}
+		if (p2_found == 1) {
+			p2_id = tournament_names_id[p2_index];
+		}
+		if (p1_found == 0 || p2_found == 0) {
+			for (int k = 0; k < tournament_names_len; k++) {
+				if (p1_found == 0) {
+					if (0 == strncmp(p1_name, &tournament_names[k * (MAX_NAME_LEN + 1)], MAX_NAME_LEN)) {
+						p1_id = tournament_names_id[k];
+						p1_found = 1;
+					}
+				}
+				if (p2_found == 0) {
+					if (0 == strncmp(p2_name, &tournament_names[k * (MAX_NAME_LEN + 1)], MAX_NAME_LEN)) {
+						p2_id = tournament_names_id[k];
+						p2_found = 1;
+					}
+				}
+				if (p1_found == 1 && p2_found == 1) break;
 			}
-			if (0 == strncmp(p2_name, &tournament_names[k * (MAX_NAME_LEN + 1)], MAX_NAME_LEN)) {
-				p2_id = tournament_names_id[k];
-				p2_found = 1;
-			}
-			if (p1_found == 1 && p2_found == 1) break;
 		}
 
 		struct player p1;

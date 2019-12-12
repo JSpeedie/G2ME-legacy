@@ -6,7 +6,7 @@ PREFIX = /usr/local
 MANPREFIX = /usr/share/man
 # gcc flags for includes
 INCS = -I. -I/usr/include
-LIBS = -L/usr/lib -lm
+LIBS = -L/usr/lib -lm -lpthread
 # Flags
 CFLAGS = -Wall
 # Compiler and linker
