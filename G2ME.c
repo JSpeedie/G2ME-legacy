@@ -325,7 +325,7 @@ void adjust_absent_players_no_file(char day, char month, \
 	GetSystemInfo(&info);
 	max_forks = info.dwNumberOfProcessors;
 #else
-	//max_forks = sysconf(_SC_NPROCESSORS_ONLN);
+	max_forks = sysconf(_SC_NPROCESSORS_ONLN);
 #endif
 	if (max_forks < 1) max_forks = 8;
 	int num_players = 0;
