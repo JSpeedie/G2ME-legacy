@@ -286,7 +286,7 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
 				long len_t_name = strlen(latest_ent.t_name);
 				latest_ent.t_name[len_t_name] = '\0';
 				latest_ent.len_t_name = len_t_name;
-				entry_file_append_entry_to_file_id(&latest_ent, full_file_path);
+				entry_file_append_adjustment_to_file_id(&latest_ent, full_file_path);
 			}
 		}
 	}
@@ -325,7 +325,7 @@ void adjust_absent_players_no_file(char day, char month, \
 	GetSystemInfo(&info);
 	max_forks = info.dwNumberOfProcessors;
 #else
-	//max_forks = sysconf(_SC_NPROCESSORS_ONLN);
+	max_forks = sysconf(_SC_NPROCESSORS_ONLN);
 #endif
 	if (max_forks < 1) max_forks = 8;
 	int num_players = 0;

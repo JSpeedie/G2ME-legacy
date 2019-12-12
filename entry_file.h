@@ -85,6 +85,7 @@ int entry_file_read_last_entry_tournament_id(char *, struct entry *);
 
 
 /* Append entry to file functions */
+int entry_file_append_adjustment_to_file_id(struct entry *, char *);
 int entry_file_append_entry_to_file_id(struct entry *, char *);
 int entry_file_append_entry_to_file(struct entry *, char *);
 

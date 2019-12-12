@@ -1212,6 +1212,49 @@ int entry_file_read_last_entry_tournament_id(char* file_path, struct entry *ret)
 	return 0;
 }
 
+/** Appends an RD adjustment entry to a given player file and return an int
+ * representing whether the function succeeded or not.
+ *
+ * NOTE: This is the 'id' version of this function, and it will expect
+ * that E->opp_id, and E->tournament_id have been correctly set.
+ *
+ * \param '*E' the struct entry to be appended.
+ * \param '*file_path' the file path of the player file.
+ * \return int that is 0 upon the function succeeding and negative upon
+ *     any sort of failure.
+ */
+int entry_file_append_adjustment_to_file_id(struct entry *E, char *file_path) {
+	/* File guaranteed to exist as it was found by reading player
+	 * directory contents */
+
+	/* Open file for appending */
+	FILE *entry_file = fopen(file_path, "ab+");
+	if (entry_file == NULL) {
+		perror("fopen (entry_file_append_entry_to_file)");
+		return -10;
+	}
+	/* Write length of opp name and opp name */
+	if (1 != fwrite(&E->opp_id, sizeof(short), 1, entry_file)) { return -9; }
+	/* Write glicko data */
+	if (1 != fwrite(&E->rating, sizeof(double), 1, entry_file)) { return -10; }
+	if (1 != fwrite(&E->RD, sizeof(double), 1, entry_file)) { return -11; }
+	if (1 != fwrite(&E->vol, sizeof(double), 1, entry_file)) { return -12; }
+	/* Write game counts */
+	if (1 != fwrite(&E->gc, sizeof(char), 1, entry_file)) { return -13; }
+	if (1 != fwrite(&E->opp_gc, sizeof(char), 1, entry_file)) { return -14; }
+	/* Write date data */
+	if (1 != fwrite(&E->day, sizeof(char), 1, entry_file)) { return -15; }
+	if (1 != fwrite(&E->month, sizeof(char), 1, entry_file)) { return -16; }
+	if (1 != fwrite(&E->year, sizeof(short), 1, entry_file)) { return -17; }
+	if (1 != fwrite(&E->tournament_id, sizeof(short), 1, entry_file)) { return -18; }
+	if (1 != fwrite(&E->season_id, sizeof(short), 1, entry_file)) { return -19; }
+
+	fclose(entry_file);
+
+	/* Guaranteed not to be a competitor entry */
+
+	return 0;
+}
 /** Appends an entry to a given player file and return an int representing
  * whether the function succeeded or not.
  *
