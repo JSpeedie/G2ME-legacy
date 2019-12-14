@@ -888,6 +888,8 @@ Below, the 2 main components of the file are explained in more depth.
 
 ### Player File: Starter Data
 
+The starter data section breaks down into the following pieces:
+
 `[len_name][name][num_valid_out][num_valid_attended_events][entries]`
 
 Where:
@@ -906,8 +908,10 @@ Where:
 ### Player File: Entries
 
 After the starter data, the file takes the repeated form of:
+
 `[p2_id][p1_rating_after][p1_RD_after][p1_vol_after][p1_game_count][p2_game_count][day][month][year][event_id][season_id]`
-where:
+
+Where:
 
 1. `[p2_id]` is `sizeof(unsigned short)` bytes representing the player 2 id
 2. `[p1_rating_after]` is `sizeof(double)` bytes representing player-1's rating
