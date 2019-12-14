@@ -474,7 +474,8 @@ int update_players(char* bracket_file_path, short season_id) {
 
 	FILE *bracket_file = fopen(bracket_file_path, "r");
 	if (bracket_file == NULL) {
-		perror("fopen (update_players)");
+		fprintf(stderr, "Error opening file \"%s\" (update_players): ", bracket_file_path);
+		perror("");
 		return -1;
 	}
 
@@ -510,7 +511,7 @@ int update_players(char* bracket_file_path, short season_id) {
 
 	int outcomes_size = SIZE_OUTCOMES;
 	char *outcomes = \
-		(char *)malloc((MAX_FILE_PATH_LEN + 1) * outcomes_size);
+		(char *)malloc((MAX_BRACKET_FILE_LINE_LEN + 1) * outcomes_size);
 
 	int num_outcomes = 0;
 	while (fgets(line, sizeof(line), bracket_file)) {
@@ -554,8 +555,8 @@ int update_players(char* bracket_file_path, short season_id) {
 					return -2;
 				}
 			}
-			strncpy(&outcomes[num_outcomes * (MAX_FILE_PATH_LEN + 1)], \
-				&line[0], MAX_FILE_PATH_LEN);
+			strncpy(&outcomes[num_outcomes * (MAX_BRACKET_FILE_LINE_LEN + 1)], \
+				&line[0], MAX_BRACKET_FILE_LINE_LEN);
 			num_outcomes++;
 		}
 	}
@@ -815,13 +816,11 @@ int run_brackets(char *bracket_list_file_path) {
 		return -1;
 	}
 
-	short latest_season_id = -1;
+	short latest_season_id = s_file_get_latest_season_id();
 	char line[MAX_FILE_PATH_LEN + 2]; /* + 1 for \n and +1 for \0 */
 	int bracket_paths_size = SIZE_BRACKET_PATHS;
 	char *bracket_paths = \
 		(char *)malloc((MAX_FILE_PATH_LEN + 1) * bracket_paths_size);
-
-	latest_season_id = s_file_get_latest_season_id();
 
 	int num_brk = 0;
 	while (fgets(line, sizeof(line), bracket_list_file)) {
