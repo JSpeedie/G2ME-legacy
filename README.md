@@ -10,6 +10,7 @@
 * [Example Walkthroughs](#example-walkthroughs)
 	* [FAQ/General Usage Walkthrough](#faqgeneral-usage-walkthrough)
 * [Converting Challonge Brackets](#converting-challonge-brackets)
+* [Converting Smash.gg Events](#converting-smashgg-events)
 * [Usage](#usage)
 	* [The '0' flag](#the-0-flag)
 	* [The 'A' flag](#the-A-flag-1)
@@ -914,49 +915,66 @@ or an RD adjustment entry. It must be processed accordingly.
 
 ### Opponent File Format
 
-`[num_opps][opps]`
+`[num_opps]([opp_name 1 opp_id][opp_name 1])([opp_name 2 opp_id][opp_name 2])...([opp_name n opp_id][opp_name n])`
 
 Where:
 
-1. `[num_opps]` is `sizeof(unsigned short)`, the number of (opponent id,
+1. `[num_opps]` = `n` is `sizeof(unsigned short)`, the number of (opponent id,
    opponent name) pairs in this file. The size of the array, if you will.
-2. `[opps]` is `$1 * (sizeof(unsigned short) + MAX_NAME_LEN + 1)` bytes that
-   are compromised of an unsigned short representing that opponents global id,
-   followed by MAX_NAME_LEN + 1 characters containing the opponent's name.
+2. `[opp_name x opp_id]` is `sizeof(unsigned short) + MAX_NAME_LEN + 1` bytes
+   that form a pair of data on a player, compromised of an unsigned short
+   representing that opponents global id, followed by `MAX_NAME_LEN + 1`
+   characters containing the opponent's name.
+
+**Note:** opponent id and name pairs are ordered alphabetically by opponent
+name, allowing for fast conversion (binary search) from opponent name to
+opponent id.
 
 ### Opponent ID File Format
 
-`[num_opps][opp_names]`
+`[num_opps][opp_name 1][opp_name 2]...[opp_name n]`
 
 Where:
 
-1. `[num_opps]` is `sizeof(unsigned short)`, the number of (opponent id,
-   opponent name) pairs in this file. The size of the array, if you will.
-2. `[opp_names]` is `$1 * (MAX_NAME_LEN + 1)` bytes that
-   are MAX_NAME_LEN + 1 characters containing the opponent's name.
+1. `[num_opps]` = `n` is `sizeof(unsigned short)`, the number of
+   opponent names in this file. The size of the array, if you will.
+2. `[opp_name x]` is `MAX_NAME_LEN + 1` bytes that
+   are `MAX_NAME_LEN + 1` characters containing the opponent's name.
+
+**Note:** opponent names are indexed by their global id for fast (linear)
+conversion from opponent id to opponent name.
 
 ### Tournament File Format
 
-`[num_tournaments][tournaments]`
+`[num_tournaments]([tournament_name 1 t_id][tournament_name 1])([tournament_name 2 t_id][tournament_name 2])...([tournament_name n t_id][tournament_name n])`
 
 Where:
 
-1. `[num_tournaments]` is `sizeof(unsigned short)`, the number of (tournament
-   id, tournament name) pairs in this file. The size of the array, if you will.
-2. `[tournaments]` is `$1 * (sizeof(unsigned short) + MAX_NAME_LEN + 1)` bytes that
-   are compromised of an unsigned short representing that tournament's global id,
-   followed by MAX_NAME_LEN + 1 characters containing the tournament's name.
+1. `[num_tournaments]` = `n` is `sizeof(unsigned short)`, the number of (tournament id,
+   tournament name) pairs in this file. The size of the array, if you will.
+2. `[tournament_name x t_id]` is `sizeof(unsigned short) + MAX_NAME_LEN + 1` bytes
+   that form a pair of data on a player, compromised of an unsigned short
+   representing that tournaments global id, followed by `MAX_NAME_LEN + 1`
+   characters containing the tournament's name.
+
+**Note:** tournament id and name pairs are ordered alphabetically by tournament
+name, allowing for fast conversion (binary search) from tournament name to
+tournament id.
 
 ### Tournament ID File Format
 
-`[num_tournaments][tournament_names]`
+`[num_tournaments][tournament_name 1][tournament_name 2]...[tournament_name n]`
 
 Where:
 
-1. `[num_tournaments]` is `sizeof(unsigned short)`, the number of (tournament id,
-   tournament name) pairs in this file. The size of the array, if you will.
-2. `[tournament_names]` is `$1 * (MAX_NAME_LEN + 1)` bytes that
-   are MAX_NAME_LEN + 1 characters containing the tournament's name.
+1. `[num_tournaments]` = `n` is `sizeof(unsigned short)`, the number of
+   tournament names in this file. The size of the array, if you will.
+2. `[tournament_name x]` is `MAX_NAME_LEN + 1` bytes that
+   are `MAX_NAME_LEN + 1` characters containing the tournament's name.
+
+**Note:** tournament names are indexed by their global id for fast (linear)
+conversion from tournament id to tournament name.
+
 
 ## TODO
 
