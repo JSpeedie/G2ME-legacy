@@ -902,8 +902,6 @@ Where:
    usage of the system) they have experienced.
 4. `[num_valid_attended_events]` is `sizeof(unsigned long)`, and represents the number of
    valid (non-RD-adjustment) events they have attended.
-4. `[entries]` is an array of unknown length containing player entries. More
-   information on player entries in the next section.
 
 ### Player File: Entries
 
@@ -943,10 +941,10 @@ Where:
 
 1. `[num_opps]` = `n` is `sizeof(unsigned short)`, the number of (opponent id,
    opponent name) pairs in this file. The size of the array, if you will.
-2. `[opp_name x opp_id]` is `sizeof(unsigned short) + MAX_NAME_LEN + 1` bytes
-   that form a pair of data on a player, compromised of an unsigned short
-   representing that opponents global id, followed by `MAX_NAME_LEN + 1`
-   characters containing the opponent's name.
+2. `([opp_name x opp_id][opp_name x])` is `sizeof(unsigned short) +
+   MAX_NAME_LEN + 1` bytes that form a pair of data on a player, compromised of
+   an unsigned short representing that opponents global id, followed by
+   `MAX_NAME_LEN + 1` characters containing the opponent's name.
 
 **Note:** opponent id and name pairs are ordered alphabetically by opponent
 name, allowing for fast conversion (binary search) from opponent name to
@@ -974,10 +972,10 @@ Where:
 
 1. `[num_tournaments]` = `n` is `sizeof(unsigned short)`, the number of (tournament id,
    tournament name) pairs in this file. The size of the array, if you will.
-2. `[tournament_name x t_id]` is `sizeof(unsigned short) + MAX_NAME_LEN + 1` bytes
-   that form a pair of data on a player, compromised of an unsigned short
-   representing that tournaments global id, followed by `MAX_NAME_LEN + 1`
-   characters containing the tournament's name.
+2. `([tournament_name 1 t_id][tournament_name 1])` is `sizeof(unsigned short) +
+   MAX_NAME_LEN + 1` bytes that form a pair of data on a player, compromised of
+   an unsigned short representing that tournaments global id, followed by
+   `MAX_NAME_LEN + 1` characters containing the tournament's name.
 
 **Note:** tournament id and name pairs are ordered alphabetically by tournament
 name, allowing for fast conversion (binary search) from tournament name to
