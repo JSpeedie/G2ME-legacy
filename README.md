@@ -890,7 +890,7 @@ Below, the 2 main components of the file are explained in more depth.
 
 The starter data section breaks down into the following pieces:
 
-`[len_name][name][num_valid_out][num_valid_attended_events][entries]`
+`[starter data] = [len_name][name][num_valid_out][num_valid_attended_events][entries]`
 
 Where:
 
@@ -909,7 +909,7 @@ Where:
 
 After the starter data, the file takes the repeated form of:
 
-`[p2_id][p1_rating_after][p1_RD_after][p1_vol_after][p1_game_count][p2_game_count][day][month][year][event_id][season_id]`
+`[entry x] = [p2_id][p1_rating_after][p1_RD_after][p1_vol_after][p1_game_count][p2_game_count][day][month][year][event_id][season_id]`
 
 Where:
 
