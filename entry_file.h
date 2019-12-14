@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#define MAX_NAME_LEN 256
+#define MAX_NAME_LEN 64
 #define OUTPUT_TEMP_LEN 24
 
 typedef struct entry {
