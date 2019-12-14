@@ -34,6 +34,8 @@
 	* [The 'w' flag](#the-w-flag)
 * [The Glicko2 System Explained](#the-glicko2-system-explained)
 * [The Player File Format](#the-player-file-format)
+	* [Player File: Starter Data](#player-file-start-data)
+	* [Player File: Entries](#player-file-entries)
 * [Data Files and Their Formats](#data-files-and-their-formats)
 	* [Opponent File Format](#opponent-file-format)
 	* [Opponent ID File Format](#opponent-id-file-format)
@@ -878,43 +880,54 @@ example. Other uses include just a volatility pr/consistency pr.
 
 ## The Player File Format
 
-In case someone wants to reverse-engineer the player files or fork this and
-write the player files in a different format, here's the layout:
+Player files take the general format of:
 
-`[len_name][name][num_valid_out][num_valid_atten_ev][entries]`
+`[starter data][entry 1][entry 2][entry 3]...`
 
-There are 2 main sections to the entry file. First is the starter data like
-which player these outcomes belong to, the number of valid sets they've played,
-etc. Then there's the second part which is a (usually) long list of
-sets/outcomes. Starting with the starter data section (the first byte of the
-file):
+Below, the 2 main components of the file are explained in more depth.
 
-1. `sizeof(char)` the length of the player-1's name.
-2. `$1 * sizeof(char)` bytes are the characters in the first players name.
-3. `sizeof(long)` an unsigned long representing the number of valid
-outcomes/sets this player has in their file.
-4. `sizeof(long)` an unsigned long representing the number of valid
-tournaments/events this player has attended.
+### Player File: Starter Data
 
-### Player File: Entry Format
+`[len_name][name][num_valid_out][num_valid_attended_events][entries]`
 
-After that it takes the repeated form of:
+Where:
+
+1. `[len_name]` is `sizeof(char)`, and represents the number of characters
+   in this player's name.
+2. `[name]` `len_name` bytes, representing the player's name.
+3. `[num_valid_out]` is `sizeof(unsigned long)`, and represents the number of
+   valid (non-RD-adjustment) outcomes (sets or games, depending on previous
+   usage of the system) they have experienced.
+4. `[num_valid_attended_events]` is `sizeof(unsigned long)`, and represents the number of
+   valid (non-RD-adjustment) events they have attended.
+4. `[entries]` is an array of unknown length containing player entries. More
+   information on player entries in the next section.
+
+### Player File: Entries
+
+After the starter data, the file takes the repeated form of:
 `[p2_id][p1_rating_after][p1_RD_after][p1_vol_after][p1_game_count][p2_game_count][day][month][year][event_id][season_id]`
-In terms of bytes:
+where:
 
-1. `sizeof(unsigned short)` bytes representing the player 2 id
-2. `sizeof(double)` bytes representing player-1's rating
-3. `sizeof(double)` bytes representing the player-1's RD
-3. `sizeof(double)` bytes representing the player-1's volatility
-4. `sizeof(unsigned char)` the player-1's game count
-5. `sizeof(unsigned char)` the player-2's game count
-6. `sizeof(unsigned char)` the day. Note that the first bit
-of this element is used to mark this entry as a competitive entry
-or an RD adjustment entry. It must be processed accordingly.
-7. `sizeof(unsigned char)` the month
-8. `sizeof(unsigned short)` bytes are the year.
-9. `sizeof(unsigned short)` the event id
-10. `sizeof(unsigned short)` the season this outcome belongs to
+1. `[p2_id]` is `sizeof(unsigned short)` bytes representing the player 2 id
+2. `[p1_rating_after]` is `sizeof(double)` bytes representing player-1's rating
+    after playing the set/game.
+3. `[p1_RD_after]` is `sizeof(double)` bytes representing the player-1's RD
+    after playing the set/game.
+3. `[p1_vol_after]` is `sizeof(double)` bytes representing the player-1's
+   volatility after playing the set/game.
+4. `[p1_game_count]` is `sizeof(unsigned char)` bytes representing the
+   player-1's game count
+5. `[p2_game_count]` is `sizeof(unsigned char)` bytes representing the
+   player-2's game count
+6. `[day]` is `sizeof(unsigned char)` bytes representing the day. Note that the
+   first bit of this element is used to mark the entry as a competitive entry
+   or an RD adjustment entry. It must be processed accordingly.
+7. `[month]` is `sizeof(unsigned char)` bytes representing the month.
+8. `[year]` is `sizeof(unsigned short)` bytes representing the year.
+9. `[event_id]` is `sizeof(unsigned short)` bytes representing the event id
+10. `[season_id]` is `sizeof(unsigned short)` bytes representing the season
+	this outcome belongs to.
 
 ## Data Files and Their Formats
 
