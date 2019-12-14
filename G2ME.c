@@ -56,9 +56,9 @@ char print_ties = 1;
 char player_list_file[MAX_FILE_PATH_LEN];
 char calc_absent_players = 1;
 double outcome_weight = 1;
-char *tournament_names;
-unsigned long tournament_names_len = 0;
-unsigned long tournament_names_size = SIZE_TOURNAMENT_NAMES_LEN;
+struct tournament_attendee *tourn_atten;
+unsigned long tourn_atten_len = 0;
+unsigned long tourn_atten_size = SIZE_TOURNAMENT_NAMES_LEN;
 char filter_file_path[MAX_OUTCOME_STRING_LEN];
 char f_flag_used = 0;
 char player_dir[MAX_FILE_PATH_LEN];
@@ -343,14 +343,24 @@ void adjust_absent_players_no_file(char day, char month, \
 		/* If the directory item is a directory, skip */
 		if (0 == check_if_dir(player_dir, entry->d_name)) continue;
 
-		for (int k = 0; k < tournament_names_len; k++) {
-			/* If this player file corresponds to someone who was
-			 * at the  tournament, ignore them */
-			if (0 == strcmp(entry->d_name, &tournament_names[k * (MAX_NAME_LEN + 1)])) {
+		/* Binary search on file to find given name's id */
+		long L = 0;
+		long R = tourn_atten_len - 1;
+		long m;
+		while (L <= R) {
+			m = floor(((double) (L + R)) / 2.0);
+			/* Compare array[m] with the name being searched for */
+			int comp = strncmp(&tourn_atten[m].name[0], entry->d_name, MAX_NAME_LEN);
+			if (0 > comp) {
+				L = m + 1;
+			} else if (0 < comp) {
+				R = m - 1;
+			} else {
 				did_not_comp = 0;
-				break;
+				R = L - 1; /* Terminate loop */
 			}
 		}
+
 		if (did_not_comp) {
 			strncpy(&file_names[total_num_adjustments][0], entry->d_name, MAX_NAME_LEN + 1);
 			total_num_adjustments++;
@@ -380,7 +390,7 @@ void adjust_absent_players_no_file(char day, char month, \
 		char * t_name;
 	}ThreadArgs;
 
-	struct thread_args args[max_forks - 1];
+	ThreadArgs args[max_forks - 1];
 
 	/* Function for adjusting a list of players */
 	void *adjust_p(void *arg) {
@@ -487,9 +497,9 @@ void adjust_absent_players_no_file(char day, char month, \
 //       Right now they risk a stack/buffer overflow
 int update_players(char* bracket_file_path, short season_id) {
 	/* Set to 0 since the bracket is beginning and no names are stored */
-	tournament_names_len = 0;
-	tournament_names = \
-		(char *)malloc((MAX_NAME_LEN + 1) * tournament_names_size);
+	tourn_atten_len = 0;
+	tourn_atten = \
+		(struct tournament_attendee *)malloc((sizeof(struct tournament_attendee)) * tourn_atten_size);
 
 	FILE *bracket_file = fopen(bracket_file_path, "r");
 	if (bracket_file == NULL) {
@@ -527,8 +537,6 @@ int update_players(char* bracket_file_path, short season_id) {
 		Et.tournament_id = (unsigned short) ret;
 	}
 
-	// TODO: change to reallocate
-	short tournament_names_id[512];
 	int outcomes_size = SIZE_OUTCOMES;
 	char *outcomes = \
 		(char *)malloc((MAX_FILE_PATH_LEN + 1) * outcomes_size);
@@ -638,10 +646,11 @@ int update_players(char* bracket_file_path, short season_id) {
 		if (calc_absent_players == 1) {
 			char already_in = 0;
 			char already_in2 = 0;
-			for (int i = 0; i < tournament_names_len; i++) {
+			// TODO: binary search insert? (can't search yet, it isn't sorted)
+			for (int i = 0; i < tourn_atten_len; i++) {
 				/* If the name already exists in the list of entrants,
 				 * don't add */
-				if (0 == strcmp(p1_name, &tournament_names[i * (MAX_NAME_LEN + 1)])) {
+				if (0 == strcmp(p1_name, &tourn_atten[i].name[0])) {
 					already_in = 1;
 					p1_found = 1;
 					p1_index = i;
@@ -651,7 +660,7 @@ int update_players(char* bracket_file_path, short season_id) {
 						break;
 					}
 				}
-				if (0 == strcmp(p2_name, &tournament_names[i * (MAX_NAME_LEN + 1)])) {
+				if (0 == strcmp(p2_name, &tourn_atten[i].name[0])) {
 					already_in2 = 1;
 					p2_found = 1;
 					p2_index = i;
@@ -664,27 +673,26 @@ int update_players(char* bracket_file_path, short season_id) {
 			}
 			int ret = 0;
 			if (!already_in) {
-				if (tournament_names_len + 1 > tournament_names_size) {
-					tournament_names_size *= REALLOC_TOURNAMENT_NAMES_FACTOR;
-					tournament_names = (char *) realloc(tournament_names, \
-						(MAX_NAME_LEN + 1) * tournament_names_size);
-					if (tournament_names == NULL) {
+				if (tourn_atten_len + 1 > tourn_atten_size) {
+					tourn_atten_size *= REALLOC_TOURNAMENT_NAMES_FACTOR;
+					tourn_atten = (struct tournament_attendee *) realloc(tourn_atten, \
+						(sizeof(struct tournament_attendee)) * tourn_atten_size);
+					if (tourn_atten == NULL) {
 						perror("realloc (update_players)");
 						return -2;
 					}
 				}
-				strncpy(&tournament_names[ \
-					tournament_names_len * (MAX_NAME_LEN + 1)], \
+				strncpy(&tourn_atten[tourn_atten_len].name[0], \
 					p1_name, MAX_NAME_LEN);
 
 				/* Get opp_ids for all players who attended this tournament */
 				/* If the entry file does not already contain an id for this opponent */
 				struct entry E;
 				if (-1 == (ret = \
-					opp_file_contains_opponent(&tournament_names[tournament_names_len * (MAX_NAME_LEN + 1)]))) {
+					opp_file_contains_opponent(&tourn_atten[tourn_atten_len].name[0]))) {
 					/* Add the new opponent to the entry file. This also corrects
 					 * the t_id if it is incorrect */
-					strncpy(&E.opp_name[0], &tournament_names[tournament_names_len * (MAX_NAME_LEN + 1)], MAX_NAME_LEN);
+					strncpy(&E.opp_name[0], &tourn_atten[tourn_atten_len].name[0], MAX_NAME_LEN);
 					E.len_opp_name = strlen(E.opp_name);
 					if (0 != opp_file_add_new_opponent(&E)) return -8;
 				/* If there was an error */
@@ -695,29 +703,29 @@ int update_players(char* bracket_file_path, short season_id) {
 					/* Fix the opp_id in case it wasn't set */
 					E.opp_id = (unsigned short) ret;
 				}
-				tournament_names_id[tournament_names_len] = E.opp_id;
-				tournament_names_len++;
+				tourn_atten[tourn_atten_len].id = E.opp_id;
+				tourn_atten_len++;
 			}
 			if (!already_in2) {
-				if (tournament_names_len + 1 > tournament_names_size) {
-					tournament_names_size *= REALLOC_TOURNAMENT_NAMES_FACTOR;
-					tournament_names = (char *) realloc(tournament_names, \
-						(MAX_NAME_LEN + 1) * tournament_names_size);
-					if (tournament_names == NULL) {
+				if (tourn_atten_len + 1 > tourn_atten_size) {
+					tourn_atten_size *= REALLOC_TOURNAMENT_NAMES_FACTOR;
+					tourn_atten = (struct tournament_attendee *) realloc(tourn_atten, \
+						sizeof(struct tournament_attendee) * tourn_atten_size);
+					if (tourn_atten == NULL) {
 						perror("realloc (update_players)");
 						return -2;
 					}
 				}
-				strncpy(&tournament_names[tournament_names_len * (MAX_NAME_LEN + 1)], \
+				strncpy(&tourn_atten[tourn_atten_len].name[0], \
 					p2_name, MAX_NAME_LEN);
 				/* Get opp_ids for all players who attended this tournament */
 				/* If the entry file does not already contain an id for this opponent */
 				struct entry E;
 				if (-1 == (ret = \
-					opp_file_contains_opponent(&tournament_names[tournament_names_len * (MAX_NAME_LEN + 1)]))) {
+					opp_file_contains_opponent(&tourn_atten[tourn_atten_len].name[0]))) {
 					/* Add the new opponent to the entry file. This also corrects
 					 * the t_id if it is incorrect */
-					strncpy(&E.opp_name[0], &tournament_names[tournament_names_len * (MAX_NAME_LEN + 1)], MAX_NAME_LEN);
+					strncpy(&E.opp_name[0], &tourn_atten[tourn_atten_len].name[0], MAX_NAME_LEN);
 					E.len_opp_name = strlen(E.opp_name);
 					if (0 != opp_file_add_new_opponent(&E)) return -8;
 				/* If there was an error */
@@ -728,29 +736,30 @@ int update_players(char* bracket_file_path, short season_id) {
 					/* Fix the opp_id in case it wasn't set */
 					E.opp_id = (unsigned short) ret;
 				}
-				tournament_names_id[tournament_names_len] = E.opp_id;
-				tournament_names_len++;
+				tourn_atten[tourn_atten_len].id = E.opp_id;
+				tourn_atten_len++;
 			}
 		}
 		short p1_id;
 		short p2_id;
 		if (p1_found == 1) {
-			p1_id = tournament_names_id[p1_index];
+			p1_id = tourn_atten[p1_index].id;
 		}
 		if (p2_found == 1) {
-			p2_id = tournament_names_id[p2_index];
+			p2_id = tourn_atten[p2_index].id;
 		}
 		if (p1_found == 0 || p2_found == 0) {
-			for (int k = 0; k < tournament_names_len; k++) {
+			// TODO binary search (can do, just divide into 2 searches)
+			for (int k = 0; k < tourn_atten_len; k++) {
 				if (p1_found == 0) {
-					if (0 == strncmp(p1_name, &tournament_names[k * (MAX_NAME_LEN + 1)], MAX_NAME_LEN)) {
-						p1_id = tournament_names_id[k];
+					if (0 == strncmp(p1_name, &tourn_atten[k].name[0], MAX_NAME_LEN)) {
+						p1_id = tourn_atten[k].id;
 						p1_found = 1;
 					}
 				}
 				if (p2_found == 0) {
-					if (0 == strncmp(p2_name, &tournament_names[k * (MAX_NAME_LEN + 1)], MAX_NAME_LEN)) {
-						p2_id = tournament_names_id[k];
+					if (0 == strncmp(p2_name, &tourn_atten[k].name[0], MAX_NAME_LEN)) {
+						p2_id = tourn_atten[k].id;
 						p2_found = 1;
 					}
 				}
@@ -788,6 +797,7 @@ int update_players(char* bracket_file_path, short season_id) {
 	}
 
 	if (calc_absent_players == 1) {
+		merge_sort_tournament_attendees(tourn_atten, tourn_atten_len);
 		adjust_absent_players_no_file(day, month, year, Et.tournament_id, t_name);
 	}
 

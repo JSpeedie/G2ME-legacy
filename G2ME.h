@@ -37,6 +37,11 @@ typedef struct record {
 	char last_outcomes[MAX_NAME_LEN];
 }Record;
 
+typedef struct tournament_attendee {
+	char name[MAX_NAME_LEN + 1];
+	unsigned short id;
+}TournamentAttendee;
+
 
 /* struct player and struct entry helpers */
 void init_player_from_entry(struct player *, struct entry *);

@@ -154,3 +154,77 @@ void merge_sort_player_records(struct record *records, int array_size) {
 	}
 }
 
+void merge_tournament_attendees(struct tournament_attendee *first_array, \
+	int first_length, struct tournament_attendee *second_array, \
+	int second_length, struct tournament_attendee *output_array) {
+
+	int first_index = 0;
+	int second_index = 0;
+	int final_index = 0;
+
+	while (first_index < first_length && second_index < second_length) {
+		/* If the second name is < the first name */
+		if (strcmp(second_array[second_index].name, first_array[first_index].name) < 0) {
+			output_array[final_index] = second_array[second_index];
+			second_index++;
+		/* If the first name is < the second name */
+		} else {
+			output_array[final_index] = first_array[first_index];
+			first_index++;
+		}
+		final_index++;
+	}
+	int elements_to_add = first_length - first_index;
+	/* When one side array has been added to the output array before the
+	 * other has been fully added */
+	for (int i = 0; i < elements_to_add; i++) {
+		/* Add the first array element to the final array */
+		output_array[final_index] = first_array[first_index];
+		first_index++;
+		final_index++;
+	}
+	elements_to_add = second_length - second_index;
+	for (int i = 0; i < elements_to_add; i++) {
+		/* Add the second array element to the final array */
+		output_array[final_index] = second_array[second_index];
+		second_index++;
+		final_index++;
+	}
+}
+
+void merge_sort_tournament_attendees(struct tournament_attendee *attendees, \
+	int array_size) {
+
+	if (array_size <= 1) {
+		return;
+	} else if (array_size == 2) {
+		/* If there is less data on the first player or if there is equal
+		 * data, but the second name < first name */
+		if (strcmp(attendees[1].name, attendees[0].name) < 0) {
+			struct tournament_attendee swap;
+			/* Save data from first player to swap variables */
+			swap = attendees[0];
+			/* Put second player data in first player spot */
+			attendees[0] = attendees[1];
+			/* Put first player (swap) data in second player spot */
+			attendees[1] = swap;
+		} else {
+			return;
+		}
+	} else {
+		/* split into 2 calls and recurse */
+		int middle_index = (int) floor(array_size / 2.00);
+		int len_sec_half = (int) ceil(array_size / 2.00);
+		merge_sort_tournament_attendees(attendees, middle_index);
+		merge_sort_tournament_attendees(&attendees[middle_index], len_sec_half);
+		/* merge 2 resulting arrays */
+		struct tournament_attendee ret[array_size];
+		merge_tournament_attendees(attendees, middle_index, \
+			&attendees[middle_index], len_sec_half, ret);
+		/* Copy merged array contents into original array */
+		for (int i = 0; i < array_size; i++) {
+			attendees[i] = ret[i];
+		}
+		return;
+	}
+}
