@@ -233,9 +233,9 @@ int print_player_file_verbose(char* file_path) {
 	unsigned long int longest_s_id = 0;
 
 	fseek(p_file, 0, SEEK_SET);
-	entry_file_get_to_entries(p_file);
+	entry_file_open_get_to_entries(p_file);
 	/* Get the longest lengths of the parts of an entry in string form */
-	while (entry_file_read_entry(p_file, &line) == 0) {
+	while (entry_file_open_read_entry(p_file, &line) == 0) {
 		if (strlen(line.opp_name) > longest_name) {
 			longest_name = strlen(line.opp_name);
 		}
@@ -269,9 +269,9 @@ int print_player_file_verbose(char* file_path) {
 	}
 
 	fseek(p_file, 0, SEEK_SET);
-	entry_file_get_to_entries(p_file);
+	entry_file_open_get_to_entries(p_file);
 
-	while (entry_file_read_entry(p_file, &line) == 0) {
+	while (entry_file_open_read_entry(p_file, &line) == 0) {
 		print_entry_name_verbose(line, longest_nl, longest_opp_nl, \
 			longest_opp_id, longest_name, longest_rating, longest_RD, \
 			longest_vol, longest_gc, longest_opp_gc, longest_t_id, \
@@ -313,9 +313,9 @@ int print_player_file(char* file_path) {
 	unsigned long int longest_date = 0;
 
 	fseek(p_file, 0, SEEK_SET);
-	entry_file_get_to_entries(p_file);
+	entry_file_open_get_to_entries(p_file);
 	/* Get the longest lengths of the parts of an entry in string form */
-	while (entry_file_read_entry(p_file, &line) == 0) {
+	while (entry_file_open_read_entry(p_file, &line) == 0) {
 		sprintf(temp, "%d", line.len_name);
 		if (strlen(line.opp_name) > longest_name) {
 			longest_name = strlen(line.opp_name);
@@ -338,9 +338,9 @@ int print_player_file(char* file_path) {
 	}
 
 	fseek(p_file, 0, SEEK_SET);
-	entry_file_get_to_entries(p_file);
+	entry_file_open_get_to_entries(p_file);
 
-	while (entry_file_read_entry(p_file, &line) == 0) {
+	while (entry_file_open_read_entry(p_file, &line) == 0) {
 		print_entry_name(line, longest_name, longest_rating, longest_RD, \
 			longest_vol, longest_gc, longest_opp_gc, longest_date);
 	}

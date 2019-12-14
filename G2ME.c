@@ -821,6 +821,7 @@ int run_brackets(char *bracket_list_file_path) {
 	char *bracket_paths = \
 		(char *)malloc((MAX_FILE_PATH_LEN + 1) * bracket_paths_size);
 
+	latest_season_id = s_file_get_latest_season_id();
 
 	int num_brk = 0;
 	while (fgets(line, sizeof(line), bracket_list_file)) {
@@ -1174,13 +1175,13 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	if (opp_file_get_id_from_name(&ent) < 0) return -3;
 
 	/* Get to the entries in the player file */
-	int r = entry_file_get_to_entries(p_file);
+	int r = entry_file_open_get_to_entries(p_file);
 	if (r != 0) {
-		perror("get_record (entry_file_get_to_entries)");
+		perror("get_record (entry_file_open_get_to_entries)");
 		return -2;
 	}
 
-	while (entry_file_read_next_opp_entry(p_file, &ent, ent.opp_id) == 0) {
+	while (entry_file_open_read_next_opp_entry(p_file, &ent, ent.opp_id) == 0) {
 		/* If the opponent for the given entry is the player of interest */
 		if (0 == strcmp(ent.opp_name, player2)) {
 			if (ent.gc > ent.opp_gc) ret->wins += 1;
@@ -1260,16 +1261,16 @@ struct record *get_all_records(char *file_path, long *num_of_records) {
 	unsigned long num_of_last_outcomes = sizeof(temp.last_outcomes) - 1;
 
 	/* Get to the entries in the player file */
-	int r = entry_file_get_to_entries(p_file);
+	int r = entry_file_open_get_to_entries(p_file);
 	if (r != 0) {
-		perror("get_all_records (entry_file_get_to_entries)");
+		perror("get_all_records (entry_file_open_get_to_entries)");
 		free(num_outcome_all);
 		free(cur_opp_ent_num);
 		return NULL;
 	}
 
 	short prev_entrys_season = 0;
-	while (entry_file_read_entry(p_file, &ent) == 0) {
+	while (entry_file_open_read_entry(p_file, &ent) == 0) {
 		int j = 0;
 		/* Find position (j) of opp_id being searched for */
 		for (j = 0; j < *num_of_records; j++) {

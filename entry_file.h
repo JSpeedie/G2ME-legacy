@@ -54,18 +54,18 @@ int s_file_set_latest_season_id(int);
 
 
 /* Read next entry functions */
-int entry_file_read_entry(FILE *, struct entry *);
-int entry_file_read_next_opp_entry(FILE *, struct entry *, short);
+int entry_file_open_read_entry(FILE *, struct entry *);
+int entry_file_open_read_next_opp_entry(FILE *, struct entry *, short);
 
 
 /* Read partial entry functions */
-int entry_file_read_entry_minimal(FILE *, struct entry *);
-int entry_file_read_entry_absent(FILE *, struct entry *);
-int entry_file_read_entry_tournament_id(FILE *, struct entry *);
+int entry_file_open_read_entry_minimal(FILE *, struct entry *);
+int entry_file_open_read_entry_absent(FILE *, struct entry *);
+int entry_file_open_read_entry_tournament_id(FILE *, struct entry *);
 
 
 /* Seeking functions */
-int entry_file_get_to_entries(FILE *);
+int entry_file_open_get_to_entries(FILE *);
 
 
 /* Number of functions */
@@ -87,6 +87,7 @@ int entry_file_read_last_entry(char *, struct entry *);
 int entry_file_read_last_entry_minimal(char *, struct entry *);
 int entry_file_read_last_entry_absent(char *, struct entry *);
 int entry_file_read_last_entry_tournament_id(char *, struct entry *);
+int entry_file_open_read_last_entry_tournament_id(FILE *, struct entry *);
 
 
 /* Append entry to file functions */
@@ -108,6 +109,7 @@ int entry_file_open_read_start_from_file(FILE *, struct entry *);
 
 /* Count functions */
 int entry_file_get_outcome_count(char *);
+int entry_file_open_get_outcome_count(FILE *);
 int entry_file_get_events_attended_count(char *);
 
 

@@ -732,7 +732,7 @@ int s_file_set_latest_season_id(int new_s_id) {
  *     copied to.
  * \return 0 upon success, or a negative number upon failure.
  */
-int entry_file_read_entry(FILE *f, struct entry *E) {
+int entry_file_open_read_entry(FILE *f, struct entry *E) {
 	// Read opponent name id
 	if (1 != fread(&E->opp_id, sizeof(short), 1, f)) { return -1; }
 	if (1 != fread(&E->rating, sizeof(double), 1, f)) { return -2; }
@@ -781,7 +781,7 @@ int entry_file_read_entry(FILE *f, struct entry *E) {
  *     read an entry that has the same opp_id as the one provided.
  * \return 0 upon success, or a negative number upon failure.
  */
-int entry_file_read_next_opp_entry(FILE *f, struct entry *E, short opp_id) {
+int entry_file_open_read_next_opp_entry(FILE *f, struct entry *E, short opp_id) {
 	/* Set to starter data. No opp_id will ever be negative, just starts
 	 * the loop */
 	if (1 != fread(&E->opp_id, sizeof(short), 1, f)) { return -1; } //2
@@ -843,7 +843,7 @@ int entry_file_read_next_opp_entry(FILE *f, struct entry *E, short opp_id) {
  * \param '*E' the struct entry to store an entry found in the file too
  * \return 0 upon success, or a negative number upon failure.
  */
-int entry_file_read_entry_minimal(FILE *f, struct entry *E) {
+int entry_file_open_read_entry_minimal(FILE *f, struct entry *E) {
 	/* SKip over opp id */
 	if (0 != fseek(f, sizeof(short), SEEK_CUR)) { return -1; } //2
 	/* Read Glicko2 data */
@@ -870,7 +870,7 @@ int entry_file_read_entry_minimal(FILE *f, struct entry *E) {
  * \param '*E' the struct entry to store an entry found in the file too
  * \return 0 upon success, or a negative number upon failure.
  */
-int entry_file_read_entry_absent(FILE *f, struct entry *E) {
+int entry_file_open_read_entry_absent(FILE *f, struct entry *E) {
 	/* SKip over opp id */
 	if (0 != fseek(f, sizeof(short), SEEK_CUR)) { return -1; } //2
 	/* Read glicko2 data */
@@ -912,7 +912,7 @@ int entry_file_read_entry_absent(FILE *f, struct entry *E) {
  * \param '*E' the struct entry to store an entry found in the file too
  * \return 0 upon success, or a negative number upon failure.
  */
-int entry_file_read_entry_tournament_id(FILE *f, struct entry *E) {
+int entry_file_open_read_entry_tournament_id(FILE *f, struct entry *E) {
 	/* Skip all entry data up until tournament id */
 	if (0 != fseek(f, \
 		sizeof(short) + \
@@ -936,7 +936,7 @@ int entry_file_read_entry_tournament_id(FILE *f, struct entry *E) {
  *
  * \param '*f' a player entry file opened in 'rb' mode.
  */
-int entry_file_get_to_entries(FILE *f) {
+int entry_file_open_get_to_entries(FILE *f) {
 	char ln;
 	if (1 != fread(&ln, sizeof(char), 1, f)) return -1;
 
@@ -971,9 +971,9 @@ long entry_file_number_of_opponents(char *file_path, short **ret_opp_id_list) {
 	short num_opp_ids = 0;
 	struct entry E;
 
-	entry_file_get_to_entries(p_file);
+	entry_file_open_get_to_entries(p_file);
 	/* While the function is still able to read entries from the old file */
-	while (0 == entry_file_read_entry(p_file, &E)) {
+	while (0 == entry_file_open_read_entry(p_file, &E)) {
 		char already_in = 0;
 		int i = 0;
 		for (i = 0; i < num_opp_ids; i++) {
@@ -1040,9 +1040,9 @@ int entry_file_get_number_of_entries(char *file_path) {
 	int entries = 0;
 	/* Read entry from old file */
 	struct entry *cur_entry = (struct entry *)malloc(sizeof(struct entry));
-	entry_file_get_to_entries(base_file);
+	entry_file_open_get_to_entries(base_file);
 	/* While the function is still able to read entries from the old file */
-	while (0 == entry_file_read_entry(base_file, cur_entry)) {
+	while (0 == entry_file_open_read_entry(base_file, cur_entry)) {
 		entries++;
 	}
 	free(cur_entry);
@@ -1068,9 +1068,9 @@ long entry_file_get_number_of_outcomes_against(char *file_path, char *player2) {
 	int entries = 0;
 	/* Read entry from old file */
 	struct entry *cur_entry = (struct entry *)malloc(sizeof(struct entry));
-	entry_file_get_to_entries(base_file);
+	entry_file_open_get_to_entries(base_file);
 	/* While the function is still able to read entries from the old file */
-	while (0 == entry_file_read_entry(base_file, cur_entry)) {
+	while (0 == entry_file_open_read_entry(base_file, cur_entry)) {
 		if (0 == strcmp(cur_entry->opp_name, player2)) {
 			entries++;
 		}
@@ -1107,9 +1107,9 @@ long *entry_file_get_all_number_of_outcomes_against(char *file_path, \
 	long *outcomes = (long *)calloc(num_opp_ids, sizeof(long));
 	/* Read entry from old file */
 	struct entry E;
-	entry_file_get_to_entries(base_file);
+	entry_file_open_get_to_entries(base_file);
 	/* While the function is still able to read entries from the old file */
-	while (0 == entry_file_read_entry(base_file, &E)) {
+	while (0 == entry_file_open_read_entry(base_file, &E)) {
 		int i = 0;
 		for (i = 0; i < num_opp_ids; i++) {
 			if (E.opp_id == opp_id_list[i]) {
@@ -1139,8 +1139,8 @@ long entry_file_get_last_entry_offset(char *file_path) {
 
 	/* Read to the end of the starter data in the file */
 	fseek(entry_file, 0, SEEK_SET);
-	int ret = entry_file_get_to_entries(entry_file);
-	if (ret != 0) printf("entry_file_get_to_entries (entry_file_get_last_entry_offset) returned %d", ret);
+	int ret = entry_file_open_get_to_entries(entry_file);
+	if (ret != 0) printf("entry_file_open_get_to_entries (entry_file_get_last_entry_offset) returned %d", ret);
 
 	fseek(entry_file, 0, SEEK_END);
 	long int last_entry_offset = ftell(entry_file) - SIZE_OF_AN_ENTRY;
@@ -1175,8 +1175,8 @@ int entry_file_read_last_entry(char *file_path, struct entry *ret) {
 	fseek(p_file, -SIZE_OF_AN_ENTRY, SEEK_END);
 	/* If reading the last entry failed */
 	int r = 0;
-	if (0 != (r = entry_file_read_entry(p_file, ret))) {
-		fprintf(stderr, "Error (%d) on entry_file_read_entry()\n", r);
+	if (0 != (r = entry_file_open_read_entry(p_file, ret))) {
+		fprintf(stderr, "Error (%d) on entry_file_open_read_entry()\n", r);
 		return -3;
 	}
 	fclose(p_file);
@@ -1204,7 +1204,7 @@ int entry_file_read_last_entry_minimal(char* file_path, struct entry *ret) {
 
 	fseek(p_file, -SIZE_OF_AN_ENTRY, SEEK_END);
 	/* If reading the last entry failed */
-	if (0 != entry_file_read_entry_minimal(p_file, ret)) return -1;
+	if (0 != entry_file_open_read_entry_minimal(p_file, ret)) return -1;
 	fclose(p_file);
 
 	return 0;
@@ -1230,7 +1230,7 @@ int entry_file_read_last_entry_absent(char* file_path, struct entry *ret) {
 
 	fseek(p_file, -SIZE_OF_AN_ENTRY, SEEK_END);
 	/* If reading the last entry failed */
-	if (0 != entry_file_read_entry_absent(p_file, ret)) return -1;
+	if (0 != entry_file_open_read_entry_absent(p_file, ret)) return -1;
 	fclose(p_file);
 
 	return 0;
@@ -1256,11 +1256,31 @@ int entry_file_read_last_entry_tournament_id(char* file_path, struct entry *ret)
 
 	fseek(p_file, -SIZE_OF_AN_ENTRY, SEEK_END);
 	/* If reading the last entry failed */
-	if (0 != entry_file_read_entry_tournament_id(p_file, ret)) return -1;
+	if (0 != entry_file_open_read_entry_tournament_id(p_file, ret)) return -1;
 	fclose(p_file);
 
 	return 0;
 }
+
+
+/** Modifies a struct entry to be that of the last entry found in an open
+ * player file. Note that this function doesn't read the entire entry into the
+ * struct entry. It is the tournament_id version and reads only the
+ * tournament id.
+ *
+ * \param '*f' the open player file to be read.
+ * \param '*ret' a struct entry pointer to have the data read into.
+ * \return 0 upon success, a negative int upon failure.
+ */
+int entry_file_open_read_last_entry_tournament_id(FILE *f, struct entry *ret) {
+
+	fseek(f, -SIZE_OF_AN_ENTRY, SEEK_END);
+	/* If reading the last entry failed */
+	if (0 != entry_file_open_read_entry_tournament_id(f, ret)) return -1;
+
+	return 0;
+}
+
 
 /** Appends an RD adjustment entry to a given player file and return an int
  * representing whether the function succeeded or not.
@@ -1364,32 +1384,34 @@ int entry_file_append_entry_to_file_id(struct entry *E, char *file_path) {
 
 	/* Entry that is used later to check if this entry is at a new tournament */
 	struct entry E2;
-	unsigned long out_count = entry_file_get_outcome_count(file_path);
-	if (0 != out_count) {
-		if (0 != entry_file_read_last_entry_tournament_id(file_path, &E2)) return -6;
-	}
-
-	/* Open file for appending */
 	FILE *entry_file = fopen(file_path, "ab+");
 	if (entry_file == NULL) {
 		perror("fopen (entry_file_append_entry_to_file)");
 		return -10;
 	}
+
+	unsigned long out_count = entry_file_open_get_outcome_count(entry_file);
+	if (0 != out_count) {
+		if (0 != entry_file_open_read_last_entry_tournament_id(entry_file, &E2)) {
+			return -6;
+		}
+	}
+
 	/* Write length of opp name and opp name */
-	if (1 != fwrite(&E->opp_id, sizeof(short), 1, entry_file)) { return -9; } // 2
+	if (1 != fwrite(&E->opp_id, sizeof(short), 1, entry_file)) { return -9; }
 	/* Write glicko data */
-	if (1 != fwrite(&E->rating, sizeof(double), 1, entry_file)) { return -10; } // 8 10
-	if (1 != fwrite(&E->RD, sizeof(double), 1, entry_file)) { return -11; } // 8 18
-	if (1 != fwrite(&E->vol, sizeof(double), 1, entry_file)) { return -12; } //8 26
+	if (1 != fwrite(&E->rating, sizeof(double), 1, entry_file)) { return -10; }
+	if (1 != fwrite(&E->RD, sizeof(double), 1, entry_file)) { return -11; }
+	if (1 != fwrite(&E->vol, sizeof(double), 1, entry_file)) { return -12; }
 	/* Write game counts */
-	if (1 != fwrite(&E->gc, sizeof(char), 1, entry_file)) { return -13; } //1 27
-	if (1 != fwrite(&E->opp_gc, sizeof(char), 1, entry_file)) { return -14; } //1 28
+	if (1 != fwrite(&E->gc, sizeof(char), 1, entry_file)) { return -13; }
+	if (1 != fwrite(&E->opp_gc, sizeof(char), 1, entry_file)) { return -14; }
 	/* Write date data */
-	if (1 != fwrite(&E->day, sizeof(char), 1, entry_file)) { return -15; } //1 29
-	if (1 != fwrite(&E->month, sizeof(char), 1, entry_file)) { return -16; } //1 30
-	if (1 != fwrite(&E->year, sizeof(short), 1, entry_file)) { return -17; } //2 32
-	if (1 != fwrite(&E->tournament_id, sizeof(short), 1, entry_file)) { return -18; } //2 34
-	if (1 != fwrite(&E->season_id, sizeof(short), 1, entry_file)) { return -19; } //2 36
+	if (1 != fwrite(&E->day, sizeof(char), 1, entry_file)) { return -15; }
+	if (1 != fwrite(&E->month, sizeof(char), 1, entry_file)) { return -16; }
+	if (1 != fwrite(&E->year, sizeof(short), 1, entry_file)) { return -17; }
+	if (1 != fwrite(&E->tournament_id, sizeof(short), 1, entry_file)) { return -18; }
+	if (1 != fwrite(&E->season_id, sizeof(short), 1, entry_file)) { return -19; }
 
 	fclose(entry_file);
 
@@ -1783,6 +1805,28 @@ int entry_file_get_outcome_count(char *file_path) {
 }
 
 
+/** Takes an open entry file and returns the number of valid
+ * outcomes (or sets, games, what have you) this player has played in
+ * the history of the system. This function resets to the start of the file.
+ *
+ * \param '*f' the open entry file.
+ * \return an integer representing whether the function succeeded or not.
+ *     0 upon success, and a negative value upon failure.
+ */
+int entry_file_open_get_outcome_count(FILE *f) {
+
+	unsigned long num_outcomes = 0;
+	char ln;
+
+	if (0 != fseek(f, 0, SEEK_SET)) { return -3; }
+	if (1 != fread(&ln, sizeof(char), 1, f)) return -2;
+	if (0 != fseek(f, ln, SEEK_CUR)) { return -3; }
+	if (1 != fread(&num_outcomes, sizeof(long), 1, f)) return -4;
+
+	return num_outcomes;
+}
+
+
 /** Takes a file path to a entry file and returns the number of valid
  * events (or tournaments, what have you) this player has played at in
  * the history of the system.
@@ -1846,9 +1890,9 @@ char *entry_file_get_events_attended(char *file_path, int *ret_count) {
 	}
 	/* Get to the entries in the file and start reading them */
 	fseek(p_file, 0, SEEK_SET);
-	entry_file_get_to_entries(p_file);
+	entry_file_open_get_to_entries(p_file);
 
-	while (entry_file_read_entry(p_file, &cur_entry) == 0) {
+	while (entry_file_open_read_entry(p_file, &cur_entry) == 0) {
 		in_tourneys = 0;
 		/* Check if the tournament that entry was from
 		 * is already in the array */
@@ -1907,7 +1951,7 @@ double entry_file_get_glicko_change_since_last_event(char* file_path) {
 		return 0;
 	}
 
-	if (0 != entry_file_get_to_entries(p_file)) return 0;
+	if (0 != entry_file_open_get_to_entries(p_file)) return 0;
 	unsigned long entries_begin = ftell(p_file);
 
 	/* If they didn't attend the last event, return 0 */
@@ -1920,7 +1964,7 @@ double entry_file_get_glicko_change_since_last_event(char* file_path) {
 	if (0 != fseek(p_file, -2 * SIZE_OF_AN_ENTRY, SEEK_END)) return 0;
 
 	while (ftell(p_file) >= entries_begin \
-		&& 0 == entry_file_read_entry(p_file, &last_entry) ) {
+		&& 0 == entry_file_open_read_entry(p_file, &last_entry) ) {
 		/* If it reads an entry has a different name and date to the last
 		 * tournament */
 		if (0 != strcmp(last_entry.t_name, actual_last.t_name)
