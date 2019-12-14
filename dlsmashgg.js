@@ -46,9 +46,6 @@ function get_group_ids(tournament_url_ending, callback) {
 		var e = res.entities.event;
 		var events = []
 
-		// res.entities.event.0.name = "ult singles"
-		// res.entities.event.0.id = 410788
-		// res.entities.event.0.tournamentId = 180191
 		for (var i = 0; i < e.length; i++) {
 			events.push({
 				name : e[i].name,
@@ -60,9 +57,6 @@ function get_group_ids(tournament_url_ending, callback) {
 		var p = res.entities.phase;
 		var phases = []
 
-		// res.entities.phase.0.name = "amateur bracket"
-		// res.entities.phase.0.id = 687270
-		// res.entities.phase.0.eventId = 410788
 		for (var i = 0; i < p.length; i++) {
 			phases.push({
 				name : p[i].name,
@@ -74,8 +68,6 @@ function get_group_ids(tournament_url_ending, callback) {
 		var g = res.entities.groups
 		var groups = []
 
-		// res.entities.groups.0.id = 1118880
-		// res.entities.groups.0.phaseId = 687275
 		for (var i = 0; i < g.length; i++) {
 			groups.push({
 				id : g[i].id,

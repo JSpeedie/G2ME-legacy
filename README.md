@@ -428,6 +428,109 @@ player data in the system, make sure to use the `-k` flag!
 </p></details>
 
 
+## Converting Smash.gg Events
+
+<details><summary>Click to Expand</summary><p>
+
+This repo contains the file `dlsmashgg.js` which is a Node interactive
+command line app that allows the user to convert all the events (brackets,
+pools, etc.) at a tournament to `G2ME` compliant bracket file(s). The user
+will have to install `node` and `npm`, and ensure they have all the app
+dependencies by running `npm install` in the directory of this file. Here's an
+example:
+
+```
+$ node dlsmashgg.js
+Please enter tournament identifier (Ex. "toronto-stock-exchange-20"):
+```
+
+The user must now provide the identifying portion of the tournament url. An
+example is provided, which is associated with the smashgg url
+`https://smash.gg/tournament/toronto-stock-exchange-20`
+
+```
+$ node dlsmashgg.js
+Please enter tournament identifier (Ex. "toronto-stock-exchange-20"): some-tournament-5
+```
+
+Upon typing in the identifier and hitting enter, the user will be shown a list
+of all the groups (brackets, pools, etc.) at the event, with their title. In
+addition, the option `all` is provided, in case the user wants the data from
+every group.
+
+```
+$ node dlsmashgg.js
+Please enter tournament identifier (Ex. "toronto-stock-exchange-20"): some-tournament-5
+    all
+    1118894    Melee Singles: Pools
+    1121654    Melee Singles: Pools
+    1121655    Melee Singles: Pools
+    1121656    Melee Singles: Pools
+Please enter a group id or "all" (Ex. "1118894", "exit" to exit):
+```
+
+For this example, let's just get the data for the last pool in the list, 1121656.
+
+
+```
+$ node dlsmashgg.js
+Please enter tournament identifier (Ex. "toronto-stock-exchange-20"): some-tournament-5
+    all
+    1118894    Melee Singles: Pools
+    1121654    Melee Singles: Pools
+    1121655    Melee Singles: Pools
+    1121656    Melee Singles: Pools
+Please enter a group id or "all" (Ex. "1118894", "exit" to exit): 1121656
+
+
+"name1" "name2" 2 0 2 11 2019
+"name3" "name4" 2 1 2 11 2019
+"name5" "name6" 2 0 2 11 2019
+"name7" "name2" 2 0 2 11 2019
+"name1" "name6" 2 0 2 11 2019
+"name3" "name5" 2 0 2 11 2019
+"name7" "name4" 2 0 2 11 2019
+"name2" "name6" 0 2 2 11 2019
+"name1" "name3" 2 0 2 11 2019
+"name7" "name6" 2 0 2 11 2019
+"name4" "name5" 0 2 2 11 2019
+"name2" "name3" 0 2 2 11 2019
+"name7" "name5" 2 1 2 11 2019
+"name6" "name3" 0 2 2 11 2019
+"name4" "name1" 1 2 2 11 2019
+"name7" "name3" 2 0 2 11 2019
+"name5" "name1" 0 2 2 11 2019
+"name4" "name2" 2 0 2 11 2019
+"name7" "name1" 2 1 2 11 2019
+"name5" "name2" 2 0 2 11 2019
+"name6" "name4" 2 1 2 11 2019
+
+Write output to file (Ex. "bracket.txt", "skip" to continue):
+```
+
+**Note:** every player tag or name is surrounded with quotations marks. Quotes
+and spaces must be removed for `G2ME`. It is also recommended that you don't
+use player tags for storing player data and rather use a player's first name
+and last name since they are less prone to change.  This app attempts to
+convert player ids to their names, as set on their smash.gg profile, but not
+all users will have theirs set, or set correctly, so use with caution. If this
+app could not get a participant's first name and last name, it will instead
+output their tag.
+
+The user is now prompted to provide a file path, where this data will be written.
+If the user decides that they do not want to write the data anywhere, they can
+simply type `skip`.
+
+The user will then be prompted once again to enter a group id, or to exit,
+allowing the user to keep using the tool to get the data from a select group
+of brackets, if they so desire.
+
+Once this is all done, you're ready to continue with `G2ME`!
+If you'd like to add the data from this bracket to the existing
+player data in the system, make sure to use the `-k` flag!
+</p></details>
+
+
 
 ## Usage
 
