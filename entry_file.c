@@ -673,6 +673,56 @@ int t_file_get_tournament_id_from_name(struct entry *E) {
 }
 
 
+/** On success, returns the id of the most recent season. Returns < -1 if there
+ * was an error. -1 is a reserved return value since season ids are 0 indexed,
+ * and an empty system's most recent season should be -1.
+ *
+ * \return number >= -1 upon success (the most recent season id),
+ *     and < -2 if there was an error.
+ */
+int s_file_get_latest_season_id(void) {
+
+	char *full_season_file_path = data_dir_file_path_season_file();
+	FILE* s_file = fopen(full_season_file_path, "rb+");
+	if (s_file == NULL) {
+		fprintf(stderr, \
+			"Error opening file %s (s_file_get_latest_season_id): ", \
+			full_season_file_path);
+		perror("");
+		return -2;
+	}
+
+	int ret = -3;
+	if (1 != fread(&ret, sizeof(short), 1, s_file)) return -4;
+	fclose(s_file);
+
+	return ret;
+}
+
+
+/** Writes the latest season id 'new_s_id' to the global season file.
+ *
+ * \return 0 upon success, a negative number if there was an error.
+ */
+int s_file_set_latest_season_id(int new_s_id) {
+
+	char *full_season_file_path = data_dir_file_path_season_file();
+	FILE* s_file = fopen(full_season_file_path, "rb+");
+	if (s_file == NULL) {
+		fprintf(stderr, \
+			"Error opening file %s (s_file_set_latest_season_id): ", \
+			full_season_file_path);
+		perror("");
+		return -1;
+	}
+
+	if (1 != fwrite(&new_s_id, sizeof(short), 1, s_file)) { return -2; }
+	fclose(s_file);
+
+	return 0;
+}
+
+
 /** Reads contents of a player file to a struct entry. Returns 0 upon success,
  * and a negative number upon failure. Function expects that starter data
  * has already been passed and that the FILE is on an entry.

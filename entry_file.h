@@ -48,6 +48,11 @@ int t_file_get_tournament_name_from_id(struct entry *);
 int t_file_get_tournament_id_from_name(struct entry *);
 
 
+/* Season file functions */
+int s_file_get_latest_season_id(void);
+int s_file_set_latest_season_id(int);
+
+
 /* Read next entry functions */
 int entry_file_read_entry(FILE *, struct entry *);
 int entry_file_read_next_opp_entry(FILE *, struct entry *, short);

@@ -19,6 +19,7 @@ char OPP_FILE_NAME[] = { "of" };
 char OPP_ID_FILE_NAME[] = { "oif" };
 char T_FILE_NAME[] = { "tf" };
 char T_ID_FILE_NAME[] = { "tif" };
+char SEASON_FILE_NAME[] = { "sf" };
 
 /** Takes a string and prepends the player directory file path to it.
  *
@@ -100,6 +101,14 @@ char *data_dir_file_path_t_id_file(void) {
 	return data_dir_file_path_with_data_dir(T_ID_FILE_NAME);
 }
 
+/** Takes no arguments, returns the full file path to the season file
+ *
+ * \return A string that is the file path to season file.
+ */
+char *data_dir_file_path_season_file(void) {
+	return data_dir_file_path_with_data_dir(SEASON_FILE_NAME);
+}
+
 /* Deletes every file in the data directory 'data_dir'.
  *
  * \return an int representing if the function succeeded or not.
@@ -110,10 +119,12 @@ int data_dir_reset(void) {
 	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
 	char *full_t_file_path = data_dir_file_path_t_file();
 	char *full_t_id_file_path = data_dir_file_path_t_id_file();
+	char *full_season_file_path = data_dir_file_path_season_file();
 	remove(full_opp_file_path);
 	remove(full_opp_id_file_path);
 	remove(full_t_file_path);
 	remove(full_t_id_file_path);
+	remove(full_season_file_path);
 
 	/* Create universal G2ME files, necessary for usage */
 	/* Writes the only name required by the system */
@@ -138,6 +149,17 @@ int data_dir_reset(void) {
 
 	short num_opp = 1; /* 1 because we add the rd adjustment name */
 	short num_t = 0;
+	short season_num = -1;
+
+	/* Write the most recent season number (default to -1) */
+	FILE *s_file = fopen(full_season_file_path, "wb+");
+	if (s_file == NULL) {
+		perror("fopen (data_dir_reset_players)");
+		return -1;
+	}
+	if (1 != fwrite(&season_num, sizeof(short), 1, s_file)) return -12;
+	fclose(s_file);
+	free(full_season_file_path);
 
 	FILE *opp_file = fopen(full_opp_file_path, "wb+");
 	if (opp_file == NULL) {
@@ -236,16 +258,19 @@ int data_dir_check_and_create(void) {
 	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
 	char *full_t_file_path = data_dir_file_path_t_file();
 	char *full_t_id_file_path = data_dir_file_path_t_id_file();
+	char *full_season_file_path = data_dir_file_path_season_file();
 #ifdef _WIN32
 	char of_exist = _access(full_opp_file_path, 0) != -1;
 	char oif_exist = _access(full_opp_id_file_path, 0) != -1;
 	char tf_exist = _access(full_t_file_path, 0) != -1;
 	char tif_exist = _access(full_t_id_file_path, 0) != -1;
+	char sf_exist = _access(full_season_file_path, 0) != -1;
 #else
 	char of_exist = access(full_opp_file_path, R_OK | W_OK) != -1;
 	char oif_exist = access(full_opp_id_file_path, R_OK | W_OK) != -1;
 	char tf_exist = access(full_t_file_path, R_OK | W_OK) != -1;
 	char tif_exist = access(full_t_id_file_path, R_OK | W_OK) != -1;
+	char sf_exist = access(full_season_file_path, R_OK | W_OK) != -1;
 #endif
 	/* Writes the only name required by the system */
 	int write_rd_adj_name_with_id(FILE *f) { // {{{
@@ -268,6 +293,19 @@ int data_dir_check_and_create(void) {
 	} // }}}
 	short num_opp = 1; /* 1 because we add the rd adjustment name */
 	short num_t = 0;
+	short season_num = -1;
+
+	/* If sf doesn't exist, create it */
+	if (!sf_exist) {
+		FILE *s_file = fopen(full_season_file_path, "wb+");
+		if (s_file == NULL) {
+			perror("fopen (data_dir_check_and_create)");
+			return -1;
+		}
+		if (1 != fwrite(&season_num, sizeof(short), 1, s_file)) return -12;
+		fclose(s_file);
+		free(full_season_file_path);
+	}
 	/* If of doesn't exist, create it */
 	if (!of_exist) {
 		FILE *opp_file = fopen(full_opp_file_path, "wb+");

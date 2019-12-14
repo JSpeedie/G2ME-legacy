@@ -254,7 +254,6 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
 #endif
 		struct player P;
 		struct entry latest_ent;
-		//if (0 == entry_file_read_last_entry(full_file_path, &latest_ent)) {
 		if (0 == entry_file_read_last_entry_absent(full_file_path, &latest_ent)) {
 
 			/* If this adjustment is taking place on a different
@@ -283,9 +282,8 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
 				latest_ent.year = year;
 				latest_ent.tournament_id = t_id;
 				strncpy(latest_ent.t_name, t_name, MAX_NAME_LEN);
-				long len_t_name = strlen(latest_ent.t_name);
-				latest_ent.t_name[len_t_name] = '\0';
-				latest_ent.len_t_name = len_t_name;
+				latest_ent.len_t_name = strlen(latest_ent.t_name);
+				latest_ent.t_name[latest_ent.len_t_name] = '\0';
 				entry_file_append_adjustment_to_file_id(&latest_ent, full_file_path);
 			}
 		}
@@ -334,8 +332,6 @@ void adjust_absent_players_no_file(char day, char month, \
 	int total_num_adjustments = 0;
 	char did_not_comp = 1;
 
-	/* TODO: potentially faster through reading last entry and checking if
-	 * they entered that way? */
 	/* Create a list of player files */
 	while ((entry = readdir(p_dir)) != NULL) {
 		/* Reset variable to assume player did not compete */
@@ -383,11 +379,6 @@ void adjust_absent_players_no_file(char day, char month, \
 	typedef struct thread_args {
 		unsigned long num_adjustments;
 		char files[size_of_names][MAX_NAME_LEN + 1];
-		char day;
-		char month;
-		short year;
-		short t_id;
-		char * t_name;
 	}ThreadArgs;
 
 	ThreadArgs args[max_forks - 1];
@@ -398,7 +389,7 @@ void adjust_absent_players_no_file(char day, char month, \
 		/* Get this processes' list of player names that did not compete and
 		 * apply step 6 to them and append to player file */
 		for (int j = 0; j < t->num_adjustments; j++) {
-			adjust_absent_player(&(t->files[j][0]), t->day, t->month, t->year, t->t_id, t->t_name);
+			adjust_absent_player(&(t->files[j][0]), day, month, year, t_id, t_name);
 		}
 		return NULL;
 	}
@@ -412,11 +403,6 @@ void adjust_absent_players_no_file(char day, char month, \
 			for (int k = 0; k < MINIMUM_ADJ_BEFORE_FORK; k++) {
 				strncpy(&args[f].files[k][0], &file_names[(f * MINIMUM_ADJ_BEFORE_FORK) + k][0], MAX_NAME_LEN);
 			}
-			args[f].day = day;
-			args[f].month = month;
-			args[f].year = year;
-			args[f].t_id = t_id;
-			args[f].t_name = t_name;
 			/* Create new thread, RD adjusting list of players */
 			pthread_create(&thread_id[f], NULL, adjust_p, &args[f]);
 		}
@@ -429,11 +415,6 @@ void adjust_absent_players_no_file(char day, char month, \
 			for (int k = 0; k < parent_arg.num_adjustments; k++) {
 				strncpy(&parent_arg.files[k][0], &file_names[((num_min_threads) * MINIMUM_ADJ_BEFORE_FORK) +  k][0], MAX_NAME_LEN);
 			}
-			parent_arg.day = day;
-			parent_arg.month = month;
-			parent_arg.year = year;
-			parent_arg.t_id = t_id;
-			parent_arg.t_name = t_name;
 			adjust_p(&parent_arg);
 		}
 
@@ -451,11 +432,6 @@ void adjust_absent_players_no_file(char day, char month, \
 			for (int k = 0; k < adj_per_process; k++) {
 				strncpy(&args[f].files[k][0], &file_names[(f * adj_per_process) + k][0], MAX_NAME_LEN);
 			}
-			args[f].day = day;
-			args[f].month = month;
-			args[f].year = year;
-			args[f].t_id = t_id;
-			args[f].t_name = t_name;
 			/* Create new thread, RD adjusting list of players */
 			pthread_create(&thread_id[f], NULL, adjust_p, &args[f]);
 		}
@@ -468,11 +444,6 @@ void adjust_absent_players_no_file(char day, char month, \
 		for (int k = 0; k < parent_arg.num_adjustments; k++) {
 			strncpy(&parent_arg.files[k][0], &file_names[((max_forks - 1) * adj_per_process) +  k][0], MAX_NAME_LEN);
 		}
-		parent_arg.day = day;
-		parent_arg.month = month;
-		parent_arg.year = year;
-		parent_arg.t_id = t_id;
-		parent_arg.t_name = t_name;
 		adjust_p(&parent_arg);
 
 		/* Wait for all threads to finish */
@@ -850,37 +821,6 @@ int run_brackets(char *bracket_list_file_path) {
 	char *bracket_paths = \
 		(char *)malloc((MAX_FILE_PATH_LEN + 1) * bracket_paths_size);
 
-	/* Get the latest season from a recent player */
-	/* search for a player with a non -1 season */
-	DIR *p_dir;
-	struct dirent *entry;
-	/* If the directory could not be accessed, print error and return */
-	if ((p_dir = opendir(player_dir)) == NULL) {
-		perror("opendir (run_brackets)");
-		return -1;
-	}
-
-	/* Find highest season number from the player. Note that if
-	 * absentee adjustments aren't used then there is no guarantee that
-	 * any given player will have the latest season id */
-	while ((entry = readdir(p_dir)) != NULL) {
-		/* If the directory item is a directory, skip */
-		if (0 == check_if_dir(player_dir, entry->d_name)) continue;
-		char *full_player_path = player_dir_file_path_with_player_dir(entry->d_name);
-		if (access(full_player_path, R_OK | W_OK) == -1) {
-			fprintf(stderr, ERROR_PLAYER_DNE);
-			return -1;
-		}
-		struct entry temp;
-		if (0 == entry_file_read_last_entry_minimal(full_player_path, &temp)) {
-			if (temp.season_id > latest_season_id) {
-				latest_season_id = temp.season_id;
-			}
-		}
-		free(full_player_path);
-
-	}
-	closedir(p_dir);
 
 	int num_brk = 0;
 	while (fgets(line, sizeof(line), bracket_list_file)) {
@@ -956,6 +896,7 @@ int run_brackets(char *bracket_list_file_path) {
 		}
 		update_players(&bracket_paths[j * (MAX_FILE_PATH_LEN + 1)], \
 			latest_season_id + 1);
+		s_file_set_latest_season_id(latest_season_id + 1);
 		fprintf(stdout, "DONE\n");
 	}
 
@@ -1021,9 +962,7 @@ int generate_ratings_file(char* filter_file_path, char* output_file_path) {
 
 		/* If the player file was able to be read properly... */
 		if (0 == entry_file_read_last_entry(full_player_path, &temp)) {
-			//int num_events;
 			// TODO: something here
-			//entry_file_get_events_attended(full_player_path, &num_events);
 			int num_events = entry_file_get_events_attended_count(full_player_path);
 			if (longest_attended < num_events) longest_attended = num_events;
 			int num_outcomes = entry_file_get_outcome_count(full_player_path);
