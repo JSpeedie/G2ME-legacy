@@ -890,7 +890,7 @@ Below, the 2 main components of the file are explained in more depth.
 
 The starter data section breaks down into the following pieces:
 
-`[starter data] = [len_name][name][num_valid_out][num_valid_attended_events][entries]`
+`[starter data] = [len_name][name][num_valid_out][num_valid_attended_events]`
 
 Where:
 
