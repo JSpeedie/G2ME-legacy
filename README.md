@@ -35,6 +35,11 @@
 * [The Glicko2 System Explained](#the-glicko2-system-explained)
 * [The Player File Format](#the-player-file-format)
 * [Data Files and Their Formats](#data-files-and-their-formats)
+	* [Opponent File Format](#opponent-file-format)
+	* [Opponent ID File Format](#opponent-id-file-format)
+	* [Tournament File Format](#tournament-file-format)
+	* [Tournament ID File Format](#tournament-id-file-format)
+	* [Season File Format](#season-file-format)
 </p></details>
 
 ## Screenshots
@@ -974,6 +979,14 @@ Where:
 
 **Note:** tournament names are indexed by their global id for fast (linear)
 conversion from tournament id to tournament name.
+
+### Season File Format
+
+`[latest_season_id]`
+
+Where:
+
+1. `[latest_season_id]` is the latest season id used by the system.
 
 
 ## TODO
