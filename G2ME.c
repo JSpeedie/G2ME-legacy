@@ -828,24 +828,25 @@ int run_brackets(char *bracket_list_file_path) {
 		/* Remove comments from text */
 		char parse_line = 0;
 		unsigned long i = 0;
-		while (i < strlen(line)) {
-			/* If it reaches a non-whitespace character, check if it's
-			 * a comment */
-			if (line[i] != '	' && line[i] != ' ') {
-				/* If there is space for the comment symbol in the
-				 * line, continue */
-				if (i + strlen(COMMENT_SYMBOL) <= strlen(line)) {
+		unsigned long comment_symbol_len = strlen(COMMENT_SYMBOL);
+
+		if (comment_symbol_len > 0) {
+			while (i <= strlen(line) - comment_symbol_len) {
+				/* If it reaches a character that matches the first character
+				 * of the comment symbol */
+				if (line[i] == COMMENT_SYMBOL[0]) {
 					/* If there is a comment, do not parse the line */
-					if (strncmp(&line[i], COMMENT_SYMBOL, strlen(COMMENT_SYMBOL)) == 0) {
+					if (strncmp(&line[i], COMMENT_SYMBOL, comment_symbol_len) == 0) {
 						line[i] = '\0';
 						break;
 					}
 				}
+				i++;
 			}
-			i++;
+			i = 0;
 		}
+
 		/* Check if the line is non-empty */
-		i = 0;
 		while (i < strlen(line)) {
 			/* If it reaches a non-whitespace character */
 			if (line[i] != '	' && line[i] != ' ' && line[i] != '\n' && line[i] != '\r') {
