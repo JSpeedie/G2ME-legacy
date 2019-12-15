@@ -328,9 +328,25 @@ void adjust_absent_players_no_file(char day, char month, \
 	if (max_forks < 1) max_forks = 8;
 	int num_players = 0;
 	player_dir_num_players(&num_players);
-	char file_names[num_players][MAX_NAME_LEN + 1];
-	int total_num_adjustments = 0;
 	char did_not_comp = 1;
+
+	/* Define a struct for passing arguments to the thread */
+	typedef struct thread_args {
+		unsigned long num_adjustments;
+		char *files;
+		unsigned long size_of_files;
+	}ThreadArgs;
+
+	ThreadArgs args[max_forks];
+	/* Initialize parent thread work */
+	args[0].size_of_files = 2 * MINIMUM_ADJ_BEFORE_FORK;
+	args[0].files = \
+		(char *)malloc(args[0].size_of_files * (MAX_NAME_LEN + 1));
+	args[0].num_adjustments = 0;
+
+	int cur_f = 0;
+	int total_threads_needed = 0;
+	char all_thread_min_cap_reached = 0;
 
 	/* Create a list of player files */
 	while ((entry = readdir(p_dir)) != NULL) {
@@ -358,30 +374,48 @@ void adjust_absent_players_no_file(char day, char month, \
 		}
 
 		if (did_not_comp) {
-			strncpy(&file_names[total_num_adjustments][0], entry->d_name, MAX_NAME_LEN + 1);
-			total_num_adjustments++;
+			long next_name = (args[cur_f].num_adjustments) * (MAX_NAME_LEN + 1);
+			/* realloc if necessary */
+			if (args[cur_f].num_adjustments + 1 > args[cur_f].size_of_files) {
+				args[cur_f].size_of_files *= 2;
+				args[cur_f].files = (char *) realloc(args[cur_f].files, \
+					(MAX_NAME_LEN + 1) * args[cur_f].size_of_files);
+				if (args[cur_f].files == NULL) {
+					perror("realloc (adjust_absent_players_no_file)");
+					return;
+				}
+			}
+
+			/* Copy file name into proper thread input file list */
+			strncpy(&args[cur_f].files[next_name], entry->d_name, MAX_NAME_LEN + 1);
+			args[cur_f].num_adjustments++;
+
+			if (all_thread_min_cap_reached == 0) {
+				/* If this thread has hit its minimum capacity */
+				if (args[cur_f].num_adjustments >= MINIMUM_ADJ_BEFORE_FORK) {
+					cur_f++;
+					if (cur_f >= max_forks) {
+						all_thread_min_cap_reached = 1;
+					} else {
+						args[cur_f].size_of_files = MINIMUM_ADJ_BEFORE_FORK;
+						args[cur_f].files = \
+							(char *)malloc(args[cur_f].size_of_files * (MAX_NAME_LEN + 1));
+						args[cur_f].num_adjustments = 0;
+						total_threads_needed++;
+					}
+
+				}
+			/* Otherwise, distribute RD adjustments evenly amongst threads */
+			} else {
+				cur_f++;
+				if (cur_f >= max_forks) {
+					cur_f = 0;
+				}
+			}
 		}
 	}
 
 	closedir(p_dir);
-	unsigned long adj_per_process = total_num_adjustments / max_forks;
-	unsigned long extra = total_num_adjustments - ((total_num_adjustments / max_forks) * max_forks);
-	/* Calculate the appropriate maximum size for the array of names to
-	 * be adjusted */
-	unsigned long size_of_names = MINIMUM_ADJ_BEFORE_FORK;
-	if (size_of_names < adj_per_process + extra) {
-		size_of_names = adj_per_process + extra;
-	}
-	pthread_t thread_id[max_forks - 1];
-
-
-	/* Define a struct for passing arguments to the thread */
-	typedef struct thread_args {
-		unsigned long num_adjustments;
-		char files[size_of_names][MAX_NAME_LEN + 1];
-	}ThreadArgs;
-
-	ThreadArgs args[max_forks - 1];
 
 	/* Function for adjusting a list of players */
 	void *adjust_p(void *arg) {
@@ -389,67 +423,24 @@ void adjust_absent_players_no_file(char day, char month, \
 		/* Get this processes' list of player names that did not compete and
 		 * apply step 6 to them and append to player file */
 		for (int j = 0; j < t->num_adjustments; j++) {
-			adjust_absent_player(&(t->files[j][0]), day, month, year, t_id, t_name);
+			adjust_absent_player(&(t->files[j * (MAX_NAME_LEN + 1)]), day, month, year, t_id, t_name);
 		}
 		return NULL;
 	}
 
-	/* If there is reason not to use every thread */
-	if (adj_per_process < MINIMUM_ADJ_BEFORE_FORK) {
-		int num_min_threads = total_num_adjustments / MINIMUM_ADJ_BEFORE_FORK;
-		for (int f = 0; f < num_min_threads; f++) {
-			/* Copy arguments need for player adjustment into argument struct */
-			args[f].num_adjustments = MINIMUM_ADJ_BEFORE_FORK;
-			for (int k = 0; k < MINIMUM_ADJ_BEFORE_FORK; k++) {
-				strncpy(&args[f].files[k][0], &file_names[(f * MINIMUM_ADJ_BEFORE_FORK) + k][0], MAX_NAME_LEN);
-			}
-			/* Create new thread, RD adjusting list of players */
-			pthread_create(&thread_id[f], NULL, adjust_p, &args[f]);
-		}
-		/* Player adjustment for parent thread. Catches stragglers
-		 * through the use of 'extra' */
-		extra = total_num_adjustments - (num_min_threads * MINIMUM_ADJ_BEFORE_FORK);
-		if (extra > 0) {
-			struct thread_args parent_arg;
-			parent_arg.num_adjustments = extra;
-			for (int k = 0; k < parent_arg.num_adjustments; k++) {
-				strncpy(&parent_arg.files[k][0], &file_names[((num_min_threads) * MINIMUM_ADJ_BEFORE_FORK) +  k][0], MAX_NAME_LEN);
-			}
-			adjust_p(&parent_arg);
-		}
+	pthread_t thread_id[max_forks - 1];
 
-		/* Wait for all threads to finish */
-		for (int f = 0; f < num_min_threads; f++) {
-			pthread_join(thread_id[f], NULL);
-		}
-	/* If there are more than 'MINIMUM_ADJ_BEFORE_FORK' adjustments per
-	 * thread, each thread has lots of work. Create a maximum
-	 * number of threads */
-	} else {
-		for (int f = 0; f < max_forks - 1; f++) {
-			/* Copy arguments need for player adjustment into argument struct */
-			args[f].num_adjustments = adj_per_process;
-			for (int k = 0; k < adj_per_process; k++) {
-				strncpy(&args[f].files[k][0], &file_names[(f * adj_per_process) + k][0], MAX_NAME_LEN);
-			}
-			/* Create new thread, RD adjusting list of players */
-			pthread_create(&thread_id[f], NULL, adjust_p, &args[f]);
-		}
+	for (int f = 0; f < total_threads_needed; f++) {
+		pthread_create(&thread_id[f], NULL, adjust_p, &args[f+1]);
+	}
 
+	/* Have parent thread do its work */
+	adjust_p(&args[0]);
 
-		/* Player adjustment for parent thread. Catches stragglers
-		 * through the use of 'extra' */
-		struct thread_args parent_arg;
-		parent_arg.num_adjustments = adj_per_process + extra;
-		for (int k = 0; k < parent_arg.num_adjustments; k++) {
-			strncpy(&parent_arg.files[k][0], &file_names[((max_forks - 1) * adj_per_process) +  k][0], MAX_NAME_LEN);
-		}
-		adjust_p(&parent_arg);
-
-		/* Wait for all threads to finish */
-		for (int f = 0; f < max_forks - 1; f++) {
-			pthread_join(thread_id[f], NULL);
-		}
+	/* Wait for all threads to finish */
+	for (int f = 0; f < total_threads_needed; f++) {
+		pthread_join(thread_id[f], NULL);
+		free(args[f].files);
 	}
 }
 

@@ -13,7 +13,7 @@
 #define MAX_OUTCOME_STRING_LEN 128
 #define REALLOC_TOURNAMENT_NAMES_FACTOR 2
 #define SIZE_TOURNAMENT_NAMES_LEN 64
-#define MINIMUM_ADJ_BEFORE_FORK 18
+#define MINIMUM_ADJ_BEFORE_FORK 24
 
 extern char flag_output_to_stdout;
 extern char colour_output;
