@@ -763,11 +763,8 @@ int update_players(char* bracket_file_path, short season_id) {
 			"%s %s %hhd %hhd %hhd %hhd %hd", \
 			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
 #endif
-		char p1_found = 0;
-		char p2_found = 0;
 		short p1_id;
 		short p2_id;
-		// TODO binary search (can do, just divide into 2 searches)
 		long L = 0;
 		long R = tourn_atten_len - 1;
 		long m;
