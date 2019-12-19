@@ -30,6 +30,7 @@ typedef struct entry {
 
 /* Opp file operations */
 int opp_file_contains_opponent(char *);
+int opp_file_open_contains_opponent(FILE *, char *);
 int opp_file_add_new_opponent(struct entry *);
 
 

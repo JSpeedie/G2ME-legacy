@@ -629,7 +629,6 @@ int update_players(char* bracket_file_path, short season_id) {
 					}
 				}
 			}
-			int ret = 0;
 			if (!already_in) {
 				if (tourn_atten_len + 1 > tourn_atten_size) {
 					tourn_atten_size *= REALLOC_TOURNAMENT_NAMES_FACTOR;
@@ -642,26 +641,6 @@ int update_players(char* bracket_file_path, short season_id) {
 				}
 				strncpy(&tourn_atten[tourn_atten_len].name[0], \
 					p1_name, MAX_NAME_LEN);
-
-				/* Get opp_ids for all players who attended this tournament */
-				/* If the entry file does not already contain an id for this opponent */
-				struct entry E;
-				if (-1 == (ret = \
-					opp_file_contains_opponent(&tourn_atten[tourn_atten_len].name[0]))) {
-					/* Add the new opponent to the entry file. This also corrects
-					 * the t_id if it is incorrect */
-					strncpy(&E.opp_name[0], &tourn_atten[tourn_atten_len].name[0], MAX_NAME_LEN);
-					E.len_opp_name = strlen(E.opp_name);
-					if (0 != opp_file_add_new_opponent(&E)) return -8;
-				/* If there was an error */
-				} else if (ret < -1) {
-					return -9;
-				/* If the entry file does contain an id for this opponent */
-				} else {
-					/* Fix the opp_id in case it wasn't set */
-					E.opp_id = (unsigned short) ret;
-				}
-				tourn_atten[tourn_atten_len].id = E.opp_id;
 				tourn_atten_len++;
 			}
 			if (!already_in2) {
@@ -676,29 +655,48 @@ int update_players(char* bracket_file_path, short season_id) {
 				}
 				strncpy(&tourn_atten[tourn_atten_len].name[0], \
 					p2_name, MAX_NAME_LEN);
-				/* Get opp_ids for all players who attended this tournament */
-				/* If the entry file does not already contain an id for this opponent */
-				struct entry E;
-				if (-1 == (ret = \
-					opp_file_contains_opponent(&tourn_atten[tourn_atten_len].name[0]))) {
-					/* Add the new opponent to the entry file. This also corrects
-					 * the t_id if it is incorrect */
-					strncpy(&E.opp_name[0], &tourn_atten[tourn_atten_len].name[0], MAX_NAME_LEN);
-					E.len_opp_name = strlen(E.opp_name);
-					if (0 != opp_file_add_new_opponent(&E)) return -8;
-				/* If there was an error */
-				} else if (ret < -1) {
-					return -9;
-				/* If the entry file does contain an id for this opponent */
-				} else {
-					/* Fix the opp_id in case it wasn't set */
-					E.opp_id = (unsigned short) ret;
-				}
-				tourn_atten[tourn_atten_len].id = E.opp_id;
 				tourn_atten_len++;
 			}
 		}
 	}
+
+	char *full_opp_file_path = data_dir_file_path_opp_file();
+
+	FILE* opp_file = fopen(full_opp_file_path, "rb+");
+	if (opp_file == NULL) {
+		fprintf(stderr, "Error opening file \"%s\" (update_players): ", \
+			full_opp_file_path);
+		perror("");
+		return -1;
+	}
+
+	/* Id all tournament attendees */
+	for (int o = 0; o < tourn_atten_len; o++) {
+		int ret = 0;
+		/* Get opp_ids for all players who attended this tournament */
+		/* If the entry file does not already contain an id for this opponent */
+		struct entry E;
+		if (-1 == (ret = \
+			opp_file_open_contains_opponent(opp_file, &tourn_atten[o].name[0]))) {
+			/* Add the new opponent to the entry file. This also corrects
+			 * the t_id if it is incorrect */
+			strncpy(&E.opp_name[0], &tourn_atten[o].name[0], MAX_NAME_LEN);
+			E.len_opp_name = strlen(E.opp_name);
+			if (0 != opp_file_add_new_opponent(&E)) return -8;
+		/* If there was an error */
+		} else if (ret < -1) {
+			return -9;
+		/* If the entry file does contain an id for this opponent */
+		} else {
+			/* Fix the opp_id in case it wasn't set */
+			E.opp_id = (unsigned short) ret;
+		}
+		tourn_atten[o].id = E.opp_id;
+	}
+
+	fclose(opp_file);
+	free(full_opp_file_path);
+
 
 	int available_cores;
 /* Set the max number of forks to the number of processors available */

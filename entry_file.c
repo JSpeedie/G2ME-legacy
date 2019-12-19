@@ -34,6 +34,65 @@ long int SIZE_OF_AN_ENTRY = (1 * sizeof(short)) + (3 * sizeof(double)) \
 	+ (4 * sizeof(char)) + (3 * sizeof(short));
 
 
+/** Takes an open opp_file, and an  opponents name and returns an int
+ * representing whether it found the opponent in the system.
+ *
+ * \param '*f' the open opp_file for reading.
+ * \param '*opp_name' the name of the opponent to be searched for.
+ * \return integer representing whether the function failed or succeeded.
+ *     It will return < 0 if the function failed, and opponent's id (>=0)
+ *     if it succeeded.
+ */
+int opp_file_open_contains_opponent(FILE *f, char *opp_name) {
+
+	fseek(f, 0, SEEK_SET);
+
+	int ret = -1;
+	unsigned short num_opp;
+	char temp_name[MAX_NAME_LEN + 1];
+	if (1 != fread(&num_opp, sizeof(short), 1, f)) return -2;
+
+	/* Binary search on file to find given name's id */
+	long L = 0;
+	long R = num_opp - 1;
+	long m;
+	long oldm = 0;
+	while (L <= R) {
+		m = floor(((double) (L + R)) / 2.0);
+		/* Seek to mth spot of array */
+		fseek(f, (m - oldm) * (MAX_NAME_LEN + 1 + sizeof(short)), SEEK_CUR);
+		/* Read corresponding opp_id of the array[m] */
+		unsigned long start_of_m = ftell(f);
+		short opp_id = -1;
+		if (1 != fread(&opp_id, sizeof(short), 1, f)) return -3;
+
+		/* Read opp name of the array[m] */
+		int j = 0;
+		if (1 != fread(&temp_name[j], sizeof(char), 1, f)) return -4;
+		/* Provided it hasn't hit a null terminator or end of file */
+		while (temp_name[j] != '\0' && j < MAX_NAME_LEN && !(feof(f))) {
+			j++;
+			if (1 != fread(&temp_name[j], sizeof(char), 1, f)) return -5;
+		}
+		/* Seek to start of array[m] so fseek to next spot isn't offset */
+		fseek(f, start_of_m, SEEK_SET);
+
+		int comp = strncmp(&temp_name[0], opp_name, MAX_NAME_LEN);
+		if (0 > comp) {
+			oldm = m;
+			L = m + 1;
+		} else if (0 < comp) {
+			oldm = m;
+			R = m - 1;
+		} else {
+			ret = opp_id;
+			R = L - 1; /* Terminate loop */
+		}
+	}
+
+	/* The opponent name was not found, return -1 */
+	return ret;
+}
 /** Takes an opponents name and returns an int representing whether it
  * found the opponent in the system.
  *
