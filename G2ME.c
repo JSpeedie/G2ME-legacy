@@ -348,12 +348,10 @@ void adjust_absent_players_no_file(char day, char month, \
 	int total_threads_needed = 0;
 	char all_thread_min_cap_reached = 0;
 
-	/* Create a list of player files */
+	/* Create a list of player files, set work for threads */
 	while ((entry = readdir(p_dir)) != NULL) {
 		/* Reset variable to assume player did not compete */
 		did_not_comp = 1;
-		/* If the directory item is a directory, skip */
-		if (0 == check_if_dir(player_dir, entry->d_name)) continue;
 
 		/* Binary search on file to find given name's id */
 		long L = 0;
@@ -608,7 +606,7 @@ int update_players(char* bracket_file_path, short season_id) {
 		if (calc_absent_players == 1) {
 			char already_in = 0;
 			char already_in2 = 0;
-			// TODO: binary search insert? (can't search yet, it isn't sorted)
+
 			for (int i = 0; i < tourn_atten_len; i++) {
 				/* If the name already exists in the list of entrants,
 				 * don't add */
@@ -629,30 +627,23 @@ int update_players(char* bracket_file_path, short season_id) {
 					}
 				}
 			}
-			if (!already_in) {
-				if (tourn_atten_len + 1 > tourn_atten_size) {
-					tourn_atten_size *= REALLOC_TOURNAMENT_NAMES_FACTOR;
-					tourn_atten = (struct tournament_attendee *) realloc(tourn_atten, \
-						(sizeof(struct tournament_attendee)) * tourn_atten_size);
-					if (tourn_atten == NULL) {
-						perror("realloc (update_players)");
-						return -2;
-					}
+			/* If the additions to be made will overflow the tournament
+			 * attendee array, realloc it to fit them */
+			if (tourn_atten_len + already_in + already_in2 > tourn_atten_size) {
+				tourn_atten_size *= REALLOC_TOURNAMENT_NAMES_FACTOR;
+				tourn_atten = (struct tournament_attendee *) realloc(tourn_atten, \
+					(sizeof(struct tournament_attendee)) * tourn_atten_size);
+				if (tourn_atten == NULL) {
+					perror("realloc (update_players)");
+					return -2;
 				}
+			}
+			if (!already_in) {
 				strncpy(&tourn_atten[tourn_atten_len].name[0], \
 					p1_name, MAX_NAME_LEN);
 				tourn_atten_len++;
 			}
 			if (!already_in2) {
-				if (tourn_atten_len + 1 > tourn_atten_size) {
-					tourn_atten_size *= REALLOC_TOURNAMENT_NAMES_FACTOR;
-					tourn_atten = (struct tournament_attendee *) realloc(tourn_atten, \
-						sizeof(struct tournament_attendee) * tourn_atten_size);
-					if (tourn_atten == NULL) {
-						perror("realloc (update_players)");
-						return -2;
-					}
-				}
 				strncpy(&tourn_atten[tourn_atten_len].name[0], \
 					p2_name, MAX_NAME_LEN);
 				tourn_atten_len++;
@@ -697,6 +688,7 @@ int update_players(char* bracket_file_path, short season_id) {
 	fclose(opp_file);
 	free(full_opp_file_path);
 
+	merge_sort_tournament_attendees(tourn_atten, tourn_atten_len);
 
 	int available_cores;
 /* Set the max number of forks to the number of processors available */
@@ -715,12 +707,10 @@ int update_players(char* bracket_file_path, short season_id) {
 			p = fork();
 			/* If child process, run adjustments while parent crunches numbers */
 			if (p == 0) {
-				merge_sort_tournament_attendees(tourn_atten, tourn_atten_len);
 				adjust_absent_players_no_file(day, month, year, Et.tournament_id, t_name);
 				exit(0);
 			}
 		} else {
-			merge_sort_tournament_attendees(tourn_atten, tourn_atten_len);
 			adjust_absent_players_no_file(day, month, year, Et.tournament_id, t_name);
 		}
 	}
@@ -778,20 +768,37 @@ int update_players(char* bracket_file_path, short season_id) {
 		short p1_id;
 		short p2_id;
 		// TODO binary search (can do, just divide into 2 searches)
-		for (int k = 0; k < tourn_atten_len; k++) {
-			if (p1_found == 0) {
-				if (0 == strncmp(p1_name, &tourn_atten[k].name[0], MAX_NAME_LEN)) {
-					p1_id = tourn_atten[k].id;
-					p1_found = 1;
-				}
+		long L = 0;
+		long R = tourn_atten_len - 1;
+		long m;
+		while (L <= R) {
+			m = floor(((double) (L + R)) / 2.0);
+			/* Compare array[m] with the name being searched for */
+			int comp = strncmp(&tourn_atten[m].name[0], p1_name, MAX_NAME_LEN);
+			if (0 > comp) {
+				L = m + 1;
+			} else if (0 < comp) {
+				R = m - 1;
+			} else {
+				p1_id = tourn_atten[m].id;
+				R = L - 1; /* Terminate loop */
 			}
-			if (p2_found == 0) {
-				if (0 == strncmp(p2_name, &tourn_atten[k].name[0], MAX_NAME_LEN)) {
-					p2_id = tourn_atten[k].id;
-					p2_found = 1;
-				}
+		}
+		/* Reset vars and repeat search but for player 2 */
+		L = 0;
+		R = tourn_atten_len - 1;
+		while (L <= R) {
+			m = floor(((double) (L + R)) / 2.0);
+			/* Compare array[m] with the name being searched for */
+			int comp = strncmp(&tourn_atten[m].name[0], p2_name, MAX_NAME_LEN);
+			if (0 > comp) {
+				L = m + 1;
+			} else if (0 < comp) {
+				R = m - 1;
+			} else {
+				p2_id = tourn_atten[m].id;
+				R = L - 1; /* Terminate loop */
 			}
-			if (p1_found == 1 && p2_found == 1) break;
 		}
 
 		struct player p1;
