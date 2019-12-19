@@ -555,6 +555,8 @@ int update_players(char* bracket_file_path, short season_id) {
 
 	fclose(bracket_file);
 
+	/* Generate tournament attendee names list so RD-adjustments can
+	 * take place during Glicko2 number crunching */
 	for (int j = 0; j < num_outcomes; j++) {
 		/* Read data from one line of bracket file into all the variables */
 #ifdef __linux__
@@ -603,10 +605,6 @@ int update_players(char* bracket_file_path, short season_id) {
 			"%s %s %hhd %hhd %hhd %hhd %hd", \
 			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
 #endif
-		char p1_found = 0;
-		char p2_found = 0;
-		unsigned long p1_index;
-		unsigned long p2_index;
 		if (calc_absent_players == 1) {
 			char already_in = 0;
 			char already_in2 = 0;
@@ -616,8 +614,6 @@ int update_players(char* bracket_file_path, short season_id) {
 				 * don't add */
 				if (0 == strcmp(p1_name, &tourn_atten[i].name[0])) {
 					already_in = 1;
-					p1_found = 1;
-					p1_index = i;
 					/* If both names need to be added, get to work. No need
 					 * to search further */
 					if (already_in2 == 1) {
@@ -626,8 +622,6 @@ int update_players(char* bracket_file_path, short season_id) {
 				}
 				if (0 == strcmp(p2_name, &tourn_atten[i].name[0])) {
 					already_in2 = 1;
-					p2_found = 1;
-					p2_index = i;
 					/* If both names need to be added, get to work. No need
 					 * to search further */
 					if (already_in == 1) {
@@ -704,31 +698,102 @@ int update_players(char* bracket_file_path, short season_id) {
 				tourn_atten_len++;
 			}
 		}
+	}
+
+	int available_cores;
+/* Set the max number of forks to the number of processors available */
+#ifdef _WIN32
+	SYSTEM_INFO info;
+	GetSystemInfo(&info);
+	available_cores = info.dwNumberOfProcessors;
+#else
+	available_cores = sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+	if (available_cores < 1) available_cores = 1;
+
+	if (calc_absent_players == 1) {
+		if (available_cores > 1) {
+			pid_t p;
+			p = fork();
+			/* If child process, run adjustments while parent crunches numbers */
+			if (p == 0) {
+				merge_sort_tournament_attendees(tourn_atten, tourn_atten_len);
+				adjust_absent_players_no_file(day, month, year, Et.tournament_id, t_name);
+				exit(0);
+			}
+		} else {
+			merge_sort_tournament_attendees(tourn_atten, tourn_atten_len);
+			adjust_absent_players_no_file(day, month, year, Et.tournament_id, t_name);
+		}
+	}
+
+	for (int j = 0; j < num_outcomes; j++) {
+		/* Read data from one line of bracket file into all the variables */
+#ifdef __linux__
+		sscanf(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], \
+			"%s %s %hhd %hhd %hhd %hhd %hd", \
+			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
+#elif _WIN32
+
+		char *token = \
+			strtok(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], " ");
+		int temp;
+
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		strncpy(p1_name, token, MAX_NAME_LEN);
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		strncpy(p2_name, token, MAX_NAME_LEN);
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		sscanf(token, "%d", &temp);
+		p1_gc = (char)temp;
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		sscanf(token, "%d", &temp);
+		p2_gc = (char)temp;
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		sscanf(token, "%d", &temp);
+		day = (char)temp;
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		sscanf(token, "%d", &temp);
+		month = (char)temp;
+
+		token = strtok(NULL, " ");
+		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		sscanf(token, "%d", &temp);
+		year = (short)temp;
+#else
+		sscanf(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], \
+			"%s %s %hhd %hhd %hhd %hhd %hd", \
+			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
+#endif
+		char p1_found = 0;
+		char p2_found = 0;
 		short p1_id;
 		short p2_id;
-		if (p1_found == 1) {
-			p1_id = tourn_atten[p1_index].id;
-		}
-		if (p2_found == 1) {
-			p2_id = tourn_atten[p2_index].id;
-		}
-		if (p1_found == 0 || p2_found == 0) {
-			// TODO binary search (can do, just divide into 2 searches)
-			for (int k = 0; k < tourn_atten_len; k++) {
-				if (p1_found == 0) {
-					if (0 == strncmp(p1_name, &tourn_atten[k].name[0], MAX_NAME_LEN)) {
-						p1_id = tourn_atten[k].id;
-						p1_found = 1;
-					}
+		// TODO binary search (can do, just divide into 2 searches)
+		for (int k = 0; k < tourn_atten_len; k++) {
+			if (p1_found == 0) {
+				if (0 == strncmp(p1_name, &tourn_atten[k].name[0], MAX_NAME_LEN)) {
+					p1_id = tourn_atten[k].id;
+					p1_found = 1;
 				}
-				if (p2_found == 0) {
-					if (0 == strncmp(p2_name, &tourn_atten[k].name[0], MAX_NAME_LEN)) {
-						p2_id = tourn_atten[k].id;
-						p2_found = 1;
-					}
-				}
-				if (p1_found == 1 && p2_found == 1) break;
 			}
+			if (p2_found == 0) {
+				if (0 == strncmp(p2_name, &tourn_atten[k].name[0], MAX_NAME_LEN)) {
+					p2_id = tourn_atten[k].id;
+					p2_found = 1;
+				}
+			}
+			if (p1_found == 1 && p2_found == 1) break;
 		}
 
 		struct player p1;
@@ -760,9 +825,12 @@ int update_players(char* bracket_file_path, short season_id) {
 		}
 	}
 
-	if (calc_absent_players == 1) {
-		merge_sort_tournament_attendees(tourn_atten, tourn_atten_len);
-		adjust_absent_players_no_file(day, month, year, Et.tournament_id, t_name);
+	if (available_cores > 1) {
+		/* Wait for all the child processes to finish to avoid data errors */
+		pid_t wpid;
+		int status = 0;
+		while ((wpid = wait(&status)) > 0);
+		/* At this point all the kids have exited, parent can continue */
 	}
 
 	return 0;
