@@ -1300,7 +1300,8 @@ int entry_file_append_adjustment_to_file_id(struct entry *E, char *file_path) {
 	/* Open file for appending */
 	FILE *entry_file = fopen(file_path, "ab+");
 	if (entry_file == NULL) {
-		perror("fopen (entry_file_append_entry_to_file)");
+		fprintf(stderr, "Error opening file %s (entry_file_append_adjustment_to_file_id): ", file_path);
+		perror("");
 		return -10;
 	}
 	/* Write length of opp name and opp name */
@@ -1362,7 +1363,9 @@ int entry_file_append_entry_to_file_id(struct entry *E, char *file_path) {
 		/* Open file for appending */
 		FILE *entry_file = fopen(file_path, "ab+");
 		if (entry_file == NULL) {
-			perror("fopen (entry_file_append_entry_to_file)");
+			fprintf(stderr, "Error opening file \"%s\" and writing starter " \
+				"info (entry_file_append_entry_to_file_id): ", file_path);
+			perror("");
 			return -1;
 		}
 
@@ -1386,7 +1389,9 @@ int entry_file_append_entry_to_file_id(struct entry *E, char *file_path) {
 	struct entry E2;
 	FILE *entry_file = fopen(file_path, "ab+");
 	if (entry_file == NULL) {
-		perror("fopen (entry_file_append_entry_to_file)");
+		fprintf(stderr, "Error opening file \"%s\" and writing new entry " \
+			"(entry_file_append_entry_to_file_id): ", file_path);
+		perror("");
 		return -10;
 	}
 
@@ -1421,7 +1426,10 @@ int entry_file_append_entry_to_file_id(struct entry *E, char *file_path) {
 		/* Update the number of outcome data in the entry file */
 		FILE *entry_file2 = fopen(file_path, "rb+");
 		if (entry_file2 == NULL) {
-			perror("fopen (entry_file_append_entry_to_file)");
+			fprintf(stderr, "Error opening file \"%s\" and updating " \
+				"number_of info (entry_file_append_entry_to_file_id): ", \
+				file_path);
+			perror("");
 			return -11;
 		}
 		/* Read the starter data in the file */
