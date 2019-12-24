@@ -742,7 +742,7 @@ int t_file_get_tournament_id_from_name(struct entry *E) {
  * \return number >= -1 upon success (the most recent season id),
  *     and < -2 if there was an error.
  */
-int s_file_get_latest_season_id(void) {
+short s_file_get_latest_season_id(void) {
 
 	char *full_season_file_path = data_dir_file_path_season_file();
 	FILE* s_file = fopen(full_season_file_path, "rb+");

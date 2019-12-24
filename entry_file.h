@@ -50,7 +50,7 @@ int t_file_get_tournament_id_from_name(struct entry *);
 
 
 /* Season file functions */
-int s_file_get_latest_season_id(void);
+short s_file_get_latest_season_id(void);
 int s_file_set_latest_season_id(int);
 
 
