@@ -93,6 +93,8 @@ int opp_file_open_contains_opponent(FILE *f, char *opp_name) {
 	/* The opponent name was not found, return -1 */
 	return ret;
 }
+
+
 /** Takes an opponents name and returns an int representing whether it
  * found the opponent in the system.
  *
@@ -662,6 +664,7 @@ int t_file_get_tournament_name_from_id(struct entry *E) {
 	return 0;
 }
 
+
 /** Takes an struct entry containing the tournament name to be
  * searched for. Returns the id of a tournament, given the name of a
  * tournament. Returns -1 if the tournament of that name could not be found.
@@ -830,6 +833,7 @@ int entry_file_open_read_entry(FILE *f, struct entry *E) {
 	return 0;
 }
 
+
 /** Reads contents of a player file to a struct entry. Returns 0 upon success,
  * and a negative number upon failure. Function expects that starter data
  * has already been passed and that the FILE is on an entry
@@ -890,6 +894,7 @@ int entry_file_open_read_next_opp_entry(FILE *f, struct entry *E, short opp_id) 
 	return 0;
 }
 
+
 /** Reads contents of a player file to a struct entry. Returns 0 upon success,
  * and a negative number upon failure.Function expects that starter data
  * has already been passed and that the FILE is on an entry
@@ -916,6 +921,7 @@ int entry_file_open_read_entry_minimal(FILE *f, struct entry *E) {
 
 	return 0;
 }
+
 
 /** Reads contents of a player file to a struct entry. Returns 0 upon success,
  * and a negative number upon failure.Function expects that starter data
@@ -963,6 +969,7 @@ int entry_file_open_read_entry_absent(FILE *f, struct entry *E) {
 	return 0;
 }
 
+
 /** Reads contents of a player file to a struct entry. Returns 0 upon success,
  * and a negative number upon failure. Function expects that starter data
  * has already been passed and that the FILE is on an entry
@@ -989,6 +996,7 @@ int entry_file_open_read_entry_tournament_id(FILE *f, struct entry *E) {
 
 	return 0;
 }
+
 
 /** Reads the all the starter data in a player entry file leaving
  * the FILE '*f' at a position where it can start reading entries.
@@ -1110,6 +1118,7 @@ int entry_file_get_number_of_entries(char *file_path) {
 	return entries;
 }
 
+
 /** Reads a player file at the given file path and returns the number
  * of entries contained in that file where the opponent is '*player2'.
  *
@@ -1139,6 +1148,7 @@ long entry_file_get_number_of_outcomes_against(char *file_path, char *player2) {
 
 	return entries;
 }
+
 
 /** Reads a player file at the given file path and returns an array of longs
  * that represent the number of times player1 has played that player in an
@@ -1182,6 +1192,7 @@ long *entry_file_get_all_number_of_outcomes_against(char *file_path, \
 	return outcomes;
 }
 
+
 /** Returns the offset within a player file at which the last entry begins.
  *
  * \param '*file_path' a string of the file path of a player file for the
@@ -1208,6 +1219,7 @@ long entry_file_get_last_entry_offset(char *file_path) {
 
 	return last_entry_offset;
 }
+
 
 /** Modifies a struct entry to be that of the last entry found in a player
  * file.
@@ -1243,6 +1255,7 @@ int entry_file_read_last_entry(char *file_path, struct entry *ret) {
 	return 0;
 }
 
+
 /** Modifies a struct entry to be that of the last entry found in a player
  * file. Note that this function doesn't read the entire entry into the
  * struct entry. It is the minimal version and reads only the glicko2 data
@@ -1269,6 +1282,7 @@ int entry_file_read_last_entry_minimal(char* file_path, struct entry *ret) {
 	return 0;
 }
 
+
 /** Modifies a struct entry to be that of the last entry found in a player
  * file. Note that this function doesn't read the entire entry into the
  * struct entry. It is the absentee version and reads only the glicko2 data,
@@ -1294,6 +1308,7 @@ int entry_file_read_last_entry_absent(char* file_path, struct entry *ret) {
 
 	return 0;
 }
+
 
 /** Modifies a struct entry to be that of the last entry found in a player
  * file. Note that this function doesn't read the entire entry into the
@@ -1385,6 +1400,8 @@ int entry_file_append_adjustment_to_file_id(struct entry *E, char *file_path) {
 
 	return 0;
 }
+
+
 /** Appends an entry to a given player file and return an int representing
  * whether the function succeeded or not.
  *
@@ -1726,6 +1743,7 @@ int entry_file_append_pr_entry_to_file(struct entry *E, char *file_path, \
 	return 0;
 }
 
+
 /** Appends a pr entry (the name and glicko2 data for a player) to a given
  * file. Returns an int representing success.
  *
@@ -1826,6 +1844,7 @@ int entry_file_read_start_from_file(char *file_path, struct entry *E) {
 	return 0;
 }
 
+
 /** Takes an open player file and reads the "Player 1"
  * data into the given entry parameter.
  *
@@ -1921,6 +1940,7 @@ int entry_file_get_events_attended_count(char *file_path) {
 	return num_attended;
 }
 
+
 /** Takes a file path to a player file and a pointer to an integer.
  * Returns an array of all the names of the tournaments the player
  * has attended that weren't RD adjustments (or NULL) and modifies '*ret_count'
@@ -1992,6 +2012,7 @@ char *entry_file_get_events_attended(char *file_path, int *ret_count) {
 	fclose(p_file);
 	return tourneys;
 }
+
 
 /** Takes a file path to an entry file and returns the change in Glicko2
  * rating since the last tournament.
