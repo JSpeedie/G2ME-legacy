@@ -492,6 +492,7 @@ int print_player_records(char *file_path) {
 		}
 	}
 
+	// TODO: free records[i].last_outcomes, free records?
 	return 0;
 }
 

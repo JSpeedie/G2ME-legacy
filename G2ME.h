@@ -30,12 +30,13 @@ extern char DIR_TERMINATOR;
 #include "glicko2.h"
 
 typedef struct record {
-	char name[MAX_NAME_LEN];
-	char opp_name[MAX_NAME_LEN];
+	char name[MAX_NAME_LEN + 1];
+	char opp_name[MAX_NAME_LEN + 1];
 	unsigned short wins;
 	unsigned short ties;
 	unsigned short losses;
-	char last_outcomes[MAX_NAME_LEN];
+	int num_outcomes;
+	char *last_outcomes;
 }Record;
 
 typedef struct tournament_attendee {
