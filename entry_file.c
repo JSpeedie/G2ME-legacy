@@ -1050,10 +1050,9 @@ long entry_file_number_of_opponents(char *file_path, short **ret_opp_id_list) {
 			}
 		}
 		if (already_in == 0) {
-			num_opp_ids++;
-			/* If there is no space to add this tournament, reallocate */
+			/* If there is no space to add this opponent, reallocate */
 			if (num_opp_ids + 1 > opp_id_list_size) {
-				opp_id_list_size = (opp_id_list_size * 3)/2 + 1;
+				opp_id_list_size *= 2;
 				opp_id_list = (short *)\
 					realloc(opp_id_list, sizeof(short) * opp_id_list_size);
 				if (opp_id_list == NULL) {
@@ -1061,7 +1060,8 @@ long entry_file_number_of_opponents(char *file_path, short **ret_opp_id_list) {
 					return 0;
 				}
 			}
-			opp_id_list[num_opp_ids - 1] = E.opp_id;
+			opp_id_list[num_opp_ids] = E.opp_id;
+			num_opp_ids++;
 		}
 	}
 
@@ -1221,7 +1221,11 @@ long entry_file_get_last_entry_offset(char *file_path) {
 	/* Read to the end of the starter data in the file */
 	fseek(entry_file, 0, SEEK_SET);
 	int ret = entry_file_open_get_to_entries(entry_file);
-	if (ret != 0) printf("entry_file_open_get_to_entries (entry_file_get_last_entry_offset) returned %d", ret);
+	if (ret != 0) {
+		fprintf(stderr, \
+			"entry_file_open_get_to_entries (entry_file_get_last_entry_offset) returned %d", \
+			ret);
+	}
 
 	fseek(entry_file, 0, SEEK_END);
 	long int last_entry_offset = ftell(entry_file) - SIZE_OF_AN_ENTRY;
