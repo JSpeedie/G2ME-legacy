@@ -34,7 +34,7 @@
 	* [The 'w' flag](#the-w-flag)
 * [The Glicko2 System Explained](#the-glicko2-system-explained)
 * [The Player File Format](#the-player-file-format)
-	* [Player File: Starter Data](#player-file-start-data)
+	* [Player File: Starter Data](#player-file-starter-data)
 	* [Player File: Entries](#player-file-entries)
 * [Data Files and Their Formats](#data-files-and-their-formats)
 	* [Opponent File Format](#opponent-file-format)
