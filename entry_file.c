@@ -1072,21 +1072,32 @@ long entry_file_number_of_opponents(char *file_path, short **ret_opp_id_list) {
 	return ret;
 }
 
-// TODO: needs to be updated a la ...number_of_opponents
-// TODO: description innaccurate, and there's a faster method to do
-// what is described in this doc using new attended long in file
+
 /** Takes a file path to a player file and returns the number of
- * events this player has attended that weren't RD adjustments
- * (or NULL).
+ * events this player has attended that weren't RD adjustments.
  *
  * \param '*file_path' the player file to read
  * \return upon success, a positive integer representing the number
- *     of opponents this player has played. Upon failure of any kind,
- *     this function returns a negative integer depending on the error.
+ *     of opponents this player has played.
  */
 long entry_file_number_of_events(char *file_path) {
-	return 6;
+	FILE *p_file = fopen(file_path, "rb");
+	if (p_file == NULL) {
+		perror("fopen (entry_file_number_of_events)");
+		return -1;
+	}
+
+	unsigned long num_events = 0;
+	char ln;
+	if (1 != fread(&ln, sizeof(char), 1, p_file)) return -2;
+	/* Skip over player name and number of number of valid outcomes */
+	if (0 != fseek(p_file, ln + sizeof(long), SEEK_CUR)) { return -3; }
+	if (1 != fread(&num_events, sizeof(long), 1, p_file)) return -4;
+
+	fclose(p_file);
+	return num_events;
 }
+
 
 /** Reads a player file at the given file path and returns the number
  * of entries contained in that file.
