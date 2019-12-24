@@ -170,7 +170,9 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, char* p2_
 				season_id = p1_latest.season_id;
 			}
 		} else {
-			printf("entry_file_read_last_entry (%d) (update_player_on_outcome)", ret);
+			fprintf(stderr, \
+				"entry_file_read_last_entry (%d) (update_player_on_outcome)", \
+				ret);
 			perror("");
 		}
 	}
@@ -192,7 +194,9 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, char* p2_
 		if (0 == (ret = entry_file_read_last_entry_minimal(full_p2_path, &p2_latest))) {
 			init_player_from_entry(p2, &p2_latest);
 		} else {
-			printf("entry_file_read_last_entry (%d) (update_player_on_outcome)", ret);
+			fprintf(stderr, \
+				"entry_file_read_last_entry (%d) (update_player_on_outcome)", \
+				ret);
 			perror("");
 		}
 	}
@@ -1340,7 +1344,7 @@ struct record *get_all_records(char *file_path, long *num_of_records) {
 				break;
 			}
 		}
-		// CONSIDER: OPT: replace this triple check every entry with a fu nction
+		// CONSIDER: OPT: replace this triple check every entry with a function
 		//            that sets names once.
 		/* if this is the first time updating the player's record */
 		if (ret[j].wins == 0 \
