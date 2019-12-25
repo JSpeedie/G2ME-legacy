@@ -1474,7 +1474,7 @@ int filter_player_list(char **players_pointer, int *num_players, \
 	char line[MAX_NAME_LEN];
 	char *players = *(players_pointer);
 	char *filtered_players = \
-		(char *)malloc(sizeof(char) * MAX_NAME_LEN * (*num_players));
+		(char *)malloc(sizeof(char) * (MAX_NAME_LEN + 1) * (*num_players));
 
 	while (fgets(line, sizeof(line), filter_file)) {
 		/* Replace newline with null terminator */
@@ -1488,9 +1488,9 @@ int filter_player_list(char **players_pointer, int *num_players, \
 		for (int i = 0; i < *num_players; i++) {
 			/* If the player name exists in the player list, add
 			 * it to the filtered list of players */
-			if (0 == strcmp(line, players + (i * MAX_NAME_LEN))) {
-				strncpy(filtered_players + (app_ind * MAX_NAME_LEN), line, \
-					MAX_NAME_LEN - 1);
+			if (0 == strcmp(line, &players[(MAX_NAME_LEN + 1) * i])) {
+				strncpy(&filtered_players[(MAX_NAME_LEN + 1) * app_ind], line, \
+					MAX_NAME_LEN);
 				app_ind++;
 			}
 		}

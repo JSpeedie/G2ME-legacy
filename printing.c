@@ -12,6 +12,7 @@
 #endif
 
 #include "player_dir.h"
+#include "opp_files.h"
 #include "sorting.h"
 
 char NOTHING[] = { "" };

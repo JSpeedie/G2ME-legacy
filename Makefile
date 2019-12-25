@@ -20,7 +20,7 @@ OBJ = ${SRC:.c=.o}
 BIN = ${SRC:.c=}
 MAN = $(SRC:.c=.1.gz)
 
-all: compile
+all: compile install
 
 compile: G2ME.c $(DEP)
 	$(CC) $(CFLAGS) G2ME.c $(DEP) $(INCS) $(LIBS) -o G2ME
