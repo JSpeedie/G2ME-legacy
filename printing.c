@@ -462,7 +462,7 @@ int print_player_records(char *file_path) {
 			fprintf(stdout, "%s vs %s%s%s = %d",
 				records[i].name, output_colour_player, records[i].opp_name, \
 				reset_colour_player, records[i].wins);
-			// If the user wants ties to be printed
+			/* If the user wants ties to be printed */
 			if (print_ties == 1) {
 				fprintf(stdout, "-%d", records[i].ties);
 			}

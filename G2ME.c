@@ -20,11 +20,14 @@
 
 #include "G2ME.h"
 #include "entry_file.h"
+#include "opp_files.h"
+#include "tournament_files.h"
 #include "fileops.h"
 #include "glicko2.h"
 #include "player_dir.h"
 #include "printing.h"
 #include "sorting.h"
+
 
 char COMMENT_SYMBOL[] = { "#" };
 #ifdef __linux__
@@ -41,10 +44,12 @@ char DATA_DIR[] = { ".data/" };
 char DIR_TERMINATOR = '/';
 #endif
 
+
 const char ERROR_PLAYER_DIR_DNE[] = { "Error: 'player_dir' either could not be "
 	"created or does not exist\n"};
 const char ERROR_PLAYER_DNE[] = { "Error: the given player could not be found "
 	"in working directory or the given player directory\n"};
+
 
 char flag_output_to_stdout = 0;
 char verbose = 0;
@@ -53,19 +58,20 @@ char keep_players = 0;
 int pr_minimum_events = 0;
 char colour_output = 1;
 char print_ties = 1;
-char player_list_file[MAX_FILE_PATH_LEN];
+char player_list_file[MAX_FILE_PATH_LEN + 1];
 char calc_absent_players = 1;
 double outcome_weight = 1;
 struct tournament_attendee *tourn_atten;
 unsigned long tourn_atten_len = 0;
 unsigned long tourn_atten_size = SIZE_TOURNAMENT_NAMES_LEN;
-char filter_file_path[MAX_OUTCOME_STRING_LEN];
+char filter_file_path[MAX_FILE_PATH_LEN + 1];
 char f_flag_used = 0;
-char player_dir[MAX_FILE_PATH_LEN];
-char data_dir[MAX_FILE_PATH_LEN];
+char player_dir[MAX_FILE_PATH_LEN + 1];
+char data_dir[MAX_FILE_PATH_LEN + 1];
 
 int get_record(char *, char *, struct record *);
 struct record *get_all_records(char *, long *);
+
 
 /** Initializes a struct player based off of the information found in a
  * struct entry.
@@ -81,6 +87,7 @@ void init_player_from_entry(struct player* P, struct entry* E) {
 	P->vol = E->vol;
 	return;
 }
+
 
 /** Creates a struct entry which contains all the important data about a set
  *
@@ -118,6 +125,7 @@ struct entry create_entry(struct player* P, char* name, char* opp_name,
 
 	return ret;
 }
+
 
 /** Updates a struct player's glicko data (and corresponding file) assuming
  * the player went through a given set on a given date. If the player does
@@ -230,6 +238,7 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, char* p2_
 	return;
 }
 
+
 /* Takes a player file, some date info and an event name, and adjusts
  * the given player's RD in their file provided it does not conflict
  * with the date rule of no more than 1 adjustment in a day.
@@ -296,6 +305,7 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
 	/* If they do not then they have never competed, so skip them */
 	return;
 }
+
 
 /** All players whose last entry is not for the event of 't_name'
  * get their Glicko2 data adjusted. Unless their last RD adjustment
@@ -867,6 +877,7 @@ int run_single_bracket(char *bracket_file_path) {
 	}
 }
 
+
 /* Takes a file path to a bracket list file. For each line in the file,
  * attempts to access a file of the name [line_in_bracket_list_file_path_file]
  * and run the bracket.
@@ -970,6 +981,7 @@ int run_brackets(char *bracket_list_file_path) {
 	fclose(bracket_list_file);
 	return 0;
 }
+
 
 /** Creates a file listing all the players' glicko details at the location
  * 'output_file_path'.
@@ -1090,6 +1102,7 @@ int generate_ratings_file(char* filter_file_path, char* output_file_path) {
 	return 0;
 }
 
+
 /* Takes a file path, clears the contents of the file and writes
  * player rating data for every player in the player directory
  * 'player_dir', one line per player, for all players who pass
@@ -1200,6 +1213,7 @@ int generate_ratings_file_full(char *output_file_path) {
 	}
 }
 
+
 /* Takes 2 player names and a struct record, modifies the given struct record
  * to be the first players record/head-to-head/matchup on the second player.
  *
@@ -1276,6 +1290,7 @@ int get_record(char *player1, char *player2, struct record *ret) {
 
 	return 0;
 }
+
 
 /* Takes a path to a player file and a pointer to an int.
  * Reads the player file, creates an array of struct records, one
@@ -1411,6 +1426,7 @@ struct record *get_all_records(char *file_path, long *num_of_records) {
 	return ret;
 }
 
+
 /* Takes an array of player names, and the length of the array.
  * Returns the maximum 'strlen' result of an element in the array.
  *
@@ -1430,6 +1446,7 @@ unsigned long int longest_name(char *players, int array_len) {
 
 	return ret;
 }
+
 
 /* Takes an array of player names created with a malloc or calloc call,
  * the length of the array, and a file path. Modifies the array
@@ -1485,6 +1502,7 @@ int filter_player_list(char **players_pointer, int *num_players, \
 
 	return 0;
 }
+
 
 int main(int argc, char **argv) {
 
