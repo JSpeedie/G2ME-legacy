@@ -20,14 +20,14 @@ OBJ = ${SRC:.c=.o}
 BIN = ${SRC:.c=}
 MAN = $(SRC:.c=.1.gz)
 
-all: G2ME install
+all: compile
 
-G2ME: G2ME.c $(DEP)
+compile: G2ME.c $(DEP)
 	$(CC) $(CFLAGS) G2ME.c $(DEP) $(INCS) $(LIBS) -o G2ME
 
 install: $(BIN)
 	@mkdir -p ${DESTDIR}${PREFIX}/bin
-	@mv -f $(BIN) ${DESTDIR}${PREFIX}/bin
+	@cp -f $(BIN) ${DESTDIR}${PREFIX}/bin
 	@chmod 755 ${DESTDIR}${PREFIX}/bin/G2ME
 	@mkdir -p $(MANPREFIX)/man1/
 	@cp -f $(MAN) $(MANPREFIX)/man1/
