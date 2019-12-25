@@ -323,7 +323,6 @@ void adjust_absent_players_no_file(char day, char month, \
 	short year, short t_id, char* t_name) {
 
 	DIR *p_dir;
-	struct dirent *entry;
 	/* If the directory could not be accessed, print error and return */
 	if ((p_dir = opendir(player_dir)) == NULL) {
 		perror("opendir (adjust_absent_players_no_file)");
@@ -341,8 +340,6 @@ void adjust_absent_players_no_file(char day, char month, \
 	max_forks = sysconf(_SC_NPROCESSORS_ONLN);
 #endif
 	if (max_forks < 1) max_forks = 8;
-	int num_players = 0;
-	player_dir_num_players(&num_players);
 	char did_not_comp = 1;
 
 	/* Define a struct for passing arguments to the thread */
@@ -363,8 +360,11 @@ void adjust_absent_players_no_file(char day, char month, \
 	int total_threads_needed = 0;
 	char all_thread_min_cap_reached = 0;
 
+	short num_players = opp_file_num_opponents();
+	char *players = opp_file_get_all_opponent_names(EXCLUDE_RD_ADJ);
+
 	/* Create a list of player files, set work for threads */
-	while ((entry = readdir(p_dir)) != NULL) {
+	for (int y = 0; y < num_players; y++) {
 		/* Reset variable to assume player did not compete */
 		did_not_comp = 1;
 
@@ -375,7 +375,7 @@ void adjust_absent_players_no_file(char day, char month, \
 		while (L <= R) {
 			m = floor(((double) (L + R)) / 2.0);
 			/* Compare array[m] with the name being searched for */
-			int comp = strncmp(&tourn_atten[m].name[0], entry->d_name, MAX_NAME_LEN);
+			int comp = strncmp(&tourn_atten[m].name[0], &players[(MAX_NAME_LEN + 1) * y], MAX_NAME_LEN);
 			if (0 > comp) {
 				L = m + 1;
 			} else if (0 < comp) {
@@ -400,7 +400,7 @@ void adjust_absent_players_no_file(char day, char month, \
 			}
 
 			/* Copy file name into proper thread input file list */
-			strncpy(&args[cur_f].files[next_name], entry->d_name, MAX_NAME_LEN + 1);
+			strncpy(&args[cur_f].files[next_name], &players[(MAX_NAME_LEN + 1) * y], MAX_NAME_LEN + 1);
 			args[cur_f].num_adjustments++;
 
 			if (all_thread_min_cap_reached == 0) {

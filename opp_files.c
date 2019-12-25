@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "opp_files.h"
 #include "G2ME.h"
 #include "player_dir.h"
 
@@ -390,5 +391,93 @@ int opp_file_get_id_from_name(struct entry *E) {
 	fclose(opp_file);
 	free(full_opp_file_path);
 	/* The opponent name was not found, return -1 */
+	return ret;
+}
+
+
+/** Takes no arguments, and returns the number of opponents in the system.
+ * This number will include the RD-adjustment opponent name.
+ *
+ * \return a positive integer representing the number of opponents in the
+ *     system upon success, and a negative integer upon failure.
+ */
+int opp_file_num_opponents(void) {
+
+	char *full_opp_file_path = data_dir_file_path_opp_file();
+	FILE* opp_file = fopen(full_opp_file_path, "rb+");
+	if (opp_file == NULL) {
+		fprintf(stderr, "Error opening file %s (opp_file_num_opponents): ", \
+			full_opp_file_path);
+		perror("");
+		return -1;
+	}
+
+	unsigned short num_opp;
+	if (1 != fread(&num_opp, sizeof(short), 1, opp_file)) return -2;
+
+	fclose(opp_file);
+	free(full_opp_file_path);
+	return num_opp;
+}
+
+
+/** Takes one argument, telling the function whether it should include the RD
+ * adjustment opponent name, and reads all the names of the opponents in the
+ * system into an array, which is then returned. The array is malloc'd and must
+ * be free'd by the caller.
+ *
+ * \param 'exclude_rd_adj' if set to 'EXCLUDE_RD_ADJ', this function will not
+ *     include the RD adjustment opponent name.
+ * \return Upon success, a pointer to an array of (MAX_NAME_LEN + 1) blocks,
+ *     each containing the name of an opponent in the system. Returns NULL,
+ *     upon failure.
+ */
+char *opp_file_get_all_opponent_names(char exclude_rd_adj) {
+
+	char *full_opp_file_path = data_dir_file_path_opp_file();
+
+	FILE* opp_file = fopen(full_opp_file_path, "rb+");
+	if (opp_file == NULL) {
+		fprintf(stderr, "Error opening file %s (opp_file_get_all_opponent_names): ", \
+			full_opp_file_path);
+		perror("");
+		return NULL;
+	}
+
+	unsigned short num_opp;
+	if (1 != fread(&num_opp, sizeof(short), 1, opp_file)) return NULL;
+
+	char *ret = (char *)malloc(sizeof(char) * (MAX_NAME_LEN + 1) * num_opp);
+
+	short names_left_to_read = num_opp;
+
+	/* If the RD adjustment name is to be excluded, read past the first id-name
+	 * pair, which is guaranteed to be the RD adjustment */
+	if (exclude_rd_adj == EXCLUDE_RD_ADJ) {
+
+		if (0 != fseek(opp_file, \
+			sizeof(short) + sizeof(char) * (MAX_NAME_LEN + 1), \
+			SEEK_CUR)) {
+
+			return NULL;
+		}
+
+		names_left_to_read -= 1;
+	}
+
+	for (int i = 0; i < names_left_to_read; i++) {
+		/* Read corresponding opp_id of the array[i] */
+		short id;
+		if (1 != fread(&id, sizeof(short), 1, opp_file)) return NULL;
+		if (MAX_NAME_LEN + 1 != \
+			fread(&ret[(MAX_NAME_LEN + 1) * i], sizeof(char), \
+			MAX_NAME_LEN + 1, opp_file)) {
+
+			return NULL;
+		}
+	}
+
+	fclose(opp_file);
+	free(full_opp_file_path);
 	return ret;
 }
