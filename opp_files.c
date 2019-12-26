@@ -430,7 +430,8 @@ int opp_file_num_opponents(char exclude_rd_adj) {
 
 /** Takes one argument, telling the function whether it should include the RD
  * adjustment opponent name, and reads all the names of the opponents in the
- * system into an array, which is then returned. The array is malloc'd and must
+ * system into an array, which is then returned. The array returned is sorted
+ * lexiographically. The array is malloc'd and must
  * be free'd by the caller.
  *
  * \param 'exclude_rd_adj' if set to 'EXCLUDE_RD_ADJ', this function will not
@@ -455,33 +456,35 @@ char *opp_file_get_all_opponent_names(char exclude_rd_adj) {
 	if (1 != fread(&num_opp, sizeof(short), 1, opp_file)) return NULL;
 
 	char *ret = (char *)malloc(sizeof(char) * (MAX_NAME_LEN + 1) * num_opp);
+	short j = 0;
 
-	short names_left_to_read = num_opp;
-
-	/* If the RD adjustment name is to be excluded, read past the first id-name
-	 * pair, which is guaranteed to be the RD adjustment */
-	if (exclude_rd_adj == EXCLUDE_RD_ADJ) {
-
-		if (0 != fseek(opp_file, \
-			sizeof(short) + sizeof(char) * (MAX_NAME_LEN + 1), \
-			SEEK_CUR)) {
-
-			return NULL;
-		}
-
-		names_left_to_read -= 1;
-	}
-
-	for (int i = 0; i < names_left_to_read; i++) {
+	for (int i = 0; i < num_opp; i++) {
 		/* Read corresponding opp_id of the array[i] */
 		short id;
 		if (1 != fread(&id, sizeof(short), 1, opp_file)) return NULL;
+
+		/* If the RD adjustment name is to be excluded */
+		if (exclude_rd_adj == EXCLUDE_RD_ADJ) {
+
+			/* If this opponent has id 0, it is the RD adj opponent */
+			if (id == 0) {
+				/* Seek over the name */
+				if (0 != fseek(opp_file, sizeof(char) * (MAX_NAME_LEN + 1), \
+					SEEK_CUR)) {
+
+					return NULL;
+				}
+				continue;
+			}
+		}
+
 		if (MAX_NAME_LEN + 1 != \
-			fread(&ret[(MAX_NAME_LEN + 1) * i], sizeof(char), \
+			fread(&ret[(MAX_NAME_LEN + 1) * j], sizeof(char), \
 			MAX_NAME_LEN + 1, opp_file)) {
 
 			return NULL;
 		}
+		j++;
 	}
 
 	fclose(opp_file);
