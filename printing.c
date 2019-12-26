@@ -504,83 +504,105 @@ void print_player_attended(char *attended, int count) {
 	}
 }
 
-void print_matchup_table(void) {
-	// Print a table showing the matchup data for all players stored in the
-	// system (aka the player directory)
-	DIR *p_dir;
-	// Get a list of all players tracked by the system to allow for proper
-	// column and row titles
-	int num_players = 0;
+int print_matchup_table(void) {
 	int space_between_columns = 3;
-	/* Get the number of players to allocate the array of player names */
-	int max_num_players;
-	player_dir_num_players(&max_num_players);
-	char *players = (char *)malloc(MAX_NAME_LEN * max_num_players);
-	/* Get the names of eligible players to print */
-	player_dir_players_list(players, &num_players, LEXIO);
+	/* Get the number of players */
+	int num_players = opp_file_num_opponents(EXCLUDE_RD_ADJ);
+	/* Get the names of all players in the system */
+	char *players = opp_file_get_all_opponent_names(EXCLUDE_RD_ADJ);
+	if (players == NULL) {
+		fprintf(stderr, \
+			"opp_file_get_all_opponent_names (print_matchup_table)");
+		return -1;
+	}
 
 	/* Filter players to be the ones in the given '-f' flag file */
 	if (f_flag_used == 1) {
-		filter_player_list(&players, &num_players, filter_file_path);
+		int ret = 0;
+		if (0 != (ret = \
+			filter_player_list(&players, &num_players, filter_file_path))) {
+
+			fprintf(stderr, \
+				"filter_player_list (%d) (print_matchup_table)", \
+				ret);
+			return -2;
+		}
 	}
 
 	int longest_n = longest_name(players, num_players);
-	// 'num_players + 1' to accomodate one player per row and an extra row
-	// for the column titles
+	// TODO line lengths limited to 1024 in this implementation
+	/* 'num_players + 1' to accomodate one player per row and an extra row
+	 * for the column titles */
 	char output[num_players + 1][1024];
-	// Empty the first line of output
+	/* Empty the first line of output */
 	memset(output[0], 0, 1024);
+
 	/* Create columns line */
 	snprintf(output[0], longest_n + space_between_columns, "%*s", \
 		longest_n + space_between_columns, "");
-	// Format column titles for output
+
+	/* Format column titles for output */
 	for (int i = 0; i < num_players; i++) {
 		// Make column width to be the length of the column title (the name)
-		int col_width = strlen(&players[i * MAX_NAME_LEN]) \
+		int col_width = strlen(&players[(MAX_NAME_LEN + 1) * i]) \
 			+ space_between_columns;
 		char col[col_width];
-		snprintf(col, col_width, "%-*s", col_width, &players[i * MAX_NAME_LEN]);
+		snprintf(col, col_width, "%-*s", col_width, \
+			&players[(MAX_NAME_LEN + 1) * i]);
 		strcat(output[0], col);
 	}
 	fprintf(stdout, "%s\n", output[0]);
 
-	if ((p_dir = opendir(player_dir)) != NULL) {
-		for (int i = 0; i < num_players; i++) {
-			// Add row title
-			snprintf(output[i + 1], longest_n + space_between_columns, \
-				"%*s%*s", longest_n, &players[i * MAX_NAME_LEN], \
-				space_between_columns, "");
-			for (int j = 0; j < num_players; j++) {
-				struct record temp_rec;
-				get_record(&players[i * MAX_NAME_LEN], \
-					&players[j * MAX_NAME_LEN], &temp_rec);
-				// Make column width to be the length of the column title
-				// plus a space character on each side
-				char col[strlen(&players[j * MAX_NAME_LEN]) \
-					+ space_between_columns];
-				// If the user wants ties to be printed
-				if (print_ties == 1) {
-					 snprintf(col, sizeof(col), "%d-%d-%-20d", \
-					 	temp_rec.wins, temp_rec.ties, temp_rec.losses);
-				} else {
-					 snprintf(col, sizeof(col), "%d-%-20d", \
-					 	temp_rec.wins, temp_rec.losses);
-				}
-				// If the player has no data against a given opponent,
-				// print "-"
-				if (temp_rec.wins == 0 && temp_rec.ties == 0 \
-					&& temp_rec.losses == 0) {
-					snprintf(col, sizeof(col), "-%-24s", "");
-				}
-				strcat(output[i + 1], col);
+	for (int i = 0; i < num_players; i++) {
+		/* Add row title */
+		snprintf(output[i + 1], longest_n + space_between_columns, \
+			"%*s%*s", longest_n, &players[i * MAX_NAME_LEN], \
+			space_between_columns, "");
+
+		/* Get row content */
+		for (int j = 0; j < num_players; j++) {
+			struct record temp_rec;
+
+			if (0 == strncmp(
+				&players[(MAX_NAME_LEN + 1) * i], \
+				&players[(MAX_NAME_LEN + 1) * j], \
+				MAX_NAME_LEN)) {
+
+				temp_rec.wins = 0;
+				temp_rec.ties = 0;
+				temp_rec.losses = 0;
+			} else {
+				get_record( \
+					&players[i * (MAX_NAME_LEN + 1)], \
+					&players[j * (MAX_NAME_LEN + 1)], \
+					&temp_rec);
 			}
-			fprintf(stdout, "%s\n", output[i + 1]);
+
+			// Make column width to be the length of the column title
+			// plus a space character on each side
+			char col[strlen(&players[(MAX_NAME_LEN + 1) * j]) \
+				+ space_between_columns];
+			// If the user wants ties to be printed
+			if (print_ties == 1) {
+				 snprintf(col, sizeof(col), "%d-%d-%-20d", \
+				 	temp_rec.wins, temp_rec.ties, temp_rec.losses);
+			} else {
+				 snprintf(col, sizeof(col), "%d-%-20d", \
+				 	temp_rec.wins, temp_rec.losses);
+			}
+
+			/* If the player has no data against a given opponent, print "-" */
+			if (temp_rec.wins == 0 && temp_rec.ties == 0 \
+				&& temp_rec.losses == 0) {
+
+				snprintf(col, sizeof(col), "-%-24s", "");
+			}
+			strcat(output[i + 1], col);
 		}
-		closedir(p_dir);
-	} else {
-		perror("opendir (print_matchup_table)");
-		return;
+		fprintf(stdout, "%s\n", output[i + 1]);
 	}
+
+	return 0;
 }
 
 // TODO clean up these functions. Less hard numbers and shorter code
