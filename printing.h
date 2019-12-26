@@ -20,5 +20,5 @@ int print_player_file_verbose(char *);
 int print_player_file(char *);
 int print_player_records(char *);
 void print_player_attended(char *, int);
-void print_matchup_table(void);
-void print_matchup_table_csv(void);
+int print_matchup_table(void);
+int print_matchup_table_csv(void);

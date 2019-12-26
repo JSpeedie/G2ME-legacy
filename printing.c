@@ -612,21 +612,29 @@ int print_matchup_table(void) {
 	return 0;
 }
 
-// TODO clean up these functions. Less hard numbers and shorter code
-void print_matchup_table_csv(void) {
-	// Print a table showing the matchup data for all players stored in the
-	// system (aka the player directory)
-	DIR *p_dir;
-	// Get a list of all players tracked by the system to allow for proper
-	// column and row titles
-	int num_players = 0;
-	// TODO: better size allocation
-	char *players = (char *)malloc(MAX_NAME_LEN * 128);
-	player_dir_players_list(players, &num_players, LEXIO);
+
+int print_matchup_table_csv(void) {
+	/* Get the number of players */
+	int num_players = opp_file_num_opponents(EXCLUDE_RD_ADJ);
+	/* Get the names of all players in the system */
+	char *players = opp_file_get_all_opponent_names(EXCLUDE_RD_ADJ);
+	if (players == NULL) {
+		fprintf(stderr, \
+			"opp_file_get_all_opponent_names (print_matchup_table)");
+		return -1;
+	}
 
 	/* Filter players to be the ones in the given '-f' flag file */
 	if (f_flag_used == 1) {
-		filter_player_list(&players, &num_players, filter_file_path);
+		int ret = 0;
+		if (0 != (ret = \
+			filter_player_list(&players, &num_players, filter_file_path))) {
+
+			fprintf(stderr, \
+				"filter_player_list (%d) (print_matchup_table)", \
+				ret);
+			return -2;
+		}
 	}
 
 	// 'num_players + 1' to accomodate one player per row and an extra row
@@ -638,45 +646,44 @@ void print_matchup_table_csv(void) {
 	sprintf(output[0], ",");
 	// Fill in column titles with player names + a comma delimiter
 	for (int i = 0; i < num_players; i++) {
-		strncat(output[0], &players[i * MAX_NAME_LEN], \
+		strncat(output[0], &players[i * (MAX_NAME_LEN + 1)], \
 			1024 - 1 - strlen(output[0]));
 		strncat(output[0], ",", 1024 - 1 - strlen(output[0]));
 	}
 	fprintf(stdout, "%s\n", output[0]);
 
-	if ((p_dir = opendir(player_dir)) != NULL) {
-		for (int i = 0; i < num_players; i++) {
-			// Add row title
-			sprintf(output[i + 1], "%s,", &players[i * MAX_NAME_LEN]);
-			for (int j = 0; j < num_players; j++) {
-				struct record temp_rec;
-				get_record(&players[i * MAX_NAME_LEN], \
-					&players[j * MAX_NAME_LEN], &temp_rec);
-				// Make column width to be the length of the column title
-				// plus a space character on each side
-				// TODO:change to accomodate large records
-				char col[30];
-				// If the user wants ties to be printed
-				if (print_ties == 1) {
-					 snprintf(col, sizeof(col), "%d-%d-%d,", \
-					 	temp_rec.wins, temp_rec.ties, temp_rec.losses);
-				} else {
-					 snprintf(col, sizeof(col), "%d-%d,", \
-					 	temp_rec.wins, temp_rec.losses);
-				}
-				// If the player has no data against a given opponent,
-				// print "-"
-				if (temp_rec.wins == 0 && temp_rec.ties == 0 \
-					&& temp_rec.losses == 0) {
-					snprintf(col, sizeof(col), "-,");
-				}
-				strcat(output[i + 1], col);
+	for (int i = 0; i < num_players; i++) {
+		/* Add row title */
+		sprintf(output[i + 1], "%s,", &players[i * (MAX_NAME_LEN + 1)]);
+
+		/* Get row content */
+		for (int j = 0; j < num_players; j++) {
+			struct record temp_rec;
+			get_record( \
+				&players[i * (MAX_NAME_LEN + 1)], \
+				&players[j * (MAX_NAME_LEN + 1)], \
+				&temp_rec);
+			// Make column width to be the length of the column title
+			// plus a space character on each side
+			// TODO:change to accomodate large records
+			char col[30];
+			// If the user wants ties to be printed
+			if (print_ties == 1) {
+				 snprintf(col, sizeof(col), "%d-%d-%d,", \
+					temp_rec.wins, temp_rec.ties, temp_rec.losses);
+			} else {
+				 snprintf(col, sizeof(col), "%d-%d,", \
+					temp_rec.wins, temp_rec.losses);
 			}
-			fprintf(stdout, "%s\n", output[i + 1]);
+			/* If the player has no data against a given opponent, print "-" */
+			if (temp_rec.wins == 0 && temp_rec.ties == 0 \
+				&& temp_rec.losses == 0) {
+				snprintf(col, sizeof(col), "-,");
+			}
+			strcat(output[i + 1], col);
 		}
-		closedir(p_dir);
-	} else {
-		perror("opendir (print_matchup_table_csv)");
-		return;
+		fprintf(stdout, "%s\n", output[i + 1]);
 	}
+
+	return 0;
 }
