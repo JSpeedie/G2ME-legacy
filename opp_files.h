@@ -20,7 +20,7 @@ int opp_file_get_id_from_name(struct entry *);
 
 
 /* Opp file statistic functions */
-int opp_file_num_opponents(void);
+int opp_file_num_opponents(char);
 
 
 /* Opp file aggregate data functions */

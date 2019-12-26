@@ -382,7 +382,7 @@ void adjust_absent_players_no_file(char day, char month, \
 	int total_threads_needed = 0;
 	char all_thread_min_cap_reached = 0;
 
-	short num_players = opp_file_num_opponents();
+	short num_players = opp_file_num_opponents(EXCLUDE_RD_ADJ);
 	char *players = opp_file_get_all_opponent_names(EXCLUDE_RD_ADJ);
 
 	/* Create a list of player files, set work for threads */

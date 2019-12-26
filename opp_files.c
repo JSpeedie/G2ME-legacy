@@ -396,12 +396,15 @@ int opp_file_get_id_from_name(struct entry *E) {
 
 
 /** Takes no arguments, and returns the number of opponents in the system.
- * This number will include the RD-adjustment opponent name.
+ * This number will include the RD adjustment opponent unless 'exclude_rd_adj'
+ * is set to 'EXCLUDE_RD_ADJ'.
  *
+ * \param 'exclude_rd_adj' if set to 'EXCLUDE_RD_ADJ', this function will not
+ *     include the RD adjustment opponent name in the final count.
  * \return a positive integer representing the number of opponents in the
  *     system upon success, and a negative integer upon failure.
  */
-int opp_file_num_opponents(void) {
+int opp_file_num_opponents(char exclude_rd_adj) {
 
 	char *full_opp_file_path = data_dir_file_path_opp_file();
 	FILE* opp_file = fopen(full_opp_file_path, "rb+");
@@ -414,6 +417,10 @@ int opp_file_num_opponents(void) {
 
 	unsigned short num_opp;
 	if (1 != fread(&num_opp, sizeof(short), 1, opp_file)) return -2;
+
+	/* If the RD adjustment name is to be excluded, lower the number of
+	 * opponents by 1 since the RD adjustment opponent is guaranteed exist */
+	if (exclude_rd_adj == EXCLUDE_RD_ADJ) num_opp -= 1;
 
 	fclose(opp_file);
 	free(full_opp_file_path);
