@@ -504,6 +504,13 @@ void print_player_attended(char *attended, int count) {
 	}
 }
 
+
+/** Takes no arguments, prints a table to stdout with all the head-to-heads of
+ * all players in the system, and returns an integer representing whether it
+ * succeeded.
+ *
+ * \return a negative integer upon failure, and 0 upon success.
+ */
 int print_matchup_table(void) {
 	int space_between_columns = 3;
 	/* Get the number of players */
