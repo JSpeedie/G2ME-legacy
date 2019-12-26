@@ -96,7 +96,8 @@ int opp_file_contains_opponent(char *opp_name) {
 	FILE* opp_file = fopen(full_opp_file_path, "rb+");
 	if (opp_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (opp_file_contains_opponent): ", \
+			"Error: opp_file_contains_opponent(): " \
+			"opening file \"%s\": ", \
 			full_opp_file_path);
 		perror("");
 		return -1;
@@ -170,7 +171,8 @@ int opp_file_add_new_opponent(struct entry *E) {
 	FILE *opp_file = fopen(full_opp_file_path, "rb");
 	if (opp_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (opp_file_add_new_opponent): ", \
+			"Error: opp_file_add_new_opponent(): " \
+			"opening file \"%s\": ", \
 			full_opp_file_path);
 		perror("");
 		return -1;
@@ -184,7 +186,8 @@ int opp_file_add_new_opponent(struct entry *E) {
 	FILE *new_file = fopen(new_file_name, "wb+");
 	if (new_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (opp_file_add_new_opponent): ", \
+			"Error: opp_file_add_new_opponent(): " \
+			"opening file \"%s\": ", \
 			new_file_name);
 		perror("");
 		return -2;
@@ -215,12 +218,19 @@ int opp_file_add_new_opponent(struct entry *E) {
 
 	FILE *opp_file = fopen(file_path, "rb");
 	if (opp_file == NULL) {
-		perror("fopen (t_file_add_new_tournament)");
+		fprintf(stderr, \
+			"Error: opp_file_add_new_opponent(): " \
+			"opening file \"%s\": ", \
+			full_opp_file_path);
+		perror("");
 		return -1;
 	}
 	FILE *new_file = fopen(new_file_name, "wb+");
 	if (new_file == NULL) {
-		perror("fopen (t_file_add_new_tournament)");
+		fprintf(stderr, \
+			"Error: opp_file_add_new_opponent(): " \
+			"opening file \"%s\": ", \
+			new_file_name);
 		return -2;
 	}
 #endif
@@ -293,8 +303,9 @@ int opp_file_add_new_opponent(struct entry *E) {
 	FILE *opp_id_file = fopen(full_opp_id_file_path, "rb+");
 	if (opp_id_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (opp_file_add_new_opponent): ", \
-			full_opp_id_file_path);
+			"Error: opp_file_add_new_opponent(): " \
+			"opening file \"%s\": ", \
+			full_opp_file_path);
 		perror("");
 		return -1;
 	}
@@ -331,8 +342,10 @@ int opp_file_get_name_from_id(struct entry *E) {
 	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
 	FILE* opp_id_file = fopen(full_opp_id_file_path, "rb+");
 	if (opp_id_file == NULL) {
-		fprintf(stderr, "Error opening file %s (entry_get_name_from_id): ", \
-			full_opp_id_file_path);
+		fprintf(stderr, \
+			"Error: opp_file_get_name_from_id(): " \
+			"opening file \"%s\": ", \
+			full_opp_file_path);
 		perror("");
 		return -1;
 	}
@@ -379,7 +392,8 @@ int opp_file_get_id_from_name(struct entry *E) {
 	FILE* opp_file = fopen(full_opp_file_path, "rb+");
 	if (opp_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (opp_file_get_id_from_name): ", \
+			"Error: opp_file_get_id_from_name(): " \
+			"opening file \"%s\": ", \
 			full_opp_file_path);
 		perror("");
 		return -1;
@@ -453,7 +467,9 @@ int opp_file_num_opponents(char exclude_rd_adj) {
 	char *full_opp_file_path = data_dir_file_path_opp_file();
 	FILE* opp_file = fopen(full_opp_file_path, "rb+");
 	if (opp_file == NULL) {
-		fprintf(stderr, "Error opening file %s (opp_file_num_opponents): ", \
+		fprintf(stderr, \
+			"Error: opp_file_num_opponents(): " \
+			"opening file \"%s\": ", \
 			full_opp_file_path);
 		perror("");
 		return -1;
@@ -491,7 +507,8 @@ char *opp_file_get_all_opponent_names(char exclude_rd_adj) {
 	FILE* opp_file = fopen(full_opp_file_path, "rb+");
 	if (opp_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (opp_file_get_all_opponent_names): ", \
+			"Error: opp_file_get_all_opponent_names(): " \
+			"opening file \"%s\": ", \
 			full_opp_file_path);
 		perror("");
 		return NULL;
