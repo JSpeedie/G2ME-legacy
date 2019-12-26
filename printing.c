@@ -613,6 +613,12 @@ int print_matchup_table(void) {
 }
 
 
+/** Takes no arguments, prints a comma delimited csv of all the head-to-heads
+ * of all players in the system, and returns an integer representing whether it
+ * succeeded.
+ *
+ * \return a negative integer upon failure, and 0 upon success.
+ */
 int print_matchup_table_csv(void) {
 	/* Get the number of players */
 	int num_players = opp_file_num_opponents(EXCLUDE_RD_ADJ);
