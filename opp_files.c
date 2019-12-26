@@ -95,7 +95,9 @@ int opp_file_contains_opponent(char *opp_name) {
 
 	FILE* opp_file = fopen(full_opp_file_path, "rb+");
 	if (opp_file == NULL) {
-		fprintf(stderr, "Error opening file %s (opp_file_contains_opponent): ", full_opp_file_path);
+		fprintf(stderr, \
+			"Error opening file %s (opp_file_contains_opponent): ", \
+			full_opp_file_path);
 		perror("");
 		return -1;
 	}
@@ -113,7 +115,9 @@ int opp_file_contains_opponent(char *opp_name) {
 	while (L <= R) {
 		m = floor(((double) (L + R)) / 2.0);
 		/* Seek to mth spot of array */
-		fseek(opp_file, (m - oldm) * (MAX_NAME_LEN + 1 + sizeof(short)), SEEK_CUR);
+		fseek(opp_file, \
+			(m - oldm) * (MAX_NAME_LEN + 1 + sizeof(short)), \
+			SEEK_CUR);
 		/* Read corresponding opp_id of the array[m] */
 		unsigned long start_of_m = ftell(opp_file);
 		short opp_id = -1;
@@ -125,7 +129,9 @@ int opp_file_contains_opponent(char *opp_name) {
 		/* Provided it hasn't hit a null terminator or end of file */
 		while (temp_name[j] != '\0' && j < MAX_NAME_LEN && !(feof(opp_file))) {
 			j++;
-			if (1 != fread(&temp_name[j], sizeof(char), 1, opp_file)) return -5;
+			if (1 != fread(&temp_name[j], sizeof(char), 1, opp_file)) {
+				return -5;
+			}
 		}
 		/* Seek to start of array[m] so fseek to next spot isn't offset */
 		fseek(opp_file, start_of_m, SEEK_SET);
@@ -163,7 +169,9 @@ int opp_file_add_new_opponent(struct entry *E) {
 
 	FILE *opp_file = fopen(full_opp_file_path, "rb");
 	if (opp_file == NULL) {
-		fprintf(stderr, "Error opening file %s (opp_file_add_new_opponent): ", full_opp_file_path);
+		fprintf(stderr, \
+			"Error opening file %s (opp_file_add_new_opponent): ", \
+			full_opp_file_path);
 		perror("");
 		return -1;
 	}
@@ -175,14 +183,17 @@ int opp_file_add_new_opponent(struct entry *E) {
 
 	FILE *new_file = fopen(new_file_name, "wb+");
 	if (new_file == NULL) {
-		fprintf(stderr, "Error opening file %s (opp_file_add_new_opponent): ", new_file_name);
+		fprintf(stderr, \
+			"Error opening file %s (opp_file_add_new_opponent): ", \
+			new_file_name);
 		perror("");
 		return -2;
 	}
 //#elif _WIN32
 #else
 	// TODO: switch to windows temp file stuff
-	/* Get the name for the temp file TODO what if .[original name] already exists? */
+	/* Get the name for the temp file */
+	// TODO what if .[original name] already exists? */
 	char dir[strlen(file_path) + 1];
 	char base[strlen(file_path) + 1];
 	memset(dir, 0, sizeof(dir));
@@ -194,10 +205,13 @@ int opp_file_add_new_opponent(struct entry *E) {
 	memset(new_file_name, 0, sizeof(new_file_name));
 	/* Add the full path up to the file */
 	strncat(new_file_name, dirname(dir), sizeof(new_file_name) - 1);
-	strncat(new_file_name, "/", sizeof(new_file_name) - strlen(new_file_name) - 1);
+	strncat(new_file_name, "/", \
+		sizeof(new_file_name) - strlen(new_file_name) - 1);
 	/* Add the temp file */
-	strncat(new_file_name, ".", sizeof(new_file_name) - strlen(new_file_name) - 1);
-	strncat(new_file_name, basename(base), sizeof(new_file_name) - strlen(new_file_name) - 1);
+	strncat(new_file_name, ".", \
+		sizeof(new_file_name) - strlen(new_file_name) - 1);
+	strncat(new_file_name, basename(base), \
+		sizeof(new_file_name) - strlen(new_file_name) - 1);
 
 	FILE *opp_file = fopen(file_path, "rb");
 	if (opp_file == NULL) {
@@ -216,7 +230,12 @@ int opp_file_add_new_opponent(struct entry *E) {
 
 	int write_new_name() { // {{{
 		if (1 != fwrite(&E->opp_id, sizeof(short), 1, new_file)) return -14;
-		if (E->len_opp_name != fwrite(&E->opp_name, sizeof(char), E->len_opp_name, new_file)) return -14;
+		if (E->len_opp_name != \
+			fwrite(&E->opp_name, sizeof(char), E->len_opp_name, new_file)) {
+
+			return -14;
+		}
+
 		for (int i = 0; i < MAX_NAME_LEN + 1 - E->len_opp_name; i++) {
 			if (1 != fwrite(&zero, sizeof(char), 1, new_file)) return -14;
 		}
@@ -236,7 +255,11 @@ int opp_file_add_new_opponent(struct entry *E) {
 		char name[MAX_NAME_LEN + 1];
 
 		if (1 != fread(&id, sizeof(short), 1, opp_file)) return -13;
-		if (MAX_NAME_LEN + 1 != fread(&name[0], sizeof(char), MAX_NAME_LEN + 1, opp_file)) return -15;
+		if (MAX_NAME_LEN + 1 != \
+			fread(&name[0], sizeof(char), MAX_NAME_LEN + 1, opp_file)) {
+
+			return -15;
+		}
 
 		/* If the name to be inserted is lexiographically before the name about
 		 * to be written, write the new name first */
@@ -247,7 +270,11 @@ int opp_file_add_new_opponent(struct entry *E) {
 			}
 		}
 		if (1 != fwrite(&id, sizeof(short), 1, new_file)) return -14;
-		if (MAX_NAME_LEN + 1 != fwrite(&name[0], sizeof(char), MAX_NAME_LEN + 1, new_file)) return -14;
+		if (MAX_NAME_LEN + 1 != \
+			fwrite(&name[0], sizeof(char), MAX_NAME_LEN + 1, new_file)) {
+
+			return -14;
+		}
 	}
 
 	if (wrote_new_name != 1) {
@@ -265,7 +292,9 @@ int opp_file_add_new_opponent(struct entry *E) {
 	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
 	FILE *opp_id_file = fopen(full_opp_id_file_path, "rb+");
 	if (opp_id_file == NULL) {
-		fprintf(stderr, "Error opening file %s (opp_file_add_new_opponent): ", full_opp_id_file_path);
+		fprintf(stderr, \
+			"Error opening file %s (opp_file_add_new_opponent): ", \
+			full_opp_id_file_path);
 		perror("");
 		return -1;
 	}
@@ -275,7 +304,11 @@ int opp_file_add_new_opponent(struct entry *E) {
 	if (0 != fseek(opp_id_file, 0, SEEK_END)) return -13;
 
 	if (E->len_opp_name != \
-		fwrite(&E->opp_name, sizeof(char), E->len_opp_name, opp_id_file)) return -14;
+		fwrite(&E->opp_name, sizeof(char), E->len_opp_name, opp_id_file)) {
+
+		return -14;
+	}
+
 	for (int i = 0; i < MAX_NAME_LEN + 1 - E->len_opp_name; i++) {
 		if (1 != fwrite(&zero, sizeof(char), 1, opp_id_file)) return -14;
 	}
@@ -298,7 +331,8 @@ int opp_file_get_name_from_id(struct entry *E) {
 	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
 	FILE* opp_id_file = fopen(full_opp_id_file_path, "rb+");
 	if (opp_id_file == NULL) {
-		fprintf(stderr, "Error opening file %s (entry_get_name_from_id): ", full_opp_id_file_path);
+		fprintf(stderr, "Error opening file %s (entry_get_name_from_id): ", \
+			full_opp_id_file_path);
 		perror("");
 		return -1;
 	}
@@ -308,14 +342,20 @@ int opp_file_get_name_from_id(struct entry *E) {
 	/* If the id is outside of the range of the array */
 	if (E->opp_id >= num_opp) return -3;
 	/* Seek to the location of the name in the file by using its id */
-	fseek(opp_id_file, sizeof(short) + E->opp_id * (MAX_NAME_LEN + 1), SEEK_SET);
+	fseek(opp_id_file, \
+		sizeof(short) + E->opp_id * (MAX_NAME_LEN + 1), SEEK_SET);
 
 	/* Read first byte and add to name */
 	if (1 != fread(&E->opp_name[j], sizeof(char), 1, opp_id_file )) return -4;
 	/* Provided it hasn't hit a null terminator or end of file */
-	while (E->opp_name[j] != '\0' && j < MAX_NAME_LEN && !(feof(opp_id_file ))) {
+	while (E->opp_name[j] != '\0' \
+		&& j < MAX_NAME_LEN \
+		&& !(feof(opp_id_file))) {
+
 		j++;
-		if (1 != fread(&E->opp_name[j], sizeof(char), 1, opp_id_file)) return -5;
+		if (1 != fread(&E->opp_name[j], sizeof(char), 1, opp_id_file)) {
+			return -5;
+		}
 	}
 	E->len_opp_name = j - 1;
 
@@ -338,11 +378,12 @@ int opp_file_get_id_from_name(struct entry *E) {
 	char *full_opp_file_path = data_dir_file_path_opp_file();
 	FILE* opp_file = fopen(full_opp_file_path, "rb+");
 	if (opp_file == NULL) {
-		fprintf(stderr, "Error opening file %s (opp_file_get_id_from_name): ", full_opp_file_path);
+		fprintf(stderr, \
+			"Error opening file %s (opp_file_get_id_from_name): ", \
+			full_opp_file_path);
 		perror("");
 		return -1;
 	}
-
 
 	int ret = -1;
 	unsigned short num_opp;
@@ -357,7 +398,8 @@ int opp_file_get_id_from_name(struct entry *E) {
 	while (L <= R) {
 		m = floor(((double) (L + R)) / 2.0);
 		/* Seek to mth spot of array */
-		fseek(opp_file, (m - oldm) * (MAX_NAME_LEN + 1 + sizeof(short)), SEEK_CUR);
+		fseek(opp_file, \
+			(m - oldm) * (MAX_NAME_LEN + 1 + sizeof(short)), SEEK_CUR);
 		/* Read corresponding opp_id of the array[m] */
 		unsigned long start_of_m = ftell(opp_file);
 		short opp_id = -1;
@@ -369,7 +411,9 @@ int opp_file_get_id_from_name(struct entry *E) {
 		/* Provided it hasn't hit a null terminator or end of file */
 		while (temp_name[j] != '\0' && j < MAX_NAME_LEN && !(feof(opp_file))) {
 			j++;
-			if (1 != fread(&temp_name[j], sizeof(char), 1, opp_file)) return -5;
+			if (1 != fread(&temp_name[j], sizeof(char), 1, opp_file)) {
+				return -5;
+			}
 		}
 		/* Seek to start of array[m] so fseek to next spot isn't offset */
 		fseek(opp_file, start_of_m, SEEK_SET);
@@ -446,7 +490,8 @@ char *opp_file_get_all_opponent_names(char exclude_rd_adj) {
 
 	FILE* opp_file = fopen(full_opp_file_path, "rb+");
 	if (opp_file == NULL) {
-		fprintf(stderr, "Error opening file %s (opp_file_get_all_opponent_names): ", \
+		fprintf(stderr, \
+			"Error opening file %s (opp_file_get_all_opponent_names): ", \
 			full_opp_file_path);
 		perror("");
 		return NULL;
