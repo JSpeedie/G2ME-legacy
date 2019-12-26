@@ -1257,7 +1257,8 @@ int get_record(char *player1, char *player2, struct record *ret) {
 
 	FILE *p_file = fopen(full_player1_path, "rb");
 	if (p_file == NULL) {
-		fprintf(stderr, "Error opening file %s (get_record): ", full_player1_path);
+		fprintf(stderr, "Error: get_record: opening file \"%s\": ", \
+			full_player1_path);
 		perror("");
 		return -1;
 	}
@@ -1276,15 +1277,19 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	if (opp_file_get_id_from_name(&ent) < 0) return -3;
 
 	/* Get to the entries in the player file */
-	int r = entry_file_open_get_to_entries(p_file);
-	if (r != 0) {
-		perror("get_record (entry_file_open_get_to_entries)");
+	if (0 != fseek(p_file, 0, SEEK_SET)) return -4;
+	int t;
+	if (0 != (t = entry_file_open_get_to_entries(p_file))) {
+		fprintf(stderr, \
+			"Error: get_record: (%d) (entry_file_open_get_to_entries(%s)): ", \
+			t, full_player1_path);
+		perror("");
 		return -2;
 	}
 
 	while (entry_file_open_read_next_opp_entry(p_file, &ent, ent.opp_id) == 0) {
 		/* If the opponent for the given entry is the player of interest */
-		if (0 == strcmp(ent.opp_name, player2)) {
+		if (0 == strncmp(ent.opp_name, player2, MAX_NAME_LEN)) {
 			if (ent.gc > ent.opp_gc) ret->wins += 1;
 			else if (ent.gc == ent.opp_gc) ret->ties += 1;
 			else if (ent.gc < ent.opp_gc) ret->losses += 1;
