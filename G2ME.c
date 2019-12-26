@@ -90,6 +90,28 @@ void init_player_from_entry(struct player* P, struct entry* E) {
 }
 
 
+/** Takes a pointer to a struct record and initializes it, zeroing the
+ * wins, losses and ties, and mallocing for the last outcome string.
+ *
+ * \param '*r' a pointer to a struct record that this function will initialize.
+ * \return 0 upon success, a negative integer upon failure.
+ */
+int init_record(struct record *r) {
+	r->wins = 0;
+	r->losses = 0;
+	r->ties = 0;
+	r->num_outcomes = MAX_OUTCOME_STRING_LEN;
+	r->last_outcomes = \
+		(char *)malloc(sizeof(char) * r->num_outcomes);
+
+	if (r->last_outcomes == NULL) {
+		return -1;
+	} else {
+		return 0;
+	}
+}
+
+
 /** Creates a struct entry which contains all the important data about a set
  *
  * \param '*P' a struct player that represents player-1
@@ -1244,9 +1266,7 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	// TODO: actually get player2 name from their file.
 	// '*player2' is just a file name
 	strncpy(ret->opp_name, player2, MAX_NAME_LEN);
-	ret->wins = 0;
-	ret->losses = 0;
-	ret->ties = 0;
+	init_record(ret);
 
 	int num_ent = entry_file_get_number_of_outcomes_against(full_player1_path, player2);
 	int cur_opp_ent_num = 0;
@@ -1323,12 +1343,7 @@ struct record *get_all_records(char *file_path, long *num_of_records) {
 
 	for (int i = 0; i < *num_of_records; i++) {
 		strncpy(ret[i].name, ent.name, MAX_NAME_LEN);
-		ret[i].wins = 0;
-		ret[i].losses = 0;
-		ret[i].ties = 0;
-		ret[i].num_outcomes = MAX_OUTCOME_STRING_LEN;
-		ret[i].last_outcomes = \
-			(char *)malloc(sizeof(char) * ret[i].num_outcomes);
+		init_record(&ret[i]);
 	}
 
 	/* Get number of entries for every opponent */

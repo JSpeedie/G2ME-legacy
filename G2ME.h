@@ -45,6 +45,10 @@ typedef struct tournament_attendee {
 }TournamentAttendee;
 
 
+/* struct record helpers */
+int init_record(struct record *);
+
+
 /* struct player and struct entry helpers */
 void init_player_from_entry(struct player *, struct entry *);
 struct entry create_entry(struct player *, char *, char *, \
