@@ -10,6 +10,12 @@ extern char WHITE[];
 
 #include "G2ME.h"
 
+
+/* Space-needed for printing record functions */
+int chars_needed_to_print_record(struct record *);
+int chars_needed_to_print_record_no_ties(struct record *);
+
+
 void print_player(struct player *);
 void print_entry_verbose(struct entry);
 void print_entry(struct entry);

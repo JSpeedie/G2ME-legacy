@@ -26,6 +26,73 @@ char MAGENTA[] = { "\x1B[35m" };
 char CYAN[] = { "\x1B[36m" };
 char WHITE[] = { "\x1B[37m" };
 
+
+/** Takes a pointer to a struct record and returns an integer representing
+ * the number of characters needed to print the record.
+ *
+ * \param '*r' the pointer to the struct record to be examined.
+ * \return an integer representing the number of characters needed to print
+ *     the record.
+ */
+int chars_needed_to_print_record(struct record *r) {
+	int chars_for_wins;
+	if (r->wins > 0) {
+		chars_for_wins = (int) (ceil(log10((int) r->wins)));
+	} else {
+		chars_for_wins = 1;
+	}
+
+	int chars_for_ties;
+	if (r->ties > 0) {
+		chars_for_ties = (int) (ceil(log10((int) r->ties)));
+	} else {
+		chars_for_ties = 1;
+	}
+
+	int chars_for_losses;
+	if (r->losses > 0) {
+		chars_for_losses = (int) (ceil(log10((int) r->losses)));
+	} else {
+		chars_for_losses = 1;
+	}
+
+	/* 2 chars for the dashes "-", then the number of characters
+	 * needed to print the wins, ties and losses (log base 10 of each
+	 * value, "ceiled" (+1)) */
+	return 2 + chars_for_wins + chars_for_ties + chars_for_losses;
+}
+
+
+/** Takes a pointer to a struct record and returns an integer representing
+ * the number of characters needed to print the record, excluding the number
+ * of ties.
+ *
+ * \param '*r' the pointer to the struct record to be examined.
+ * \return an integer representing the number of characters needed to print
+ *     the record excluding the number of ties.
+ */
+int chars_needed_to_print_record_no_ties(struct record *r) {
+	int chars_for_wins;
+	if (r->wins > 0) {
+		chars_for_wins = (int) (ceil(log10((int) r->wins)));
+	} else {
+		chars_for_wins = 1;
+	}
+
+	int chars_for_losses;
+	if (r->losses > 0) {
+		chars_for_losses = (int) (ceil(log10((int) r->losses)));
+	} else {
+		chars_for_losses = 1;
+	}
+
+	/* 2 chars for the dashes "-", then the number of characters
+	 * needed to print the wins, and losses (log base 10 of each
+	 * value, "ceiled" (+1)) */
+	return 2 + chars_for_wins + chars_for_losses;
+}
+
+
 /** Prints a string representation of a struct player to stdout
  *
  * \param '*P' the struct player to print
@@ -605,10 +672,11 @@ int print_matchup_table(void) {
 	/* Empty the first line of output */
 	memset(output[0], 0, width_of_longest_line);
 
+	/* Fill output array with printed data */
 	for (int i = 0; i < num_players; i++) {
 		/* Add row title */
 		snprintf(output[i + 1], longest_n + space_between_columns, \
-			"%*s%*s", longest_n, &players[i * (MAX_NAME_LEN + 1)], \
+			"%*s%*s", (int) longest_n, &players[i * (MAX_NAME_LEN + 1)], \
 			space_between_columns, " ");
 
 		/* Get row content */
@@ -638,9 +706,9 @@ int print_matchup_table(void) {
 		}
 	}
 
-	/* Create buffer in first row/line */
-	snprintf(output[0], longest_n + space_between_columns, "%*s", \
-		longest_n + space_between_columns, "");
+	/* Create buffer in first row/line, first column */
+	snprintf(output[0], ((int) longest_n) + space_between_columns, "%*s", \
+		((int) longest_n) + space_between_columns, "");
 
 	/* Format column titles for output */
 	for (int j = 0; j < num_players; j++) {
@@ -740,69 +808,4 @@ int print_matchup_table_csv(void) {
 	}
 
 	return 0;
-}
-
-/** Takes a pointer to a struct record and returns an integer representing
- * the number of characters needed to print the record.
- *
- * \param '*r' the pointer to the struct record to be examined.
- * \return an integer representing the number of characters needed to print
- *     the record.
- */
-int chars_needed_to_print_record(struct record *r) {
-	int chars_for_wins;
-	if (r->wins > 0) {
-		chars_for_wins = (int) (ceil(log10((int) r->wins)));
-	} else {
-		chars_for_wins = 1;
-	}
-
-	int chars_for_ties;
-	if (r->ties > 0) {
-		chars_for_ties = (int) (ceil(log10((int) r->ties)));
-	} else {
-		chars_for_ties = 1;
-	}
-
-	int chars_for_losses;
-	if (r->losses > 0) {
-		chars_for_losses = (int) (ceil(log10((int) r->losses)));
-	} else {
-		chars_for_losses = 1;
-	}
-
-	/* 2 chars for the dashes "-", then the number of characters
-	 * needed to print the wins, ties and losses (log base 10 of each
-	 * value, "ceiled" (+1)) */
-	return 2 + chars_for_wins + chars_for_ties + chars_for_losses;
-}
-
-
-/** Takes a pointer to a struct record and returns an integer representing
- * the number of characters needed to print the record, excluding the number
- * of ties.
- *
- * \param '*r' the pointer to the struct record to be examined.
- * \return an integer representing the number of characters needed to print
- *     the record excluding the number of ties.
- */
-int chars_needed_to_print_record_no_ties(struct record *r) {
-	int chars_for_wins;
-	if (r->wins > 0) {
-		chars_for_wins = (int) (ceil(log10((int) r->wins)));
-	} else {
-		chars_for_wins = 1;
-	}
-
-	int chars_for_losses;
-	if (r->losses > 0) {
-		chars_for_losses = (int) (ceil(log10((int) r->losses)));
-	} else {
-		chars_for_losses = 1;
-	}
-
-	/* 2 chars for the dashes "-", then the number of characters
-	 * needed to print the wins, and losses (log base 10 of each
-	 * value, "ceiled" (+1)) */
-	return 2 + chars_for_wins + chars_for_losses;
 }
