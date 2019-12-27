@@ -33,7 +33,8 @@ int t_file_contains_tournament(char *t_name) {
 	FILE* t_file = fopen(full_t_file_path, "rb+");
 	if (t_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (t_file_contains_tournament): ", \
+			"Error: t_file_contains_tournament(): " \
+			"opening file \"%s\": ", \
 			full_t_file_path);
 		perror("");
 		return -2;
@@ -52,7 +53,8 @@ int t_file_contains_tournament(char *t_name) {
 	while (L <= R) {
 		m = floor(((double) (L + R)) / 2.0);
 		/* Seek to mth spot of array */
-		fseek(t_file, (m - oldm) * (MAX_NAME_LEN + 1 + sizeof(short)), SEEK_CUR);
+		fseek(t_file, \
+			(m - oldm) * (MAX_NAME_LEN + 1 + sizeof(short)), SEEK_CUR);
 		/* Read corresponding t_id of the array[m] */
 		unsigned long start_of_m = ftell(t_file);
 		short t_id = -1;
@@ -103,7 +105,8 @@ int t_file_add_new_tournament(struct entry *E) {
 	FILE *t_file = fopen(full_t_file_path, "rb");
 	if (t_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (t_file_add_new_tournament): ", \
+			"Error: t_file_add_new_tournament(): " \
+			"opening file \"%s\": ", \
 			full_t_file_path);
 		perror("");
 		return -1;
@@ -117,7 +120,8 @@ int t_file_add_new_tournament(struct entry *E) {
 	FILE *new_file = fopen(new_file_name, "wb+");
 	if (new_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (t_file_add_new_tournament): ", \
+			"Error: t_file_add_new_tournament(): " \
+			"opening file \"%s\": ", \
 			new_file_name);
 		perror("");
 		return -2;
@@ -125,7 +129,8 @@ int t_file_add_new_tournament(struct entry *E) {
 //#elif _WIN32
 #else
 	// TODO: switch to windows temp file stuff
-	/* Get the name for the temp file TODO what if .[original name] already exists? */
+	/* Get the name for the temp file */
+	// TODO what if .[original name] already exists? */
 	char dir[strlen(file_path) + 1];
 	char base[strlen(file_path) + 1];
 	memset(dir, 0, sizeof(dir));
@@ -137,19 +142,30 @@ int t_file_add_new_tournament(struct entry *E) {
 	memset(new_file_name, 0, sizeof(new_file_name));
 	/* Add the full path up to the file */
 	strncat(new_file_name, dirname(dir), sizeof(new_file_name) - 1);
-	strncat(new_file_name, "/", sizeof(new_file_name) - strlen(new_file_name) - 1);
+	strncat(new_file_name, \
+		"/", sizeof(new_file_name) - strlen(new_file_name) - 1);
 	/* Add the temp file */
-	strncat(new_file_name, ".", sizeof(new_file_name) - strlen(new_file_name) - 1);
-	strncat(new_file_name, basename(base), sizeof(new_file_name) - strlen(new_file_name) - 1);
+	strncat(new_file_name, \
+		".", sizeof(new_file_name) - strlen(new_file_name) - 1);
+	strncat(new_file_name, \
+		basename(base), sizeof(new_file_name) - strlen(new_file_name) - 1);
 
 	FILE *t_file = fopen(file_path, "rb");
 	if (t_file == NULL) {
-		perror("fopen (t_file_add_new_tournament)");
+		fprintf(stderr, \
+			"Error: t_file_add_new_tournament(): " \
+			"opening file \"%s\": ", \
+			file_path);
+		perror("");
 		return -1;
 	}
 	FILE *new_file = fopen(new_file_name, "wb+");
 	if (new_file == NULL) {
-		perror("fopen (t_file_add_new_tournament)");
+		fprintf(stderr, \
+			"Error: t_file_add_new_tournament(): " \
+			"opening file \"%s\": ", \
+			new_file_name);
+		perror("");
 		return -2;
 	}
 #endif
@@ -158,8 +174,14 @@ int t_file_add_new_tournament(struct entry *E) {
 	char wrote_new_name = 0;
 
 	int write_new_name() { // {{{
-		if (1 != fwrite(&E->tournament_id, sizeof(short), 1, new_file)) return -14;
-		if (E->len_t_name != fwrite(&E->t_name, sizeof(char), E->len_t_name, new_file)) return -14;
+		if (1 != fwrite(&E->tournament_id, sizeof(short), 1, new_file)) {
+			return -14;
+		}
+		if (E->len_t_name != \
+			fwrite(&E->t_name, sizeof(char), E->len_t_name, new_file)) {
+			
+			return -14;
+		}
 		for (int i = 0; i < MAX_NAME_LEN + 1 - E->len_t_name; i++) {
 			if (1 != fwrite(&zero, sizeof(char), 1, new_file)) return -14;
 		}
@@ -179,7 +201,11 @@ int t_file_add_new_tournament(struct entry *E) {
 		char name[MAX_NAME_LEN + 1];
 
 		if (1 != fread(&id, sizeof(short), 1, t_file)) return -13;
-		if (MAX_NAME_LEN + 1 != fread(&name[0], sizeof(char), MAX_NAME_LEN + 1, t_file)) return -15;
+		if (MAX_NAME_LEN + 1 != \
+			fread(&name[0], sizeof(char), MAX_NAME_LEN + 1, t_file)) {
+
+			return -15;
+		}
 
 		/* If the name to be inserted is lexiographically before the name about
 		 * to be written, write the new name first */
@@ -190,7 +216,11 @@ int t_file_add_new_tournament(struct entry *E) {
 			}
 		}
 		if (1 != fwrite(&id, sizeof(short), 1, new_file)) return -14;
-		if (MAX_NAME_LEN + 1 != fwrite(&name[0], sizeof(char), MAX_NAME_LEN + 1, new_file)) return -14;
+		if (MAX_NAME_LEN + 1 != \
+			fwrite(&name[0], sizeof(char), MAX_NAME_LEN + 1, new_file)) {
+
+			return -14;
+		}
 	}
 
 	if (wrote_new_name != 1) {
@@ -209,7 +239,8 @@ int t_file_add_new_tournament(struct entry *E) {
 	FILE *t_id_file = fopen(full_t_id_file_path, "rb+");
 	if (t_id_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (t_file_add_new_tournament): ", \
+			"Error: t_file_add_new_tournament(): " \
+			"opening file \"%s\": ", \
 			full_t_id_file_path);
 		perror("");
 		return -1;
@@ -245,7 +276,8 @@ int t_file_get_tournament_name_from_id(struct entry *E) {
 	FILE* t_id_file = fopen(full_t_id_file_path, "rb+");
 	if (t_id_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (t_file_get_tournament_name_from_id): ", \
+			"Error: t_file_get_tournament_name_from_id(): " \
+			"opening file \"%s\": ", \
 			full_t_id_file_path);
 		perror("");
 		return -1;
@@ -256,7 +288,8 @@ int t_file_get_tournament_name_from_id(struct entry *E) {
 	/* If the id is outside of the range of the array */
 	if (E->tournament_id >= num_t) return -3;
 	/* Seek to the location of the name in the file by using its id */
-	fseek(t_id_file, sizeof(short) + E->tournament_id * (MAX_NAME_LEN + 1), SEEK_SET);
+	fseek(t_id_file, \
+		sizeof(short) + E->tournament_id * (MAX_NAME_LEN + 1), SEEK_SET);
 
 	int j = 0;
 	/* Read first byte and add to name */
@@ -291,7 +324,10 @@ int t_file_get_tournament_id_from_name(struct entry *E) {
 	char *full_t_file_path = data_dir_file_path_t_file();
 	FILE* t_file = fopen(full_t_file_path, "rb+");
 	if (t_file == NULL) {
-		fprintf(stderr, "Error opening file %s (t_file_get_tournament_id_from_name): ", full_t_file_path);
+		fprintf(stderr, \
+			"Error: t_file_get_tournament_id_from_name(): " \
+			"opening file \"%s\": ", \
+			full_t_file_path);
 		perror("");
 		return -1;
 	}
@@ -309,7 +345,8 @@ int t_file_get_tournament_id_from_name(struct entry *E) {
 	while (L <= R) {
 		m = floor(((double) (L + R)) / 2.0);
 		/* Seek to mth spot of array */
-		fseek(t_file, (m - oldm) * (MAX_NAME_LEN + 1 + sizeof(short)), SEEK_CUR);
+		fseek(t_file, \
+			(m - oldm) * (MAX_NAME_LEN + 1 + sizeof(short)), SEEK_CUR);
 		/* Read corresponding t_id of the array[m] */
 		unsigned long start_of_m = ftell(t_file);
 		short t_id = -1;
@@ -358,7 +395,8 @@ short s_file_get_latest_season_id(void) {
 	FILE* s_file = fopen(full_season_file_path, "rb+");
 	if (s_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (s_file_get_latest_season_id): ", \
+			"Error: s_file_get_latest_season_id(): " \
+			"opening file \"%s\": ", \
 			full_season_file_path);
 		perror("");
 		return -2;
@@ -382,7 +420,8 @@ int s_file_set_latest_season_id(int new_s_id) {
 	FILE* s_file = fopen(full_season_file_path, "rb+");
 	if (s_file == NULL) {
 		fprintf(stderr, \
-			"Error opening file %s (s_file_set_latest_season_id): ", \
+			"Error: s_file_set_latest_season_id(): " \
+			"opening file \"%s\": ", \
 			full_season_file_path);
 		perror("");
 		return -1;

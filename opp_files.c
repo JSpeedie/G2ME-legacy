@@ -345,7 +345,7 @@ int opp_file_get_name_from_id(struct entry *E) {
 		fprintf(stderr, \
 			"Error: opp_file_get_name_from_id(): " \
 			"opening file \"%s\": ", \
-			full_opp_file_path);
+			full_opp_id_file_path);
 		perror("");
 		return -1;
 	}
