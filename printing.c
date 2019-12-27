@@ -563,7 +563,7 @@ int print_matchup_table(void) {
 	for (int i = 0; i < num_players; i++) {
 		/* Add row title */
 		snprintf(output[i + 1], longest_n + space_between_columns, \
-			"%*s%*s", longest_n, &players[i * MAX_NAME_LEN], \
+			"%*s%*s", longest_n, &players[i * (MAX_NAME_LEN + 1)], \
 			space_between_columns, "");
 
 		/* Get row content */

@@ -1451,8 +1451,8 @@ struct record *get_all_records(char *file_path, long *num_of_records) {
 /* Takes an array of player names, and the length of the array.
  * Returns the maximum 'strlen' result of an element in the array.
  *
- * \param '*players' pointer to an array of 'MAX_NAME_LEN' * '*(num_players)'
- *     chars.
+ * \param '*players' pointer to an array of
+ *     'MAX_NAME_LEN + 1' * '*(num_players)' * chars.
  * \param 'array_len' the length of the '*players' array.
  * \return an integer representing the longest name in the array.
  *     The longest possible return value is 'MAX_NAME_LEN'.
@@ -1460,8 +1460,8 @@ struct record *get_all_records(char *file_path, long *num_of_records) {
 unsigned long int longest_name(char *players, int array_len) {
 	unsigned long int ret = 0;
 	for (int i = 0; i < array_len; i++) {
-		if (strlen(&players[MAX_NAME_LEN * i]) > ret) {
-			ret = strlen(&players[MAX_NAME_LEN * i]);
+		if (strlen(&players[(MAX_NAME_LEN + 1) * i]) > ret) {
+			ret = strlen(&players[(MAX_NAME_LEN + 1)* i]);
 		}
 	}
 
