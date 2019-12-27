@@ -370,7 +370,7 @@ int opp_file_get_name_from_id(struct entry *E) {
 			return -5;
 		}
 	}
-	E->len_opp_name = j - 1;
+	E->len_opp_name = j;
 
 	fclose(opp_id_file);
 	free(full_opp_id_file_path);
