@@ -1457,8 +1457,8 @@ struct record *get_all_records(char *file_path, long *num_of_records) {
  * \return an integer representing the longest name in the array.
  *     The longest possible return value is 'MAX_NAME_LEN'.
  */
-unsigned long int longest_name(char *players, int array_len) {
-	unsigned long int ret = 0;
+long longest_name(char *players, int array_len) {
+	long ret = 0;
 	for (int i = 0; i < array_len; i++) {
 		if (strlen(&players[(MAX_NAME_LEN + 1) * i]) > ret) {
 			ret = strlen(&players[(MAX_NAME_LEN + 1)* i]);

@@ -81,7 +81,7 @@ struct record *get_all_records(char *, long *);
 
 
 /* Random helper functions */
-unsigned long int longest_name(char *, int);
+long longest_name(char *, int);
 int filter_player_list(char **, int *, char *);
 
 #endif

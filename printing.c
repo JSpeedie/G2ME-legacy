@@ -1,5 +1,6 @@
 /* Non-windows includes */
 #include <dirent.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -536,77 +537,124 @@ int print_matchup_table(void) {
 		}
 	}
 
-	int longest_n = longest_name(players, num_players);
-	// TODO line lengths limited to 1024 in this implementation
+	long longest_n = longest_name(players, num_players);
+	int longest_rec[num_players];
+	/* Initialize all values to 0, or else they could be anything */
+	for (int j = 0; j < num_players; j++) {
+		longest_rec[j] = 0;
+	}
+	struct record records[num_players][num_players];
+
+	/* Fill in record data array. Only does half of the array, since the
+	 * record array is always mirrored down the diagonal */
+	for (int i = 0; i < num_players; i++) {
+		for (int j = i; j < num_players; j++) {
+
+			if (i == j) {
+				records[j][i].wins = 0;
+				records[j][i].ties = 0;
+				records[j][i].losses = 0;
+			} else {
+				get_record( \
+					&players[i * (MAX_NAME_LEN + 1)], \
+					&players[j * (MAX_NAME_LEN + 1)], \
+					&records[i][j]);
+				/* Copy inverse of record to inverse spot */
+				records[j][i].wins = records[i][j].losses;
+				records[j][i].ties = records[i][j].ties;
+				records[j][i].losses = records[i][j].wins;
+			}
+		}
+	}
+
+	for (int j = 0; j < num_players; j++) {
+		/* By default set col width to name length */
+		int col_width = strlen(&players[(MAX_NAME_LEN + 1) * j]);
+
+		for (int i = 0; i < num_players; i++) {
+			int record_length;
+
+			if (print_ties == 1) {
+				record_length = chars_needed_to_print_record(&records[i][j]);
+			} else {
+				record_length = \
+					chars_needed_to_print_record_no_ties(&records[i][j]);
+			}
+
+			if (col_width < record_length) {
+				col_width = record_length;
+			}
+
+			/* Save the longest-to-print record length for printing later */
+			if (col_width > longest_rec[j]) {
+				longest_rec[j] = col_width;
+			}
+		}
+	}
+
+	long width_of_longest_line = longest_n \
+		+ (space_between_columns * num_players);
+
+	/* Calculate width of the longest line */
+	for (int j = 0; j < num_players; j++) {
+		width_of_longest_line += longest_rec[j];
+	}
 	/* 'num_players + 1' to accomodate one player per row and an extra row
 	 * for the column titles */
-	char output[num_players + 1][1024];
+	char output[num_players + 1][width_of_longest_line];
 	/* Empty the first line of output */
-	memset(output[0], 0, 1024);
-
-	/* Create columns line */
-	snprintf(output[0], longest_n + space_between_columns, "%*s", \
-		longest_n + space_between_columns, "");
-
-	/* Format column titles for output */
-	for (int i = 0; i < num_players; i++) {
-		// Make column width to be the length of the column title (the name)
-		int col_width = strlen(&players[(MAX_NAME_LEN + 1) * i]) \
-			+ space_between_columns;
-		char col[col_width];
-		snprintf(col, col_width, "%-*s", col_width, \
-			&players[(MAX_NAME_LEN + 1) * i]);
-		strcat(output[0], col);
-	}
-	fprintf(stdout, "%s\n", output[0]);
+	memset(output[0], 0, width_of_longest_line);
 
 	for (int i = 0; i < num_players; i++) {
 		/* Add row title */
 		snprintf(output[i + 1], longest_n + space_between_columns, \
 			"%*s%*s", longest_n, &players[i * (MAX_NAME_LEN + 1)], \
-			space_between_columns, "");
+			space_between_columns, " ");
 
 		/* Get row content */
 		for (int j = 0; j < num_players; j++) {
-			struct record temp_rec;
 
-			if (0 == strncmp(
-				&players[(MAX_NAME_LEN + 1) * i], \
-				&players[(MAX_NAME_LEN + 1) * j], \
-				MAX_NAME_LEN)) {
+			/* Create the column of minimum length to fit all the characters,
+			 * + the gap between columns */
+			char col[longest_rec[j] + space_between_columns];
 
-				temp_rec.wins = 0;
-				temp_rec.ties = 0;
-				temp_rec.losses = 0;
-			} else {
-				get_record( \
-					&players[i * (MAX_NAME_LEN + 1)], \
-					&players[j * (MAX_NAME_LEN + 1)], \
-					&temp_rec);
-			}
-
-			// Make column width to be the length of the column title
-			// plus a space character on each side
-			char col[strlen(&players[(MAX_NAME_LEN + 1) * j]) \
-				+ space_between_columns];
-			// If the user wants ties to be printed
+			/* If the user wants ties to be printed */
 			if (print_ties == 1) {
 				 snprintf(col, sizeof(col), "%d-%d-%-20d", \
-				 	temp_rec.wins, temp_rec.ties, temp_rec.losses);
+				 	records[i][j].wins, records[i][j].ties, records[i][j].losses);
 			} else {
 				 snprintf(col, sizeof(col), "%d-%-20d", \
-				 	temp_rec.wins, temp_rec.losses);
+				 	records[i][j].wins, records[i][j].losses);
 			}
 
 			/* If the player has no data against a given opponent, print "-" */
-			if (temp_rec.wins == 0 && temp_rec.ties == 0 \
-				&& temp_rec.losses == 0) {
+			if (records[i][j].wins == 0 && records[i][j].ties == 0 \
+				&& records[i][j].losses == 0) {
 
-				snprintf(col, sizeof(col), "-%-24s", "");
+				snprintf(col, sizeof(col), "-%*s", \
+					longest_rec[j] + space_between_columns - 1, "");
 			}
 			strcat(output[i + 1], col);
 		}
-		fprintf(stdout, "%s\n", output[i + 1]);
+	}
+
+	/* Create buffer in first row/line */
+	snprintf(output[0], longest_n + space_between_columns, "%*s", \
+		longest_n + space_between_columns, "");
+
+	/* Format column titles for output */
+	for (int j = 0; j < num_players; j++) {
+		// Make column width to be the length of the column title (the name)
+		char col[longest_rec[j] + space_between_columns];
+		snprintf(col, longest_rec[j] + space_between_columns, \
+			"%-*s", longest_rec[j] + space_between_columns, \
+			&players[(MAX_NAME_LEN + 1) * j]);
+		strcat(output[0], col);
+	}
+
+	/* Print all the lines of output */
+	for (int i = 0; i < num_players + 1; i++) {
+		fprintf(stdout, "%s\n", output[i]);
 	}
 
 	return 0;
@@ -692,4 +740,69 @@ int print_matchup_table_csv(void) {
 	}
 
 	return 0;
+}
+
+/** Takes a pointer to a struct record and returns an integer representing
+ * the number of characters needed to print the record.
+ *
+ * \param '*r' the pointer to the struct record to be examined.
+ * \return an integer representing the number of characters needed to print
+ *     the record.
+ */
+int chars_needed_to_print_record(struct record *r) {
+	int chars_for_wins;
+	if (r->wins > 0) {
+		chars_for_wins = (int) (ceil(log10((int) r->wins)));
+	} else {
+		chars_for_wins = 1;
+	}
+
+	int chars_for_ties;
+	if (r->ties > 0) {
+		chars_for_ties = (int) (ceil(log10((int) r->ties)));
+	} else {
+		chars_for_ties = 1;
+	}
+
+	int chars_for_losses;
+	if (r->losses > 0) {
+		chars_for_losses = (int) (ceil(log10((int) r->losses)));
+	} else {
+		chars_for_losses = 1;
+	}
+
+	/* 2 chars for the dashes "-", then the number of characters
+	 * needed to print the wins, ties and losses (log base 10 of each
+	 * value, "ceiled" (+1)) */
+	return 2 + chars_for_wins + chars_for_ties + chars_for_losses;
+}
+
+
+/** Takes a pointer to a struct record and returns an integer representing
+ * the number of characters needed to print the record, excluding the number
+ * of ties.
+ *
+ * \param '*r' the pointer to the struct record to be examined.
+ * \return an integer representing the number of characters needed to print
+ *     the record excluding the number of ties.
+ */
+int chars_needed_to_print_record_no_ties(struct record *r) {
+	int chars_for_wins;
+	if (r->wins > 0) {
+		chars_for_wins = (int) (ceil(log10((int) r->wins)));
+	} else {
+		chars_for_wins = 1;
+	}
+
+	int chars_for_losses;
+	if (r->losses > 0) {
+		chars_for_losses = (int) (ceil(log10((int) r->losses)));
+	} else {
+		chars_for_losses = 1;
+	}
+
+	/* 2 chars for the dashes "-", then the number of characters
+	 * needed to print the wins, and losses (log base 10 of each
+	 * value, "ceiled" (+1)) */
+	return 2 + chars_for_wins + chars_for_losses;
 }
