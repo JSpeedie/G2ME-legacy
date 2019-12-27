@@ -689,7 +689,9 @@ int print_matchup_table(void) {
 			/* If the user wants ties to be printed */
 			if (print_ties == 1) {
 				 snprintf(col, sizeof(col), "%d-%d-%-20d", \
-				 	records[i][j].wins, records[i][j].ties, records[i][j].losses);
+				 	records[i][j].wins, \
+					records[i][j].ties, \
+					records[i][j].losses);
 			} else {
 				 snprintf(col, sizeof(col), "%d-%-20d", \
 				 	records[i][j].wins, records[i][j].losses);
@@ -712,7 +714,7 @@ int print_matchup_table(void) {
 
 	/* Format column titles for output */
 	for (int j = 0; j < num_players; j++) {
-		// Make column width to be the length of the column title (the name)
+		/* Make column width to be the width of its widest entry */
 		char col[longest_rec[j] + space_between_columns];
 		snprintf(col, longest_rec[j] + space_between_columns, \
 			"%-*s", longest_rec[j] + space_between_columns, \
@@ -742,7 +744,8 @@ int print_matchup_table_csv(void) {
 	char *players = opp_file_get_all_opponent_names(EXCLUDE_RD_ADJ);
 	if (players == NULL) {
 		fprintf(stderr, \
-			"opp_file_get_all_opponent_names (print_matchup_table)");
+			"Error: print_matchup_table_csv(): " \
+			"(NULL) opp_file_get_all_opponent_names()");
 		return -1;
 	}
 
@@ -753,7 +756,8 @@ int print_matchup_table_csv(void) {
 			filter_player_list(&players, &num_players, filter_file_path))) {
 
 			fprintf(stderr, \
-				"filter_player_list (%d) (print_matchup_table)", \
+				"Error: print_matchup_table_csv(): " \
+				"(%d) filter_player_list(): ", \
 				ret);
 			return -2;
 		}
@@ -766,6 +770,7 @@ int print_matchup_table_csv(void) {
 	memset(output[0], 0, 1024);
 	// Topmost, leftmost cell should be empty
 	sprintf(output[0], ",");
+
 	// Fill in column titles with player names + a comma delimiter
 	for (int i = 0; i < num_players; i++) {
 		strncat(output[0], &players[i * (MAX_NAME_LEN + 1)], \
@@ -785,24 +790,36 @@ int print_matchup_table_csv(void) {
 				&players[i * (MAX_NAME_LEN + 1)], \
 				&players[j * (MAX_NAME_LEN + 1)], \
 				&temp_rec);
-			// Make column width to be the length of the column title
-			// plus a space character on each side
-			// TODO:change to accomodate large records
-			char col[30];
-			// If the user wants ties to be printed
-			if (print_ties == 1) {
-				 snprintf(col, sizeof(col), "%d-%d-%d,", \
-					temp_rec.wins, temp_rec.ties, temp_rec.losses);
-			} else {
-				 snprintf(col, sizeof(col), "%d-%d,", \
-					temp_rec.wins, temp_rec.losses);
-			}
 			/* If the player has no data against a given opponent, print "-" */
 			if (temp_rec.wins == 0 && temp_rec.ties == 0 \
 				&& temp_rec.losses == 0) {
+
+				/* 1 for the dash, 1 for the comma, 1 for the null term */
+				char col[3];
 				snprintf(col, sizeof(col), "-,");
+				strcat(output[i + 1], col);
+			} else {
+				int record_length;
+
+				if (print_ties == 1) {
+					record_length = chars_needed_to_print_record(&temp_rec);
+				} else {
+					record_length = \
+						chars_needed_to_print_record_no_ties(&temp_rec);
+				}
+				/* + 1 so it can fit the comma too */
+				char col[record_length + 1];
+
+				/* If the user wants ties to be printed */
+				if (print_ties == 1) {
+					 snprintf(col, sizeof(col), "%d-%d-%d,", \
+						temp_rec.wins, temp_rec.ties, temp_rec.losses);
+				} else {
+					 snprintf(col, sizeof(col), "%d-%d,", \
+						temp_rec.wins, temp_rec.losses);
+				}
+				strcat(output[i + 1], col);
 			}
-			strcat(output[i + 1], col);
 		}
 		fprintf(stdout, "%s\n", output[i + 1]);
 	}
