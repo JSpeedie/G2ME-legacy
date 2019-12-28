@@ -37,21 +37,21 @@ char WHITE[] = { "\x1B[37m" };
 int chars_needed_to_print_record(struct record *r) {
 	int chars_for_wins;
 	if (r->wins > 0) {
-		chars_for_wins = (int) (ceil(log10((int) r->wins)));
+		chars_for_wins = ((int) log10((int) r->wins)) + 1;
 	} else {
 		chars_for_wins = 1;
 	}
 
 	int chars_for_ties;
 	if (r->ties > 0) {
-		chars_for_ties = (int) (ceil(log10((int) r->ties)));
+		chars_for_ties = ((int) log10((int) r->ties)) + 1;
 	} else {
 		chars_for_ties = 1;
 	}
 
 	int chars_for_losses;
 	if (r->losses > 0) {
-		chars_for_losses = (int) (ceil(log10((int) r->losses)));
+		chars_for_losses = ((int) log10((int) r->losses)) + 1;
 	} else {
 		chars_for_losses = 1;
 	}
@@ -74,14 +74,14 @@ int chars_needed_to_print_record(struct record *r) {
 int chars_needed_to_print_record_no_ties(struct record *r) {
 	int chars_for_wins;
 	if (r->wins > 0) {
-		chars_for_wins = (int) (ceil(log10((int) r->wins)));
+		chars_for_wins = ((int) (log10((int) r->wins))) + 1;
 	} else {
 		chars_for_wins = 1;
 	}
 
 	int chars_for_losses;
 	if (r->losses > 0) {
-		chars_for_losses = (int) (ceil(log10((int) r->losses)));
+		chars_for_losses = ((int) (log10((int) r->losses))) + 1;
 	} else {
 		chars_for_losses = 1;
 	}
