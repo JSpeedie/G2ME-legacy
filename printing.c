@@ -770,25 +770,52 @@ int print_matchup_table_csv(void) {
 		}
 	}
 
-	// 'num_players + 1' to accomodate one player per row and an extra row
-	// for the column titles
-	char output[num_players + 1][1024];
-	// Empty the first line of output
-	memset(output[0], 0, 1024);
-	// Topmost, leftmost cell should be empty
+	/* num_players + 1 to accomodate one player per row and an extra row
+	 * for the column titles */
+	char *output[num_players + 1];
+	long line_sizes[num_players + 1];
+	long line_length[num_players + 1];
+	for (int i = 0; i < num_players + 1; i++) {
+		line_sizes[i] = 64;
+		line_length[i] = 0;
+		output[i] = malloc(sizeof(char) * line_sizes[i]);
+		output[i][0] = '\0';
+	}
+	/* Topmost, leftmost cell should be empty */
 	sprintf(output[0], ",");
+	line_length[0] = 1;
 
-	// Fill in column titles with player names + a comma delimiter
+	/* Helper function to add strings to a line of output {{{ */
+	int add_to_line(char *s, int i) {
+		/* Realloc output line, if necessary */
+		long len_of_s = strlen(s);
+		if (len_of_s + line_length[i] >= line_sizes[i]) {
+			line_sizes[i] *= 2;
+			output[i] = (char *)\
+				realloc(output[i], sizeof(char) * line_sizes[i]);
+			if (output[i] == NULL) {
+				perror("realloc (print_matchup_table_csv)");
+				return -1;
+			}
+		}
+
+		line_length[i] += len_of_s;
+		strcat(output[i], s);
+		return 0;
+	}
+	/* }}} */
+
+	/* Fill in column titles with player names + a comma delimiter */
 	for (int i = 0; i < num_players; i++) {
-		strncat(output[0], &players[i * (MAX_NAME_LEN + 1)], \
-			1024 - 1 - strlen(output[0]));
-		strncat(output[0], ",", 1024 - 1 - strlen(output[0]));
+		add_to_line(&players[i * (MAX_NAME_LEN + 1)], 0);
+		add_to_line(",", 0);
 	}
 	fprintf(stdout, "%s\n", output[0]);
 
 	for (int i = 0; i < num_players; i++) {
 		/* Add row title */
-		sprintf(output[i + 1], "%s,", &players[i * (MAX_NAME_LEN + 1)]);
+		add_to_line(&players[i * (MAX_NAME_LEN + 1)], i + 1);
+		add_to_line(",", i + 1);
 
 		/* Get row content */
 		for (int j = 0; j < num_players; j++) {
@@ -801,10 +828,7 @@ int print_matchup_table_csv(void) {
 			if (temp_rec.wins == 0 && temp_rec.ties == 0 \
 				&& temp_rec.losses == 0) {
 
-				/* 1 for the dash, 1 for the comma, 1 for the null term */
-				char col[3];
-				snprintf(col, sizeof(col), "-,");
-				strcat(output[i + 1], col);
+				add_to_line("-,", i + 1);
 			} else {
 				int record_length;
 
@@ -814,8 +838,8 @@ int print_matchup_table_csv(void) {
 					record_length = \
 						chars_needed_to_print_record_no_ties(&temp_rec);
 				}
-				/* + 1 so it can fit the comma too */
-				char col[record_length + 1];
+				/* +1 for the comma, +1 for the null term*/
+				char col[record_length + 1 + 1];
 
 				/* If the user wants ties to be printed */
 				if (print_ties == 1) {
@@ -825,7 +849,7 @@ int print_matchup_table_csv(void) {
 					 snprintf(col, sizeof(col), "%d-%d,", \
 						temp_rec.wins, temp_rec.losses);
 				}
-				strcat(output[i + 1], col);
+				add_to_line(col, i + 1);
 			}
 		}
 		fprintf(stdout, "%s\n", output[i + 1]);
