@@ -767,11 +767,11 @@ filtered with the `-m` flag.
 Example output:
 
 ```
-        Ash    Bilal  Jonah  Julian
-Ash     -      0-0-2  -      0-0-3
-Bilal   2-0-0  -      0-0-2  4-0-3
-Jonah   -      2-0-0  -      4-0-0
-Julian  3-0-0  3-0-4  0-0-4  -
+         Ash     Bilal   Jonah   Julian  
+   Ash   -       0-0-2   -       0-0-3   
+ Bilal   2-0-0   -       0-0-2   4-0-3   
+ Jonah   -       2-0-0   -       4-0-0   
+Julian   3-0-0   3-0-4   0-0-4   -       
 ```
 
 ### The 'n' flag
