@@ -1474,12 +1474,12 @@ long longest_name(char *players, int array_len) {
  * to contain only player names that exist as lines in the file.
  * changes '*num_players' accordingly.
  *
- * \param '*players' pointer to an array of 'MAX_NAME_LEN' * '*(num_players)'
+ * \param '*players' pointer to an array of 'MAX_NAME_LEN + 1' * '*(num_players)'
  *     chars.
  * \param '*num_players' the length of the '*players' array.
  * \param '*filter_file_path' the file path of a pr list file.
  * \return an integer representing the success or failure of
- *     this function. 0 Means sucess, negative numbers mean failure.
+ *     this function. 0 means sucess, negative numbers mean failure.
  */
 int filter_player_list(char **players_pointer, int *num_players, \
 	char *filter_file_path) {
@@ -1491,7 +1491,7 @@ int filter_player_list(char **players_pointer, int *num_players, \
 	}
 
 	int app_ind = 0;
-	char line[MAX_NAME_LEN];
+	char line[MAX_NAME_LEN + 1];
 	char *players = *(players_pointer);
 	char *filtered_players = \
 		(char *)malloc(sizeof(char) * (MAX_NAME_LEN + 1) * (*num_players));
@@ -1517,6 +1517,54 @@ int filter_player_list(char **players_pointer, int *num_players, \
 	}
 
 	fclose(filter_file);
+	free(players);
+	*num_players = app_ind;
+	*players_pointer = filtered_players;
+
+	return 0;
+}
+
+
+// TODO
+/* Takes an array of player names created with a malloc or calloc call,
+ * the length of the array, and a file path. Modifies the array
+ * to contain only player names that have attended 'pr_minimum_events', and
+ * changes '*num_players' accordingly.
+ *
+ * \param '*players' pointer to an array of 'MAX_NAME_LEN + 1' * '*(num_players)'
+ *     chars.
+ * \param '*num_players' the length of the '*players' array.
+ * \return an integer representing the success or failure of
+ *     this function. 0 means sucess, negative numbers mean failure.
+ */
+int filter_player_list_min_events(char **players_pointer, int *num_players) {
+
+	int app_ind = 0;
+	char *players = *(players_pointer);
+	char *filtered_players = \
+		(char *)malloc(sizeof(char) * (MAX_NAME_LEN + 1) * (*num_players));
+
+	if (filtered_players == NULL) {
+		fprintf(stderr, "Error: could not malloc a new player array " \
+			"(filter_player_list_min_events)");
+		return -1;
+	}
+
+	for (int i = 0; i < *num_players; i++) {
+		char *full_player_path = \
+			player_dir_file_path_with_player_dir(&players[i * (MAX_NAME_LEN + 1)]);
+		int num_events = entry_file_get_events_attended_count(full_player_path);
+
+		/* If the player passes the filter (has gone to enough events */
+		if (num_events >= pr_minimum_events) {
+			strncpy(&filtered_players[(MAX_NAME_LEN + 1) * app_ind], \
+				&players[i * (MAX_NAME_LEN + 1)], \
+				MAX_NAME_LEN);
+			app_ind++;
+		}
+		free(full_player_path);
+	}
+
 	free(players);
 	*num_players = app_ind;
 	*players_pointer = filtered_players;

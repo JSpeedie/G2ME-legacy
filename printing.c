@@ -604,6 +604,19 @@ int print_matchup_table(void) {
 		}
 	}
 
+	/* Filter players so that it keeps only those that pass the  '-m' flag */
+	if (pr_minimum_events > 0) {
+		int ret = 0;
+		if (0 != (ret = \
+			filter_player_list_min_events(&players, &num_players))) {
+
+			fprintf(stderr, \
+				"filter_player_list_min_events (%d) (print_matchup_table)", \
+				ret);
+			return -2;
+		}
+	}
+
 	long longest_n = longest_name(players, num_players);
 	int longest_rec[num_players];
 	/* Initialize all values to 0, or else they could be anything */
@@ -770,6 +783,19 @@ int print_matchup_table_csv(void) {
 		}
 	}
 
+	/* Filter players so that it keeps only those that pass the  '-m' flag */
+	if (pr_minimum_events > 0) {
+		int ret = 0;
+		if (0 != (ret = \
+			filter_player_list_min_events(&players, &num_players))) {
+
+			fprintf(stderr, \
+				"filter_player_list_min_events (%d) (print_matchup_table)", \
+				ret);
+			return -2;
+		}
+	}
+
 	/* num_players + 1 to accomodate one player per row and an extra row
 	 * for the column titles */
 	char *output[num_players + 1];
@@ -853,6 +879,10 @@ int print_matchup_table_csv(void) {
 			}
 		}
 		fprintf(stdout, "%s\n", output[i + 1]);
+	}
+
+	for (int i = 0; i < num_players + 1; i++) {
+		free(output[i]);
 	}
 
 	return 0;

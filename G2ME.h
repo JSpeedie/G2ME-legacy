@@ -83,5 +83,6 @@ struct record *get_all_records(char *, long *);
 /* Random helper functions */
 long longest_name(char *, int);
 int filter_player_list(char **, int *, char *);
+int filter_player_list_min_events(char **, int *);
 
 #endif
