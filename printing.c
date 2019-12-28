@@ -660,41 +660,46 @@ int print_matchup_table(void) {
 	}
 
 	long width_of_longest_line = longest_n \
-		+ (space_between_columns * num_players);
+		+ (space_between_columns * (num_players + 1));
 
 	/* Calculate width of the longest line */
 	for (int j = 0; j < num_players; j++) {
 		width_of_longest_line += longest_rec[j];
 	}
 	/* 'num_players + 1' to accomodate one player per row and an extra row
-	 * for the column titles */
-	char output[num_players + 1][width_of_longest_line];
+	 * for the column titles.
+	 * width_of_longest_line + 1 to accomodate null term */
+	char output[num_players + 1][width_of_longest_line + 1];
 	/* Empty the first line of output */
 	memset(output[0], 0, width_of_longest_line);
 
 	/* Fill output array with printed data */
 	for (int i = 0; i < num_players; i++) {
-		/* Add row title */
-		snprintf(output[i + 1], longest_n + space_between_columns, \
+		/* Add row title. Note that final "" must be empty since it is
+		 * not to be printed, the * in %*s is the focus of the statement */
+		snprintf(output[i + 1], longest_n + space_between_columns + 1, \
 			"%*s%*s", (int) longest_n, &players[i * (MAX_NAME_LEN + 1)], \
-			space_between_columns, " ");
+			space_between_columns, "");
 
 		/* Get row content */
 		for (int j = 0; j < num_players; j++) {
 
 			/* Create the column of minimum length to fit all the characters,
-			 * + the gap between columns */
-			char col[longest_rec[j] + space_between_columns];
+			 * + the gap between columns. +1 to accomodate null term */
+			char col[longest_rec[j] + space_between_columns + 1];
 
 			/* If the user wants ties to be printed */
 			if (print_ties == 1) {
-				 snprintf(col, sizeof(col), "%d-%d-%-20d", \
+				 snprintf(col, sizeof(col), "%d-%d-%-*d", \
 				 	records[i][j].wins, \
 					records[i][j].ties, \
+					MAX_NAME_LEN, \
 					records[i][j].losses);
 			} else {
-				 snprintf(col, sizeof(col), "%d-%-20d", \
-				 	records[i][j].wins, records[i][j].losses);
+				 snprintf(col, sizeof(col), "%d-%-*d", \
+				 	records[i][j].wins, \
+					MAX_NAME_LEN, \
+					records[i][j].losses);
 			}
 
 			/* If the player has no data against a given opponent, print "-" */
@@ -709,15 +714,17 @@ int print_matchup_table(void) {
 	}
 
 	/* Create buffer in first row/line, first column */
-	snprintf(output[0], ((int) longest_n) + space_between_columns, "%*s", \
-		((int) longest_n) + space_between_columns, "");
+	snprintf(output[0], (int) longest_n + space_between_columns + 1, \
+		"%*s", (int) longest_n + space_between_columns, "");
 
-	/* Format column titles for output */
+	/* Format column titles (first row) for output */
 	for (int j = 0; j < num_players; j++) {
-		/* Make column width to be the width of its widest entry */
-		char col[longest_rec[j] + space_between_columns];
-		snprintf(col, longest_rec[j] + space_between_columns, \
-			"%-*s", longest_rec[j] + space_between_columns, \
+		/* Make column width to be the width of its widest entry. +1 to
+		 * accomodate null term. */
+		char col[longest_rec[j] + space_between_columns + 1];
+
+		snprintf(col, sizeof(col), "%-*s", \
+			longest_rec[j] + space_between_columns, \
 			&players[(MAX_NAME_LEN + 1) * j]);
 		strcat(output[0], col);
 	}
