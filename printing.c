@@ -776,7 +776,7 @@ int print_matchup_table_csv(void) {
 	long line_sizes[num_players + 1];
 	long line_length[num_players + 1];
 	for (int i = 0; i < num_players + 1; i++) {
-		line_sizes[i] = 64;
+		line_sizes[i] = 256;
 		line_length[i] = 0;
 		output[i] = malloc(sizeof(char) * line_sizes[i]);
 		output[i][0] = '\0';
