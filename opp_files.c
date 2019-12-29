@@ -517,13 +517,18 @@ char *opp_file_get_all_opponent_names(char exclude_rd_adj, \
 		return NULL;
 	}
 
-	if (1 != fread(ret_array_len, sizeof(short), 1, opp_file)) return NULL;
+	short temp;
+	if (1 != fread(&temp, sizeof(short), 1, opp_file)) return NULL;
+	/* If the RD adjustment name is to be excluded, lower the number of
+	 * opponents by 1 since the RD adjustment opponent is guaranteed exist */
+	if (exclude_rd_adj == EXCLUDE_RD_ADJ) *ret_array_len = temp - 1;
+	else *ret_array_len = temp;
 
 	char *ret = \
 		(char *)malloc(sizeof(char) * (MAX_NAME_LEN + 1) * *ret_array_len);
 	short j = 0;
 
-	for (int i = 0; i < *ret_array_len; i++) {
+	for (int i = 0; i < temp; i++) {
 		/* Read corresponding opp_id of the array[i] */
 		short id;
 		if (1 != fread(&id, sizeof(short), 1, opp_file)) return NULL;

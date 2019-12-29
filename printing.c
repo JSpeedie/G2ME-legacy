@@ -627,7 +627,7 @@ int print_player_records(char *file_path) {
  */
 void print_player_attended(char *attended, int count) {
 	for (int i = 0; i < count; i++) {
-		fprintf(stdout, "%s\n", attended[i * (MAX_NAME_LEN + 1)]);
+		fprintf(stdout, "%s\n", &attended[i * (MAX_NAME_LEN + 1)]);
 	}
 }
 
