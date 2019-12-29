@@ -268,6 +268,52 @@ testC() {
 # }}}
 
 
+# testh {{{
+testh() {
+	# Setup
+	touch tmp
+	../G2ME -B input/TEST.sea > /dev/null
+
+	# Test 1
+	../G2ME -h Dylan > tmp
+	if cmp tmp correct_output/testh1 ; then
+		passes=$((passes+1))
+		echo -n "."
+	else
+		fails=$((fails+1))
+		echo -n "E"
+	fi
+	# Test 2
+	../G2ME -h Michael > tmp
+	if cmp tmp correct_output/testh2 ; then
+		passes=$((passes+1))
+		echo -n "."
+	else
+		fails=$((fails+1))
+		echo -n "E"
+	fi
+	# Test 3
+	../G2ME -vh Victoria > tmp
+	if cmp tmp correct_output/testh3 ; then
+		passes=$((passes+1))
+		echo -n "."
+	else
+		fails=$((fails+1))
+		echo -n "E"
+	fi
+	# Test 4
+	../G2ME -vh Aiden > tmp
+	if cmp tmp correct_output/testh4 ; then
+		passes=$((passes+1))
+		echo -n "."
+	else
+		fails=$((fails+1))
+		echo -n "E"
+	fi
+}
+# }}}
+
+
 runalltests() {
 	testbvo
 	testBvo
@@ -275,6 +321,7 @@ runalltests() {
 	testBvO
 	testM
 	testC
+	testh
 }
 
 
