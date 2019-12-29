@@ -1,6 +1,94 @@
 passes=0
 fails=0
 
+
+# testbvo {{{
+testbvo() {
+	test1() {
+		# Setup
+		touch tmp
+		../G2ME -b input/TEST1 > /dev/null
+
+		# Test 1
+		../G2ME -o tmp
+		if cmp tmp correct_output/testb1o ; then
+			passes=$((passes+1))
+			echo -n "."
+		else
+			fails=$((fails+1))
+			echo -n "E"
+		fi
+		# Test 2
+		../G2ME -vo tmp
+		if cmp tmp correct_output/testb1vo ; then
+			passes=$((passes+1))
+			echo -n "."
+		else
+			fails=$((fails+1))
+			echo -n "E"
+		fi
+	}
+
+	test2() {
+		# Setup
+		touch tmp
+		../G2ME -b input/TEST2 > /dev/null
+
+		# Test 1
+		../G2ME -o tmp
+		if cmp tmp correct_output/testb2o ; then
+			passes=$((passes+1))
+			echo -n "."
+		else
+			fails=$((fails+1))
+			echo -n "E"
+		fi
+		# Test 2
+		../G2ME -vo tmp
+		if cmp tmp correct_output/testb2vo ; then
+			passes=$((passes+1))
+			echo -n "."
+		else
+			fails=$((fails+1))
+			echo -n "E"
+		fi
+	}
+
+	# Run all the tests
+	test1
+	test2
+}
+# }}}
+
+
+# testBvo {{{
+testBvo() {
+	# Setup
+	touch tmp
+	../G2ME -B input/TEST.sea > /dev/null
+
+	# Test 1
+	../G2ME -o tmp
+	if cmp tmp correct_output/testBo ; then
+		passes=$((passes+1))
+		echo -n "."
+	else
+		fails=$((fails+1))
+		echo -n "E"
+	fi
+	# Test 2
+	../G2ME -vo tmp
+	if cmp tmp correct_output/testBvo ; then
+		passes=$((passes+1))
+		echo -n "."
+	else
+		fails=$((fails+1))
+		echo -n "E"
+	fi
+}
+# }}}
+
+
 # testbvO {{{
 testbvO() {
 	test1() {
@@ -181,6 +269,8 @@ testC() {
 
 
 runalltests() {
+	testbvo
+	testBvo
 	testbvO
 	testBvO
 	testM

@@ -491,8 +491,7 @@ int opp_file_num_opponents(char exclude_rd_adj) {
 /** Takes one argument, telling the function whether it should include the RD
  * adjustment opponent name, and reads all the names of the opponents in the
  * system into an array, which is then returned. The array returned is sorted
- * lexiographically. The array is malloc'd and must
- * be free'd by the caller.
+ * lexiographically. The array is malloc'd and must be free'd by the caller.
  *
  * \param 'exclude_rd_adj' if set to 'EXCLUDE_RD_ADJ', this function will not
  *     include the RD adjustment opponent name.
