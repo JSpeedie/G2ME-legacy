@@ -93,7 +93,46 @@ int chars_needed_to_print_record_no_ties(struct record *r) {
 }
 
 
-/** Prints a string representation of a struct player to stdout
+/** Takes 3 variables representing the day, month and year of a date,
+ * and returns the number of characters needed to print the date, including
+ * 2 separator characters inbetween the 3.
+ *
+ * \param 'day' a char representing the day of the date.
+ * \param 'month' a char representing the month of the date.
+ * \param 'year' a char representing the year of the date.
+ * \return an integer representing the number of characters needed to print
+ *     the date including 2 separator characters.
+ */
+int chars_needed_to_print_date(char day, char month, short year) {
+	int chars_for_day;
+	if (day > 0) {
+		chars_for_day = ((int) (log10((int) day))) + 1;
+	} else {
+		chars_for_day = 1;
+	}
+
+	int chars_for_month;
+	if (month > 0) {
+		chars_for_month = ((int) (log10((int) month))) + 1;
+	} else {
+		chars_for_month = 1;
+	}
+
+	int chars_for_year;
+	if (year > 0) {
+		chars_for_year = ((int) (log10((int) year))) + 1;
+	} else {
+		chars_for_year = 1;
+	}
+
+	/* 2 chars for the slashes "/", then the number of characters
+	 * needed to print the day, month, and year (log base 10 of each
+	 * value, "ceiled" (+1)) */
+	return 2 + chars_for_day + chars_for_month + chars_for_year;
+}
+
+
+/** Prints a string representation of a struct player to stdout.
  *
  * \param '*P' the struct player to print
  */
@@ -102,18 +141,18 @@ void print_player(struct player *P) {
 		getRating(P), getRd(P), P->vol);
 }
 
-/** Prints a string representation of a struct entry to stdout
+
+/** Prints a string representation of a struct entry to stdout.
  *
  * Difference with verbosity: Now outputs all variables of the
- * 'struct entry' including 'len_name', 'opp_name', and 't_name'
+ * 'struct entry' including 'len_name', 'opp_name', and 't_name'.
 
  * \param 'E' the struct entry to print
  */
 void print_entry_verbose(struct entry E) {
 	/* Process date data into one string */
-	char date[32];
+	char date[chars_needed_to_print_date(E.day, E.month, E.year) + 1];
 	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
-	// TODO: fix magic number thing
 	char *output_colour = NOTHING;
 	char *reset_colour = NOTHING;
 	if (colour_output == 1) {
@@ -126,6 +165,7 @@ void print_entry_verbose(struct entry E) {
 		else if (E.gc < E.opp_gc) output_colour = RED;
 	}
 
+	// TODO: fix magic number thing
 	fprintf(stdout, "%d  %d  %s  %d  %s%s%s  %d  %.4lf  %.4lf  " \
 		"%.8lf  %d-%d  %s  %d  %s\n", \
 		E.len_name, E.len_opp_name, E.name, E.opp_id, output_colour, \
@@ -133,15 +173,15 @@ void print_entry_verbose(struct entry E) {
 		E.gc, E.opp_gc, date, E.tournament_id, E.t_name);
 }
 
+
 /** Prints a string representation of a struct entry to stdout
  *
  * \param 'E' the struct entry to print
  */
 void print_entry(struct entry E) {
 	/* Process date data into one string */
-	char date[32];
+	char date[chars_needed_to_print_date(E.day, E.month, E.year) + 1];
 	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
-	// TODO: fix magic number thing
 	char *output_colour = NOTHING;
 	char *reset_colour = NOTHING;
 	if (colour_output == 1) {
@@ -154,11 +194,13 @@ void print_entry(struct entry E) {
 		else if (E.gc < E.opp_gc) output_colour = RED;
 	}
 
+	// TODO: fix magic number thing
 	fprintf(stdout, "%s  %s%s%s  %.1lf  %.1lf  " \
 		"%.6lf  %d-%d  %s  %s\n", \
 		E.name, output_colour, E.opp_name, reset_colour, E.rating,
 		E.RD, E.vol, E.gc, E.opp_gc, date, E.t_name);
 }
+
 
 /** Prints a string representation of a struct entry to stdout
  *
@@ -176,7 +218,7 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 	int longest_date, int longest_t_name, int longest_s_id) {
 
 	/* Process date data into one string */
-	char date[32];
+	char date[chars_needed_to_print_date(E.day, E.month, E.year) + 1];
 	char temp[64];
 	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
 	// TODO: fix magic number thing
@@ -216,18 +258,19 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 		E.t_name, reset_colour, longest_s_id, E.season_id);
 }
 
+
 /** Prints a string representation of a struct entry to stdout
  *
  * \param 'E' the struct entry to print
  * \param 'longest_name' the length in characters to print the opponent
  *     name in/with.
  */
-
 void print_entry_name(struct entry E, int longest_name, int longest_rating, \
-	int longest_RD, int longest_vol, int longest_gc, int longest_opp_gc, int longest_date) {
+	int longest_RD, int longest_vol, int longest_gc, int longest_opp_gc, \
+	int longest_date) {
 
 	/* Process date data into one string */
-	char date[32];
+	char date[chars_needed_to_print_date(E.day, E.month, E.year) + 1];
 	char temp[64];
 	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
 	// TODO: fix magic number thing
@@ -263,6 +306,7 @@ void print_entry_name(struct entry E, int longest_name, int longest_rating, \
 		longest_gc, E.gc, E.opp_gc, longest_opp_gc-opp_gc_length, "", \
 		longest_date, date, tournament_colour, E.t_name, reset_colour);
 }
+
 
 /** Prints all the contents of a player file to stdout with each entry
  * on a new line.
@@ -351,6 +395,7 @@ int print_player_file_verbose(char* file_path) {
 	return 0;
 }
 
+
 /** Prints all the contents of a player file to stdout with each entry
  * on a new line.
  *
@@ -418,6 +463,7 @@ int print_player_file(char* file_path) {
 	return 0;
 }
 
+
 /* Takes a file path to an entry-file and prints to 'stdout' that
  * players records against every player they have played, filtered
  * by any applicable filters.
@@ -432,7 +478,8 @@ int print_player_file(char* file_path) {
 int print_player_records(char *file_path) {
 	/* Get all records and sort them alphabetically */
 	long num_rec = 0;
-	// TODO: add filter to get_all_records, array indexed by opp_id, contains ret array index
+	// TODO: add filter to get_all_records, array indexed by opp_id, \
+	contains ret array index
 	struct record *records = get_all_records(file_path, &num_rec);
 	merge_sort_player_records(records, num_rec);
 
@@ -460,7 +507,8 @@ int print_player_records(char *file_path) {
 				 * criteria is zero */
 				if (pr_minimum_events != 0) {
 					char *full_player_path = \
-						player_dir_file_path_with_player_dir(records[i].opp_name);
+						player_dir_file_path_with_player_dir( \
+							records[i].opp_name);
 					attended_count = \
 						entry_file_get_events_attended_count(full_player_path);
 					free(full_player_path);
@@ -541,13 +589,17 @@ int print_player_records(char *file_path) {
 					fprintf(stdout, " -> ");
 					for (int j = 0; records[i].last_outcomes[j] != '\0'; j++) {
 						if (records[i].last_outcomes[j] == 'W') {
-							fprintf(stdout, "%s%c", GREEN, records[i].last_outcomes[j]);
+							fprintf(stdout, "%s%c", GREEN, \
+								records[i].last_outcomes[j]);
 						} else if (records[i].last_outcomes[j] == 'T') {
-							fprintf(stdout, "%s%c", YELLOW, records[i].last_outcomes[j]);
+							fprintf(stdout, "%s%c", YELLOW, \
+								records[i].last_outcomes[j]);
 						} else if (records[i].last_outcomes[j] == 'L') {
-							fprintf(stdout, "%s%c", RED, records[i].last_outcomes[j]);
+							fprintf(stdout, "%s%c", RED, \
+								records[i].last_outcomes[j]);
 						} else if (records[i].last_outcomes[j] == '|') {
-							fprintf(stdout, "%s%c", NORMAL, records[i].last_outcomes[j]);
+							fprintf(stdout, "%s%c", NORMAL, \
+								records[i].last_outcomes[j]);
 						} else {
 							fprintf(stdout, "%sc", NORMAL);
 						}
@@ -565,10 +617,17 @@ int print_player_records(char *file_path) {
 	return 0;
 }
 
+
+/* Prints to stdout all the names in a player name list.
+ *
+ * \param '*attended' a list of 'count' names, each 'MAX_NAME_LEN + 1'
+ *     bytes long, including the null terminator.
+ * \param 'count' the number of elements in the array.
+ * \return void
+ */
 void print_player_attended(char *attended, int count) {
-	// Print names of all tournaments attended by the player
 	for (int i = 0; i < count; i++) {
-		fprintf(stdout, "%s\n", attended + i * MAX_NAME_LEN);
+		fprintf(stdout, "%s\n", attended[i * (MAX_NAME_LEN + 1)]);
 	}
 }
 
