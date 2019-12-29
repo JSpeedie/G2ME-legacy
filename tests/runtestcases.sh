@@ -116,10 +116,39 @@ testM() {
 # }}}
 
 
+# testC {{{
+testC() {
+	# Setup
+	touch tmp
+	../G2ME -B input/TEST.sea > /dev/null
+
+	# Test 1
+	../G2ME -C > tmp
+	if cmp tmp correct_output/testC1 ; then
+		passes=$((passes+1))
+		echo -n "."
+	else
+		fails=$((fails+1))
+		echo -n "E"
+	fi
+	# Test 2
+	../G2ME -m 2 -C > tmp
+	if cmp tmp correct_output/testC2 ; then
+		passes=$((passes+1))
+		echo -n "."
+	else
+		fails=$((fails+1))
+		echo -n "E"
+	fi
+}
+# }}}
+
+
 runalltests() {
 	testbvO
 	testBvO
 	testM
+	testC
 }
 
 
