@@ -112,6 +112,24 @@ testM() {
 		fails=$((fails+1))
 		echo -n "E"
 	fi
+	# Test 3
+	../G2ME -f input/filter1 -M > tmp
+	if cmp tmp correct_output/testM3 ; then
+		passes=$((passes+1))
+		echo -n "."
+	else
+		fails=$((fails+1))
+		echo -n "E"
+	fi
+	# Test 4
+	../G2ME -f input/filter1 -m 2 -M > tmp
+	if cmp tmp correct_output/testM4 ; then
+		passes=$((passes+1))
+		echo -n "."
+	else
+		fails=$((fails+1))
+		echo -n "E"
+	fi
 }
 # }}}
 
@@ -134,6 +152,24 @@ testC() {
 	# Test 2
 	../G2ME -m 2 -C > tmp
 	if cmp tmp correct_output/testC2 ; then
+		passes=$((passes+1))
+		echo -n "."
+	else
+		fails=$((fails+1))
+		echo -n "E"
+	fi
+	# Test 3
+	../G2ME -f input/filter1 -C > tmp
+	if cmp tmp correct_output/testC3 ; then
+		passes=$((passes+1))
+		echo -n "."
+	else
+		fails=$((fails+1))
+		echo -n "E"
+	fi
+	# Test 4
+	../G2ME -f input/filter1 -m 2 -C > tmp
+	if cmp tmp correct_output/testC4 ; then
 		passes=$((passes+1))
 		echo -n "."
 	else
