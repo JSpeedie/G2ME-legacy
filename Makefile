@@ -41,6 +41,9 @@ uninstall:
 		rm -f $(MANPREFIX)/man1/$$page; \
 	done
 
+test: compile
+	@cd tests && sh runtestcases.sh
+
 # Needs to be fixed
 clean:
 	@echo cleaning
