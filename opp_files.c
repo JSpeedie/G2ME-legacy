@@ -496,11 +496,14 @@ int opp_file_num_opponents(char exclude_rd_adj) {
  *
  * \param 'exclude_rd_adj' if set to 'EXCLUDE_RD_ADJ', this function will not
  *     include the RD adjustment opponent name.
+ * \param '*ret_array_len' a pointer to a short that will have its value
+ *     updated to the length of the array.
  * \return Upon success, a pointer to an array of (MAX_NAME_LEN + 1) blocks,
  *     each containing the name of an opponent in the system. Returns NULL,
  *     upon failure.
  */
-char *opp_file_get_all_opponent_names(char exclude_rd_adj) {
+char *opp_file_get_all_opponent_names(char exclude_rd_adj, \
+	short *ret_array_len) {
 
 	char *full_opp_file_path = data_dir_file_path_opp_file();
 
@@ -514,13 +517,13 @@ char *opp_file_get_all_opponent_names(char exclude_rd_adj) {
 		return NULL;
 	}
 
-	unsigned short num_opp;
-	if (1 != fread(&num_opp, sizeof(short), 1, opp_file)) return NULL;
+	if (1 != fread(ret_array_len, sizeof(short), 1, opp_file)) return NULL;
 
-	char *ret = (char *)malloc(sizeof(char) * (MAX_NAME_LEN + 1) * num_opp);
+	char *ret = \
+		(char *)malloc(sizeof(char) * (MAX_NAME_LEN + 1) * *ret_array_len);
 	short j = 0;
 
-	for (int i = 0; i < num_opp; i++) {
+	for (int i = 0; i < *ret_array_len; i++) {
 		/* Read corresponding opp_id of the array[i] */
 		short id;
 		if (1 != fread(&id, sizeof(short), 1, opp_file)) return NULL;

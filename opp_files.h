@@ -24,6 +24,6 @@ int opp_file_num_opponents(char);
 
 
 /* Opp file aggregate data functions */
-char *opp_file_get_all_opponent_names(char);
+char *opp_file_get_all_opponent_names(char, short *);
 
 #endif

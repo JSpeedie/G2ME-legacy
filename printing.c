@@ -581,10 +581,10 @@ void print_player_attended(char *attended, int count) {
  */
 int print_matchup_table(void) {
 	int space_between_columns = 3;
-	/* Get the number of players */
-	int num_players = opp_file_num_opponents(EXCLUDE_RD_ADJ);
-	/* Get the names of all players in the system */
-	char *players = opp_file_get_all_opponent_names(EXCLUDE_RD_ADJ);
+	/* Get the number of players and the names of all players in the system */
+	short num_players;
+	char *players = \
+		opp_file_get_all_opponent_names(EXCLUDE_RD_ADJ, &num_players);
 	if (players == NULL) {
 		fprintf(stderr, \
 			"opp_file_get_all_opponent_names (print_matchup_table)");
@@ -758,10 +758,10 @@ int print_matchup_table(void) {
  * \return a negative integer upon failure, and 0 upon success.
  */
 int print_matchup_table_csv(void) {
-	/* Get the number of players */
-	int num_players = opp_file_num_opponents(EXCLUDE_RD_ADJ);
-	/* Get the names of all players in the system */
-	char *players = opp_file_get_all_opponent_names(EXCLUDE_RD_ADJ);
+	/* Get the number of players and the names of all players in the system */
+	short num_players;
+	char *players = \
+		opp_file_get_all_opponent_names(EXCLUDE_RD_ADJ, &num_players);
 	if (players == NULL) {
 		fprintf(stderr, \
 			"Error: print_matchup_table_csv(): " \

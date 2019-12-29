@@ -382,8 +382,9 @@ void adjust_absent_players_no_file(char day, char month, \
 	int total_threads_needed = 0;
 	char all_thread_min_cap_reached = 0;
 
-	short num_players = opp_file_num_opponents(EXCLUDE_RD_ADJ);
-	char *players = opp_file_get_all_opponent_names(EXCLUDE_RD_ADJ);
+	short num_players;
+	char *players = \
+		opp_file_get_all_opponent_names(EXCLUDE_RD_ADJ, &num_players);
 
 	/* Create a list of player files, set work for threads */
 	for (int y = 0; y < num_players; y++) {
@@ -1481,7 +1482,7 @@ long longest_name(char *players, int array_len) {
  * \return an integer representing the success or failure of
  *     this function. 0 means sucess, negative numbers mean failure.
  */
-int filter_player_list(char **players_pointer, int *num_players, \
+int filter_player_list(char **players_pointer, short *num_players, \
 	char *filter_file_path) {
 
 	FILE *filter_file = fopen(filter_file_path, "r");
@@ -1537,7 +1538,7 @@ int filter_player_list(char **players_pointer, int *num_players, \
  * \return an integer representing the success or failure of
  *     this function. 0 means sucess, negative numbers mean failure.
  */
-int filter_player_list_min_events(char **players_pointer, int *num_players) {
+int filter_player_list_min_events(char **players_pointer, short *num_players) {
 
 	int app_ind = 0;
 	char *players = *(players_pointer);
