@@ -1227,10 +1227,11 @@ char *entry_file_get_events_attended(char *file_path, int *ret_count) {
 	}
 
 	char len_of_name;
-	char name[MAX_NAME_LEN];
+	char name[MAX_NAME_LEN + 1];
 	long tourneys_size = SIZE_PR_ENTRY;
 	long tourneys_num = 0;
-	char *tourneys = (char *)calloc(SIZE_PR_ENTRY * MAX_NAME_LEN, sizeof(char));
+	char *tourneys = \
+		(char *)calloc(SIZE_PR_ENTRY * (MAX_NAME_LEN + 1), sizeof(char));
 	char in_tourneys = 0;
 	struct entry cur_entry;
 	memset(name, 0, sizeof(name));
@@ -1250,7 +1251,7 @@ char *entry_file_get_events_attended(char *file_path, int *ret_count) {
 		/* Check if the tournament that entry was from
 		 * is already in the array */
 		for (int i = 0; i < tourneys_num; i++) {
-			if (strcmp(cur_entry.t_name, tourneys + i * MAX_NAME_LEN) == 0) {
+			if (strcmp(cur_entry.t_name, &tourneys[i * (MAX_NAME_LEN + 1)]) == 0) {
 				in_tourneys = 1;
 			}
 		}
@@ -1261,14 +1262,14 @@ char *entry_file_get_events_attended(char *file_path, int *ret_count) {
 			if (tourneys_num + 1 > tourneys_size) {
 				tourneys_size += REALLOC_PR_ENTRIES_INC;
 				tourneys = (char*)realloc(tourneys, \
-					SIZE_PR_ENTRY * MAX_NAME_LEN * sizeof(char));
+					SIZE_PR_ENTRY * (MAX_NAME_LEN + 1) * sizeof(char));
 				if (tourneys == NULL) {
 					perror("realloc (entry_file_get_events_attended)");
 					return NULL;
 				}
 			}
 			/* Add the tournament to the array */
-			strncpy(tourneys + tourneys_num * MAX_NAME_LEN, \
+			strncpy(&tourneys[tourneys_num * (MAX_NAME_LEN + 1)], \
 				cur_entry.t_name, MAX_NAME_LEN);
 			tourneys_num++;
 		}
