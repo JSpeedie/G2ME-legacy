@@ -190,20 +190,20 @@ $ G2ME -M
   AGoodPlayer   -            -             1-0-0          0-0-1
  AnOkayPlayer   -            0-0-1         -              -
 TheBestPlayer   1-0-0        1-0-0         -              -
-
 ```
+
 </p></details>
 
 <details><summary>Season Walkthrough (Click to Expand)</summary><p>
 
-The previous walkthough is fine if you only ever want to run one small bracket,
+The previous walkthough is fine if you only ever want to run one bracket,
 but if you want a season of brackets, running `G2ME -kb ...` many times
 becomes very tedious. `G2ME` has a solution however. Introducing the `-B` flag!
 The "B" may as well stand for **B**read and (dairy-free) **B**utter because
 it is the flag you will likely use the most.
 
 Say after the previous bracket (`example1`), there were 2 more brackets
-`example2`, and `example`. While you could run...
+`example2`, and `example3`. While you could run...
 
 ```
 $ G2ME -b examples/example1
@@ -316,7 +316,7 @@ $ G2ME -g -b examples/example1
 running "examples/example1" using games ...DONE
 ```
 
-Start any G2ME bracket-running command (`-b`, `-B`)
+Preface any G2ME input command (`-b`, or `-B`)
 with `-g` to calculate the Glicko2 numbers using
 game counts rather than set counts. This is **not** recommended as
 most of the time, it has been found to produce less accurate results
@@ -544,7 +544,8 @@ player data in the system, make sure to use the `-k` flag!
 
 Takes no arguments. Players no longer have their RD adjusted for missing
 an event. Default behaviour is to apply Step 6 of the Glicko2 Formula
-to each player that misses an event.
+to each player that misses an event, increasing their RD, altering future
+Glicko2 calculations.
 
 ### The 'A' flag
 
@@ -604,7 +605,7 @@ it looks like:
 
 ```
 If not given a -k flag:
-	reset the player directory  // (delete all player data)
+	reset the player directory  // delete all player data
 for line i in season.sea
 	G2ME -kb i
 ```
@@ -776,7 +777,7 @@ people who only showed up once or twice.
 Stands for **M**atchup table. This flag takes no arguments, and outputs the
 head-to-head records of all the players in the system.
 
-This flag can be used with the `-m`, or`-f` flags.
+* This flag can be used with the `-m`, or`-f` flags.
 
 Example output:
 
@@ -895,7 +896,9 @@ Julian vs John = 4-0-0
 ### The 'v' flag
 
 Stands for "**v**erbose-mode. Takes no arguments. Modifies the output of some
-option flags (`-h`, `-o`, `-O`, `-R`) to contain more information.
+option flags to contain more information.
+
+* This flag has an effect on the `-h`, `-o`, `-O`, and `-R` output flags.
 
 ### The 'w' flag
 
