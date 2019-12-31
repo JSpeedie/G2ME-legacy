@@ -4,8 +4,7 @@
 * [Screenshots](#screenshots)
 * [Technical Description](#technical-description)
 * [Purpose](#purpose)
-* [What it is](#what-it-is)
-* [Why it makes Glicko 2 Easier](#why-it-makes-glicko-2-easier)
+* [What are the advantages of G2ME?](#what-are-the-advantages-of-g2me)
 * [Installation](#installation)
 * [Example Walkthroughs](#example-walkthroughs)
 	* [FAQ/General Usage Walkthrough](#faqgeneral-usage-walkthrough)
@@ -29,6 +28,7 @@
 	* [The 'n' flag](#the-n-flag)
 	* [The 'N' flag](#the-n-flag-1)
 	* [The 'o' flag](#the-o-flag)
+	* [The 'O' flag](#the-o-flag-1)
 	* [The 'R' flag](#the-r-flag-1)
 	* [The 'v' flag](#the-v-flag)
 	* [The 'w' flag](#the-w-flag)
@@ -50,41 +50,34 @@
 ![Run Brackets Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MERunBracketsPic.png)
 ![Player Info Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MEPlayerInfoPic.png)
 
+
 ## Technical Description
-C implementation of glicko 2 + the real program that makes handling a glicko
+
+C implementation of Glicko2 + the real program that makes handling a Glicko
 system with many people more manageable.
 
-
-## Purpose
-
-This program was made out of a necessity to make an accurate power ranking
-(list of players from highest to lowest rating) for the UTSC Smash Club.
-
-
-## What it is
-
-If you've ever played dota2, csgo, or followed chess, glicko2 is very similar
+If you've ever played dota2, csgo, or followed chess, Glicko2 is very similar
 to MMR from dota, ranks from cs go, and is version 2 of an improvement
 of elo from chess.
 
 
+## Purpose
 
-## Why it makes Glicko 2 Easier
+This program was made out of a necessity to make an accurate ranking
+(list of players from highest to lowest rating) for the UTSC Smash Club. The
+official webpage for Glicko2 has links to implementations of Glicko2 in a
+handful of languages, but the choices were very limited, and provided no form
+of storage or management for players in the system.
 
-Not only is this a complete implementation of glicko 2, (as opposed to just the
-glicko2 mathematical functions rewritten in a programming language), but it is
-a data management system. This program comes with features outside of glicko2,
-providing the user with more data.
 
-This program saves player data in binary files, takes bracket files (or season files, a list of bracket files)
-as inputs, and calculates the glicko ratings for all the players. It also
-has features for outputting this data in meaningful ways such as a list of
-players from highest to lowest rating, being able to view a players records
-against all other players in the system, or even a full table of record/matchup
-data for all the players in the system.
+## What are the advantages of G2ME?
 
-*G2ME provides a way to track players over periods of time using Glicko 2.*
-
+This program takes simple file input, and saves lots of player information.
+This is in stark contrast to existing Glicko2 implementations that only provide
+functions for calculating one's new rating, after playing someone else. G2ME
+not only allows one to calculate the ratings of people without having to touch
+code, but it also stores much more information, including players' Glicko2
+history, their head-to-heads, the tournaments they've attended, and more.
 
 
 ## Installation
@@ -136,23 +129,24 @@ AGoodPlayer AnOkayPlayer 3 1 28 3 2018
 TheBestPlayer AGoodPlayer 3 2 28 3 2018
 ```
 
+This file is provided in this repo as `examples/example1`.  
 Note the structure: `[p1name] [p2name] [p1score] [p2score] [day] [month] [year]`.  
-Let's call this file `ExampleBracket`. Depending on how you want the data
-calculated, you have several ways of continuing. For the example, let's assume
-you want RD adjustments for absence (standard Glicko2 practice).
+Depending on how you want the data calculated, you have several ways of
+continuing. For the example, let's assume you want RD adjustments for absence
+(standard Glicko2 practice).
 
 ```
-$ G2ME -b ExampleBracket
+$ G2ME -b examples/example1
 ```
 
 The Glicko2 data is now stored in 4 files found in `.players/`...
 
 ```
 $ ls -1 .players/
-TheBestPlayer
+ABadPlayer
 AGoodPlayer
 AnOkayPlayer
-ABadPlayer
+TheBestPlayer
 ```
 
 ...along with some other data in `.data/`, but you shouldn't manually edit the
@@ -164,15 +158,14 @@ From here, you can interact with the data as you want. Common operations are:
 
 ```
 $ G2ME -h TheBestPlayer
-TheBestPlayer  ABadPlayer   1662.3  290.3  0.060000  3-0  28/3/2018  ExampleBracket
-TheBestPlayer  AGoodPlayer  1791.9  247.5  0.060000  3-2  28/3/2018  ExampleBracket
+TheBestPlayer  ABadPlayer   1662.3  290.3  0.060000  3-0  28/3/2018  example1
+TheBestPlayer  AGoodPlayer  1791.9  247.5  0.060000  3-2  28/3/2018  example1
 ```
 
 * Creating a pr of all the players in the system
 
 ```
-$ G2ME -o temp
-$ cat temp
+$ G2ME -O
 TheBestPlayer  1791.9  247.5  0.05999983
   AGoodPlayer  1564.6  245.8  0.05999914
  AnOkayPlayer  1383.4  286.9  0.05999919
@@ -187,15 +180,17 @@ AGoodPlayer vs AnOkayPlayer = 1-0-0
 AGoodPlayer vs TheBestPlayer = 0-0-1
 ```
 
-* Print matchup data for all the players in the system
+* Print matchup data for all the players in the system (W-T-L stated in terms
+of player in row title, ie. TheBestPlayer has 1 win on ABadPlayer)
 
 ```
 $ G2ME -M
-               ABadPlayer  AGoodPlayer  AnOkayPlayer  TheBestPlayer
-   ABadPlayer  -           -            -             0-0-1
-  AGoodPlayer  -           -            1-0-0         0-0-1
- AnOkayPlayer  -           0-0-1        -             -
-TheBestPlayer  1-0-0       1-0-0        -             -
+                ABadPlayer   AGoodPlayer   AnOkayPlayer   TheBestPlayer
+   ABadPlayer   -            -             -              0-0-1
+  AGoodPlayer   -            -             1-0-0          0-0-1
+ AnOkayPlayer   -            0-0-1         -              -
+TheBestPlayer   1-0-0        1-0-0         -              -
+
 ```
 </p></details>
 
@@ -207,13 +202,13 @@ becomes very tedious. `G2ME` has a solution however. Introducing the `-B` flag!
 The "B" may as well stand for **B**read and (dairy-free) **B**utter because
 it is the flag you will likely use the most.
 
-Say after ExampleBracket, there were 2 more brackets SecondBracket and
-ThirdBracket. While you could run:
+Say after the previous bracket (`example1`), there were 2 more brackets
+`example2`, and `example`. While you could run...
 
 ```
-$ G2ME -b ExampleBracket
-$ G2ME -kb SecondBracket
-$ G2ME -kb ThirdBracket
+$ G2ME -b examples/example1
+$ G2ME -kb examples/example2
+$ G2ME -kb examples/example3
 ```
 
 (Note the `-kb` instead of `-b` after the first `-b` call. `G2ME` by default
@@ -221,28 +216,28 @@ deletes all player data before running a bracket. This may seem annoying,
 but it saves a lot of `rm .players/*` and since the recommended usage is
 using `-B`, it's a non-issue.)
 
-The recommended way to do it is to create a season file, a file in which every
-line is a file path to a bracket file. For example a file named
+... the recommended way to do it is to create a season file, a file in which
+every line is a file path to a bracket file. For example a file named
 `ExampleSeason.sea` could have the contents:
 
 ```
-ExampleBracket
-SecondBracket
-ThirdBracket
+examples/example1
+examples/example2
+examples/example3
 ```
 
 We could then run the season file as input:
 
 ```
 $ G2ME -B ExampleSeason.sea
-running "ExampleBracket" ...DONE
-running "SecondBracket" ...DONE
-running "ThirdBracket" ...DONE
+running "examples/example1" ...DONE
+running "examples/example2" ...DONE
+running "examples/example3" ...DONE
 ```
 
 This becomes very useful when you have seasons with lots of events, which,
 let's face it, is the only time you should use Glicko2 since all "objective"
-rating systems flounder under lack of data.
+rating systems struggle under a lack of data.
 
 </p></details>
 
@@ -251,7 +246,7 @@ rating systems flounder under lack of data.
 <details><summary>Click to Expand</summary><p>
 
 If you are wondering how to actually make use of the data the system now
-tracks, here's how it's done.
+has, here's how it's done.
 
 This walkthrough will discuss how to do the following:
 
@@ -278,33 +273,33 @@ TSE6
 Pretty self-explanatory.
 </p></details>
 
-#### 2. Get the number of events a given player has attended
+#### 2. Get the number of outcomes a player has been involved in
 <details><summary>Click to Expand</summary><p>
 
 ```
 $ G2ME -B TSE1ToTSE6
-running TSE1
-running TSE2
-running TSE3
-running TSE4
-running TSE5
-running TSE6
+running "TSE1" ...DONE
+running "TSE2" ...DONE
+running "TSE3" ...DONE
+running "TSE4" ...DONE
+running "TSE5" ...DONE
+running "TSE6" ...DONE
 $ G2ME -c [player_name_here]
-6
+45
 ```
 
-Once again, pretty self-explanatory.
+It looks like the player played 45 sets (or games, if `-g` was used).
 </p></details>
 
 #### 3. Output a csv-style "spreadsheet" of player matchup data
 <details><summary>Click to Expand</summary><p>
 
 ```
-$ G2ME -b ExampleBracket
+$ G2ME -b examples/example1
 $ G2ME -C
 ,ABadPlayer,AGoodPlayer,AnOkayPlayer,TheBestPlayer,
-ABadPlayer,-,-,-,0-0-1
-AGoodPlayer,-,-,1-0-0,0-0-1
+ABadPlayer,-,-,-,0-0-1,
+AGoodPlayer,-,-,1-0-0,0-0-1,
 AnOkayPlayer,-,0-0-1,-,-,
 TheBestPlayer,1-0-0,1-0-0,-,-,
 ```
@@ -317,7 +312,8 @@ your favourite alternative) to make a clean spreadsheet of matchup data.
 <details><summary>Click to Expand</summary><p>
 
 ```
-$ G2ME -g -b ExampleBracket
+$ G2ME -g -b examples/example1
+running "examples/example1" using games ...DONE
 ```
 
 Start any G2ME bracket-running command (`-b`, `-B`)
@@ -331,10 +327,10 @@ and it is susceptible to players sandbagging.
 <details><summary>Click to Expand</summary><p>
 
 ```
-$ G2ME -b ExampleBracket
+$ G2ME -b examples/example1
 $ G2ME -h TheBestPlayer
-TheBestPlayer  ABadPlayer   1662.3  290.3  0.060000  1-0  28/3/2018  ExampleBracket
-TheBestPlayer  AGoodPlayer  1791.9  247.5  0.060000  1-0  28/3/2018  ExampleBracket
+TheBestPlayer  ABadPlayer   1662.3  290.3  0.060000  3-0  28/3/2018  example1
+TheBestPlayer  AGoodPlayer  1791.9  247.5  0.060000  3-2  28/3/2018  example1
 ```
 
 Pretty self-explanatory. The rating numbers represent their rating after the
@@ -347,14 +343,14 @@ they won over ABadPlayer.
 
 ```
 $ G2ME -B ExampleSeason.sea
-running "ExampleBracket" ...DONE
-running "SecondBracket" ...DONE
-running "ThirdBracket" ...DONE
-$ G2ME -m [x_here] -o pr_output
+running "examples/example1" ...DONE
+running "examples/example2" ...DONE
+running "examples/example3" ...DONE
+$ G2ME -m [x_here] -O
 ```
 
-Same output a `-o` but only includes players who have attended
-at least *x* events.
+Same output as `G2ME -O`, but it only includes players who have attended
+at least (`>=`) *x* events.
 </p></details>
 
 #### 7. Create a PR of a certain group of players
@@ -364,12 +360,12 @@ at least *x* events.
 $ vim [filter_file_here]
 $ cat [filter_file_here]
 TheBestPlayer
-$ G2ME -b ExampleBracket
+$ G2ME -b examples/example1
 $ G2ME -f [filter_file_here] -O
 TheBestPlayer  1791.9  247.5  0.05999983
 ```
 
-Same output a `-O`, but only includes players whose name matches
+Same output as `G2ME -O`, but it only includes players whose name matches
 one of the lines in `[filter_file_here]`.
 </p></details>
 
@@ -401,8 +397,8 @@ have written that takes the url to a challonge bracket, and converts it
 $ sh convchallonge.sh [challonge_url_here] > [output_file_here]
 ```
 
-Let's take a look at what this would output for our ExampleBracket if we
-ran it on Challonge.
+Let's take a look at what this would output for our example bracket
+`examples/example1` if we ran it on Challonge.
 
 ```
 $ sh convchallonge.sh [challonge_url_here] > [output_file_here]
@@ -426,13 +422,13 @@ AaronAardvark VictoriaSmith 3 1 28 3 2018
 JohnSmith AaronAardvark 3 2 28 3 2018
 ```
 
-Challonge seemingly doesn't always get the date right. If this is
+**Note:** Challonge seemingly doesn't always get the date right. If this is
 of importance to you, make sure to double check the date when
 editing the file.
 
 Once this is all done, you're ready to continue with `G2ME`!
-If you'd like to add the data from this bracket to the existing
-player data in the system, make sure to use the `-k` flag!
+If you'd like to add the data from this bracket *to the existing
+player data in the system*, make sure to use the `-k` flag!
 </p></details>
 
 
@@ -440,7 +436,7 @@ player data in the system, make sure to use the `-k` flag!
 
 <details><summary>Click to Expand</summary><p>
 
-This repo contains the file `dlsmashgg.js` which is a Node interactive
+This repo contains the file `dlsmashgg.js` which is a Node-based interactive
 command line app that allows the user to convert all the events (brackets,
 pools, etc.) at a tournament to `G2ME` compliant bracket file(s). The user
 will have to install `node` and `npm`, and ensure they have all the app
@@ -521,7 +517,7 @@ and spaces must be removed for `G2ME`. It is also recommended that you don't
 use player tags for storing player data and rather use a player's first name
 and last name since they are less prone to change.  This app attempts to
 convert player ids to their names, as set on their smash.gg profile, but not
-all users will have theirs set, or set correctly, so use with caution. If this
+all users will have theirs set (or set correctly), so use with caution. If this
 app could not get a participant's first name and last name, it will instead
 output their tag.
 
@@ -571,17 +567,16 @@ TSE4
 
 `G2ME -b test`
 
-This flag takes one input, a bracket file. You aren't restricted by the
-extension, but the program expects every line to be of the format:
+This flag takes one argument in the form of a path to a bracket file. You
+aren't restricted by the extension, but the program expects every line to be of
+the format:
 
-`[player1Name] [player2Name] [player1GameCount] [player2Gamecount] [day] [month] [year]`
+`[player1Name] [player2Name] [player1GameCount] [player2GameCount] [day] [month] [year]`
 
-It expects for `player1Name` and `player2Name` to be a valid file paths
-which it will later read to find the players latest glicko data.
-G2ME will either attempt to read the file `player1Name` or upon finding
-it does not exist, initialize it to the default values (which set the
-player at 1500 350 0.06 (Note that this default value entry will never
-appear in any player file as they only store changes)).
+G2ME will either attempt to read the file `player1Name` in the *player
+directory* or, upon finding it does not exist, initialize it to the default
+values (which set the player at 1500 350 0.06 (Note that this default value
+entry will never appear in any player file as it is unnecessary)).
 
 An example bracket file:
 
@@ -597,8 +592,9 @@ Ron Julian 4 3 14 9 2017
 
 `G2ME -B season.sea`
 
-This flag takes one input, a bracket list file. You aren't restricted by the
-extension, but the program expects every line to be of the format
+This flag takes one argument in the form of a path to a bracket list file. You
+aren't restricted by the extension, but the program expects every line to be of
+the format:
 
 `[file_path_to_a_bracket_file]`
 
@@ -607,12 +603,13 @@ the bracket, updating all the player data. For our example, in pseudo code
 it looks like:
 
 ```
-# If not given a -k flag, reset the player directory (reset player data)
-for line $i in season.sea
-	G2ME -kb $i
+If not given a -k flag:
+	reset the player directory  // (delete all player data)
+for line i in season.sea
+	G2ME -kb i
 ```
 
-Possible contents of `season.sea`:
+Example contents of `season.sea`:
 
 ```
 TSE1
@@ -636,11 +633,11 @@ higher number, however.
 
 ### The 'C' flag
 
-Takes no arguments. Outputs a csv-style "spreadsheet" of player matchup data.
-Useful for turning the data into a spreadsheet or for use with spreadsheet
-software. Like `-M`, it is compatible with the `-m` flag, so you can
-limit the output to only include players who have attended a specified number
-of events.
+Stands for **C**SV-head-to-heads. This flag takes no arguments and outputs a
+csv-style "spreadsheet" of player head-to-head data. It's useful for turning the
+data into a spreadsheet or for use with spreadsheet software.
+
+* This flag can be used with the `-m`, or`-f` flags.
 
 The data is read left to right. For instance, in the example below, we find
 that Julian has 3 wins, 0 ties and 0 losses to Ash, has beaten Bilal 3 times,
@@ -657,8 +654,8 @@ Julian,3-0-4,3-0-0,3-0-0,-,
 
 which in a spreadsheet takes the form of:
 
-|        | Bilal | Ash   | Andrew | Julian |
-|:-------|:-----:|:-----:|:------:|:------:|
+|            | Bilal | Ash   | Andrew | Julian |
+|:-----------|:-----:|:-----:|:------:|:------:|
 | **Bilal**  | -     | 2-0-0 | 3-0-0  | 4-0-3  |
 | **Ash**    | 0-0-2 | -     | 1-0-1  | 0-0-3  |
 | **Andrew** | 0-0-3 | 1-0-1 | -      | 0-0-3  |
@@ -668,12 +665,14 @@ which in a spreadsheet takes the form of:
 
 `G2ME -d players/here/ -b test`
 
-This flag takes one input, a directory file path.
-This is where the program will attempt to access, and store player files in.
-Useful for keeping the working directory clean or for working on player files
-stored on another storage device. By default, if you don't specify the `-d`
-flag, the default player directory file path will be `./.players/`. An example
-full player file path would be `/home/me/G2ME/.players/JohnSmith`.
+This flag takes one argument in the form of a directory file path.  The
+specified directory is where the program will attempt to access, and store
+player files.  It's useful for keeping the working directory clean or for
+working on player files stored on another storage device. By default, if you
+don't specify the `-d` flag, the default player directory file path will be
+`./.players/`.
+
+An example full player file path would be `/home/me/G2ME/.players/JohnSmith`.
 
 ### The 'e' flag
 
@@ -685,11 +684,16 @@ to by a previous `-d` flag.
 
 ### The 'f' flag
 
-`G2ME -f filterUTSCStudents -vO`
+`G2ME -f currentStudents -vO`
 
-This flag is used in conjunction with the `-o` flag to filter the output.
-This flag takes an input of a player list file where each line is a file
-path (or file path from `player_dir`) to a player file created by `G2ME`.
+Stands for **f**ilter. Takes one argument in the form of a path to a filter
+file. This flag has no effect unless it precedes certain output flags.
+
+* This flag can be used with the `-C`, `-o`, `-O`, `-M`, or `-R` output flags.
+
+This flag is used in conjunction with the select output flags to filter the
+output.  This flag takes an input of a player list file where each line is a
+name of a player in the current `G2ME` system.
 
 An example input file:
 
@@ -704,32 +708,35 @@ Andrew
 
 ### The 'g' flag
 
-`G2ME -g -b test`
+```
+$ G2ME -g -b test
+running "test" using games ...DONE
+```
 
-The `g` flag tells G2ME to calculate the glicko ratings on a per-game basis.
+Stands for use-**g**ames. Takes no arguments, but has no effect unless
+it precedes an input flag (`-b` or `-B`).
 
+The `g` flag tells G2ME to calculate the Glicko ratings on a per-game basis.
 If not set, the default is to calculate on a by-set basis. This means if the
-set count is 3-2, 7-0 or 2-1, glicko only sees this as 1 win for the first
-player. The default was chosen to avoid giving glicko points to wins that
-in the scheme of things, would never amount to anything. The best player
-in the system not trying and losing one game, but winning the set
-probably should not give the other player points, but the choice is left
-to the user. There are some downsides with this choice however. For instance,
-it takes more than a few games to get enough data to
-accurately rate a player and there's no disparity between a player who always
-goes 3-2 against someone and a player who always goes 3-0 against the same
-person.
+set count is 3-2, 7-0 or 2-1, Glicko only sees this as 1 win for the first
+player. This default was chosen to avoid giving Glicko points for successes that
+in the scheme of things, would never amount to anything. For instance, the best
+player in the system not trying, and losing one game against a lesser player,
+but winning the set probably should not give the lesser player points. The
+decision of whether to use games or sets is still left up to the user.
 
-It is up to the user of G2ME to decide which they want to use but I advise
-using the `-g` flag only if you have few tournaments with lots of large sets
-(best of 5s or 7s).
+I advise using the `-g` flag only if you have few tournaments or few sets in
+general, but each is large (best of 5s, 7s, and so on).
 
 ### The 'h' flag
 
 `G2ME -h Julian`
 
-Stands for Glicko2 **H**istory. Can be used with shell commands for data
-parsing.
+Stands for **H**istory. Takes one argument in the form of a player
+file, and prints the outcome history of the player, including their Glicko2
+history.
+
+* This flag can be used with the `-v` flag, for more information in the output.
 
 Example output (from command above):
 
@@ -743,26 +750,33 @@ Julian  Mirza   1700.3   68.3  0.059955  1-3  1/12/2017   TT8
 
 ### The 'k' flag
 
-Takes no arguments. By default, `G2ME` deletes every file in `player_dir`
-removing the usual step of `$ rm .players/*`, but if you want to run
-consecutive brackets/bracket file, you can use this flag to prevent `G2ME`
-from deleting all the files.
+`G2ME -b examples/example1 -k -b examples/example2`
+
+Stands for **k**eep-player-data. Takes no arguments. By default, `G2ME` deletes
+every file in `player_dir` removing the usual step of `$ rm .players/*`, but if
+you want to run consecutive brackets/seasons, you can use this flag to
+prevent `G2ME` from deleting all the files.
 
 ### The 'm' flag
 
-`G2ME -f pr -m 3 -o prForPlayersWhoAttendedAtLeast3Events`
+`G2ME -m 3 -o prForPlayersWhoAttendedAtLeast3Events`
 
-Stands for **m**inimum events attended. Useful for outputting a meaningful pr
-that won't have the people who only showed up once or twice. Useless flag
-unless used with another flag that makes use of it such as `-o` or `-M`.
+Stands for **m**inimum events attended. This flag takes a positive integer
+as an argument and has no effect unless it precedes certain output flags.
+
+* This flag can be used with the `-C`, `-o`, `-O`, `-M`, or `-R` output flags.
+
+This flag is useful for outputting a meaningful ranking that won't have the
+people who only showed up once or twice.
 
 ### The 'M' flag
 
-`G2ME -m 8 -M`
+`G2ME -M`
 
-Stands for **M**atchup table. Can be used on its own and requires no arguments.
-Outputs the matchups records of all the players in the system, possibly
-filtered with the `-m` flag.
+Stands for **M**atchup table. This flag takes no arguments, and outputs the
+head-to-head records of all the players in the system.
+
+This flag can be used with the `-m`, or`-f` flags.
 
 Example output:
 
@@ -778,33 +792,69 @@ Julian   3-0-0   3-0-4   0-0-4   -
 
 `G2ME -n -R Julian`
 
-Stands for **n**o-colour. By default, G2ME will colour certain inputs to make
-interpretation easier. This flag disables that.
+Stands for **n**o-colour. This flag takes no arguments. By default, `G2ME` will
+colour certain outputs to make interpretation easier. This flag disables that.
+
+* This flag has an effect on the `-h`, and `-R` output flags.
 
 ### The 'N' flag
 
-When printing record data, instead of the standard:
-"**[wins]**-**[ties]**-**[losses]**", if this flag is used, `G2ME` will print
-"**[wins]**-**[losses]**" to accomodate users who participate in an event
-that can never have ties.
+`G2ME -N -M`
+
+Stands for **N**o-ties. This flag takes no arguments. if this flag is used,
+when printing record data, instead of the standard:
+"**[wins]**-**[ties]**-**[losses]**", `G2ME` will print
+"**[wins]**-**[losses]**" to accomodate users who participate in an event that
+can never have ties.
+
+* This flag has an effect on the `-C`, `-M`, and `-R` output flags.
 
 ### The 'o' flag
 
 ```
-G2ME -f pr -o 2017pr
 G2ME -o 2017pr
 ```
 
-Stands for **o**utput-path. The `-o` flag can be used in conjunction
-with the `-f` flag to, for instance, filter out players in the system who
-are not eligible to be on the pr. Takes an argument of a file path where a
-pr is to be
-written. When the 2 flags are used together, `G2ME` outputs a sorted list of
-all the players listed in the file specified by `-f` into the file specified
-by `-o`. It can be used without the `-f` flag which will make it output a pr
-containing all players in `player_dir`.
+Stands for **o**utput-path.  Takes an argument of a file path where a ranking
+is to be written.  This flag outputs a sorted list of all the players in the
+system from highest Glicko2 rating to lowest to the file specified by the flag.
 
-Example output (aka `2017pr` after running the command above):
+* This flag can be used with the `-m`, or`-f` flags.
+
+* This flag can be used with the `-v` flag, for more information in the output.
+
+Example file contents (aka `2017pr` after running the command above):
+
+```
+   Jon  2096.9   86.4  0.05998253
+ Jonah  1952.7   78.9  0.05997614
+Isaiah  1868.1   81.7  0.05997935
+  Josh  1855.0   84.5  0.05997642
+ Mirza  1769.3   79.0  0.05997854
+Julian  1700.3   68.3  0.05995536
+ Bilal  1696.7   68.9  0.05997426
+Edward  1664.1   83.9  0.05998085
+Jerome  1622.1   89.0  0.05999465
+ Kriss  1580.9   84.8  0.05997963
+  Theo  1579.3   97.0  0.05997789
+```
+
+### The 'O' flag
+
+```
+G2ME -O
+```
+
+Stands for **O**utput.  Takes no arguments and outputs a sorted list of all the
+players in the system from highest Glicko2 rating, to lowest to stdout. The
+output of this flag is the exact same as contents of the file written to by
+calling `G2ME -o [some_file]`.
+
+* This flag can be used with the `-m`, or`-f` flags.
+
+* This flag can be used with the `-v` flag, for more information in the output.
+
+Example output:
 
 ```
    Jon  2096.9   86.4  0.05998253
@@ -829,6 +879,10 @@ the set (or game, if you used the `-g` flag to run the brackets) counts for the
 given player against every player they have played that the system knows about.
 Most useful for getting stats for commentary or for smack talking :^].
 
+* This flag can be used with the `-m`, or`-f` flags.
+
+* This flag can be used with the `-v` flag, for more information in the output.
+
 Example output:
 
 ```
@@ -840,17 +894,19 @@ Julian vs John = 4-0-0
 
 ### The 'v' flag
 
-Takes no arguments. Modifies the output of some option flags (like
-`-h`, `-o`, `-O`, `-R`) to contain more information.
+Stands for "**v**erbose-mode. Takes no arguments. Modifies the output of some
+option flags (`-h`, `-o`, `-O`, `-R`) to contain more information.
 
 ### The 'w' flag
 
 `G2ME -w 0.5 -b bracket`
 
-This flag requires a following `-b` flag call as it affects how the bracket
-will affect player's Glicko2 data. This flag multiplies the change in a
-player's Glicko2 data after a set/game by the given value. **This flag is
-not recommended for use.**
+Stands for **w**eight. This flag takes one argument in the form of a double (or
+float, if you will) representing how much the change in rating for every player
+should be multiplied by, when running a bracket. As such, this flag requires a
+following `-b` flag call. The intention is that one can value different events
+more or less than others. **This flag is not recommended for use.**
+
 
 ## The Glicko2 System Explained
 
