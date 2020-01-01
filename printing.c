@@ -319,8 +319,8 @@ void print_entry_name(struct entry E, int longest_name, int longest_rating, \
  *     a failure.
  */
 int print_player_file_verbose(char* file_path) {
-	struct entry line;
-	entry_file_read_start_from_file(file_path, &line);
+	struct entry E;
+	entry_file_read_start_from_file(file_path, &E);
 
 	/* Open file for reading */
 	FILE *p_file = fopen(file_path, "rb");
@@ -348,15 +348,15 @@ int print_player_file_verbose(char* file_path) {
 	fseek(p_file, 0, SEEK_SET);
 	entry_file_open_get_to_entries(p_file);
 	/* Get the longest lengths of the parts of an entry in string form */
-	while (entry_file_open_read_entry(p_file, &line) == 0) {
+	while (entry_file_open_read_entry(p_file, &E) == 0) {
 		char count_entry = 1;
 		/* If a minimum event filter was set */
 		if (pr_minimum_events > 0) {
 			/* RD-adjustments will not meet minimum event requirements */
-			if (line.is_competitor == 0) count_entry = 0;
+			if (E.is_competitor == 0) count_entry = 0;
 			else {
 				char *full_player_path = \
-					player_dir_file_path_with_player_dir(line.opp_name);
+					player_dir_file_path_with_player_dir(E.opp_name);
 				int attended_count = \
 					entry_file_get_events_attended_count(full_player_path);
 				free(full_player_path);
@@ -365,37 +365,73 @@ int print_player_file_verbose(char* file_path) {
 				if (attended_count < pr_minimum_events) count_entry = 0;
 			}
 		}
+		
+		char found_name = 1;
+		/* If a filter file was specified, and the entry passes the
+		 * minimum event filter */
+		if (f_flag_used == 1 && count_entry == 1) {
+			found_name = 0;
+
+			FILE *filter_file = fopen(filter_file_path, "r");
+			if (filter_file == NULL) {
+				perror("fopen (print_player_file_verbose)");
+				return -1;
+			}
+
+			char line[MAX_NAME_LEN + 1];
+
+			while (fgets(line, sizeof(line), filter_file)) {
+				/* Replace newline with null terminator */
+				char *end_of_line = strchr(line, '\n');
+				if (end_of_line == NULL) {
+					perror("strchr (filter_player_list)");
+					return -2;
+				}
+				*end_of_line = '\0';
+
+				if (0 == strcmp(line, E.opp_name)) {
+					found_name = 1;
+					break;
+				}
+			}
+
+			fclose(filter_file);
+		}
+
+		/* If the opponent did not pass the filter file filter,
+		 * ignore this entry */
+		if (found_name == 0) count_entry = 0;
 
 		if (count_entry == 1) {
-			if (strlen(line.opp_name) > longest_name) {
-				longest_name = strlen(line.opp_name);
+			if (strlen(E.opp_name) > longest_name) {
+				longest_name = strlen(E.opp_name);
 			}
 
-			sprintf(temp, "%d", line.len_name);
+			sprintf(temp, "%d", E.len_name);
 			if (strlen(temp) > longest_nl) longest_nl = strlen(temp);
-			sprintf(temp, "%d", line.len_opp_name);
+			sprintf(temp, "%d", E.len_opp_name);
 			if (strlen(temp) > longest_opp_nl) longest_opp_nl = strlen(temp);
-			sprintf(temp, "%d", line.opp_id);
+			sprintf(temp, "%d", E.opp_id);
 			if (strlen(temp) > longest_opp_id) longest_opp_id = strlen(temp);
-			sprintf(temp, "%.4lf", line.rating);
+			sprintf(temp, "%.4lf", E.rating);
 			if (strlen(temp) > longest_rating) longest_rating = strlen(temp);
-			sprintf(temp, "%.4lf", line.RD);
+			sprintf(temp, "%.4lf", E.RD);
 			if (strlen(temp) > longest_RD) longest_RD = strlen(temp);
-			sprintf(temp, "%.8lf", line.vol);
+			sprintf(temp, "%.8lf", E.vol);
 			if (strlen(temp) > longest_vol) longest_vol = strlen(temp);
-			sprintf(temp, "%d/%d/%d", line.day, line.month, line.year);
+			sprintf(temp, "%d/%d/%d", E.day, E.month, E.year);
 			if (strlen(temp) > longest_date) longest_date = strlen(temp);
-			sprintf(temp, "%d", line.gc);
+			sprintf(temp, "%d", E.gc);
 			if (strlen(temp) > longest_gc) longest_gc = strlen(temp);
-			sprintf(temp, "%d", line.opp_gc);
+			sprintf(temp, "%d", E.opp_gc);
 			if (strlen(temp) > longest_opp_gc) longest_opp_gc = strlen(temp);
-			sprintf(temp, "%d", line.tournament_id);
+			sprintf(temp, "%d", E.tournament_id);
 			if (strlen(temp) > longest_t_id) longest_t_id = strlen(temp);
 
-			if (strlen(line.t_name) > longest_t_name) {
-				longest_t_name = strlen(line.t_name);
+			if (strlen(E.t_name) > longest_t_name) {
+				longest_t_name = strlen(E.t_name);
 			}
-			sprintf(temp, "%d", line.season_id);
+			sprintf(temp, "%d", E.season_id);
 			if (strlen(temp) > longest_s_id) longest_s_id = strlen(temp);
 		}
 	}
@@ -403,16 +439,16 @@ int print_player_file_verbose(char* file_path) {
 	fseek(p_file, 0, SEEK_SET);
 	entry_file_open_get_to_entries(p_file);
 
-	while (entry_file_open_read_entry(p_file, &line) == 0) {
+	while (entry_file_open_read_entry(p_file, &E) == 0) {
 		char print = 1;
 
 		/* If a minimum event filter was set */
 		if (pr_minimum_events > 0) {
 			/* RD-adjustments will not meet minimum event requirements */
-			if (line.is_competitor == 0) print = 0;
+			if (E.is_competitor == 0) print = 0;
 			else {
 				char *full_player_path = \
-					player_dir_file_path_with_player_dir(line.opp_name);
+					player_dir_file_path_with_player_dir(E.opp_name);
 				int attended_count = \
 					entry_file_get_events_attended_count(full_player_path);
 				free(full_player_path);
@@ -422,8 +458,42 @@ int print_player_file_verbose(char* file_path) {
 			}
 		}
 
+		char found_name = 0;
+		/* If a filter file was specified, and the entry passes the
+		 * minimum event filter */
+		if (f_flag_used == 1 && print == 1) {
+			FILE *filter_file = fopen(filter_file_path, "r");
+			if (filter_file == NULL) {
+				perror("fopen (print_player_file_verbose)");
+				return -1;
+			}
+
+			char line[MAX_NAME_LEN + 1];
+
+			while (fgets(line, sizeof(line), filter_file)) {
+				/* Replace newline with null terminator */
+				char *end_of_line = strchr(line, '\n');
+				if (end_of_line == NULL) {
+					perror("strchr (filter_player_list)");
+					return -2;
+				}
+				*end_of_line = '\0';
+
+				if (0 == strcmp(line, E.opp_name)) {
+					found_name = 1;
+					break;
+				}
+			}
+
+			fclose(filter_file);
+		}
+
+		/* If the opponent did not pass the filter file filter,
+		 * ignore this entry */
+		if (found_name == 0) print = 0;
+
 		if (print == 1) {
-			print_entry_name_verbose(line, longest_nl, longest_opp_nl, \
+			print_entry_name_verbose(E, longest_nl, longest_opp_nl, \
 				longest_opp_id, longest_name, longest_rating, longest_RD, \
 				longest_vol, longest_gc, longest_opp_gc, longest_t_id, \
 				longest_date, longest_t_name, longest_s_id);
@@ -443,8 +513,8 @@ int print_player_file_verbose(char* file_path) {
  *     a failure.
  */
 int print_player_file(char* file_path) {
-	struct entry line;
-	entry_file_read_start_from_file(file_path, &line);
+	struct entry E;
+	entry_file_read_start_from_file(file_path, &E);
 
 	/* Open file for reading */
 	FILE *p_file = fopen(file_path, "rb");
@@ -468,15 +538,15 @@ int print_player_file(char* file_path) {
 	fseek(p_file, 0, SEEK_SET);
 	entry_file_open_get_to_entries(p_file);
 	/* Get the longest lengths of the parts of an entry in string form */
-	while (entry_file_open_read_entry(p_file, &line) == 0) {
+	while (entry_file_open_read_entry(p_file, &E) == 0) {
 		char count_entry = 1;
 		/* If a minimum event filter was set */
 		if (pr_minimum_events > 0) {
 			/* RD-adjustments will not meet minimum event requirements */
-			if (line.is_competitor == 0) count_entry = 0;
+			if (E.is_competitor == 0) count_entry = 0;
 			else {
 				char *full_player_path = \
-					player_dir_file_path_with_player_dir(line.opp_name);
+					player_dir_file_path_with_player_dir(E.opp_name);
 				int attended_count = \
 					entry_file_get_events_attended_count(full_player_path);
 				free(full_player_path);
@@ -486,25 +556,61 @@ int print_player_file(char* file_path) {
 			}
 		}
 
+		char found_name = 1;
+		/* If a filter file was specified, and the entry passes the
+		 * minimum event filter */
+		if (f_flag_used == 1 && count_entry == 1) {
+			found_name = 0;
+
+			FILE *filter_file = fopen(filter_file_path, "r");
+			if (filter_file == NULL) {
+				perror("fopen (print_player_file_verbose)");
+				return -1;
+			}
+
+			char line[MAX_NAME_LEN + 1];
+
+			while (fgets(line, sizeof(line), filter_file)) {
+				/* Replace newline with null terminator */
+				char *end_of_line = strchr(line, '\n');
+				if (end_of_line == NULL) {
+					perror("strchr (filter_player_list)");
+					return -2;
+				}
+				*end_of_line = '\0';
+
+				if (0 == strcmp(line, E.opp_name)) {
+					found_name = 1;
+					break;
+				}
+			}
+
+			fclose(filter_file);
+		}
+
+		/* If the opponent did not pass the filter file filter,
+		 * ignore this entry */
+		if (found_name == 0) count_entry = 0;
+
 		if (count_entry == 1) {
-			sprintf(temp, "%d", line.len_name);
-			if (strlen(line.opp_name) > longest_name) {
-				longest_name = strlen(line.opp_name);
+			sprintf(temp, "%d", E.len_name);
+			if (strlen(E.opp_name) > longest_name) {
+				longest_name = strlen(E.opp_name);
 			}
 			if (strlen(temp) > longest_nl) longest_nl = strlen(temp);
-			sprintf(temp, "%d", line.len_opp_name);
+			sprintf(temp, "%d", E.len_opp_name);
 			if (strlen(temp) > longest_opp_nl) longest_opp_nl = strlen(temp);
-			sprintf(temp, "%.1lf", line.rating);
+			sprintf(temp, "%.1lf", E.rating);
 			if (strlen(temp) > longest_rating) longest_rating = strlen(temp);
-			sprintf(temp, "%.1lf", line.RD);
+			sprintf(temp, "%.1lf", E.RD);
 			if (strlen(temp) > longest_RD) longest_RD = strlen(temp);
-			sprintf(temp, "%.6lf", line.vol);
+			sprintf(temp, "%.6lf", E.vol);
 			if (strlen(temp) > longest_vol) longest_vol = strlen(temp);
-			sprintf(temp, "%d/%d/%d", line.day, line.month, line.year);
+			sprintf(temp, "%d/%d/%d", E.day, E.month, E.year);
 			if (strlen(temp) > longest_date) longest_date = strlen(temp);
-			sprintf(temp, "%d", line.gc);
+			sprintf(temp, "%d", E.gc);
 			if (strlen(temp) > longest_gc) longest_gc = strlen(temp);
-			sprintf(temp, "%d", line.opp_gc);
+			sprintf(temp, "%d", E.opp_gc);
 			if (strlen(temp) > longest_opp_gc) longest_opp_gc = strlen(temp);
 		}
 	}
@@ -512,16 +618,16 @@ int print_player_file(char* file_path) {
 	fseek(p_file, 0, SEEK_SET);
 	entry_file_open_get_to_entries(p_file);
 
-	while (entry_file_open_read_entry(p_file, &line) == 0) {
+	while (entry_file_open_read_entry(p_file, &E) == 0) {
 		char print = 1;
 
 		/* If a minimum event filter was set */
 		if (pr_minimum_events > 0) {
 			/* RD-adjustments will not meet minimum event requirements */
-			if (line.is_competitor == 0) print = 0;
+			if (E.is_competitor == 0) print = 0;
 			else {
 				char *full_player_path = \
-					player_dir_file_path_with_player_dir(line.opp_name);
+					player_dir_file_path_with_player_dir(E.opp_name);
 				int attended_count = \
 					entry_file_get_events_attended_count(full_player_path);
 				free(full_player_path);
@@ -531,8 +637,44 @@ int print_player_file(char* file_path) {
 			}
 		}
 
+		char found_name = 1;
+		/* If a filter file was specified, and the entry passes the
+		 * minimum event filter */
+		if (f_flag_used == 1 && print == 1) {
+			found_name = 0;
+
+			FILE *filter_file = fopen(filter_file_path, "r");
+			if (filter_file == NULL) {
+				perror("fopen (print_player_file_verbose)");
+				return -1;
+			}
+
+			char line[MAX_NAME_LEN + 1];
+
+			while (fgets(line, sizeof(line), filter_file)) {
+				/* Replace newline with null terminator */
+				char *end_of_line = strchr(line, '\n');
+				if (end_of_line == NULL) {
+					perror("strchr (filter_player_list)");
+					return -2;
+				}
+				*end_of_line = '\0';
+
+				if (0 == strcmp(line, E.opp_name)) {
+					found_name = 1;
+					break;
+				}
+			}
+
+			fclose(filter_file);
+		}
+
+		/* If the opponent did not pass the filter file filter,
+		 * ignore this entry */
+		if (found_name == 0) print = 0;
+
 		if (print == 1) {
-			print_entry_name(line, longest_name, longest_rating, longest_RD, \
+			print_entry_name(E, longest_name, longest_rating, longest_RD, \
 				longest_vol, longest_gc, longest_opp_gc, longest_date);
 		}
 	}
