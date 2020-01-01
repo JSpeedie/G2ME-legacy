@@ -690,7 +690,8 @@ to by a previous `-d` flag.
 Stands for **f**ilter. Takes one argument in the form of a path to a filter
 file. This flag has no effect unless it precedes certain output flags.
 
-* This flag can be used with the `-C`, `-o`, `-O`, `-M`, or `-R` output flags.
+* This flag can be used with the `-C`, `-h`, `-o`, `-O`, `-M`, or `-R` output
+  flags.
 
 This flag is used in conjunction with the select output flags to filter the
 output.  This flag takes an input of a player list file where each line is a
@@ -737,6 +738,8 @@ Stands for **H**istory. Takes one argument in the form of a player
 file, and prints the outcome history of the player, including their Glicko2
 history.
 
+* This flag can be used with the `-m`, or`-f` flags.
+
 * This flag can be used with the `-v` flag, for more information in the output.
 
 Example output (from command above):
@@ -765,7 +768,8 @@ prevent `G2ME` from deleting all the files.
 Stands for **m**inimum events attended. This flag takes a positive integer
 as an argument and has no effect unless it precedes certain output flags.
 
-* This flag can be used with the `-C`, `-o`, `-O`, `-M`, or `-R` output flags.
+* This flag can be used with the `-C`, `-h`, `-o`, `-O`, `-M`, or `-R` output
+  flags.
 
 This flag is useful for outputting a meaningful ranking that won't have the
 people who only showed up once or twice.
