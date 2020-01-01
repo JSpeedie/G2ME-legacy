@@ -389,19 +389,43 @@ record against every player they've played so far.
 <details><summary>Click to Expand</summary><p>
 
 One of the most useful parts of this project is that it works quite nicely with
-Challonge, the free bracket site. In this repo there is a simple shell script I
-have written that takes the url to a challonge bracket, and converts it
-(nearly) into a `G2ME` compliant bracket file. Here's an example:
+Challonge, the free bracket site. To convert challonge brackets to input for
+`G2ME`, we will use `convchallonge.py`, but before we use it, some manual
+configuration must be done.
+
+These days, challonge is not so lenient with people pinging its servers for
+this-and-that.  To get the data we need for this program, we must submit a
+proper API request to challonge. *This requires having a challonge account*, and
+in some cases, it requires using the account that created the tournament.
+
+### Step 1
+
+You only have to do this once. Open up `convchallonge.py` in your favourite
+text editor, and change lines 7 and 8 from:
 
 ```
-$ sh convchallonge.sh [challonge_url_here] > [output_file_here]
+user = "[your_challonge_username]"
+key = "[your_api_key]"
 ```
 
-Let's take a look at what this would output for our example bracket
-`examples/example1` if we ran it on Challonge.
+To contain your actual username and actual api key. Please be careful, your api
+key allows one to do **anything** your account could do when logged in,
+including deleting brackets. *Do not share this file after making these
+changes.* After filling in the info, lines 7 and 8 should look something like:
 
 ```
-$ sh convchallonge.sh [challonge_url_here] > [output_file_here]
+user = "UTSCSmash"
+key = "Yfdjo82L8jfJYu8E3wb7fUr3WneFIrq5bQBjwla7"
+```
+
+### Step 2
+
+With that done, all you have to do now is run the script with the url to the
+bracket you want to convert, and the file path where the output will be
+written. For example:
+
+```
+$ python convchallonge.py [challonge_url_here] [output_file_here]
 $ cat [output_file_here]
 "TheBestPlayer" "ABadPlayer" 3 0 28 3 2018
 "AGoodPlayer" "AnOkayPlayer" 3 1 28 3 2018
