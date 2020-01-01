@@ -575,8 +575,9 @@ Glicko2 calculations.
 
 `G2ME -A Julian`
 
-Takes a file path, and prints the names of all the events this player attended
-that were tracked by the system.
+Stands for "events **A**ttended". Takes one argument in the form of a player
+file, and prints the names of all the events this player attended that were
+tracked by the system.
 
 Example output:
 
@@ -629,7 +630,7 @@ it looks like:
 
 ```
 If not given a -k flag:
-	reset the player directory  // delete all player data
+	reset the player directory   // delete all player data
 for line i in season.sea
 	G2ME -kb i
 ```
@@ -649,12 +650,12 @@ TT3
 
 `G2ME -c JohnSmith`
 
-This flag takes one input, a player file path. G2ME will then output
-the number of non-RD adjustment entries that player has. The purpose of this
-is to try to get a grasp of how much data the system has on the player.
+This flag takes one input in the form of a player file path. G2ME will then
+output the number of non-RD adjustment entries that player has. The purpose of
+this is to try to get a grasp of how much data the system has on the player.
 If this flag outputs a higher number for one player than another it does not
-necessarily mean that it has more accurate data on the one with the
-higher number, however.
+necessarily mean that it has more accurate data on the one with the higher
+number, however.
 
 ### The 'C' flag
 
@@ -662,7 +663,7 @@ Stands for **C**SV-head-to-heads. This flag takes no arguments and outputs a
 csv-style "spreadsheet" of player head-to-head data. It's useful for turning the
 data into a spreadsheet or for use with spreadsheet software.
 
-* This flag can be used with the `-m`, or`-f` flags.
+* This flag can be used with the `-m`, and `-f` flags.
 
 The data is read left to right. For instance, in the example below, we find
 that Julian has 3 wins, 0 ties and 0 losses to Ash, has beaten Bilal 3 times,
@@ -742,7 +743,7 @@ running "test" using games ...DONE
 Stands for use-**g**ames. Takes no arguments, but has no effect unless
 it precedes an input flag (`-b` or `-B`).
 
-The `g` flag tells G2ME to calculate the Glicko ratings on a per-game basis.
+The `-g` flag tells G2ME to calculate the Glicko ratings on a per-game basis.
 If not set, the default is to calculate on a by-set basis. This means if the
 set count is 3-2, 7-0 or 2-1, Glicko only sees this as 1 win for the first
 player. This default was chosen to avoid giving Glicko points for successes that
@@ -789,11 +790,13 @@ prevent `G2ME` from deleting all the files.
 
 `G2ME -m 3 -o prForPlayersWhoAttendedAtLeast3Events`
 
-Stands for **m**inimum events attended. This flag takes a positive integer
-as an argument and has no effect unless it precedes certain output flags.
+Stands for **m**inimum events attended. This flag takes a positive integer as
+an argument and filters out players from output that have not attended at least
+that many events.  This flag has no effect unless it precedes certain output
+flags.
 
-* This flag can be used with the `-C`, `-h`, `-o`, `-O`, `-M`, or `-R` output
-  flags.
+* This flag can be used with the `-C`, `-h`, `-o`, `-O`, `-M`, and `-R` output
+flags.
 
 This flag is useful for outputting a meaningful ranking that won't have the
 people who only showed up once or twice.
@@ -805,7 +808,7 @@ people who only showed up once or twice.
 Stands for **M**atchup table. This flag takes no arguments, and outputs the
 head-to-head records of all the players in the system.
 
-* This flag can be used with the `-m`, or`-f` flags.
+* This flag can be used with the `-m`, and `-f` flags.
 
 Example output:
 
@@ -823,6 +826,7 @@ Julian   3-0-0   3-0-4   0-0-4   -
 
 Stands for **n**o-colour. This flag takes no arguments. By default, `G2ME` will
 colour certain outputs to make interpretation easier. This flag disables that.
+Mostly useful to allow parsing of `G2ME` output by other programs.
 
 * This flag has an effect on the `-h`, and `-R` output flags.
 
@@ -830,7 +834,7 @@ colour certain outputs to make interpretation easier. This flag disables that.
 
 `G2ME -N -M`
 
-Stands for **N**o-ties. This flag takes no arguments. if this flag is used,
+Stands for **N**o-ties. This flag takes no arguments. If this flag is used,
 when printing record data, instead of the standard:
 "**[wins]**-**[ties]**-**[losses]**", `G2ME` will print
 "**[wins]**-**[losses]**" to accomodate users who participate in an event that
@@ -879,7 +883,7 @@ players in the system from highest Glicko2 rating, to lowest to stdout. The
 output of this flag is the exact same as contents of the file written to by
 calling `G2ME -o [some_file]`.
 
-* This flag can be used with the `-m`, or`-f` flags.
+* This flag can be used with the `-m`, and `-f` flags.
 
 * This flag can be used with the `-v` flag, for more information in the output.
 
@@ -908,7 +912,7 @@ the set (or game, if you used the `-g` flag to run the brackets) counts for the
 given player against every player they have played that the system knows about.
 Most useful for getting stats for commentary or for smack talking :^].
 
-* This flag can be used with the `-m`, or`-f` flags.
+* This flag can be used with the `-m`, and `-f` flags.
 
 * This flag can be used with the `-v` flag, for more information in the output.
 
@@ -923,8 +927,8 @@ Julian vs John = 4-0-0
 
 ### The 'v' flag
 
-Stands for "**v**erbose-mode. Takes no arguments. Modifies the output of some
-option flags to contain more information.
+Stands for "**v**erbose mode". Takes no arguments. Modifies the output of some
+output flags to contain more information.
 
 * This flag has an effect on the `-h`, `-o`, `-O`, and `-R` output flags.
 
@@ -933,10 +937,11 @@ option flags to contain more information.
 `G2ME -w 0.5 -b bracket`
 
 Stands for **w**eight. This flag takes one argument in the form of a double (or
-float, if you will) representing how much the change in rating for every player
-should be multiplied by, when running a bracket. As such, this flag requires a
-following `-b` flag call. The intention is that one can value different events
-more or less than others. **This flag is not recommended for use.**
+float, if you will) representing how much the change in rating RD, and
+volatility for every player should be multiplied by, when running a bracket. As
+such, this flag requires a following input flag (`-b`, or `-B`) call. The
+intention is that one can value different events more or less than others.
+**This flag is not recommended for use.**
 
 
 ## The Glicko2 System Explained
@@ -1097,4 +1102,6 @@ Where:
 no RD adjustments for missing events (default 1 or 2 weeks?)
 * Make sure glicko2.c meets code conventions (line length, doc string,
 no TODOs)
+* Move barebones glicko2 C implementation to separate repo for those who just
+want that part of the project.
 * Remove TODOs in G2ME.c, make sure invalid input/error checking is sound
