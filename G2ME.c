@@ -46,10 +46,10 @@ char DIR_TERMINATOR = '/';
 #endif
 
 
-const char ERROR_PLAYER_DIR_DNE[] = { "Error: 'player_dir' either could not be "
-	"created or does not exist\n"};
-const char ERROR_PLAYER_DNE[] = { "Error: the given player could not be found "
-	"in working directory or the given player directory\n"};
+const char ERROR_PLAYER_DIR_DNE[] = { "Error: 'player_dir' either could "
+	"not be created or does not exist\n"};
+const char ERROR_PLAYER_DNE[] = { "Error: the given player could not "
+	"be found in working directory or the given player directory\n"};
 
 
 char flag_output_to_stdout = 0;
@@ -126,8 +126,9 @@ int init_record(struct record *r) {
  *     outcome took place at.
  * \return a struct entry containing all that information
  */
-struct entry create_entry(struct player* P, char* name, char* opp_name,
-	char gc, char opp_gc, char day, char month, short year, char* t_name, short season_id) {
+struct entry create_entry(struct player* P, char* name, char* opp_name, \
+	char gc, char opp_gc, char day, char month, short year, \
+	char* t_name, short season_id) {
 
 	struct entry ret;
 	ret.len_name = strlen(name);
@@ -172,9 +173,10 @@ struct entry create_entry(struct player* P, char* name, char* opp_name,
  *     took place at.
  * \return void
  */
-void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, char* p2_name, \
-	struct player* p1, struct player* p2, char* p1_gc, char* p2_gc, \
-	char day, char month, short year, short t_id, char* t_name, short season_id) {
+void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
+	char* p2_name, struct player* p1, struct player* p2, char* p1_gc, \
+	char* p2_gc, char day, char month, short year, short t_id, \
+	char* t_name, short season_id) {
 
 	char *full_p1_path = player_dir_file_path_with_player_dir(p1_name);
 	char *full_p2_path = player_dir_file_path_with_player_dir(p2_name);
@@ -193,7 +195,9 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, char* p2_
 		/* Read latest entries into usable data */
 		int ret;
 		struct entry p1_latest;
-		if (0 == (ret = entry_file_read_last_entry_minimal(full_p1_path, &p1_latest))) {
+		if (0 == (ret = entry_file_read_last_entry_minimal(full_p1_path, \
+			&p1_latest))) {
+
 			init_player_from_entry(p1, &p1_latest);
 			/* If this outcome was not a part of a season, write the season
 			 * as the same as the latest season the player was in */
@@ -222,7 +226,9 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, char* p2_
 		/* Read latest entries into usable data */
 		int ret;
 		struct entry p2_latest;
-		if (0 == (ret = entry_file_read_last_entry_minimal(full_p2_path, &p2_latest))) {
+		if (0 == (ret = entry_file_read_last_entry_minimal(full_p2_path, \
+			&p2_latest))) {
+
 			init_player_from_entry(p2, &p2_latest);
 		} else {
 			fprintf(stderr, \
@@ -242,17 +248,24 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, char* p2_
 
 	update_player(&new_p1, &p2->__rating, 1, &p2->__rd, &p1_result);
 	update_player(&new_p2, &p1->__rating, 1, &p1->__rd, &p2_result);
+
 	/* Adjust changes in glicko data based on weight of given game/set */
-	new_p1.__rating = p1->__rating + ((new_p1.__rating - p1->__rating) * outcome_weight);
+	new_p1.__rating = \
+		p1->__rating + ((new_p1.__rating - p1->__rating) * outcome_weight);
 	new_p1.__rd = p1->__rd + ((new_p1.__rd - p1->__rd) * outcome_weight);
 	new_p1.vol = p1->vol + ((new_p1.vol - p1->vol) * outcome_weight);
+
 	struct entry p1_new_entry =
-		create_entry(&new_p1, p1_name, p2_name, *p1_gc, *p2_gc, day, month, year, t_name, season_id);
+		create_entry(&new_p1, p1_name, p2_name, *p1_gc, *p2_gc, \
+			day, month, year, t_name, season_id);
+
 	p1_new_entry.opp_id = p2_id;
 	p1_new_entry.tournament_id = t_id;
 	int ret = entry_file_append_entry_to_file_id(&p1_new_entry, full_p1_path);
+
 	if (ret != 0) {
-		fprintf(stderr, "Error appending entry to file \"%s\"\n", full_p1_path);
+		fprintf(stderr, "Error appending entry to file \"%s\"\n", \
+			full_p1_path);
 	}
 
 	free(full_p1_path);
@@ -274,8 +287,8 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, char* p2_
  * \param '*t_id' the id of the event that they were absent from.
  * \param '*t_name' the name of the event that they were absent from.
  */
-void adjust_absent_player(char *player_file, char day, char month, short year, \
-	short t_id, char *t_name) {
+void adjust_absent_player(char *player_file, char day, char month, \
+	short year, short t_id, char *t_name) {
 
 	char* full_file_path = player_dir_file_path_with_player_dir(player_file);
 
@@ -290,7 +303,8 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
 #endif
 		struct player P;
 		struct entry latest_ent;
-		if (0 == entry_file_read_last_entry_absent(full_file_path, &latest_ent)) {
+		if (0 == entry_file_read_last_entry_absent(full_file_path, \
+			&latest_ent)) {
 
 			/* If this adjustment is taking place on a different
 			 * day from their last entry */
@@ -313,14 +327,16 @@ void adjust_absent_player(char *player_file, char day, char month, short year, \
 				/* Modify first bit of 'day' to tell whether this was a real
 				 * set/game. Day should always be <= 31 leaving 3 extra bits.
 				 * Bitwise OR with 10000000 */
-				latest_ent.day = latest_ent.day | (1 << ((sizeof(latest_ent.day) * 8) - 1));
+				latest_ent.day = \
+					latest_ent.day | (1 << ((sizeof(latest_ent.day) * 8) - 1));
 				latest_ent.month = month;
 				latest_ent.year = year;
 				latest_ent.tournament_id = t_id;
 				strncpy(latest_ent.t_name, t_name, MAX_NAME_LEN);
 				latest_ent.len_t_name = strlen(latest_ent.t_name);
 				latest_ent.t_name[latest_ent.len_t_name] = '\0';
-				entry_file_append_adjustment_to_file_id(&latest_ent, full_file_path);
+				entry_file_append_adjustment_to_file_id(&latest_ent, \
+					full_file_path);
 			}
 		}
 	}
@@ -398,7 +414,9 @@ void adjust_absent_players_no_file(char day, char month, \
 		while (L <= R) {
 			m = floor(((double) (L + R)) / 2.0);
 			/* Compare array[m] with the name being searched for */
-			int comp = strncmp(&tourn_atten[m].name[0], &players[(MAX_NAME_LEN + 1) * y], MAX_NAME_LEN);
+			int comp = strncmp(&tourn_atten[m].name[0], \
+				&players[(MAX_NAME_LEN + 1) * y], MAX_NAME_LEN);
+
 			if (0 > comp) {
 				L = m + 1;
 			} else if (0 < comp) {
@@ -410,7 +428,8 @@ void adjust_absent_players_no_file(char day, char month, \
 		}
 
 		if (did_not_comp) {
-			long next_name = (args[cur_f].num_adjustments) * (MAX_NAME_LEN + 1);
+			long next_name = \
+				(args[cur_f].num_adjustments) * (MAX_NAME_LEN + 1);
 			/* realloc if necessary */
 			if (args[cur_f].num_adjustments + 1 > args[cur_f].size_of_files) {
 				args[cur_f].size_of_files *= 2;
@@ -423,7 +442,9 @@ void adjust_absent_players_no_file(char day, char month, \
 			}
 
 			/* Copy file name into proper thread input file list */
-			strncpy(&args[cur_f].files[next_name], &players[(MAX_NAME_LEN + 1) * y], MAX_NAME_LEN + 1);
+			strncpy(&args[cur_f].files[next_name], \
+				&players[(MAX_NAME_LEN + 1) * y], \
+				MAX_NAME_LEN + 1);
 			args[cur_f].num_adjustments++;
 
 			if (all_thread_min_cap_reached == 0) {
@@ -434,8 +455,9 @@ void adjust_absent_players_no_file(char day, char month, \
 						all_thread_min_cap_reached = 1;
 					} else {
 						args[cur_f].size_of_files = MINIMUM_ADJ_BEFORE_FORK;
-						args[cur_f].files = \
-							(char *)malloc(args[cur_f].size_of_files * (MAX_NAME_LEN + 1));
+						size_t new_size = args[cur_f].size_of_files \
+							* (MAX_NAME_LEN + 1);
+						args[cur_f].files = (char *)malloc(new_size);
 						args[cur_f].num_adjustments = 0;
 						total_threads_needed++;
 					}
@@ -459,7 +481,8 @@ void adjust_absent_players_no_file(char day, char month, \
 		/* Get this processes' list of player names that did not compete and
 		 * apply step 6 to them and append to player file */
 		for (int j = 0; j < t->num_adjustments; j++) {
-			adjust_absent_player(&(t->files[j * (MAX_NAME_LEN + 1)]), day, month, year, t_id, t_name);
+			adjust_absent_player(&(t->files[j * (MAX_NAME_LEN + 1)]), \
+				day, month, year, t_id, t_name);
 		}
 		return NULL;
 	}
@@ -496,12 +519,15 @@ void adjust_absent_players_no_file(char day, char month, \
 int update_players(char* bracket_file_path, short season_id) {
 	/* Set to 0 since the bracket is beginning and no names are stored */
 	tourn_atten_len = 0;
+	size_t array_size = \
+		(sizeof(struct tournament_attendee)) * tourn_atten_size;
 	tourn_atten = \
-		(struct tournament_attendee *)malloc((sizeof(struct tournament_attendee)) * tourn_atten_size);
+		(struct tournament_attendee *)malloc(array_size);
 
 	FILE *bracket_file = fopen(bracket_file_path, "r");
 	if (bracket_file == NULL) {
-		fprintf(stderr, "Error opening file \"%s\" (update_players): ", bracket_file_path);
+		fprintf(stderr, "Error opening file \"%s\" (update_players): ", \
+			bracket_file_path);
 		perror("");
 		return -1;
 	}
@@ -553,7 +579,9 @@ int update_players(char* bracket_file_path, short season_id) {
 				 * of the comment symbol */
 				if (line[i] == COMMENT_SYMBOL[0]) {
 					/* If there is a comment, do not parse the line */
-					if (strncmp(&line[i], COMMENT_SYMBOL, comment_symbol_len) == 0) {
+					if (strncmp( \
+						&line[i], COMMENT_SYMBOL, comment_symbol_len) == 0) {
+
 						line[i] = '\0';
 						break;
 					}
@@ -566,7 +594,9 @@ int update_players(char* bracket_file_path, short season_id) {
 		/* Check if the line is non-empty */
 		while (i < strlen(line)) {
 			/* If it reaches a non-whitespace character */
-			if (line[i] != '	' && line[i] != ' ' && line[i] != '\n' && line[i] != '\r') {
+			if (line[i] != '	' && line[i] != ' ' \
+				&& line[i] != '\n' && line[i] != '\r') {
+
 				parse_line = 1;
 				break;
 			}
@@ -583,7 +613,8 @@ int update_players(char* bracket_file_path, short season_id) {
 					return -2;
 				}
 			}
-			strncpy(&outcomes[num_outcomes * (MAX_BRACKET_FILE_LINE_LEN + 1)], \
+			strncpy( \
+				&outcomes[num_outcomes * (MAX_BRACKET_FILE_LINE_LEN + 1)], \
 				&line[0], MAX_BRACKET_FILE_LINE_LEN);
 			num_outcomes++;
 		}
@@ -605,35 +636,42 @@ int update_players(char* bracket_file_path, short season_id) {
 			strtok(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], " ");
 		int temp;
 
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		if (token == NULL) fprintf(stderr, \
+			"Not enough arguments given in bracket file\n");
 		strncpy(p1_name, token, MAX_NAME_LEN);
 
 		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		if (token == NULL) fprintf(stderr, \
+			"Not enough arguments given in bracket file\n");
 		strncpy(p2_name, token, MAX_NAME_LEN);
 
 		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		if (token == NULL) fprintf(stderr, \
+			"Not enough arguments given in bracket file\n");
 		sscanf(token, "%d", &temp);
 		p1_gc = (char)temp;
 
 		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		if (token == NULL) fprintf(stderr, \
+			"Not enough arguments given in bracket file\n");
 		sscanf(token, "%d", &temp);
 		p2_gc = (char)temp;
 
 		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		if (token == NULL) fprintf(stderr, \
+			"Not enough arguments given in bracket file\n");
 		sscanf(token, "%d", &temp);
 		day = (char)temp;
 
 		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		if (token == NULL) fprintf(stderr, \
+			"Not enough arguments given in bracket file\n");
 		sscanf(token, "%d", &temp);
 		month = (char)temp;
 
 		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		if (token == NULL) fprintf(stderr, \
+			"Not enough arguments given in bracket file\n");
 		sscanf(token, "%d", &temp);
 		year = (short)temp;
 #else
@@ -667,9 +705,12 @@ int update_players(char* bracket_file_path, short season_id) {
 			}
 			/* If the additions to be made will overflow the tournament
 			 * attendee array, realloc it to fit them */
-			if (tourn_atten_len + already_in + already_in2 > tourn_atten_size) {
+			if (tourn_atten_len + already_in + already_in2 \
+				> tourn_atten_size) {
+
 				tourn_atten_size *= REALLOC_TOURNAMENT_NAMES_FACTOR;
-				tourn_atten = (struct tournament_attendee *) realloc(tourn_atten, \
+				tourn_atten = \
+					(struct tournament_attendee *)realloc(tourn_atten, \
 					(sizeof(struct tournament_attendee)) * tourn_atten_size);
 				if (tourn_atten == NULL) {
 					perror("realloc (update_players)");
@@ -706,7 +747,9 @@ int update_players(char* bracket_file_path, short season_id) {
 		/* If the entry file does not already contain an id for this opponent */
 		struct entry E;
 		if (-1 == (ret = \
-			opp_file_open_contains_opponent(opp_file, &tourn_atten[o].name[0]))) {
+			opp_file_open_contains_opponent(opp_file, \
+				&tourn_atten[o].name[0]))) {
+
 			/* Add the new opponent to the entry file. This also corrects
 			 * the t_id if it is incorrect */
 			strncpy(&E.opp_name[0], &tourn_atten[o].name[0], MAX_NAME_LEN);
@@ -745,11 +788,13 @@ int update_players(char* bracket_file_path, short season_id) {
 			p = fork();
 			/* If child process, run adjustments while parent crunches numbers */
 			if (p == 0) {
-				adjust_absent_players_no_file(day, month, year, Et.tournament_id, t_name);
+				adjust_absent_players_no_file(day, month, year, \
+					Et.tournament_id, t_name);
 				exit(0);
 			}
 		} else {
-			adjust_absent_players_no_file(day, month, year, Et.tournament_id, t_name);
+			adjust_absent_players_no_file(day, month, year, \
+				Et.tournament_id, t_name);
 		}
 	}
 
@@ -765,35 +810,42 @@ int update_players(char* bracket_file_path, short season_id) {
 			strtok(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], " ");
 		int temp;
 
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		if (token == NULL) fprintf(stderr, \
+			"Not enough arguments given in bracket file\n");
 		strncpy(p1_name, token, MAX_NAME_LEN);
 
 		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		if (token == NULL) fprintf(stderr, \
+			"Not enough arguments given in bracket file\n");
 		strncpy(p2_name, token, MAX_NAME_LEN);
 
 		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		if (token == NULL) fprintf(stderr, \
+			"Not enough arguments given in bracket file\n");
 		sscanf(token, "%d", &temp);
 		p1_gc = (char)temp;
 
 		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		if (token == NULL) fprintf(stderr, \
+			"Not enough arguments given in bracket file\n");
 		sscanf(token, "%d", &temp);
 		p2_gc = (char)temp;
 
 		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		if (token == NULL) fprintf(stderr, \
+			"Not enough arguments given in bracket file\n");
 		sscanf(token, "%d", &temp);
 		day = (char)temp;
 
 		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		if (token == NULL) fprintf(stderr, \
+			"Not enough arguments given in bracket file\n");
 		sscanf(token, "%d", &temp);
 		month = (char)temp;
 
 		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, "Not enough arguments given in bracket file\n");
+		if (token == NULL) fprintf(stderr, \
+			"Not enough arguments given in bracket file\n");
 		sscanf(token, "%d", &temp);
 		year = (short)temp;
 #else
@@ -844,24 +896,30 @@ int update_players(char* bracket_file_path, short season_id) {
 			p1_out = 1;
 			p2_out = 0;
 			for (int i = 0; i < p1_gc; i++) {
-				update_player_on_outcome(p1_id, p1_name, p2_id, p2_name, &p1, &p2, \
-					&p1_out, &p2_out, day, month, year, Et.tournament_id, t_name, season_id);
-				update_player_on_outcome(p2_id, p2_name, p1_id, p1_name, &p2, &p1, \
-					&p2_out, &p1_out, day, month, year, Et.tournament_id, t_name, season_id);
+				update_player_on_outcome(p1_id, p1_name, p2_id, p2_name, \
+					&p1, &p2, &p1_out, &p2_out, day, month, year, \
+					Et.tournament_id, t_name, season_id);
+				update_player_on_outcome(p2_id, p2_name, p1_id, p1_name, \
+					&p2, &p1, &p2_out, &p1_out, day, month, year, \
+					Et.tournament_id, t_name, season_id);
 			}
 			p1_out = 0;
 			p2_out = 1;
 			for (int i = 0; i < p2_gc; i++) {
-				update_player_on_outcome(p1_id, p1_name, p2_id, p2_name, &p1, &p2, \
-					&p1_out, &p2_out, day, month, year, Et.tournament_id, t_name, season_id);
-				update_player_on_outcome(p2_id, p2_name, p1_id, p1_name, &p2, &p1, \
-					&p2_out, &p1_out, day, month, year, Et.tournament_id, t_name, season_id);
+				update_player_on_outcome(p1_id, p1_name, p2_id, p2_name, \
+					&p1, &p2, &p1_out, &p2_out, day, month, year, \
+					Et.tournament_id, t_name, season_id);
+				update_player_on_outcome(p2_id, p2_name, p1_id, p1_name, \
+					&p2, &p1, &p2_out, &p1_out, day, month, year, \
+					Et.tournament_id, t_name, season_id);
 			}
 		} else {
-			update_player_on_outcome(p1_id, p1_name, p2_id, p2_name, &p1, &p2, \
-				&p1_gc, &p2_gc, day, month, year, Et.tournament_id, t_name, season_id);
-			update_player_on_outcome(p2_id, p2_name, p1_id, p1_name, &p2, &p1, \
-				&p2_gc, &p1_gc, day, month, year, Et.tournament_id, t_name, season_id);
+			update_player_on_outcome(p1_id, p1_name, p2_id, p2_name, \
+				&p1, &p2, &p1_gc, &p2_gc, day, month, year, \
+				Et.tournament_id, t_name, season_id);
+			update_player_on_outcome(p2_id, p2_name, p1_id, p1_name, \
+				&p2, &p1, &p2_gc, &p1_gc, day, month, year, \
+				Et.tournament_id, t_name, season_id);
 		}
 	}
 
@@ -936,7 +994,9 @@ int run_brackets(char *bracket_list_file_path) {
 				 * of the comment symbol */
 				if (line[i] == COMMENT_SYMBOL[0]) {
 					/* If there is a comment, do not parse the line */
-					if (strncmp(&line[i], COMMENT_SYMBOL, comment_symbol_len) == 0) {
+					if (strncmp( \
+						&line[i], COMMENT_SYMBOL, comment_symbol_len) == 0) {
+
 						line[i] = '\0';
 						break;
 					}
@@ -949,7 +1009,9 @@ int run_brackets(char *bracket_list_file_path) {
 		/* Check if the line is non-empty */
 		while (i < strlen(line)) {
 			/* If it reaches a non-whitespace character */
-			if (line[i] != '	' && line[i] != ' ' && line[i] != '\n' && line[i] != '\r') {
+			if (line[i] != '	' && line[i] != ' ' \
+				&& line[i] != '\n' && line[i] != '\r') {
+
 				parse_line = 1;
 				break;
 			}
@@ -958,8 +1020,8 @@ int run_brackets(char *bracket_list_file_path) {
 		if (parse_line == 1) {
 			/* Code to catch all several forms of newline such as:
 			 * '\n', "\r\n", '\r', "\n\m". Actually catches "[\n\r].*"
-			 * If the search for a newline didn't fail, the line ended in a newline
-			 * which must be replaced */
+			 * If the search for a newline didn't fail, the line ended in a
+			 * newline which must be replaced */
 			char *end_of_line = strchr(line, '\n');
 			if (end_of_line != NULL) {
 				*end_of_line = '\0';
@@ -1066,9 +1128,12 @@ int generate_ratings_file(char* filter_file_path, char* output_file_path) {
 		/* If the player file was able to be read properly... */
 		if (0 == entry_file_read_last_entry(full_player_path, &temp)) {
 			// TODO: something here
-			int num_events = entry_file_get_events_attended_count(full_player_path);
+			int num_events = \
+				entry_file_get_events_attended_count(full_player_path);
+
 			if (longest_attended < num_events) longest_attended = num_events;
 			int num_outcomes = entry_file_get_outcome_count(full_player_path);
+
 			if (longest_outcomes < num_outcomes) {
 				longest_outcomes = num_outcomes;
 			}
@@ -1113,11 +1178,15 @@ int generate_ratings_file(char* filter_file_path, char* output_file_path) {
 	/* Append each entry pr file */
 	for (int i = 0; i < pr_entries_num; i++) {
 		if (verbose == 1) {
-			entry_file_append_pr_entry_to_file_verbose(&players_pr_entries[i], \
-				output_file_path, longest_name_length, longest_attended, \
+			entry_file_append_pr_entry_to_file_verbose( \
+				&players_pr_entries[i], \
+				output_file_path, \
+				longest_name_length, \
+				longest_attended, \
 				longest_outcomes);
 		} else {
-			entry_file_append_pr_entry_to_file(&players_pr_entries[i], output_file_path, \
+			entry_file_append_pr_entry_to_file(&players_pr_entries[i], \
+				output_file_path, \
 				longest_name_length);
 		}
 	}
@@ -1163,16 +1232,23 @@ int generate_ratings_file_full(char *output_file_path) {
 		while ((entry = readdir(p_dir)) != NULL) {
 			// Make sure it doesn't count directories
 			if (1 == check_if_dir(player_dir, entry->d_name)) {
-				char *full_player_path = player_dir_file_path_with_player_dir(entry->d_name);
+				char *full_player_path = \
+					player_dir_file_path_with_player_dir(entry->d_name);
 				/* If the player file was able to be read properly... */
 				if (0 == entry_file_read_last_entry(full_player_path, &temp)) {
-					// TODO: finish this, if the m flag isn't used, no need to do all this
+					// TODO: finish this, if the m flag isn't used, no need to
+					// do all this
 					//if (pr_minimum_events > 0) {
 					int num_events = \
 						entry_file_get_events_attended_count(full_player_path);
-					if (longest_attended < num_events) longest_attended = num_events;
 
-					int num_outcomes = entry_file_get_outcome_count(full_player_path);
+					if (longest_attended < num_events) {
+						longest_attended = num_events;
+					}
+
+					int num_outcomes = \
+						entry_file_get_outcome_count(full_player_path);
+
 					if (longest_outcomes < num_outcomes) {
 						longest_outcomes = num_outcomes;
 					}
@@ -1222,11 +1298,16 @@ int generate_ratings_file_full(char *output_file_path) {
 		/* Append each entry pr file */
 		for (int i = 0; i < pr_entries_num; i++) {
 			if (verbose == 1) {
-				entry_file_append_pr_entry_to_file_verbose(&players_pr_entries[i], \
-					output_file_path, longest_name_length, longest_attended, \
+				entry_file_append_pr_entry_to_file_verbose( \
+					&players_pr_entries[i], \
+					output_file_path, \
+					longest_name_length, \
+					longest_attended, \
 					longest_outcomes);
 			} else {
-				entry_file_append_pr_entry_to_file(&players_pr_entries[i], output_file_path, \
+				entry_file_append_pr_entry_to_file( \
+					&players_pr_entries[i], \
+					output_file_path, \
 					longest_name_length);
 			}
 		}
@@ -1270,7 +1351,8 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	strncpy(ret->opp_name, player2, MAX_NAME_LEN);
 	init_record(ret);
 
-	int num_ent = entry_file_get_number_of_outcomes_against(full_player1_path, player2);
+	int num_ent = \
+		entry_file_get_number_of_outcomes_against(full_player1_path, player2);
 	int cur_opp_ent_num = 0;
 	unsigned long num_of_last_outcomes = sizeof(ret->last_outcomes) - 1;
 
@@ -1288,7 +1370,9 @@ int get_record(char *player1, char *player2, struct record *ret) {
 		return -2;
 	}
 
-	while (entry_file_open_read_next_opp_entry(p_file, &ent, ent.opp_id) == 0) {
+	while (entry_file_open_read_next_opp_entry( \
+		p_file, &ent, ent.opp_id) == 0) {
+
 		/* If the opponent for the given entry is the player of interest */
 		if (0 == strncmp(ent.opp_name, player2, MAX_NAME_LEN)) {
 			if (ent.gc > ent.opp_gc) ret->wins += 1;
@@ -1336,7 +1420,8 @@ struct record *get_all_records(char *file_path, long *num_of_records) {
 	short *opp_id_list = NULL;
 	short **p_opp_id_list = &opp_id_list;
 	*num_of_records = entry_file_number_of_opponents(file_path, p_opp_id_list);
-	struct record *ret = (struct record *)malloc(sizeof(struct record) * *num_of_records);
+	struct record *ret = \
+		(struct record *)malloc(sizeof(struct record) * *num_of_records);
 	/* Read the starter data in the file */
 	struct entry ent;
 	entry_file_read_start_from_file(file_path, &ent);
@@ -1358,7 +1443,7 @@ struct record *get_all_records(char *file_path, long *num_of_records) {
 		entry_file_get_all_number_of_outcomes_against(file_path, \
 		*num_of_records, opp_id_list);
 	/* Array containing the current number of entries for a given opponent */
-	int *cur_opp_num_of_ent = calloc(*num_of_records, sizeof(int));
+	int *cur_opp_num_of_ent = (int *) calloc(*num_of_records, sizeof(int));
 
 	/* Get to the entries in the player file */
 	int r = entry_file_open_get_to_entries(p_file);
@@ -1401,11 +1486,14 @@ struct record *get_all_records(char *file_path, long *num_of_records) {
 			/* If the season changed, add season markers to output strings */
 			if (ent.season_id != prev_entrys_season) {
 				for (int i = 0; i < *num_of_records; i++) {
-					/* realloc if necessary. +2 to leave space for null term. */
+					/* realloc if necessary. +2 to leave space for
+					 * the null term. */
 					if (cur_opp_num_of_ent[i] + 2 > ret[i].num_outcomes) {
 						ret[i].num_outcomes *= 2;
-						ret[i].last_outcomes = (char *) realloc(ret[i].last_outcomes, \
-							sizeof(char) * ret[i].num_outcomes);
+						ret[i].last_outcomes = \
+							(char *)realloc(ret[i].last_outcomes, \
+								sizeof(char) * ret[i].num_outcomes);
+
 						if (ret[i].last_outcomes == NULL) {
 							perror("realloc (get_all_records)");
 							return NULL;
@@ -1475,8 +1563,8 @@ long longest_name(char *players, int array_len) {
  * to contain only player names that exist as lines in the file.
  * changes '*num_players' accordingly.
  *
- * \param '*players' pointer to an array of 'MAX_NAME_LEN + 1' * '*(num_players)'
- *     chars.
+ * \param '*players' pointer to an array of
+ *     'MAX_NAME_LEN + 1' * '*(num_players)' chars.
  * \param '*num_players' the length of the '*players' array.
  * \param '*filter_file_path' the file path of a pr list file.
  * \return an integer representing the success or failure of
@@ -1510,8 +1598,8 @@ int filter_player_list(char **players_pointer, short *num_players, \
 			/* If the player name exists in the player list, add
 			 * it to the filtered list of players */
 			if (0 == strcmp(line, &players[(MAX_NAME_LEN + 1) * i])) {
-				strncpy(&filtered_players[(MAX_NAME_LEN + 1) * app_ind], line, \
-					MAX_NAME_LEN);
+				strncpy(&filtered_players[(MAX_NAME_LEN + 1) * app_ind], \
+					line, MAX_NAME_LEN);
 				app_ind++;
 			}
 		}
@@ -1526,14 +1614,13 @@ int filter_player_list(char **players_pointer, short *num_players, \
 }
 
 
-// TODO
 /* Takes an array of player names created with a malloc or calloc call,
  * the length of the array, and a file path. Modifies the array
  * to contain only player names that have attended 'pr_minimum_events', and
  * changes '*num_players' accordingly.
  *
- * \param '*players' pointer to an array of 'MAX_NAME_LEN + 1' * '*(num_players)'
- *     chars.
+ * \param '*players' pointer to an array of
+ *     'MAX_NAME_LEN + 1' * '*(num_players)' chars.
  * \param '*num_players' the length of the '*players' array.
  * \return an integer representing the success or failure of
  *     this function. 0 means sucess, negative numbers mean failure.
@@ -1580,34 +1667,34 @@ int main(int argc, char **argv) {
 	struct option opt_table[] = {
 		/* Don't make RD adjustments for players absent
 		 * from some tournaments */
-		{ "no-adjustment",	no_argument,		NULL,	'0' },
+		{ "no-adjustment",  no_argument,        NULL,  '0' },
 		/* Add (or create if necessary) a player entry/player entry file
 		 * from user input */
-		{ "events-attended",required_argument,	NULL,	'A' },
+		{ "events-attended",required_argument,  NULL,  'A' },
 		/* Run through a given bracket file making the necessary updates
 		 * to the glicko2 scores */
-		{ "bracket",		required_argument,	NULL,	'b' },
-		{ "brackets",		required_argument,	NULL,	'B' },
-		{ "count-outcomes",	required_argument,	NULL,	'c' },
-		{ "matchup-csv",	required_argument,	NULL,	'C' },
-		{ "player-dir",		required_argument,	NULL,	'd' },
-		{ "reset-players",		no_argument,	NULL,	'e' },
-		{ "filter",		required_argument,	NULL,	'f' },
-		{ "use-games",		no_argument,		NULL,	'g' },
+		{ "bracket",        required_argument,  NULL,  'b' },
+		{ "brackets",       required_argument,  NULL,  'B' },
+		{ "count-outcomes", required_argument,  NULL,  'c' },
+		{ "matchup-csv",    required_argument,  NULL,  'C' },
+		{ "player-dir",     required_argument,  NULL,  'd' },
+		{ "reset-players",  no_argument,        NULL,  'e' },
+		{ "filter",         required_argument,  NULL,  'f' },
+		{ "use-games",      no_argument,        NULL,  'g' },
 		/* Output given player file in human readable form */
-		{ "history",			required_argument,	NULL,	'h' },
+		{ "history",        required_argument,  NULL,  'h' },
 		/* Don't delete the player files when running a new bracket */
-		{ "keep-players",	no_argument,		NULL,	'k' },
+		{ "keep-players",   no_argument,        NULL,  'k' },
 		/* Output last entry in given player file in human readable form */
-		{ "min-events",		required_argument,	NULL,	'm' },
-		{ "matchup-table",	required_argument,	NULL,	'M' },
-		{ "no-colour",		required_argument,	NULL,	'n' },
-		{ "no-ties",		required_argument,	NULL,	'N' },
-		{ "output",			required_argument,	NULL,	'o' },
-		{ "stdout",			no_argument,	NULL,	'O' },
-		{ "records",		required_argument,	NULL,	'R' },
-		{ "verbose",		no_argument,		NULL,	'v' },
-		{ "weight",			required_argument,	NULL,	'w' },
+		{ "min-events",     required_argument,  NULL,  'm' },
+		{ "matchup-table",  required_argument,  NULL,  'M' },
+		{ "no-colour",      required_argument,  NULL,  'n' },
+		{ "no-ties",        required_argument,  NULL,  'N' },
+		{ "output",         required_argument,  NULL,  'o' },
+		{ "stdout",         no_argument,        NULL,  'O' },
+		{ "records",        required_argument,  NULL,  'R' },
+		{ "verbose",        no_argument,        NULL,  'v' },
+		{ "weight",         required_argument,  NULL,  'w' },
 		{ 0, 0, 0, 0 }
 	};
 	char opt_string[] = { "0A:b:B:c:Cd:ef:gh:km:MnNo:OR:vw:" };
@@ -1623,15 +1710,16 @@ int main(int argc, char **argv) {
 		if (opt == 'A') {
 			if (0 == player_dir_check_and_create()) {
 				int count;
-				char *full_player_path = player_dir_file_path_with_player_dir(optarg);
+				char *full_player_path = \
+					player_dir_file_path_with_player_dir(optarg);
 				char *attended = \
 					entry_file_get_events_attended(full_player_path, &count);
 				print_player_attended(attended, count);
 				free(full_player_path);
 				free(attended);
 			} else {
-				fprintf(stderr, "Error: 'player_dir' either could not be created" \
-						"or does not exist");
+				fprintf(stderr, "Error: 'player_dir' either could not be " \
+						"created or does not exist");
 			}
 		} else if (opt == 'c') {
 			if (0 == player_dir_check_and_create()) {
