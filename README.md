@@ -942,7 +942,7 @@ $ G2ME -b examples/TEST1
 running "TEST1" ...DONE
 $ G2ME -s -b examples/TEST1
 $ G2ME -s -b examples/TEST1 -b examples/TEST2
-running "TEST1" ...DONE
+running "TEST2" ...DONE
 ```
 
 ### The 'S' flag
