@@ -29,7 +29,9 @@
 	* [The 'N' flag](#the-n-flag-1)
 	* [The 'o' flag](#the-o-flag)
 	* [The 'O' flag](#the-o-flag-1)
-	* [The 'R' flag](#the-r-flag-1)
+	* [The 'R' flag](#the-r-flag)
+	* [The 's' flag](#the-s-flag)
+	* [The 'S' flag](#the-s-flag-1)
 	* [The 'v' flag](#the-v-flag)
 	* [The 'w' flag](#the-w-flag)
 * [The Glicko2 System Explained](#the-glicko2-system-explained)
@@ -923,6 +925,40 @@ Julian vs Jon = 0-0-3
 Julian vs Theo = 9-0-0
 Julian vs Bilal = 1-0-3
 Julian vs John = 4-0-0
+```
+
+### The 's' flag
+
+`G2ME -s -b examples/TEST1`
+
+Stands for "**s**ilent". Takes no arguments, *the next* input flag (`-b` or
+`-B`) will not print anything to `stdout`. Note it will only affect the first
+following input flag. See the `-S` flag for silencing all input flags.
+
+Example:
+
+```
+$ G2ME -b examples/TEST1
+running "TEST1" ...DONE
+$ G2ME -s -b examples/TEST1
+$ G2ME -s -b examples/TEST1 -b examples/TEST2
+running "TEST1" ...DONE
+```
+
+### The 'S' flag
+
+`G2ME -S -b examples/TEST1 -b examples/TEST2`
+
+Stands for "**S**ilent-all". Takes no arguments, **all** following input flags
+(`-b` or `-B`) will not print anything to `stdout`.
+
+Example:
+
+```
+$ G2ME -b examples/TEST1
+running "TEST1" ...DONE
+$ G2ME -S -b examples/TEST1
+$ G2ME -S -b examples/TEST1 -b examples/TEST2
 ```
 
 ### The 'v' flag
