@@ -53,6 +53,8 @@ const char ERROR_PLAYER_DNE[] = { "Error: the given player could not "
 
 
 char flag_output_to_stdout = 0;
+char silent = 0;
+char silent_all = 0;
 char verbose = 0;
 char use_games = 0;
 char keep_players = 0;
@@ -942,21 +944,30 @@ int update_players(char* bracket_file_path, short season_id) {
  *     Negative on failure. 0 upon success.
  */
 int run_single_bracket(char *bracket_file_path) {
-	if (use_games == 1) {
-		fprintf(stdout, "running \"%s\" using games ...", bracket_file_path);
-		fflush(stdout);
-	} else {
-		fprintf(stdout, "running \"%s\" ...", bracket_file_path);
-		fflush(stdout);
+	/* If the silent flags haven't been set, print progress */
+	if (silent == 0 && silent_all == 0) {
+		if (use_games == 1) {
+			fprintf(stdout, "running \"%s\" using games ...", bracket_file_path);
+			fflush(stdout);
+		} else {
+			fprintf(stdout, "running \"%s\" ...", bracket_file_path);
+			fflush(stdout);
+		}
 	}
 	int ret = update_players(bracket_file_path, -1);
-	if (ret == 0) {
-		fprintf(stdout, "DONE\n");
-		return 0;
-	} else {
-		fprintf(stdout, "ERROR\n");
-		return 0;
+	if (silent == 0 && silent_all == 0) {
+		if (ret == 0) {
+			fprintf(stdout, "DONE\n");
+			return 0;
+		} else {
+			fprintf(stdout, "ERROR\n");
+			return 0;
+		}
 	}
+
+	/* small silent only affects the first following input flag. Turn off */
+	if (silent == 1) silent = 0;
+	return 0;
 }
 
 
@@ -1049,19 +1060,26 @@ int run_brackets(char *bracket_list_file_path) {
 	}
 
 	for (int j = 0; j < num_brk; j++) {
-		if (use_games == 1) {
-			fprintf(stdout, "running \"%s\" using games ...", \
-				&bracket_paths[j * (MAX_FILE_PATH_LEN + 1)]);
-			fflush(stdout);
-		} else {
-			fprintf(stdout, "running \"%s\" ...", \
-				&bracket_paths[j * (MAX_FILE_PATH_LEN + 1)]);
-			fflush(stdout);
+		/* If the silent flags haven't been set, print progress */
+		if (silent == 0 && silent_all == 0) {
+			if (use_games == 1) {
+				fprintf(stdout, "running \"%s\" using games ...", \
+					&bracket_paths[j * (MAX_FILE_PATH_LEN + 1)]);
+				fflush(stdout);
+			} else {
+				fprintf(stdout, "running \"%s\" ...", \
+					&bracket_paths[j * (MAX_FILE_PATH_LEN + 1)]);
+				fflush(stdout);
+			}
 		}
 		update_players(&bracket_paths[j * (MAX_FILE_PATH_LEN + 1)], \
 			latest_season_id + 1);
 		s_file_set_latest_season_id(latest_season_id + 1);
-		fprintf(stdout, "DONE\n");
+
+		if (silent == 0 && silent_all == 0) fprintf(stdout, "DONE\n");
+		/* small silent only affects the first following input flag.
+		 * Turn off */
+		if (silent == 1) silent = 0;
 	}
 
 	fclose(bracket_list_file);
@@ -1693,11 +1711,13 @@ int main(int argc, char **argv) {
 		{ "output",         required_argument,  NULL,  'o' },
 		{ "stdout",         no_argument,        NULL,  'O' },
 		{ "records",        required_argument,  NULL,  'R' },
+		{ "silent",         no_argument,        NULL,  's' },
+		{ "silent-all",     no_argument,        NULL,  'S' },
 		{ "verbose",        no_argument,        NULL,  'v' },
 		{ "weight",         required_argument,  NULL,  'w' },
 		{ 0, 0, 0, 0 }
 	};
-	char opt_string[] = { "0A:b:B:c:Cd:ef:gh:km:MnNo:OR:vw:" };
+	char opt_string[] = { "0A:b:B:c:Cd:ef:gh:km:MnNo:OR:Ssvw:" };
 
 	/* 1.1. Initialize player_dir to the file path for the player directory */
 	memset(player_dir, 0, sizeof(player_dir));
@@ -1723,9 +1743,12 @@ int main(int argc, char **argv) {
 			}
 		} else if (opt == 'c') {
 			if (0 == player_dir_check_and_create()) {
-				char *full_player_path = player_dir_file_path_with_player_dir(optarg);
+				char *full_player_path = \
+					player_dir_file_path_with_player_dir(optarg);
+
 				fprintf(stdout, "%d\n", \
 					entry_file_get_outcome_count(full_player_path));
+
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		} else if (opt == 'd') {
@@ -1733,7 +1756,9 @@ int main(int argc, char **argv) {
 			strncpy(player_dir, optarg, sizeof(player_dir) - 1);
 		} else if (opt == 'h') {
 			if (0 == player_dir_check_and_create()) {
-				char *full_player_path = player_dir_file_path_with_player_dir(optarg);
+				char *full_player_path = \
+					player_dir_file_path_with_player_dir(optarg);
+
 				if (access(full_player_path, R_OK | W_OK) == -1) {
 					fprintf(stderr, ERROR_PLAYER_DNE);
 					return -1;
@@ -1744,7 +1769,9 @@ int main(int argc, char **argv) {
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		} else if (opt == 'R') {
 			if (0 == player_dir_check_and_create()) {
-				char *full_player_path = player_dir_file_path_with_player_dir(optarg);
+				char *full_player_path = \
+					player_dir_file_path_with_player_dir(optarg);
+
 				if (access(full_player_path, R_OK | W_OK) == -1) {
 					fprintf(stderr, ERROR_PLAYER_DNE);
 					return -1;
@@ -1791,7 +1818,8 @@ int main(int argc, char **argv) {
 			case 'o':
 				if (0 == player_dir_check_and_create()) {
 					if (f_flag_used) {
-						int ret = generate_ratings_file(filter_file_path, optarg);
+						int ret = \
+							generate_ratings_file(filter_file_path, optarg);
 						if (ret != 0) return ret;
 					} else {
 						int ret = generate_ratings_file_full(optarg);
@@ -1803,7 +1831,8 @@ int main(int argc, char **argv) {
 				if (0 == player_dir_check_and_create()) {
 					flag_output_to_stdout = 1;
 					if (f_flag_used) {
-						int ret = generate_ratings_file(filter_file_path, optarg);
+						int ret = \
+							generate_ratings_file(filter_file_path, optarg);
 						if (ret != 0) return ret;
 					} else {
 						int ret = generate_ratings_file_full(optarg);
@@ -1811,10 +1840,12 @@ int main(int argc, char **argv) {
 					}
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
+			case 's': silent = 1; break;
+			case 'S': silent_all = 1; break;
 			case 'v': verbose = 1; break;
 			case 'w': outcome_weight = strtod(optarg, NULL); break;
 		}
 	}
 
-    return 0;
+	return 0;
 }

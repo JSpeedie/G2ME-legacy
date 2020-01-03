@@ -698,8 +698,8 @@ int print_player_file(char* file_path) {
 int print_player_records(char *file_path) {
 	/* Get all records and sort them alphabetically */
 	long num_rec = 0;
-	// TODO: add filter to get_all_records, array indexed by opp_id, \
-	contains ret array index
+	// TODO: add filter to get_all_records, array indexed by opp_id,
+	// contains ret array index
 	struct record *records = get_all_records(file_path, &num_rec);
 	merge_sort_player_records(records, num_rec);
 
