@@ -365,7 +365,7 @@ int print_player_file_verbose(char* file_path) {
 				if (attended_count < pr_minimum_events) count_entry = 0;
 			}
 		}
-		
+
 		char found_name = 1;
 		/* If a filter file was specified, and the entry passes the
 		 * minimum event filter */
@@ -458,7 +458,7 @@ int print_player_file_verbose(char* file_path) {
 			}
 		}
 
-		char found_name = 0;
+		char found_name = 1;
 		/* If a filter file was specified, and the entry passes the
 		 * minimum event filter */
 		if (f_flag_used == 1 && print == 1) {
