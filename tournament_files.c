@@ -91,6 +91,30 @@ int t_file_contains_tournament(char *t_name) {
 }
 
 
+/** Helper function that writes the t_id and tournament name in the provided
+ * entry to an open file.
+ *
+ * \param '*E' a pointer to a struct entry containing the info to be written.
+ * \param '*f' an open file pointer where the content will be written.
+ * \return 0 upon success, a negative integer upon failure.
+ */
+int write_new_t_name(struct entry *E, FILE *f) {
+	if (1 != fwrite(&E->tournament_id, sizeof(short), 1, f)) return -1;
+	if (E->len_t_name != \
+		fwrite(&E->t_name, sizeof(char), E->len_t_name, f)) {
+
+		return -2;
+	}
+
+	char zero = '\0';
+
+	for (int i = 0; i < MAX_NAME_LEN + 1 - E->len_t_name; i++) {
+		if (1 != fwrite(&zero, sizeof(char), 1, f)) return -3;
+	}
+	return 0;
+}
+
+
 /** Takes a struct entry containing a filled in 't_name' and set
  * 'tournament_id', and adds it to the system.
  *
@@ -173,21 +197,6 @@ int t_file_add_new_tournament(struct entry *E) {
 	unsigned short num_t;
 	char wrote_new_name = 0;
 
-	int write_new_name() { // {{{
-		if (1 != fwrite(&E->tournament_id, sizeof(short), 1, new_file)) {
-			return -14;
-		}
-		if (E->len_t_name != \
-			fwrite(&E->t_name, sizeof(char), E->len_t_name, new_file)) {
-			
-			return -14;
-		}
-		for (int i = 0; i < MAX_NAME_LEN + 1 - E->len_t_name; i++) {
-			if (1 != fwrite(&zero, sizeof(char), 1, new_file)) return -14;
-		}
-		return 0;
-	} // }}}
-
 	/* Read number of tournaments and write [said number + 1] to temp file */
 	if (1 != fread(&num_t, sizeof(short), 1, t_file)) return -11;
 	/* Correct the t_id (0 indexed id) */
@@ -211,7 +220,7 @@ int t_file_add_new_tournament(struct entry *E) {
 		 * to be written, write the new name first */
 		if (wrote_new_name != 1) {
 			if (0 > strncmp(E->t_name, &name[0], E->len_t_name)) {
-				if (0 != write_new_name()) return -16;
+				if (0 != write_new_t_name(E, new_file)) return -16;
 				wrote_new_name = 1;
 			}
 		}
@@ -224,7 +233,7 @@ int t_file_add_new_tournament(struct entry *E) {
 	}
 
 	if (wrote_new_name != 1) {
-		if (0 != write_new_name()) return -16;
+		if (0 != write_new_t_name(E, new_file)) return -16;
 	}
 
 	fclose(new_file);

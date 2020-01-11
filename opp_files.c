@@ -164,7 +164,7 @@ int opp_file_contains_opponent(char *opp_name) {
  * \param '*f' an open file pointer where the content will be written.
  * \return 0 upon success, a negative integer upon failure.
  */
-int write_new_name(struct entry *E, FILE *f) {
+int write_new_opp_name(struct entry *E, FILE *f) {
 	if (1 != fwrite(&E->opp_id, sizeof(short), 1, f)) return -1;
 	if (E->len_opp_name != \
 		fwrite(&E->opp_name, sizeof(char), E->len_opp_name, f)) {
@@ -286,7 +286,7 @@ int opp_file_add_new_opponent(struct entry *E) {
 		 * to be written, write the new name first */
 		if (wrote_new_name != 1) {
 			if (0 > strncmp(E->opp_name, &name[0], E->len_opp_name)) {
-				if (0 != write_new_name(E, new_file)) return -16;
+				if (0 != write_new_opp_name(E, new_file)) return -16;
 				wrote_new_name = 1;
 			}
 		}
@@ -299,7 +299,7 @@ int opp_file_add_new_opponent(struct entry *E) {
 	}
 
 	if (wrote_new_name != 1) {
-		if (0 != write_new_name(E, new_file)) return -16;
+		if (0 != write_new_opp_name(E, new_file)) return -16;
 	}
 
 	fclose(new_file);
