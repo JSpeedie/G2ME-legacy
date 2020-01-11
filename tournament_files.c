@@ -123,35 +123,7 @@ int write_new_t_name(struct entry *E, FILE *f) {
  *     It will return < 0 if the function failed, and 0 if it succeeded.
  */
 int t_file_add_new_tournament(struct entry *E) {
-#ifdef __linux__
-	char *full_t_file_path = data_dir_file_path_t_file();
-
-	FILE *t_file = fopen(full_t_file_path, "rb");
-	if (t_file == NULL) {
-		fprintf(stderr, \
-			"Error: t_file_add_new_tournament(): " \
-			"opening file \"%s\": ", \
-			full_t_file_path);
-		perror("");
-		return -1;
-	}
-
-	char new_file_name[] = { "tempG2MEXXXXXX\0" };
-	int r = mkstemp(new_file_name);
-	close(r);
-	unlink(new_file_name);
-
-	FILE *new_file = fopen(new_file_name, "wb+");
-	if (new_file == NULL) {
-		fprintf(stderr, \
-			"Error: t_file_add_new_tournament(): " \
-			"opening file \"%s\": ", \
-			new_file_name);
-		perror("");
-		return -2;
-	}
-//#elif _WIN32
-#else
+#ifdef _WIN32
 	// TODO: switch to windows temp file stuff
 	/* Get the name for the temp file */
 	// TODO what if .[original name] already exists? */
@@ -183,6 +155,34 @@ int t_file_add_new_tournament(struct entry *E) {
 		perror("");
 		return -1;
 	}
+	FILE *new_file = fopen(new_file_name, "wb+");
+	if (new_file == NULL) {
+		fprintf(stderr, \
+			"Error: t_file_add_new_tournament(): " \
+			"opening file \"%s\": ", \
+			new_file_name);
+		perror("");
+		return -2;
+	}
+/* If compiling on macOS or Linux */
+#else
+	char *full_t_file_path = data_dir_file_path_t_file();
+
+	FILE *t_file = fopen(full_t_file_path, "rb");
+	if (t_file == NULL) {
+		fprintf(stderr, \
+			"Error: t_file_add_new_tournament(): " \
+			"opening file \"%s\": ", \
+			full_t_file_path);
+		perror("");
+		return -1;
+	}
+
+	char new_file_name[] = { "tempG2MEXXXXXX\0" };
+	int r = mkstemp(new_file_name);
+	close(r);
+	unlink(new_file_name);
+
 	FILE *new_file = fopen(new_file_name, "wb+");
 	if (new_file == NULL) {
 		fprintf(stderr, \
