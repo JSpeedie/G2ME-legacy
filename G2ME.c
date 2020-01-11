@@ -649,7 +649,8 @@ int update_players(char* bracket_file_path, short season_id) {
 		sscanf(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], \
 			"%s %s %hhd %hhd %hhd %hhd %hd", \
 			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
-#elif _WIN32
+#else
+//#ifdef _WIN32
 
 		char *token = \
 			strtok(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], " ");
@@ -693,10 +694,11 @@ int update_players(char* bracket_file_path, short season_id) {
 			"Not enough arguments given in bracket file\n");
 		sscanf(token, "%d", &temp);
 		year = (short)temp;
-#else
-		sscanf(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], \
-			"%s %s %hhd %hhd %hhd %hhd %hd", \
-			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
+	/* If compiling on macOS or Linux */
+//#else
+//		sscanf(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], \
+//			"%s %s %hhd %hhd %hhd %hhd %hd", \
+//			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
 #endif
 		if (calc_absent_players == 1) {
 			char already_in = 0;
