@@ -1059,7 +1059,6 @@ int add_to_line(char *s, long *line_length, long *line_size, char **ret) {
 }
 
 
-
 /** Takes no arguments, prints a comma delimited csv of all the head-to-heads
  * of all players in the system, and returns an integer representing whether it
  * succeeded.

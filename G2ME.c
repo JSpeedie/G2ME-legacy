@@ -160,6 +160,7 @@ struct entry create_entry(struct player* P, char* name, char* opp_name, \
  *
  * \param '*p1_name' string representing player-1's name
  * \param '*p2_name' string representing player-2's name
+ * \param 'p2_id' a short representing player-2's id
  * \param '*p1' a struct player representing player-1
  * \param '*p2' a struct player representing player-2
  * \param '*p1_gc' a double representing the number of games player-1 won in
@@ -175,7 +176,7 @@ struct entry create_entry(struct player* P, char* name, char* opp_name, \
  *     took place at.
  * \return void
  */
-void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
+void update_player_on_outcome(char* p1_name, short p2_id, \
 	char* p2_name, struct player* p1, struct player* p2, char* p1_gc, \
 	char* p2_gc, char day, char month, short year, short t_id, \
 	char* t_name, short season_id) {
@@ -348,6 +349,32 @@ void adjust_absent_player(char *player_file, char day, char month, \
 }
 
 
+/* Define a struct for passing arguments to the thread */
+typedef struct thread_args {
+	unsigned long num_adjustments;
+	char *files;
+	unsigned long size_of_files;
+	char day;
+	char month;
+	short year;
+	unsigned short t_id;
+	char **t_name;
+}ThreadArgs;
+
+
+/** Helper function for RD-adjusting a list of players on a specified date. */
+void *adjust_p(void *arg) {
+	struct thread_args *t = (struct thread_args *) arg;
+	/* Get this processes' list of player names that did not compete and
+	 * apply step 6 to them and append to player file */
+	for (int j = 0; j < t->num_adjustments; j++) {
+		adjust_absent_player(&(t->files[j * (MAX_NAME_LEN + 1)]), \
+			t->day, t->month, t->year, t->t_id, *(t->t_name));
+	}
+	return NULL;
+}
+
+
 /** All players whose last entry is not for the event of 't_name'
  * get their Glicko2 data adjusted. Unless their last RD adjustment
  * was within the same day.
@@ -382,19 +409,21 @@ void adjust_absent_players_no_file(char day, char month, \
 	if (max_forks < 1) max_forks = 8;
 	char did_not_comp = 1;
 
-	/* Define a struct for passing arguments to the thread */
-	typedef struct thread_args {
-		unsigned long num_adjustments;
-		char *files;
-		unsigned long size_of_files;
-	}ThreadArgs;
-
 	ThreadArgs args[max_forks];
 	/* Initialize parent thread work */
 	args[0].size_of_files = 2 * MINIMUM_ADJ_BEFORE_FORK;
 	args[0].files = \
 		(char *)malloc(args[0].size_of_files * (MAX_NAME_LEN + 1));
-	args[0].num_adjustments = 0;
+
+	/* Set static data for all threads such as date, tournament id, etc */
+	for (int i = 0; i < max_forks; i++) {
+		args[i].num_adjustments = 0;
+		args[i].day = day;
+		args[i].month = month;
+		args[i].year = year;
+		args[i].t_id = t_id;
+		args[i].t_name = &t_name;
+	}
 
 	int cur_f = 0;
 	int total_threads_needed = 0;
@@ -476,18 +505,6 @@ void adjust_absent_players_no_file(char day, char month, \
 	}
 
 	closedir(p_dir);
-
-	/* Function for adjusting a list of players */
-	void *adjust_p(void *arg) {
-		struct thread_args *t = (struct thread_args *) arg;
-		/* Get this processes' list of player names that did not compete and
-		 * apply step 6 to them and append to player file */
-		for (int j = 0; j < t->num_adjustments; j++) {
-			adjust_absent_player(&(t->files[j * (MAX_NAME_LEN + 1)]), \
-				day, month, year, t_id, t_name);
-		}
-		return NULL;
-	}
 
 	pthread_t thread_id[max_forks - 1];
 
@@ -898,28 +915,28 @@ int update_players(char* bracket_file_path, short season_id) {
 			p1_out = 1;
 			p2_out = 0;
 			for (int i = 0; i < p1_gc; i++) {
-				update_player_on_outcome(p1_id, p1_name, p2_id, p2_name, \
+				update_player_on_outcome(p1_name, p2_id, p2_name, \
 					&p1, &p2, &p1_out, &p2_out, day, month, year, \
 					Et.tournament_id, t_name, season_id);
-				update_player_on_outcome(p2_id, p2_name, p1_id, p1_name, \
+				update_player_on_outcome(p2_name, p1_id, p1_name, \
 					&p2, &p1, &p2_out, &p1_out, day, month, year, \
 					Et.tournament_id, t_name, season_id);
 			}
 			p1_out = 0;
 			p2_out = 1;
 			for (int i = 0; i < p2_gc; i++) {
-				update_player_on_outcome(p1_id, p1_name, p2_id, p2_name, \
+				update_player_on_outcome(p1_name, p2_id, p2_name, \
 					&p1, &p2, &p1_out, &p2_out, day, month, year, \
 					Et.tournament_id, t_name, season_id);
-				update_player_on_outcome(p2_id, p2_name, p1_id, p1_name, \
+				update_player_on_outcome(p2_name, p1_id, p1_name, \
 					&p2, &p1, &p2_out, &p1_out, day, month, year, \
 					Et.tournament_id, t_name, season_id);
 			}
 		} else {
-			update_player_on_outcome(p1_id, p1_name, p2_id, p2_name, \
+			update_player_on_outcome(p1_name, p2_id, p2_name, \
 				&p1, &p2, &p1_gc, &p2_gc, day, month, year, \
 				Et.tournament_id, t_name, season_id);
-			update_player_on_outcome(p2_id, p2_name, p1_id, p1_name, \
+			update_player_on_outcome(p2_name, p1_id, p1_name, \
 				&p2, &p1, &p2_gc, &p1_gc, day, month, year, \
 				Et.tournament_id, t_name, season_id);
 		}

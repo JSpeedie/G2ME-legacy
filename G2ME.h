@@ -55,7 +55,7 @@ struct entry create_entry(struct player *, char *, char *, \
 	char, char, char, char, short, char *, short);
 
 
-void update_player_on_outcome(short, char *, short, char *, struct player *, \
+void update_player_on_outcome(char *, short, char *, struct player *, \
 	struct player *, char *, char *, char, char, short, short, char *, short);
 
 
