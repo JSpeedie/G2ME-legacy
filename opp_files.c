@@ -157,6 +157,31 @@ int opp_file_contains_opponent(char *opp_name) {
 }
 
 
+/** Helper function that writes the opp_id and opponent name in the provided
+ * entry to an open file.
+ *
+ * \param '*E' a pointer to a struct entry containing the info to be written.
+ * \param '*f' an open file pointer where the content will be written.
+ * \return 0 upon success, a negative integer upon failure.
+ */
+int write_new_name(struct entry *E, FILE *f) {
+	if (1 != fwrite(&E->opp_id, sizeof(short), 1, f)) return -1;
+	if (E->len_opp_name != \
+		fwrite(&E->opp_name, sizeof(char), E->len_opp_name, f)) {
+
+		return -2;
+	}
+
+	char zero = '\0';
+
+	for (int i = 0; i < MAX_NAME_LEN + 1 - E->len_opp_name; i++) {
+		if (1 != fwrite(&zero, sizeof(char), 1, f)) return -3;
+	}
+	return 0;
+}
+
+
+
 /** Takes a struct entry containing a filled in 'opp_name' and set 'opp_id',
  * and adds it to the system.
  *
@@ -165,35 +190,7 @@ int opp_file_contains_opponent(char *opp_name) {
  *     It will return < 0 if the function failed, and 0 if it succeeded.
  */
 int opp_file_add_new_opponent(struct entry *E) {
-#ifdef __linux__
-	char *full_opp_file_path = data_dir_file_path_opp_file();
-
-	FILE *opp_file = fopen(full_opp_file_path, "rb");
-	if (opp_file == NULL) {
-		fprintf(stderr, \
-			"Error: opp_file_add_new_opponent(): " \
-			"opening file \"%s\": ", \
-			full_opp_file_path);
-		perror("");
-		return -1;
-	}
-
-	char new_file_name[] = { "tempG2MEXXXXXX\0" };
-	int r = mkstemp(new_file_name);
-	close(r);
-	unlink(new_file_name);
-
-	FILE *new_file = fopen(new_file_name, "wb+");
-	if (new_file == NULL) {
-		fprintf(stderr, \
-			"Error: opp_file_add_new_opponent(): " \
-			"opening file \"%s\": ", \
-			new_file_name);
-		perror("");
-		return -2;
-	}
-//#elif _WIN32
-#else
+#ifdef _WIN32
 	// TODO: switch to windows temp file stuff
 	/* Get the name for the temp file */
 	// TODO what if .[original name] already exists? */
@@ -233,24 +230,38 @@ int opp_file_add_new_opponent(struct entry *E) {
 			new_file_name);
 		return -2;
 	}
+/* If this is being compiled on macOS or Linux */
+#else
+	char *full_opp_file_path = data_dir_file_path_opp_file();
+
+	FILE *opp_file = fopen(full_opp_file_path, "rb");
+	if (opp_file == NULL) {
+		fprintf(stderr, \
+			"Error: opp_file_add_new_opponent(): " \
+			"opening file \"%s\": ", \
+			full_opp_file_path);
+		perror("");
+		return -1;
+	}
+
+	char new_file_name[] = { "tempG2MEXXXXXX\0" };
+	int r = mkstemp(new_file_name);
+	close(r);
+	unlink(new_file_name);
+
+	FILE *new_file = fopen(new_file_name, "wb+");
+	if (new_file == NULL) {
+		fprintf(stderr, \
+			"Error: opp_file_add_new_opponent(): " \
+			"opening file \"%s\": ", \
+			new_file_name);
+		perror("");
+		return -2;
+	}
 #endif
 	char zero = '\0';
 	unsigned short num_opp;
 	char wrote_new_name = 0;
-
-	int write_new_name() { // {{{
-		if (1 != fwrite(&E->opp_id, sizeof(short), 1, new_file)) return -14;
-		if (E->len_opp_name != \
-			fwrite(&E->opp_name, sizeof(char), E->len_opp_name, new_file)) {
-
-			return -14;
-		}
-
-		for (int i = 0; i < MAX_NAME_LEN + 1 - E->len_opp_name; i++) {
-			if (1 != fwrite(&zero, sizeof(char), 1, new_file)) return -14;
-		}
-		return 0;
-	} // }}}
 
 	/* Read number of opponents and write [said number + 1] to temp file */
 	if (1 != fread(&num_opp, sizeof(short), 1, opp_file)) return -11;
@@ -275,7 +286,7 @@ int opp_file_add_new_opponent(struct entry *E) {
 		 * to be written, write the new name first */
 		if (wrote_new_name != 1) {
 			if (0 > strncmp(E->opp_name, &name[0], E->len_opp_name)) {
-				if (0 != write_new_name()) return -16;
+				if (0 != write_new_name(E, new_file)) return -16;
 				wrote_new_name = 1;
 			}
 		}
@@ -288,7 +299,7 @@ int opp_file_add_new_opponent(struct entry *E) {
 	}
 
 	if (wrote_new_name != 1) {
-		if (0 != write_new_name()) return -16;
+		if (0 != write_new_name(E, new_file)) return -16;
 	}
 
 	fclose(new_file);
