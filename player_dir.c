@@ -405,7 +405,7 @@ void player_dir_num_players(int *num_of_players) {
 	if ((p_dir = opendir(player_dir)) != NULL) {
 		*num_of_players = 0;
 		while ((entry = readdir(p_dir)) != NULL) {
-			// Make sure it doesn't count directories
+			/* Make sure it doesn't count directories */
 			if (1 == check_if_dir(player_dir, entry->d_name)) {
 				*num_of_players = (*num_of_players) + 1;
 			}
@@ -441,21 +441,22 @@ char *player_dir_players_list(char *players, int *num, char type) {
 	if ((p_dir = opendir(player_dir)) != NULL) {
 		*num = 0;
 		while ((entry = readdir(p_dir)) != NULL) {
-			// Make sure it doesn't count directories
+			/* Make sure it doesn't count directories */
 			if (1 == check_if_dir(player_dir, entry->d_name)) {
 				int num_events;
 				char *full_player_path = \
 					player_dir_file_path_with_player_dir(entry->d_name);
+
 				entry_file_get_events_attended(full_player_path, &num_events);
-				// If the player attended the minimum number of events
+				/* If the player attended the minimum number of events */
 				if (num_events >= pr_minimum_events) {
 					if (type == LEXIO) {
 						int i = (MAX_NAME_LEN + 1) * (*(num) - 1);
-						// Find the right index to insert the name at
+						/* Find the right index to insert the name at */
 						while (strcmp(&players[i], entry->d_name) > 0 \
 							&& i >= 0) {
 
-							// Move later-occuring name further in the array
+							/* Move later-occuring name further in the array */
 							strncpy(&players[i + (MAX_NAME_LEN + 1)], &players[i], \
 								MAX_NAME_LEN);
 							i -= (MAX_NAME_LEN + 1);
@@ -466,7 +467,7 @@ char *player_dir_players_list(char *players, int *num, char type) {
 						strncpy(&players[(MAX_NAME_LEN + 1) * *(num)], \
 							entry->d_name, MAX_NAME_LEN);
 					}
-					// Add null terminator to each name
+					/* Add null terminator to each name */
 					players[(MAX_NAME_LEN + 1) * (*(num) + 1)] = '\0';
 					*num = *(num) + 1;
 				}
@@ -475,5 +476,6 @@ char *player_dir_players_list(char *players, int *num, char type) {
 		}
 		closedir(p_dir);
 	}
+
 	return players;
 }

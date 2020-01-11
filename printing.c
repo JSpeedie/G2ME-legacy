@@ -1030,6 +1030,36 @@ int print_matchup_table(void) {
 }
 
 
+/** Helper function to add a string to a line of output of a given length
+ * with a maximum size.
+ *
+ * \param '*s' the string to be added to the end of the line.
+ * \param '*line_length' the length of the string in the output already.
+ * \param '*line_size' the maximum size of the output string.
+ * \param '**ret' a pointer to the output/return string. The output/return
+ *     string must have been created by a malloc/calloc call.
+ * \return 0 upon success, a negative integer upon failure.
+ */
+int add_to_line(char *s, long *line_length, long *line_size, char **ret) {
+	/* Realloc output line, if necessary */
+	long len_of_s = strlen(s);
+	if (len_of_s + (*line_length) >= (*line_size)) {
+		(*line_size) *= 2;
+		(*ret) = (char *)\
+			realloc((*ret), sizeof(char) * (*line_size));
+		if ((*ret) == NULL) {
+			perror("realloc (add_to_line)");
+			return -1;
+		}
+	}
+
+	*line_length += len_of_s;
+	strcat((*ret), s);
+	return 0;
+}
+
+
+
 /** Takes no arguments, prints a comma delimited csv of all the head-to-heads
  * of all players in the system, and returns an integer representing whether it
  * succeeded.
@@ -1090,37 +1120,18 @@ int print_matchup_table_csv(void) {
 	sprintf(output[0], ",");
 	line_length[0] = 1;
 
-	/* Helper function to add strings to a line of output {{{ */
-	int add_to_line(char *s, int i) {
-		/* Realloc output line, if necessary */
-		long len_of_s = strlen(s);
-		if (len_of_s + line_length[i] >= line_sizes[i]) {
-			line_sizes[i] *= 2;
-			output[i] = (char *)\
-				realloc(output[i], sizeof(char) * line_sizes[i]);
-			if (output[i] == NULL) {
-				perror("realloc (print_matchup_table_csv)");
-				return -1;
-			}
-		}
-
-		line_length[i] += len_of_s;
-		strcat(output[i], s);
-		return 0;
-	}
-	/* }}} */
-
 	/* Fill in column titles with player names + a comma delimiter */
 	for (int i = 0; i < num_players; i++) {
-		add_to_line(&players[i * (MAX_NAME_LEN + 1)], 0);
-		add_to_line(",", 0);
+		add_to_line(&players[i * (MAX_NAME_LEN + 1)], &line_length[0], &line_sizes[0], &output[0]);
+		add_to_line(",", &line_length[0], &line_sizes[0], &output[0]);
 	}
 	fprintf(stdout, "%s\n", output[0]);
 
 	for (int i = 0; i < num_players; i++) {
 		/* Add row title */
-		add_to_line(&players[i * (MAX_NAME_LEN + 1)], i + 1);
-		add_to_line(",", i + 1);
+		add_to_line(&players[i * (MAX_NAME_LEN + 1)], \
+			&line_length[i+1], &line_sizes[i+1], &output[i+1]);
+		add_to_line(",", &line_length[i+1], &line_sizes[i+1], &output[i+1]);
 
 		/* Get row content */
 		for (int j = 0; j < num_players; j++) {
@@ -1133,7 +1144,7 @@ int print_matchup_table_csv(void) {
 			if (temp_rec.wins == 0 && temp_rec.ties == 0 \
 				&& temp_rec.losses == 0) {
 
-				add_to_line("-,", i + 1);
+				add_to_line("-,", &line_length[i+1], &line_sizes[i+1], &output[i+1]);
 			} else {
 				int record_length;
 
@@ -1154,7 +1165,7 @@ int print_matchup_table_csv(void) {
 					 snprintf(col, sizeof(col), "%d-%d,", \
 						temp_rec.wins, temp_rec.losses);
 				}
-				add_to_line(col, i + 1);
+				add_to_line(col, &line_length[i+1], &line_sizes[i+1], &output[i+1]);
 			}
 		}
 		fprintf(stdout, "%s\n", output[i + 1]);
