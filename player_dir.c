@@ -109,7 +109,46 @@ char *data_dir_file_path_season_file(void) {
 	return data_dir_file_path_with_data_dir(SEASON_FILE_NAME);
 }
 
-/* Deletes every file in the data directory 'data_dir'.
+/** Helper function for data_dir. Takes an open file and writes the
+ * RD adjustment opponent id (always 0) and its name to the specified file.
+ *
+ * \param '*f' an open file in binary mode.
+ * \return 0 upon success, a negative integer upon failure.
+ */
+int write_rd_adj_name_with_id(FILE *f) {
+	char zero = '\0';
+	short szero = 0;
+
+	if (1 != fwrite(&szero, sizeof(short), 1, f)) return -1;
+	if (1 != fwrite("-", sizeof(char), 1, f)) return -2;
+
+	for (unsigned long i = 0; i < MAX_NAME_LEN + 1 - strlen("-"); i++) {
+		if (1 != fwrite(&zero, sizeof(char), 1, f)) return -3;
+	}
+
+	return 0;
+}
+
+/** Helper function for data_dir. Takes an open file and writes the
+ * RD adjustment opponent name to the specified file.
+ *
+ * \param '*f' an open file in binary mode.
+ * \return 0 upon success, a negative integer upon failure.
+ */
+int write_rd_adj_name(FILE *f) {
+	char zero = '\0';
+
+	if (1 != fwrite("-", sizeof(char), 1, f)) return -1;
+
+	for (unsigned long i = 0; i < MAX_NAME_LEN + 1 - strlen("-"); i++) {
+		if (1 != fwrite(&zero, sizeof(char), 1, f)) return -2;
+	}
+
+	return 0;
+}
+
+/* Deletes every file in the data directory 'data_dir', creating
+ * the universal G2ME files, necessary for usage.
  *
  * \return an int representing if the function succeeded or not.
  *     Negative if there was an error, 0 on success.
@@ -125,27 +164,6 @@ int data_dir_reset(void) {
 	remove(full_t_file_path);
 	remove(full_t_id_file_path);
 	remove(full_season_file_path);
-
-	/* Create universal G2ME files, necessary for usage */
-	/* Writes the only name required by the system */
-	int write_rd_adj_name_with_id(FILE *f) { // {{{
-		char zero = '\0';
-		short szero = 0;
-		if (1 != fwrite(&szero, sizeof(short), 1, f)) return -14;
-		if (1 != fwrite("-", sizeof(char), 1, f)) return -14;
-		for (int i = 0; i < MAX_NAME_LEN + 1 - strlen("-"); i++) {
-			if (1 != fwrite(&zero, sizeof(char), 1, f)) return -14;
-		}
-		return 0;
-	} // }}}
-	int write_rd_adj_name(FILE *f) { // {{{
-		char zero = '\0';
-		if (1 != fwrite("-", sizeof(char), 1, f)) return -14;
-		for (int i = 0; i < MAX_NAME_LEN + 1 - strlen("-"); i++) {
-			if (1 != fwrite(&zero, sizeof(char), 1, f)) return -14;
-		}
-		return 0;
-	} // }}}
 
 	short num_opp = 1; /* 1 because we add the rd adjustment name */
 	short num_t = 0;
@@ -170,7 +188,7 @@ int data_dir_reset(void) {
 	write_rd_adj_name_with_id(opp_file);
 	fclose(opp_file);
 	free(full_opp_file_path);
-	
+
 	FILE *opp_id_file = fopen(full_opp_id_file_path, "wb+");
 	if (opp_id_file == NULL) {
 		perror("fopen (data_dir_reset_players)");
@@ -189,7 +207,7 @@ int data_dir_reset(void) {
 	if (1 != fwrite(&num_t, sizeof(short), 1, t_file)) return -12;
 	fclose(t_file);
 	free(full_t_file_path);
-	
+
 	FILE *t_id_file = fopen(full_t_id_file_path, "wb+");
 	if (t_id_file == NULL) {
 		perror("fopen (data_dir_reset_players)");
@@ -272,25 +290,7 @@ int data_dir_check_and_create(void) {
 	char tif_exist = access(full_t_id_file_path, R_OK | W_OK) != -1;
 	char sf_exist = access(full_season_file_path, R_OK | W_OK) != -1;
 #endif
-	/* Writes the only name required by the system */
-	int write_rd_adj_name_with_id(FILE *f) { // {{{
-		char zero = '\0';
-		short szero = 0;
-		if (1 != fwrite(&szero, sizeof(short), 1, f)) return -14;
-		if (1 != fwrite("-", sizeof(char), 1, f)) return -14;
-		for (int i = 0; i < MAX_NAME_LEN + 1 - strlen("-"); i++) {
-			if (1 != fwrite(&zero, sizeof(char), 1, f)) return -14;
-		}
-		return 0;
-	} // }}}
-	int write_rd_adj_name(FILE *f) { // {{{
-		char zero = '\0';
-		if (1 != fwrite("-", sizeof(char), 1, f)) return -14;
-		for (int i = 0; i < MAX_NAME_LEN + 1 - strlen("-"); i++) {
-			if (1 != fwrite(&zero, sizeof(char), 1, f)) return -14;
-		}
-		return 0;
-	} // }}}
+
 	short num_opp = 1; /* 1 because we add the rd adjustment name */
 	short num_t = 0;
 	short season_num = -1;
@@ -318,7 +318,7 @@ int data_dir_check_and_create(void) {
 		free(full_opp_file_path);
 		fclose(opp_file);
 	}
-	
+
 	/* If oif doesn't exist, create it */
 	if (!oif_exist) {
 		FILE *opp_id_file = fopen(full_opp_id_file_path, "wb+");
@@ -342,7 +342,7 @@ int data_dir_check_and_create(void) {
 		free(full_t_file_path);
 		fclose(t_file);
 	}
-	
+
 	/* If tif doesn't exist, create it */
 	if (!tif_exist) {
 		FILE *t_id_file = fopen(full_t_id_file_path, "wb+");

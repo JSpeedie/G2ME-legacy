@@ -1346,7 +1346,7 @@ int generate_ratings_file_full(char *output_file_path) {
  *     function, will contain the first player's record against
  *     the second player.
  * \return an int representing if this function succeeded or failed.
-       Negative upon failure, 0 upon success.
+ *     Negative upon failure, 0 upon success.
  */
 int get_record(char *player1, char *player2, struct record *ret) {
 
