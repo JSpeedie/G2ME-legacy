@@ -644,13 +644,8 @@ int update_players(char* bracket_file_path, short season_id) {
 	/* Generate tournament attendee names list so RD-adjustments can
 	 * take place during Glicko2 number crunching */
 	for (int j = 0; j < num_outcomes; j++) {
-		/* Read data from one line of bracket file into all the variables */
-#ifdef __linux__
-		sscanf(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], \
-			"%s %s %hhd %hhd %hhd %hhd %hd", \
-			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
-#else
-//#ifdef _WIN32
+/* Read data from one line of bracket file into all the variables */
+#ifdef _WIN32
 
 		char *token = \
 			strtok(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], " ");
@@ -694,11 +689,11 @@ int update_players(char* bracket_file_path, short season_id) {
 			"Not enough arguments given in bracket file\n");
 		sscanf(token, "%d", &temp);
 		year = (short)temp;
-	/* If compiling on macOS or Linux */
-//#else
-//		sscanf(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], \
-//			"%s %s %hhd %hhd %hhd %hhd %hd", \
-//			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
+/* If compiling on macOS or Linux */
+#else
+		sscanf(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], \
+			"%s %s %hhd %hhd %hhd %hhd %hd", \
+			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
 #endif
 		if (calc_absent_players == 1) {
 			char already_in = 0;
