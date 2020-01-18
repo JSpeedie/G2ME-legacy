@@ -71,9 +71,139 @@ char filter_file_path[MAX_FILE_PATH_LEN + 1];
 char f_flag_used = 0;
 char player_dir[MAX_FILE_PATH_LEN + 1];
 char data_dir[MAX_FILE_PATH_LEN + 1];
+struct linked_list_node *tourn_atten_hashtable[SIZE_ATTEN_HASHTABLE];
 
 int get_record(char *, char *, struct record *);
 struct record *get_all_records(char *, long *);
+
+
+/* MurmurHash2, by Austin Appleby */
+unsigned int murmur_hash2(const void *key, int len, unsigned int seed) {
+	/* 'm' and 'r' are mixing constants generated offline.
+	 * They're not really 'magic', they just happen to work well. */
+	const unsigned int m = 0x5bd1e995;
+	const int r = 24;
+
+	/* Initialize the hash to a 'random' value */
+	unsigned int h = seed ^ len;
+
+	/* Mix 4 bytes at a time into the hash */
+	const unsigned char * data = (const unsigned char *)key;
+
+	while(len >= 4) {
+		unsigned int k = *(unsigned int *)data;
+
+		k *= m;
+		k ^= k >> r;
+		k *= m;
+
+		h *= m;
+		h ^= k;
+
+		data += 4;
+		len -= 4;
+	}
+	/* Handle the last few bytes of the input array */
+	switch(len) {
+		case 3: h ^= data[2] << 16;
+		case 2: h ^= data[1] << 8;
+		case 1: h ^= data[0];
+		        h *= m;
+	};
+
+	/* Do a few final mixes of the hash to ensure the last few
+	 * bytes are well-incorporated. */
+	h ^= h >> 13;
+	h *= m;
+	h ^= h >> 15;
+
+	return h;
+}
+
+
+int hashtable_reset() {
+	/* Reset the hash table */
+	for (int i = 0; i < SIZE_ATTEN_HASHTABLE; i++) {
+		tourn_atten_hashtable[i] = NULL;
+	}
+	return 0;
+}
+
+
+int hashtable_insert(char *s, unsigned int hash_of_s) {
+	/* Make the new node */
+	struct linked_list_node *new = malloc(sizeof(struct linked_list_node));
+	strncpy(&new->E.name[0], s, MAX_NAME_LEN);
+	new->E.len_name = 0;
+	new->next = NULL;
+
+	/* If this bucket is empty */
+	if (tourn_atten_hashtable[hash_of_s % SIZE_ATTEN_HASHTABLE] == NULL) {
+		tourn_atten_hashtable[hash_of_s % SIZE_ATTEN_HASHTABLE] = new;
+		return 0;
+	}
+
+	struct linked_list_node *current_node = \
+		tourn_atten_hashtable[hash_of_s % SIZE_ATTEN_HASHTABLE];
+
+	while (current_node->next != NULL) {
+		current_node = current_node->next;
+	}
+	current_node->next = new;
+	return 0;
+}
+
+
+int hashtable_update(char *s, unsigned int hash_of_s, struct entry *e) {
+	struct linked_list_node *current_node = \
+		tourn_atten_hashtable[hash_of_s % SIZE_ATTEN_HASHTABLE];
+
+	while (current_node != NULL) {
+		/* If the name was found, update its info */
+		if (0 == strncmp(current_node->E.name, s, MAX_NAME_LEN)) {
+			current_node->E = (*e);
+			return 0;
+		}
+		current_node = current_node->next;
+	}
+	/* If the name could not be found */
+	return -1;
+}
+
+int hashtable_find(char *s, unsigned int hash_of_s, struct entry **ret) {
+
+
+	struct linked_list_node *current_node = \
+		tourn_atten_hashtable[hash_of_s % SIZE_ATTEN_HASHTABLE];
+
+	while (current_node != NULL) {
+		/* If the name was found, return info on it */
+		if (0 == strncmp(current_node->E.name, s, MAX_NAME_LEN)) {
+			(*ret) = &current_node->E;	
+			return 0;
+		}
+		current_node = current_node->next;
+	}
+	/* If the name could not be found */
+	return -1;
+}
+
+
+int hashtable_quickfind(char *s, unsigned int hash_of_s) {
+
+	struct linked_list_node *current_node = \
+		tourn_atten_hashtable[hash_of_s % SIZE_ATTEN_HASHTABLE];
+
+	while (current_node != NULL) {
+		/* If the name was found, return info on it */
+		if (0 == strncmp(current_node->E.name, s, MAX_NAME_LEN)) {
+			return 0;
+		}
+		current_node = current_node->next;
+	}
+	/* If the name could not be found */
+	return -1;
+}
 
 
 /** Initializes a struct player based off of the information found in a
@@ -183,61 +313,123 @@ void update_player_on_outcome(char* p1_name, short p2_id, \
 
 	char *full_p1_path = player_dir_file_path_with_player_dir(p1_name);
 	char *full_p2_path = player_dir_file_path_with_player_dir(p2_name);
-	/* If the file does not exist, init the player struct to defaults */
-#ifdef __linux__
-	if (access(full_p1_path, R_OK | W_OK) == -1) {
-#elif _WIN32
-	if (_access(full_p1_path, 0) == -1) {
-#else
-	if (access(full_p1_path, R_OK | W_OK) == -1) {
-#endif
-		setRating(p1, DEF_RATING);
-		setRd(p1, DEF_RD);
-		p1->vol = DEF_VOL;
-	} else {
-		/* Read latest entries into usable data */
-		int ret;
-		struct entry p1_latest;
-		if (0 == (ret = entry_file_read_last_entry_minimal(full_p1_path, \
-			&p1_latest))) {
 
-			init_player_from_entry(p1, &p1_latest);
-			/* If this outcome was not a part of a season, write the season
-			 * as the same as the latest season the player was in */
-			if (season_id == -1) {
-				season_id = p1_latest.season_id;
-			}
+	unsigned int p1_name_hash = murmur_hash2(p1_name, strlen(p1_name), 0);
+	unsigned int p2_name_hash = murmur_hash2(p2_name, strlen(p2_name), 0);
+
+	char p1_in_mem;
+	struct entry *p1_E = NULL;
+	struct entry p1_latest;
+	p1_in_mem = hashtable_find(p1_name, p1_name_hash, &p1_E);
+	/* If player found in mem, but data is no up to date, don't use data */
+	// TODO: less hacky way of checking if player is actually in mem
+	// TODO: change to GlickoData to avoid hacky-ness
+	if (p1_in_mem == 0 || p1_E != NULL) {
+		if (p1_E->len_name == 0) p1_in_mem = -1;
+	}
+	if (p1_in_mem == 0) {
+		init_player_from_entry(p1, p1_E);
+		/* If this outcome was not a part of a season, write the season
+		* as the same as the latest season the player was in */
+		if (season_id == -1) {
+			season_id = p1_E->season_id;
+		}
+	/* If the player data could not be found in memory (the hash table) */
+	} else {
+		/* If the file does not exist, init the player struct to defaults */
+#ifdef __linux__
+		if (access(full_p1_path, R_OK | W_OK) == -1) {
+#elif _WIN32
+		if (_access(full_p1_path, 0) == -1) {
+#else
+		if (access(full_p1_path, R_OK | W_OK) == -1) {
+#endif
+			setRating(p1, DEF_RATING);
+			setRd(p1, DEF_RD);
+			p1->vol = DEF_VOL;
 		} else {
-			fprintf(stderr, \
-				"entry_file_read_last_entry (%d) (update_player_on_outcome)", \
-				ret);
-			perror("");
+			/* Read latest entries into usable data */
+			int ret;
+			if (0 == (ret = entry_file_read_last_entry_minimal(full_p1_path, \
+				&p1_latest))) {
+
+				/* Update player in memory to avoid reading this file again */
+				if (p1_E != NULL) {
+					// TODO: change to GlickoData struct to save on copying?
+					(*p1_E) = p1_latest;
+				/* If the player data is not already in memory,
+				 * do more work intensive method */
+				} else {
+					hashtable_update(p1_name, p1_name_hash, &p1_latest);
+				}
+
+				init_player_from_entry(p1, &p1_latest);
+				/* If this outcome was not a part of a season, write the season
+				* as the same as the latest season the player was in */
+				if (season_id == -1) {
+					season_id = p1_latest.season_id;
+				}
+			} else {
+				fprintf(stderr, \
+					"entry_file_read_last_entry (%d) (update_player_on_outcome)", \
+					ret);
+				perror("");
+			}
 		}
 	}
-	/* If the file does not exist, init the player struct to defaults */
-#ifdef __linux__
-	if (access(full_p2_path, R_OK | W_OK) == -1) {
-#elif _WIN32
-	if (_access(full_p2_path, 0) == -1) {
-#else
-	if (access(full_p2_path, R_OK | W_OK) == -1) {
-#endif
-		setRating(p2, DEF_RATING);
-		setRd(p2, DEF_RD);
-		p2->vol = DEF_VOL;
-	} else {
-		/* Read latest entries into usable data */
-		int ret;
-		struct entry p2_latest;
-		if (0 == (ret = entry_file_read_last_entry_minimal(full_p2_path, \
-			&p2_latest))) {
 
-			init_player_from_entry(p2, &p2_latest);
+	char p2_in_mem;
+	struct entry *p2_E = NULL;
+	struct entry p2_latest;
+	p2_in_mem = hashtable_find(p2_name, p2_name_hash, &p2_E);
+	/* If player found in mem, but data is no up to date, don't use data */
+	// TODO: less hacky way of checking if player is actually in mem
+	if (p2_in_mem == 0 || p2_E != NULL) {
+		if (p2_E->len_name == 0) p2_in_mem = -1;
+	}
+	if (p2_in_mem == 0) {
+		init_player_from_entry(p2, p2_E);
+		/* If this outcome was not a part of a season, write the season
+		* as the same as the latest season the player was in */
+		if (season_id == -1) {
+			season_id = p2_E->season_id;
+		}
+	/* If the player data could not be found in memory (the hash table) */
+	} else {
+		/* If the file does not exist, init the player struct to defaults */
+#ifdef __linux__
+		if (access(full_p2_path, R_OK | W_OK) == -1) {
+#elif _WIN32
+		if (_access(full_p2_path, 0) == -1) {
+#else
+		if (access(full_p2_path, R_OK | W_OK) == -1) {
+#endif
+			setRating(p2, DEF_RATING);
+			setRd(p2, DEF_RD);
+			p2->vol = DEF_VOL;
 		} else {
-			fprintf(stderr, \
-				"entry_file_read_last_entry (%d) (update_player_on_outcome)", \
-				ret);
-			perror("");
+			/* Read latest entries into usable data */
+			int ret;
+			if (0 == (ret = entry_file_read_last_entry_minimal(full_p2_path, \
+				&p2_latest))) {
+
+				/* Update player in memory to avoid reading this file again */
+				if (p2_E != NULL) {
+					// TODO: change to GlickoData struct to save on copying?
+					(*p2_E) = p2_latest;
+				/* If the player data is not already in memory,
+				 * do more work intensive method */
+				} else {
+					hashtable_update(p2_name, p2_name_hash, &p2_latest);
+				}
+
+				init_player_from_entry(p2, &p2_latest);
+			} else {
+				fprintf(stderr, \
+					"entry_file_read_last_entry (%d) (update_player_on_outcome)", \
+					ret);
+				perror("");
+			}
 		}
 	}
 
@@ -265,6 +457,16 @@ void update_player_on_outcome(char* p1_name, short p2_id, \
 	p1_new_entry.opp_id = p2_id;
 	p1_new_entry.tournament_id = t_id;
 	int ret = entry_file_append_entry_to_file_id(&p1_new_entry, full_p1_path);
+
+	/* Update player data in memory */
+	if (p1_E != NULL) {
+		// TODO: change to GlickoData struct to save on copying?
+		(*p1_E) = p1_new_entry;
+	/* If the player data is not already in memory,
+	 * do more work intensive method */
+	} else {
+		hashtable_update(p1_name, p1_name_hash, &p1_new_entry);
+	}
 
 	if (ret != 0) {
 		fprintf(stderr, "Error appending entry to file \"%s\"\n", \
@@ -367,7 +569,7 @@ void *adjust_p(void *arg) {
 	struct thread_args *t = (struct thread_args *) arg;
 	/* Get this processes' list of player names that did not compete and
 	 * apply step 6 to them and append to player file */
-	for (int j = 0; j < t->num_adjustments; j++) {
+	for (unsigned long j = 0; j < t->num_adjustments; j++) {
 		adjust_absent_player(&(t->files[j * (MAX_NAME_LEN + 1)]), \
 			t->day, t->month, t->year, t->t_id, *(t->t_name));
 	}
@@ -536,6 +738,8 @@ void adjust_absent_players_no_file(char day, char month, \
 // TODO: make sscanfs safe/secure.
 //       Right now they risk a stack/buffer overflow
 int update_players(char* bracket_file_path, short season_id) {
+	// TODO: put somewhere else. Would be useful to not reset, possibly
+	hashtable_reset();
 	/* Set to 0 since the bracket is beginning and no names are stored */
 	tourn_atten_len = 0;
 	size_t array_size = \
@@ -694,31 +898,45 @@ int update_players(char* bracket_file_path, short season_id) {
 		sscanf(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], \
 			"%s %s %hhd %hhd %hhd %hhd %hd", \
 			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
+		unsigned int p1_name_hash = murmur_hash2(p1_name, strlen(p1_name), 0);
+		unsigned int p2_name_hash = murmur_hash2(p2_name, strlen(p2_name), 0);
+		char already_in = 0;
+		char already_in2 = 0;
+		if (0 == hashtable_quickfind(p1_name, p1_name_hash)) {
+			already_in = 1;
+		} else {
+			hashtable_insert(p1_name, p1_name_hash);
+		}
+
+		if (0 == hashtable_quickfind(p2_name, p2_name_hash)) {
+			already_in2 = 1;
+		} else {
+			hashtable_insert(p2_name, p2_name_hash);
+		}
+		//printf("hash of %s = %d\n", p1_name, murmur_hash2(p1_name, strlen(p1_name), 0));
 #endif
 		if (calc_absent_players == 1) {
-			char already_in = 0;
-			char already_in2 = 0;
 
-			for (int i = 0; i < tourn_atten_len; i++) {
-				/* If the name already exists in the list of entrants,
-				 * don't add */
-				if (0 == strcmp(p1_name, &tourn_atten[i].name[0])) {
-					already_in = 1;
-					/* If both names need to be added, get to work. No need
-					 * to search further */
-					if (already_in2 == 1) {
-						break;
-					}
-				}
-				if (0 == strcmp(p2_name, &tourn_atten[i].name[0])) {
-					already_in2 = 1;
-					/* If both names need to be added, get to work. No need
-					 * to search further */
-					if (already_in == 1) {
-						break;
-					}
-				}
-			}
+			//for (unsigned long i = 0; i < tourn_atten_len; i++) {
+			//	/* If the name already exists in the list of entrants,
+			//	 * don't add */
+			//	if (0 == strcmp(p1_name, &tourn_atten[i].name[0])) {
+			//		already_in = 1;
+			//		/* If both names need to be added, get to work. No need
+			//		 * to search further */
+			//		if (already_in2 == 1) {
+			//			break;
+			//		}
+			//	}
+			//	if (0 == strcmp(p2_name, &tourn_atten[i].name[0])) {
+			//		already_in2 = 1;
+			//		/* If both names need to be added, get to work. No need
+			//		 * to search further */
+			//		if (already_in == 1) {
+			//			break;
+			//		}
+			//	}
+			//}
 			/* If the additions to be made will overflow the tournament
 			 * attendee array, realloc it to fit them */
 			if (tourn_atten_len + already_in + already_in2 \
@@ -757,7 +975,7 @@ int update_players(char* bracket_file_path, short season_id) {
 	}
 
 	/* Id all tournament attendees */
-	for (int o = 0; o < tourn_atten_len; o++) {
+	for (unsigned long o = 0; o < tourn_atten_len; o++) {
 		int ret = 0;
 		/* Get opp_ids for all players who attended this tournament */
 		/* If the entry file does not already contain an id for this opponent */
@@ -968,6 +1186,7 @@ int run_single_bracket(char *bracket_file_path) {
 			fflush(stdout);
 		}
 	}
+	// TODO: always uses -1, won't work properly with -k
 	int ret = update_players(bracket_file_path, -1);
 	if (silent == 0 && silent_all == 0) {
 		if (ret == 0) {
@@ -1740,6 +1959,10 @@ int main(int argc, char **argv) {
 	memset(data_dir, 0, sizeof(data_dir));
 	strncpy(data_dir, DATA_DIR, sizeof(data_dir) - 1);
 
+	// TODO: put somewhere else. Would be useful to not reset, possibly
+	/* Reset hash table */
+	hashtable_reset();
+
 	while ((opt = getopt_long(argc, argv, opt_string, opt_table, NULL)) != -1) {
 		if (opt == 'A') {
 			if (0 == player_dir_check_and_create()) {
@@ -1800,12 +2023,22 @@ int main(int argc, char **argv) {
 			case 'b':
 				if (0 == player_dir_check_and_create()) {
 					if (keep_players == 0) player_dir_reset_players();
+					if (keep_players == 0) {
+						// TODO: put somewhere else. Would be useful to not reset, possibly
+						/* Reset hash table */
+						hashtable_reset();
+					}
 					run_single_bracket(optarg);
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'B':
 				if (0 == player_dir_check_and_create()) {
 					if (keep_players == 0) player_dir_reset_players();
+					if (keep_players == 0) {
+						// TODO: put somewhere else. Would be useful to not reset, possibly
+						/* Reset hash table */
+						hashtable_reset();
+					}
 					run_brackets(optarg);
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;

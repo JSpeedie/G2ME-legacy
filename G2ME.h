@@ -14,6 +14,7 @@
 #define REALLOC_TOURNAMENT_NAMES_FACTOR 2
 #define SIZE_TOURNAMENT_NAMES_LEN 64
 #define MINIMUM_ADJ_BEFORE_FORK 24
+#define SIZE_ATTEN_HASHTABLE 64
 
 extern char flag_output_to_stdout;
 extern char colour_output;
@@ -43,6 +44,11 @@ typedef struct tournament_attendee {
 	char name[MAX_NAME_LEN + 1];
 	unsigned short id;
 }TournamentAttendee;
+
+typedef struct linked_list_node {
+	struct entry E;
+	struct linked_list_node *next;
+}LinkedListNode;
 
 
 /* struct record helpers */
