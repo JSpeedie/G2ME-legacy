@@ -7,6 +7,7 @@
 #define OUTPUT_TEMP_LEN 24
 
 typedef struct entry {
+	unsigned short id;
 	unsigned short opp_id;
 	unsigned short tournament_id;
 	unsigned short season_id;

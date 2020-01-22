@@ -138,7 +138,7 @@ int entry_file_open_read_next_opp_entry(FILE *f, struct entry *E, short opp_id) 
 	/* Sets t_name and len_t_name of E to be according to tournament
 	 * name E->tournament_id */
 	if (0 != (r = t_file_get_tournament_name_from_id(E))) {
-		perror("t_file_get_tournament_name_from_id (read_entry)");
+		fprintf(stderr, "Error: t_file_get_tournament_name_from_id (%d)", r);
 		return -13;
 	}
 
@@ -212,8 +212,9 @@ int entry_file_open_read_entry_absent(FILE *f, struct entry *E) {
 	if (1 != fread(&E->season_id, sizeof(short), 1, f)) { return -12; } //2 34
 	/* Sets t_name and len_t_name of E to be according to tournament
 	 * name E->tournament_id */
-	if (0 != t_file_get_tournament_name_from_id(E)) {
-		perror("t_file_get_tournament_name_from_id (read_entry)");
+	int r;
+	if (0 != (r = t_file_get_tournament_name_from_id(E))) {
+		fprintf(stderr, "Error: t_file_get_tournament_name_from_id (%d)", r);
 		return -13;
 	}
 
