@@ -170,6 +170,7 @@ int hashtable_update(char *s, unsigned int hash_of_s, struct entry *e) {
 	return -1;
 }
 
+
 int hashtable_find(char *s, unsigned int hash_of_s, struct entry **ret) {
 
 
@@ -179,7 +180,7 @@ int hashtable_find(char *s, unsigned int hash_of_s, struct entry **ret) {
 	while (current_node != NULL) {
 		/* If the name was found, return info on it */
 		if (0 == strncmp(current_node->E.name, s, MAX_NAME_LEN)) {
-			(*ret) = &current_node->E;	
+			(*ret) = &current_node->E;
 			return 0;
 		}
 		current_node = current_node->next;
@@ -256,11 +257,15 @@ int init_record(struct record *r) {
  * \param 'year' a short representing the year the set was played in
  * \param 't_name' a string containing the name of the tournament this
  *     outcome took place at.
+ * \param 'season_id' a short representing the id of the season this entry
+ *     took place during.
+ * \param 'is_comp' a char representing if this is a valid competitive entry
+ *     as opposed to an RD adjustment.
  * \return a struct entry containing all that information
  */
 struct entry create_entry(struct player* P, char* name, char* opp_name, \
 	char gc, char opp_gc, char day, char month, short year, \
-	char* t_name, short season_id) {
+	char* t_name, short season_id, char is_comp) {
 
 	struct entry ret;
 	ret.len_name = strlen(name);
@@ -276,6 +281,7 @@ struct entry create_entry(struct player* P, char* name, char* opp_name, \
 	ret.month = month;
 	ret.year = year;
 	ret.len_t_name = strlen(t_name);
+	ret.is_competitor = is_comp;
 	strncpy(ret.t_name, t_name, sizeof(ret.t_name));
 	ret.season_id = season_id;
 
@@ -306,7 +312,7 @@ struct entry create_entry(struct player* P, char* name, char* opp_name, \
  *     took place at.
  * \return void
  */
-void update_player_on_outcome(char* p1_name, short p2_id, \
+void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
 	char* p2_name, struct player* p1, struct player* p2, char* p1_gc, \
 	char* p2_gc, char day, char month, short year, short t_id, \
 	char* t_name, short season_id) {
@@ -352,6 +358,8 @@ void update_player_on_outcome(char* p1_name, short p2_id, \
 			int ret;
 			if (0 == (ret = entry_file_read_last_entry_minimal(full_p1_path, \
 				&p1_latest))) {
+
+				p1_latest.id = p1_id;
 
 				/* Update player in memory to avoid reading this file again */
 				if (p1_E != NULL) {
@@ -413,6 +421,10 @@ void update_player_on_outcome(char* p1_name, short p2_id, \
 			if (0 == (ret = entry_file_read_last_entry_minimal(full_p2_path, \
 				&p2_latest))) {
 
+				p2_latest.id = p2_id;
+				// TODO: remove
+				// print_entry_verbose(p2_latest);
+
 				/* Update player in memory to avoid reading this file again */
 				if (p2_E != NULL) {
 					// TODO: change to GlickoData struct to save on copying?
@@ -452,11 +464,13 @@ void update_player_on_outcome(char* p1_name, short p2_id, \
 
 	struct entry p1_new_entry =
 		create_entry(&new_p1, p1_name, p2_name, *p1_gc, *p2_gc, \
-			day, month, year, t_name, season_id);
+			day, month, year, t_name, season_id, 1);
 
 	p1_new_entry.opp_id = p2_id;
 	p1_new_entry.tournament_id = t_id;
 	int ret = entry_file_append_entry_to_file_id(&p1_new_entry, full_p1_path);
+
+	p1_new_entry.id = p1_id;
 
 	/* Update player data in memory */
 	if (p1_E != NULL) {
@@ -913,7 +927,6 @@ int update_players(char* bracket_file_path, short season_id) {
 		} else {
 			hashtable_insert(p2_name, p2_name_hash);
 		}
-		//printf("hash of %s = %d\n", p1_name, murmur_hash2(p1_name, strlen(p1_name), 0));
 #endif
 		if (calc_absent_players == 1) {
 
@@ -998,6 +1011,21 @@ int update_players(char* bracket_file_path, short season_id) {
 			E.opp_id = (unsigned short) ret;
 		}
 		tourn_atten[o].id = E.opp_id;
+		// Set id in hashtable too
+		struct entry *hashtable_E;
+		unsigned int player_hash = \
+			murmur_hash2(&tourn_atten[o].name[0], \
+				strlen(&tourn_atten[o].name[0]), 0);
+		int search = hashtable_find(&tourn_atten[o].name[0], player_hash, \
+			&hashtable_E);
+
+		if (0 == search && hashtable_E != NULL) {
+			hashtable_E->id = E.opp_id;
+		} else {
+			fprintf(stderr, "Error: update_players: was unable to update " \
+				"player id in hashtable for player \"%s\"\n", \
+				&tourn_atten[o].name[0]);
+		}
 	}
 
 	fclose(opp_file);
@@ -1089,36 +1117,58 @@ int update_players(char* bracket_file_path, short season_id) {
 #endif
 		short p1_id;
 		short p2_id;
-		long L = 0;
-		long R = tourn_atten_len - 1;
-		long m;
-		while (L <= R) {
-			m = floor(((double) (L + R)) / 2.0);
-			/* Compare array[m] with the name being searched for */
-			int comp = strncmp(&tourn_atten[m].name[0], p1_name, MAX_NAME_LEN);
-			if (0 > comp) {
-				L = m + 1;
-			} else if (0 < comp) {
-				R = m - 1;
-			} else {
-				p1_id = tourn_atten[m].id;
-				R = L - 1; /* Terminate loop */
+		struct entry *p1_entry;
+		struct entry *p2_entry;
+		unsigned int p1_name_hash = murmur_hash2(p1_name, strlen(p1_name), 0);
+		unsigned int p2_name_hash = murmur_hash2(p2_name, strlen(p2_name), 0);
+
+		if (0 == hashtable_find(p1_name, p1_name_hash, &p1_entry) \
+			&& p1_entry != NULL) {
+
+				p1_id = p1_entry->id;
+		/* If the player data is not already in memory,
+		 * do more work intensive method */
+		} else {
+			long L = 0;
+			long R = tourn_atten_len - 1;
+			long m;
+			while (L <= R) {
+				m = floor(((double) (L + R)) / 2.0);
+				/* Compare array[m] with the name being searched for */
+				int comp = strncmp(&tourn_atten[m].name[0], p1_name, MAX_NAME_LEN);
+				if (0 > comp) {
+					L = m + 1;
+				} else if (0 < comp) {
+					R = m - 1;
+				} else {
+					p1_id = tourn_atten[m].id;
+					R = L - 1; /* Terminate loop */
+				}
 			}
 		}
-		/* Reset vars and repeat search but for player 2 */
-		L = 0;
-		R = tourn_atten_len - 1;
-		while (L <= R) {
-			m = floor(((double) (L + R)) / 2.0);
-			/* Compare array[m] with the name being searched for */
-			int comp = strncmp(&tourn_atten[m].name[0], p2_name, MAX_NAME_LEN);
-			if (0 > comp) {
-				L = m + 1;
-			} else if (0 < comp) {
-				R = m - 1;
-			} else {
-				p2_id = tourn_atten[m].id;
-				R = L - 1; /* Terminate loop */
+
+		if (0 == hashtable_find(p2_name, p2_name_hash, &p2_entry) \
+			&& p2_entry != NULL) {
+
+				p2_id = p2_entry->id;
+		/* If the player data is not already in memory,
+		 * do more work intensive method */
+		} else {
+			long L = 0;
+			long R = tourn_atten_len - 1;
+			long m;
+			while (L <= R) {
+				m = floor(((double) (L + R)) / 2.0);
+				/* Compare array[m] with the name being searched for */
+				int comp = strncmp(&tourn_atten[m].name[0], p2_name, MAX_NAME_LEN);
+				if (0 > comp) {
+					L = m + 1;
+				} else if (0 < comp) {
+					R = m - 1;
+				} else {
+					p2_id = tourn_atten[m].id;
+					R = L - 1; /* Terminate loop */
+				}
 			}
 		}
 
@@ -1130,28 +1180,28 @@ int update_players(char* bracket_file_path, short season_id) {
 			p1_out = 1;
 			p2_out = 0;
 			for (int i = 0; i < p1_gc; i++) {
-				update_player_on_outcome(p1_name, p2_id, p2_name, \
+				update_player_on_outcome(p1_id, p1_name, p2_id, p2_name, \
 					&p1, &p2, &p1_out, &p2_out, day, month, year, \
 					Et.tournament_id, t_name, season_id);
-				update_player_on_outcome(p2_name, p1_id, p1_name, \
+				update_player_on_outcome(p2_id, p2_name, p1_id, p1_name, \
 					&p2, &p1, &p2_out, &p1_out, day, month, year, \
 					Et.tournament_id, t_name, season_id);
 			}
 			p1_out = 0;
 			p2_out = 1;
 			for (int i = 0; i < p2_gc; i++) {
-				update_player_on_outcome(p1_name, p2_id, p2_name, \
+				update_player_on_outcome(p1_id, p1_name, p2_id, p2_name, \
 					&p1, &p2, &p1_out, &p2_out, day, month, year, \
 					Et.tournament_id, t_name, season_id);
-				update_player_on_outcome(p2_name, p1_id, p1_name, \
+				update_player_on_outcome(p2_id, p2_name, p1_id, p1_name, \
 					&p2, &p1, &p2_out, &p1_out, day, month, year, \
 					Et.tournament_id, t_name, season_id);
 			}
 		} else {
-			update_player_on_outcome(p1_name, p2_id, p2_name, \
+			update_player_on_outcome(p1_id, p1_name, p2_id, p2_name, \
 				&p1, &p2, &p1_gc, &p2_gc, day, month, year, \
 				Et.tournament_id, t_name, season_id);
-			update_player_on_outcome(p2_name, p1_id, p1_name, \
+			update_player_on_outcome(p2_id, p2_name, p1_id, p1_name, \
 				&p2, &p1, &p2_gc, &p1_gc, day, month, year, \
 				Et.tournament_id, t_name, season_id);
 		}
@@ -1959,7 +2009,8 @@ int main(int argc, char **argv) {
 	memset(data_dir, 0, sizeof(data_dir));
 	strncpy(data_dir, DATA_DIR, sizeof(data_dir) - 1);
 
-	// TODO: put somewhere else. Would be useful to not reset, possibly
+	// TODO: put somewhere else. Right now it resets even if G2ME is called
+	//     flags that wouldn't use the hash table
 	/* Reset hash table */
 	hashtable_reset();
 
