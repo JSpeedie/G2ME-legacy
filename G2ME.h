@@ -14,7 +14,7 @@
 #define REALLOC_TOURNAMENT_NAMES_FACTOR 2
 #define SIZE_TOURNAMENT_NAMES_LEN 64
 #define MINIMUM_ADJ_BEFORE_FORK 24
-#define SIZE_ATTEN_HASHTABLE 64
+#define SIZE_ATTEN_HASHTABLE 128
 
 extern char flag_output_to_stdout;
 extern char colour_output;
@@ -58,10 +58,10 @@ int init_record(struct record *);
 /* struct player and struct entry helpers */
 void init_player_from_entry(struct player *, struct entry *);
 struct entry create_entry(struct player *, char *, char *, \
-	char, char, char, char, short, char *, short);
+	char, char, char, char, short, char *, short, char);
 
 
-void update_player_on_outcome(char *, short, char *, struct player *, \
+void update_player_on_outcome(short, char *, short, char *, struct player *, \
 	struct player *, char *, char *, char, char, short, short, char *, short);
 
 
