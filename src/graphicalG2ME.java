@@ -749,7 +749,7 @@ public class graphicalG2ME {
 		PlayerInformationRecordTableButton.setToolTipText("Records/Head-to-Head Table. Requires clicking the Refresh button");
 		JAliasedRadioButton PlayerInformationRecordCSVButton = new JAliasedRadioButton("Records/Head-to-Heads CSV");
 		PlayerInformationRecordCSVButton.setToolTipText("Records/Head-to-Heads Table, but in a CSV, spreadsheet output. Requires" +
-			"clicking the Refresh button");
+			" clicking the Refresh button");
 		String[] playerInfoFlags = new String[6];
 		playerInfoFlags[0] = "h";
 		playerInfoFlags[1] = "R";
