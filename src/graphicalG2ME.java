@@ -775,8 +775,13 @@ public class graphicalG2ME {
 				PlayerInformationPlayerList.setEnabled(true);
 				playerInformationCurrentFlag = playerInfoFlags[0];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 0);
+				/* Refresh player information currently in dialog */
+				UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
+						PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag,
+						(int)PlayerInformationMinEventsSpinner.getValue(), PlayerInformationFilterFileTextField.getText());
 			}
 		});
+
 		PlayerInformationRecordsButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(true);
@@ -787,6 +792,10 @@ public class graphicalG2ME {
 				PlayerInformationPlayerList.setEnabled(true);
 				playerInformationCurrentFlag = playerInfoFlags[1];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 1);
+				/* Refresh player information currently in dialog */
+				UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
+						PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag,
+						(int)PlayerInformationMinEventsSpinner.getValue(), PlayerInformationFilterFileTextField.getText());
 			}
 		});
 		PlayerInformationEventsAttendedButton.addActionListener(new ActionListener() {
@@ -799,6 +808,10 @@ public class graphicalG2ME {
 				PlayerInformationPlayerList.setEnabled(true);
 				playerInformationCurrentFlag = playerInfoFlags[2];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 2);
+				/* Refresh player information currently in dialog */
+				UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
+						PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag,
+						(int)PlayerInformationMinEventsSpinner.getValue(), PlayerInformationFilterFileTextField.getText());
 			}
 		});
 		PlayerInformationNumOutcomesButton.addActionListener(new ActionListener() {
@@ -811,6 +824,10 @@ public class graphicalG2ME {
 				PlayerInformationPlayerList.setEnabled(true);
 				playerInformationCurrentFlag = playerInfoFlags[3];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 3);
+				/* Refresh player information currently in dialog */
+				UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
+						PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag,
+						(int)PlayerInformationMinEventsSpinner.getValue(), PlayerInformationFilterFileTextField.getText());
 			}
 		});
 		PlayerInformationRecordTableButton.addActionListener(new ActionListener() {
@@ -823,6 +840,10 @@ public class graphicalG2ME {
 				PlayerInformationPlayerList.setEnabled(false);
 				playerInformationCurrentFlag = playerInfoFlags[4];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 4);
+				/* Refresh player information currently in dialog */
+				UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
+						PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag,
+						(int)PlayerInformationMinEventsSpinner.getValue(), PlayerInformationFilterFileTextField.getText());
 			}
 		});
 		PlayerInformationRecordCSVButton.addActionListener(new ActionListener() {
@@ -835,6 +856,10 @@ public class graphicalG2ME {
 				PlayerInformationPlayerList.setEnabled(false);
 				playerInformationCurrentFlag = playerInfoFlags[5];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 5);
+				/* Refresh player information currently in dialog */
+				UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
+						PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag,
+						(int)PlayerInformationMinEventsSpinner.getValue(), PlayerInformationFilterFileTextField.getText());
 			}
 		});
 		/* Remember which one was selected, and set GUI accordingly */
@@ -876,6 +901,10 @@ public class graphicalG2ME {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				prefs.putBoolean(PLAYER_INFO_VERBOSE, PlayerInformationVerboseCheckBox.isSelected());
+				/* Refresh player information currently in dialog */
+				UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
+						PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag,
+						(int)PlayerInformationMinEventsSpinner.getValue(), PlayerInformationFilterFileTextField.getText());
 			}
 		});
 
