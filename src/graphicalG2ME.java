@@ -69,9 +69,9 @@ public class graphicalG2ME {
 		private int alphaFaded = 160;
 		private int alphaNormal;
 
-		public JAliasedSearchField(final String s) {
-			super(s);
-			this.hint = s;
+		public JAliasedSearchField(String hint) {
+			super(hint);
+			this.hint = hint;
 			this.showingHint = true;
 			super.addFocusListener(this);
 			Color c = this.getForeground();
@@ -833,8 +833,8 @@ public class graphicalG2ME {
 				PlayerInformationMinEventsSpinner.setEnabled(false);
 				PlayerInformationFilterFileTextField.setEnabled(false);
 				PlayerInformationFilterFileBrowseButton.setEnabled(false);
-				PlayerInformationSearchTextField.setEnabled(true);
-				PlayerInformationPlayerList.setEnabled(true);
+				PlayerInformationSearchTextField.setVisible(true);
+				PlayerInformationPlayerList.setVisible(true);
 				playerInformationCurrentFlag = playerInfoFlags[0];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 0);
 				/* Refresh player information currently in dialog */
@@ -850,8 +850,8 @@ public class graphicalG2ME {
 				PlayerInformationMinEventsSpinner.setEnabled(true);
 				PlayerInformationFilterFileTextField.setEnabled(true);
 				PlayerInformationFilterFileBrowseButton.setEnabled(true);
-				PlayerInformationSearchTextField.setEnabled(true);
-				PlayerInformationPlayerList.setEnabled(true);
+				PlayerInformationSearchTextField.setVisible(true);
+				PlayerInformationPlayerList.setVisible(true);
 				playerInformationCurrentFlag = playerInfoFlags[1];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 1);
 				/* Refresh player information currently in dialog */
@@ -866,8 +866,8 @@ public class graphicalG2ME {
 				PlayerInformationMinEventsSpinner.setEnabled(false);
 				PlayerInformationFilterFileTextField.setEnabled(false);
 				PlayerInformationFilterFileBrowseButton.setEnabled(false);
-				PlayerInformationSearchTextField.setEnabled(true);
-				PlayerInformationPlayerList.setEnabled(true);
+				PlayerInformationSearchTextField.setVisible(true);
+				PlayerInformationPlayerList.setVisible(true);
 				playerInformationCurrentFlag = playerInfoFlags[2];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 2);
 				/* Refresh player information currently in dialog */
@@ -882,8 +882,8 @@ public class graphicalG2ME {
 				PlayerInformationMinEventsSpinner.setEnabled(false);
 				PlayerInformationFilterFileTextField.setEnabled(false);
 				PlayerInformationFilterFileBrowseButton.setEnabled(false);
-				PlayerInformationSearchTextField.setEnabled(true);
-				PlayerInformationPlayerList.setEnabled(true);
+				PlayerInformationSearchTextField.setVisible(true);
+				PlayerInformationPlayerList.setVisible(true);
 				playerInformationCurrentFlag = playerInfoFlags[3];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 3);
 				/* Refresh player information currently in dialog */
@@ -898,8 +898,8 @@ public class graphicalG2ME {
 				PlayerInformationMinEventsSpinner.setEnabled(true);
 				PlayerInformationFilterFileTextField.setEnabled(true);
 				PlayerInformationFilterFileBrowseButton.setEnabled(true);
-				PlayerInformationSearchTextField.setEnabled(false);
-				PlayerInformationPlayerList.setEnabled(false);
+				PlayerInformationSearchTextField.setVisible(false);
+				PlayerInformationPlayerList.setVisible(false);
 				playerInformationCurrentFlag = playerInfoFlags[4];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 4);
 				/* Refresh player information currently in dialog */
@@ -914,8 +914,8 @@ public class graphicalG2ME {
 				PlayerInformationMinEventsSpinner.setEnabled(true);
 				PlayerInformationFilterFileTextField.setEnabled(true);
 				PlayerInformationFilterFileBrowseButton.setEnabled(true);
-				PlayerInformationSearchTextField.setEnabled(false);
-				PlayerInformationPlayerList.setEnabled(false);
+				PlayerInformationSearchTextField.setVisible(false);
+				PlayerInformationPlayerList.setVisible(false);
 				playerInformationCurrentFlag = playerInfoFlags[5];
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, 5);
 				/* Refresh player information currently in dialog */
@@ -944,11 +944,11 @@ public class graphicalG2ME {
 			PlayerInformationFilterFileBrowseButton.setEnabled(false);
 		}
 		if (previousRBSelected == 4 || previousRBSelected == 5) {
-			PlayerInformationSearchTextField.setEnabled(false);
-			PlayerInformationPlayerList.setEnabled(false);
+			PlayerInformationSearchTextField.setVisible(false);
+			PlayerInformationPlayerList.setVisible(false);
 		} else {
-			PlayerInformationSearchTextField.setEnabled(true);
-			PlayerInformationPlayerList.setEnabled(true);
+			PlayerInformationSearchTextField.setVisible(true);
+			PlayerInformationPlayerList.setVisible(true);
 		}
 
 		ButtonGroup PlayerInformationButtonGroup = new ButtonGroup();
