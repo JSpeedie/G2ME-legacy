@@ -62,6 +62,68 @@ public class graphicalG2ME {
 		}
 	}
 
+	public class JAliasedSearchField extends JAliasedTextField implements FocusListener {
+
+		private String hint = "";
+		private boolean showingHint;
+		private int alphaFaded = 160;
+		private int alphaNormal;
+
+		public JAliasedSearchField(final String s) {
+			super(s);
+			this.hint = s;
+			this.showingHint = true;
+			super.addFocusListener(this);
+			Color c = this.getForeground();
+			alphaNormal = c.getAlpha();
+
+			/* Italicize hint */
+			this.setFont(this.getFont().deriveFont(Font.ITALIC));
+			/* Reduce opacity on hint */
+			Color fadedColour = new Color(c.getRed(), c.getGreen(), c.getBlue(), alphaFaded);
+			this.setForeground(fadedColour);
+		}
+
+		@Override
+		public void focusGained(FocusEvent e) {
+			if (this.getText().isEmpty()) {
+				/* De-Italicize for user entered text */
+				this.setFont(this.getFont().deriveFont(Font.PLAIN));
+				/* Return to original opacity for user entered text */
+				Color c = this.getForeground();
+				Color originalColour = new Color(c.getRed(), c.getGreen(), c.getBlue(), alphaNormal);
+				this.setForeground(originalColour);
+				/* Get rid of hint */
+				super.setText("");
+				showingHint = false;
+			}
+		}
+
+		@Override
+		public void focusLost(FocusEvent e) {
+			if (this.getText().isEmpty()) {
+				/* Italicize hint */
+				this.setFont(this.getFont().deriveFont(Font.ITALIC));
+				/* Reduce opacity on hint */
+				Color c = this.getForeground();
+				Color fadedColour = new Color(c.getRed(), c.getGreen(), c.getBlue(), alphaFaded);
+				this.setForeground(fadedColour);
+				/* Display hint */
+				super.setText(hint);
+				showingHint = true;
+			}
+		}
+
+		@Override
+		public String getText() {
+			if (showingHint) {
+				return "";
+			} else {
+				return super.getText();
+			}
+		}
+	}
+
 	public class JAliasedTextArea extends JTextArea {
 
 		public JAliasedTextArea() { super(); }
@@ -365,6 +427,53 @@ public class graphicalG2ME {
 		JAliasedButton SettingsSaveButton = new JAliasedButton("Save");
 		JAliasedButton SettingsResetSavedGUISettingsButton = new JAliasedButton("Reset Saved GUI Settings");
 
+		/* Configure Player Information Tab */
+		JPanel PlayerInformationControlBar = new JPanel();
+		PlayerInformationControlBar.setLayout(new BoxLayout(PlayerInformationControlBar, BoxLayout.Y_AXIS));
+		JAliasedCheckBox PlayerInformationVerboseCheckBox = new JAliasedCheckBox("Verbose");
+		PlayerInformationVerboseCheckBox.setSelected(prefs.getBoolean(PLAYER_INFO_VERBOSE, PLAYER_INFO_VERBOSE_DEFAULT));
+		JAliasedSearchField PlayerInformationSearchTextField = new JAliasedSearchField("Search for player...");
+		JAliasedList PlayerInformationPlayerList = new JAliasedList();
+		JScrollPane PlayerInformationPlayerListScroll = new JScrollPane(PlayerInformationPlayerList);
+		JAliasedTextArea PlayerInformationTextDialog = new JAliasedTextArea();
+		JScrollPane PlayerInformationTextDialogScroll = new JScrollPane(PlayerInformationTextDialog);
+		JAliasedTextField PlayerInformationFilterFileTextField = new JAliasedTextField();
+		JAliasedButton PlayerInformationFilterFileBrowseButton = new JAliasedButton("Browse For Filter File...");
+		JLabel PlayerInformationMinEventsLabel = new JLabel("Min. Events:");
+		JPanel PlayerInformationMinEventComponents = new JPanel();
+		PlayerInformationMinEventComponents.setLayout(new BoxLayout(PlayerInformationMinEventComponents, BoxLayout.X_AXIS));
+		JAliasedSpinner PlayerInformationMinEventsSpinner =
+				new JAliasedSpinner(new SpinnerNumberModel(1, 1, 1000, 1));
+		PlayerInformationMinEventsSpinner.setToolTipText("Filter Power Ranking Output to Only Include Players Who Have Attended This Many Events");
+
+		JAliasedRadioButton PlayerInformationHistoryButton = new JAliasedRadioButton("Outcome History");
+		PlayerInformationHistoryButton.setToolTipText("Opponent, Date, Tournament and Glicko2 Data After Every Outcome (Set/Game)");
+		JAliasedRadioButton PlayerInformationRecordsButton = new JAliasedRadioButton("Records/Head-to-Heads");
+		PlayerInformationRecordsButton.setToolTipText("Wins, Ties, Losses Against All Players Played");
+		JAliasedRadioButton PlayerInformationEventsAttendedButton = new JAliasedRadioButton("Events Attended");
+		PlayerInformationEventsAttendedButton.setToolTipText("Names of All Events Attended");
+		JAliasedRadioButton PlayerInformationNumOutcomesButton = new JAliasedRadioButton("Number of Outcomes (Sets/Games) Played");
+		PlayerInformationNumOutcomesButton.setToolTipText("Number of Outcomes (Sets/Games) Played");
+		JAliasedRadioButton PlayerInformationRecordTableButton = new JAliasedRadioButton("Records/Head-to-Heads Table");
+		PlayerInformationRecordTableButton.setToolTipText("Records/Head-to-Head Table. Requires clicking the Refresh button");
+		JAliasedRadioButton PlayerInformationRecordCSVButton = new JAliasedRadioButton("Records/Head-to-Heads CSV");
+		PlayerInformationRecordCSVButton.setToolTipText("Records/Head-to-Heads Table, but in a CSV, spreadsheet output. Requires" +
+				" clicking the Refresh button");
+		String[] playerInfoFlags = new String[6];
+		playerInfoFlags[0] = "h";
+		playerInfoFlags[1] = "R";
+		playerInfoFlags[2] = "A";
+		playerInfoFlags[3] = "c";
+		playerInfoFlags[4] = "M";
+		playerInfoFlags[5] = "C";
+		JAliasedRadioButton[] PlayerInfoRadioButtonArray = new JAliasedRadioButton[6];
+		PlayerInfoRadioButtonArray[0] = PlayerInformationHistoryButton;
+		PlayerInfoRadioButtonArray[1] = PlayerInformationRecordsButton;
+		PlayerInfoRadioButtonArray[2] = PlayerInformationEventsAttendedButton;
+		PlayerInfoRadioButtonArray[3] = PlayerInformationNumOutcomesButton;
+		PlayerInfoRadioButtonArray[4] = PlayerInformationRecordTableButton;
+		PlayerInfoRadioButtonArray[5] = PlayerInformationRecordCSVButton;
+
 		SettingsG2MEBinBrowseButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -465,6 +574,7 @@ public class graphicalG2ME {
 				SettingsCheckG2MEBinTextField(SettingsG2MEBinTextField);
 				SettingsCheckG2MEDirTextField(SettingsG2MEDirTextField);
 				SettingsCheckG2MEPlayerDirTextField(SettingsG2MEPlayerDirTextField);
+				UpdateJListToFilesInDir(PlayerInformationPlayerList, prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
 			}
 		});
 		/* Set default text for the 2 text fields */
@@ -717,54 +827,6 @@ public class graphicalG2ME {
 		tabPowerRankings.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
 		tabPowerRankings.add(PowerRankingsControlBar);
 
-		/* Configure Player Information Tab */
-		JPanel PlayerInformationControlBar = new JPanel();
-		PlayerInformationControlBar.setLayout(new BoxLayout(PlayerInformationControlBar, BoxLayout.Y_AXIS));
-		JAliasedButton PlayerInformationRefreshButton = new JAliasedButton("Refresh");
-		JAliasedCheckBox PlayerInformationVerboseCheckBox = new JAliasedCheckBox("Verbose");
-		PlayerInformationVerboseCheckBox.setSelected(prefs.getBoolean(PLAYER_INFO_VERBOSE, PLAYER_INFO_VERBOSE_DEFAULT));
-		JAliasedTextField PlayerInformationSearchTextField = new JAliasedTextField();
-		JAliasedList PlayerInformationPlayerList = new JAliasedList();
-		JScrollPane PlayerInformationPlayerListScroll = new JScrollPane(PlayerInformationPlayerList);
-		JAliasedTextArea PlayerInformationTextDialog = new JAliasedTextArea();
-		JScrollPane PlayerInformationTextDialogScroll = new JScrollPane(PlayerInformationTextDialog);
-		JAliasedTextField PlayerInformationFilterFileTextField = new JAliasedTextField();
-		JAliasedButton PlayerInformationFilterFileBrowseButton = new JAliasedButton("Browse For Filter File...");
-		JLabel PlayerInformationMinEventsLabel = new JLabel("Min. Events:");
-		JPanel PlayerInformationMinEventComponents = new JPanel();
-		PlayerInformationMinEventComponents.setLayout(new BoxLayout(PlayerInformationMinEventComponents, BoxLayout.X_AXIS));
-		JAliasedSpinner PlayerInformationMinEventsSpinner =
-			new JAliasedSpinner(new SpinnerNumberModel(1, 1, 1000, 1));
-		PlayerInformationMinEventsSpinner.setToolTipText("Filter Power Ranking Output to Only Include Players Who Have Attended This Many Events");
-
-		JAliasedRadioButton PlayerInformationHistoryButton = new JAliasedRadioButton("Outcome History");
-		PlayerInformationHistoryButton.setToolTipText("Opponent, Date, Tournament and Glicko2 Data After Every Outcome (Set/Game)");
-		JAliasedRadioButton PlayerInformationRecordsButton = new JAliasedRadioButton("Records/Head-to-Heads");
-		PlayerInformationRecordsButton.setToolTipText("Wins, Ties, Losses Against All Players Played");
-		JAliasedRadioButton PlayerInformationEventsAttendedButton = new JAliasedRadioButton("Events Attended");
-		PlayerInformationEventsAttendedButton.setToolTipText("Names of All Events Attended");
-		JAliasedRadioButton PlayerInformationNumOutcomesButton = new JAliasedRadioButton("Number of Outcomes (Sets/Games) Played");
-		PlayerInformationNumOutcomesButton.setToolTipText("Number of Outcomes (Sets/Games) Played");
-		JAliasedRadioButton PlayerInformationRecordTableButton = new JAliasedRadioButton("Records/Head-to-Heads Table");
-		PlayerInformationRecordTableButton.setToolTipText("Records/Head-to-Head Table. Requires clicking the Refresh button");
-		JAliasedRadioButton PlayerInformationRecordCSVButton = new JAliasedRadioButton("Records/Head-to-Heads CSV");
-		PlayerInformationRecordCSVButton.setToolTipText("Records/Head-to-Heads Table, but in a CSV, spreadsheet output. Requires" +
-			" clicking the Refresh button");
-		String[] playerInfoFlags = new String[6];
-		playerInfoFlags[0] = "h";
-		playerInfoFlags[1] = "R";
-		playerInfoFlags[2] = "A";
-		playerInfoFlags[3] = "c";
-		playerInfoFlags[4] = "M";
-		playerInfoFlags[5] = "C";
-		JAliasedRadioButton[] PlayerInfoRadioButtonArray = new JAliasedRadioButton[6];
-		PlayerInfoRadioButtonArray[0] = PlayerInformationHistoryButton;
-		PlayerInfoRadioButtonArray[1] = PlayerInformationRecordsButton;
-		PlayerInfoRadioButtonArray[2] = PlayerInformationEventsAttendedButton;
-		PlayerInfoRadioButtonArray[3] = PlayerInformationNumOutcomesButton;
-		PlayerInfoRadioButtonArray[4] = PlayerInformationRecordTableButton;
-		PlayerInfoRadioButtonArray[5] = PlayerInformationRecordCSVButton;
-
 		PlayerInformationHistoryButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(true);
@@ -901,6 +963,7 @@ public class graphicalG2ME {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				prefs.putBoolean(PLAYER_INFO_VERBOSE, PlayerInformationVerboseCheckBox.isSelected());
+
 				/* Refresh player information currently in dialog */
 				UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
 						PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag,
@@ -958,18 +1021,6 @@ public class graphicalG2ME {
 				}
 			}
 		});
-		PlayerInformationRefreshButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				/* Refresh list of players */
-				UpdateJListToSearchString(PlayerInformationPlayerList,
-					PlayerInformationSearchTextField.getText());
-				/* Refresh player information currently in dialog */
-				UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
-					PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag,
-					(int)PlayerInformationMinEventsSpinner.getValue(), PlayerInformationFilterFileTextField.getText());
-			}
-		});
 		PlayerInformationPlayerList.addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
@@ -1012,9 +1063,6 @@ public class graphicalG2ME {
 		PlayerInformationRecordCSVButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, CHECKBOX_HEIGHT));
 		PlayerInformationRecordCSVButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, CHECKBOX_HEIGHT));
 		/* Set sizes for the rest of the control bar */
-		PlayerInformationRefreshButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, TEXTFIELD_HEIGHT));
-		PlayerInformationRefreshButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, TEXTFIELD_HEIGHT));
-		PlayerInformationRefreshButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, TEXTFIELD_HEIGHT));
 		PlayerInformationVerboseCheckBox.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, TEXTFIELD_HEIGHT));
 		PlayerInformationVerboseCheckBox.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		PlayerInformationVerboseCheckBox.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, TEXTFIELD_HEIGHT));
@@ -1047,7 +1095,6 @@ public class graphicalG2ME {
 		PlayerInformationMinEventComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
 		PlayerInformationMinEventComponents.add(PlayerInformationMinEventsSpinner);
 		/* Correct Alignments of components in the control bar section */
-		PlayerInformationRefreshButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PlayerInformationVerboseCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PlayerInformationMinEventComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PlayerInformationFilterFileTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -1070,7 +1117,6 @@ public class graphicalG2ME {
 		PlayerInformationControlBar.add(PlayerInformationRecordCSVButton);
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		/* Add the rest of the elements in the control bar */
-		PlayerInformationControlBar.add(PlayerInformationRefreshButton);
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PlayerInformationControlBar.add(PlayerInformationVerboseCheckBox);
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
