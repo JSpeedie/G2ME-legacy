@@ -830,7 +830,8 @@ public class graphicalG2ME {
 		PlayerInformationHistoryButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(true);
-				PlayerInformationMinEventsSpinner.setEnabled(true);
+				PlayerInformationMinEventsSpinner.setVisible(true);
+				PlayerInformationMinEventsLabel.setVisible(true);
 				PlayerInformationFilterFileTextField.setEnabled(true);
 				PlayerInformationFilterFileBrowseButton.setEnabled(true);
 				PlayerInformationSearchTextField.setVisible(true);
@@ -847,7 +848,8 @@ public class graphicalG2ME {
 		PlayerInformationRecordsButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(true);
-				PlayerInformationMinEventsSpinner.setEnabled(true);
+				PlayerInformationMinEventsSpinner.setVisible(true);
+				PlayerInformationMinEventsLabel.setVisible(true);
 				PlayerInformationFilterFileTextField.setEnabled(true);
 				PlayerInformationFilterFileBrowseButton.setEnabled(true);
 				PlayerInformationSearchTextField.setVisible(true);
@@ -863,7 +865,8 @@ public class graphicalG2ME {
 		PlayerInformationEventsAttendedButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(false);
-				PlayerInformationMinEventsSpinner.setEnabled(false);
+				PlayerInformationMinEventsSpinner.setVisible(false);
+				PlayerInformationMinEventsLabel.setVisible(false);
 				PlayerInformationFilterFileTextField.setEnabled(false);
 				PlayerInformationFilterFileBrowseButton.setEnabled(false);
 				PlayerInformationSearchTextField.setVisible(true);
@@ -879,7 +882,8 @@ public class graphicalG2ME {
 		PlayerInformationNumOutcomesButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(false);
-				PlayerInformationMinEventsSpinner.setEnabled(false);
+				PlayerInformationMinEventsSpinner.setVisible(false);
+				PlayerInformationMinEventsLabel.setVisible(false);
 				PlayerInformationFilterFileTextField.setEnabled(false);
 				PlayerInformationFilterFileBrowseButton.setEnabled(false);
 				PlayerInformationSearchTextField.setVisible(true);
@@ -895,7 +899,8 @@ public class graphicalG2ME {
 		PlayerInformationRecordTableButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(false);
-				PlayerInformationMinEventsSpinner.setEnabled(true);
+				PlayerInformationMinEventsSpinner.setVisible(true);
+				PlayerInformationMinEventsLabel.setVisible(true);
 				PlayerInformationFilterFileTextField.setEnabled(true);
 				PlayerInformationFilterFileBrowseButton.setEnabled(true);
 				PlayerInformationSearchTextField.setVisible(false);
@@ -911,7 +916,8 @@ public class graphicalG2ME {
 		PlayerInformationRecordCSVButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(false);
-				PlayerInformationMinEventsSpinner.setEnabled(true);
+				PlayerInformationMinEventsSpinner.setVisible(true);
+				PlayerInformationMinEventsLabel.setVisible(true);
 				PlayerInformationFilterFileTextField.setEnabled(true);
 				PlayerInformationFilterFileBrowseButton.setEnabled(true);
 				PlayerInformationSearchTextField.setVisible(false);
@@ -939,9 +945,11 @@ public class graphicalG2ME {
 		/* If the last radio button selected was outcome history,
 		 * head-to-heads, head-to-head table or head-to-head CSV */
 		if (previousRBSelected == 0 || previousRBSelected == 1 || previousRBSelected == 4 || previousRBSelected == 5) {
-			PlayerInformationMinEventsSpinner.setEnabled(true);
+			PlayerInformationMinEventsSpinner.setVisible(true);
+			PlayerInformationMinEventsLabel.setVisible(true);
 		} else {
-			PlayerInformationMinEventsSpinner.setEnabled(false);
+			PlayerInformationMinEventsSpinner.setVisible(false);
+			PlayerInformationMinEventsLabel.setVisible(false);
 		}
 
 		/* If the last radio button selected was outcome history,
