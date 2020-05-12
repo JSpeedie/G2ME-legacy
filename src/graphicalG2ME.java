@@ -832,8 +832,8 @@ public class graphicalG2ME {
 				PlayerInformationVerboseCheckBox.setEnabled(true);
 				PlayerInformationMinEventsSpinner.setVisible(true);
 				PlayerInformationMinEventsLabel.setVisible(true);
-				PlayerInformationFilterFileTextField.setEnabled(true);
-				PlayerInformationFilterFileBrowseButton.setEnabled(true);
+				PlayerInformationFilterFileTextField.setVisible(true);
+				PlayerInformationFilterFileBrowseButton.setVisible(true);
 				PlayerInformationSearchTextField.setVisible(true);
 				PlayerInformationPlayerList.setVisible(true);
 				playerInformationCurrentFlag = playerInfoFlags[0];
@@ -850,8 +850,8 @@ public class graphicalG2ME {
 				PlayerInformationVerboseCheckBox.setEnabled(true);
 				PlayerInformationMinEventsSpinner.setVisible(true);
 				PlayerInformationMinEventsLabel.setVisible(true);
-				PlayerInformationFilterFileTextField.setEnabled(true);
-				PlayerInformationFilterFileBrowseButton.setEnabled(true);
+				PlayerInformationFilterFileTextField.setVisible(true);
+				PlayerInformationFilterFileBrowseButton.setVisible(true);
 				PlayerInformationSearchTextField.setVisible(true);
 				PlayerInformationPlayerList.setVisible(true);
 				playerInformationCurrentFlag = playerInfoFlags[1];
@@ -867,8 +867,8 @@ public class graphicalG2ME {
 				PlayerInformationVerboseCheckBox.setEnabled(false);
 				PlayerInformationMinEventsSpinner.setVisible(false);
 				PlayerInformationMinEventsLabel.setVisible(false);
-				PlayerInformationFilterFileTextField.setEnabled(false);
-				PlayerInformationFilterFileBrowseButton.setEnabled(false);
+				PlayerInformationFilterFileTextField.setVisible(false);
+				PlayerInformationFilterFileBrowseButton.setVisible(false);
 				PlayerInformationSearchTextField.setVisible(true);
 				PlayerInformationPlayerList.setVisible(true);
 				playerInformationCurrentFlag = playerInfoFlags[2];
@@ -884,8 +884,8 @@ public class graphicalG2ME {
 				PlayerInformationVerboseCheckBox.setEnabled(false);
 				PlayerInformationMinEventsSpinner.setVisible(false);
 				PlayerInformationMinEventsLabel.setVisible(false);
-				PlayerInformationFilterFileTextField.setEnabled(false);
-				PlayerInformationFilterFileBrowseButton.setEnabled(false);
+				PlayerInformationFilterFileTextField.setVisible(false);
+				PlayerInformationFilterFileBrowseButton.setVisible(false);
 				PlayerInformationSearchTextField.setVisible(true);
 				PlayerInformationPlayerList.setVisible(true);
 				playerInformationCurrentFlag = playerInfoFlags[3];
@@ -901,8 +901,8 @@ public class graphicalG2ME {
 				PlayerInformationVerboseCheckBox.setEnabled(false);
 				PlayerInformationMinEventsSpinner.setVisible(true);
 				PlayerInformationMinEventsLabel.setVisible(true);
-				PlayerInformationFilterFileTextField.setEnabled(true);
-				PlayerInformationFilterFileBrowseButton.setEnabled(true);
+				PlayerInformationFilterFileTextField.setVisible(true);
+				PlayerInformationFilterFileBrowseButton.setVisible(true);
 				PlayerInformationSearchTextField.setVisible(false);
 				PlayerInformationPlayerList.setVisible(false);
 				playerInformationCurrentFlag = playerInfoFlags[4];
@@ -918,8 +918,8 @@ public class graphicalG2ME {
 				PlayerInformationVerboseCheckBox.setEnabled(false);
 				PlayerInformationMinEventsSpinner.setVisible(true);
 				PlayerInformationMinEventsLabel.setVisible(true);
-				PlayerInformationFilterFileTextField.setEnabled(true);
-				PlayerInformationFilterFileBrowseButton.setEnabled(true);
+				PlayerInformationFilterFileTextField.setVisible(true);
+				PlayerInformationFilterFileBrowseButton.setVisible(true);
 				PlayerInformationSearchTextField.setVisible(false);
 				PlayerInformationPlayerList.setVisible(false);
 				playerInformationCurrentFlag = playerInfoFlags[5];
@@ -955,11 +955,11 @@ public class graphicalG2ME {
 		/* If the last radio button selected was outcome history,
 		 * head-to-heads, head-to-head table or head-to-head CSV */
 		if (previousRBSelected == 0 || previousRBSelected == 1 || previousRBSelected == 4 || previousRBSelected == 5) {
-			PlayerInformationFilterFileTextField.setEnabled(true);
-			PlayerInformationFilterFileBrowseButton.setEnabled(true);
+			PlayerInformationFilterFileTextField.setVisible(true);
+			PlayerInformationFilterFileBrowseButton.setVisible(true);
 		} else {
-			PlayerInformationFilterFileTextField.setEnabled(false);
-			PlayerInformationFilterFileBrowseButton.setEnabled(false);
+			PlayerInformationFilterFileTextField.setVisible(false);
+			PlayerInformationFilterFileBrowseButton.setVisible(false);
 		}
 
 		/* If the last radio button selected was outcome history or head-to-heads */
