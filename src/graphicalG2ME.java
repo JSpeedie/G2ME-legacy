@@ -831,8 +831,8 @@ public class graphicalG2ME {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(true);
 				PlayerInformationMinEventsSpinner.setEnabled(false);
-				PlayerInformationFilterFileTextField.setEnabled(false);
-				PlayerInformationFilterFileBrowseButton.setEnabled(false);
+				PlayerInformationFilterFileTextField.setEnabled(true);
+				PlayerInformationFilterFileBrowseButton.setEnabled(true);
 				PlayerInformationSearchTextField.setVisible(true);
 				PlayerInformationPlayerList.setVisible(true);
 				playerInformationCurrentFlag = playerInfoFlags[0];
