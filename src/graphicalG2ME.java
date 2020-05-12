@@ -929,20 +929,32 @@ public class graphicalG2ME {
 		PlayerInfoRadioButtonArray[previousRBSelected].setSelected(true);
 		playerInformationCurrentFlag = playerInfoFlags[previousRBSelected];
 
+		/* If the last radio button selected was outcome history or head-to-heads */
 		if (previousRBSelected == 0 || previousRBSelected == 1) {
 			PlayerInformationVerboseCheckBox.setEnabled(true);
 		} else {
 			PlayerInformationVerboseCheckBox.setEnabled(false);
 		}
-		if (previousRBSelected == 1 || previousRBSelected == 4 || previousRBSelected == 5) {
+
+		/* If the last radio button selected was outcome history,
+		 * head-to-heads, head-to-head table or head-to-head CSV */
+		if (previousRBSelected == 0 || previousRBSelected == 1 || previousRBSelected == 4 || previousRBSelected == 5) {
 			PlayerInformationMinEventsSpinner.setEnabled(true);
+		} else {
+			PlayerInformationMinEventsSpinner.setEnabled(false);
+		}
+
+		/* If the last radio button selected was outcome history,
+		 * head-to-heads, head-to-head table or head-to-head CSV */
+		if (previousRBSelected == 0 || previousRBSelected == 1 || previousRBSelected == 4 || previousRBSelected == 5) {
 			PlayerInformationFilterFileTextField.setEnabled(true);
 			PlayerInformationFilterFileBrowseButton.setEnabled(true);
 		} else {
-			PlayerInformationMinEventsSpinner.setEnabled(false);
 			PlayerInformationFilterFileTextField.setEnabled(false);
 			PlayerInformationFilterFileBrowseButton.setEnabled(false);
 		}
+
+		/* If the last radio button selected was outcome history or head-to-heads */
 		if (previousRBSelected == 4 || previousRBSelected == 5) {
 			PlayerInformationSearchTextField.setVisible(false);
 			PlayerInformationPlayerList.setVisible(false);
