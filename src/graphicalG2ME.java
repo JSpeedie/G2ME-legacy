@@ -830,7 +830,7 @@ public class graphicalG2ME {
 		PlayerInformationHistoryButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				PlayerInformationVerboseCheckBox.setEnabled(true);
-				PlayerInformationMinEventsSpinner.setEnabled(false);
+				PlayerInformationMinEventsSpinner.setEnabled(true);
 				PlayerInformationFilterFileTextField.setEnabled(true);
 				PlayerInformationFilterFileBrowseButton.setEnabled(true);
 				PlayerInformationSearchTextField.setVisible(true);
