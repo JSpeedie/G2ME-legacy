@@ -25,6 +25,7 @@ public class graphicalG2ME {
 	private static final String RD_ADJUST_ABSENT="RD_ADJUST_ABSENT";
 	private static final String POWER_RANKINGS_VERBOSE="POWER_RANKINGS_VERBOSE";
 	private static final String PLAYER_INFO_VERBOSE="PLAYER_INFO_VERBOSE";
+	private static final String PLAYER_INFO_MINEVENTS="PLAYER_INFO_MINEVENTS";
 	private static final String PLAYER_INFO_RB_SELECTED="PLAYER_INFO_RB_SELECTED";
 	/* Prefs defaults */
 	private static String G2ME_BIN_DEFAULT="/usr/local/bin/G2ME";
@@ -35,6 +36,7 @@ public class graphicalG2ME {
 	private static boolean RD_ADJUST_ABSENT_DEFAULT=true;
 	private static boolean POWER_RANKINGS_VERBOSE_DEFAULT=false;
 	private static boolean PLAYER_INFO_VERBOSE_DEFAULT=false;
+	private static int PLAYER_INFO_MINEVENTS_DEFAULT=1;
 	private static int PLAYER_INFO_RB_SELECTED_DEFAULT=0;
 
 	private final int ELEMENT_SPACING = 5;
@@ -443,7 +445,9 @@ public class graphicalG2ME {
 		JPanel PlayerInformationMinEventComponents = new JPanel();
 		PlayerInformationMinEventComponents.setLayout(new BoxLayout(PlayerInformationMinEventComponents, BoxLayout.X_AXIS));
 		JAliasedSpinner PlayerInformationMinEventsSpinner =
-				new JAliasedSpinner(new SpinnerNumberModel(1, 1, 1000, 1));
+				new JAliasedSpinner(new SpinnerNumberModel(
+						prefs.getInt(PLAYER_INFO_MINEVENTS, PLAYER_INFO_MINEVENTS_DEFAULT),
+						1, 1000, 1));
 		PlayerInformationMinEventsSpinner.setToolTipText("Filter Power Ranking Output to Only Include Players Who Have Attended This Many Events");
 
 		JAliasedRadioButton PlayerInformationHistoryButton = new JAliasedRadioButton("Outcome History");
@@ -829,7 +833,7 @@ public class graphicalG2ME {
 
 		PlayerInformationHistoryButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				PlayerInformationVerboseCheckBox.setEnabled(true);
+				PlayerInformationVerboseCheckBox.setVisible(true);
 				PlayerInformationMinEventsSpinner.setVisible(true);
 				PlayerInformationMinEventsLabel.setVisible(true);
 				PlayerInformationFilterFileTextField.setVisible(true);
@@ -847,7 +851,7 @@ public class graphicalG2ME {
 
 		PlayerInformationRecordsButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				PlayerInformationVerboseCheckBox.setEnabled(true);
+				PlayerInformationVerboseCheckBox.setVisible(true);
 				PlayerInformationMinEventsSpinner.setVisible(true);
 				PlayerInformationMinEventsLabel.setVisible(true);
 				PlayerInformationFilterFileTextField.setVisible(true);
@@ -864,7 +868,7 @@ public class graphicalG2ME {
 		});
 		PlayerInformationEventsAttendedButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				PlayerInformationVerboseCheckBox.setEnabled(false);
+				PlayerInformationVerboseCheckBox.setVisible(false);
 				PlayerInformationMinEventsSpinner.setVisible(false);
 				PlayerInformationMinEventsLabel.setVisible(false);
 				PlayerInformationFilterFileTextField.setVisible(false);
@@ -881,7 +885,7 @@ public class graphicalG2ME {
 		});
 		PlayerInformationNumOutcomesButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				PlayerInformationVerboseCheckBox.setEnabled(false);
+				PlayerInformationVerboseCheckBox.setVisible(false);
 				PlayerInformationMinEventsSpinner.setVisible(false);
 				PlayerInformationMinEventsLabel.setVisible(false);
 				PlayerInformationFilterFileTextField.setVisible(false);
@@ -898,7 +902,7 @@ public class graphicalG2ME {
 		});
 		PlayerInformationRecordTableButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				PlayerInformationVerboseCheckBox.setEnabled(false);
+				PlayerInformationVerboseCheckBox.setVisible(false);
 				PlayerInformationMinEventsSpinner.setVisible(true);
 				PlayerInformationMinEventsLabel.setVisible(true);
 				PlayerInformationFilterFileTextField.setVisible(true);
@@ -915,7 +919,7 @@ public class graphicalG2ME {
 		});
 		PlayerInformationRecordCSVButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				PlayerInformationVerboseCheckBox.setEnabled(false);
+				PlayerInformationVerboseCheckBox.setVisible(false);
 				PlayerInformationMinEventsSpinner.setVisible(true);
 				PlayerInformationMinEventsLabel.setVisible(true);
 				PlayerInformationFilterFileTextField.setVisible(true);
@@ -937,9 +941,9 @@ public class graphicalG2ME {
 
 		/* If the last radio button selected was outcome history or head-to-heads */
 		if (previousRBSelected == 0 || previousRBSelected == 1) {
-			PlayerInformationVerboseCheckBox.setEnabled(true);
+			PlayerInformationVerboseCheckBox.setVisible(true);
 		} else {
-			PlayerInformationVerboseCheckBox.setEnabled(false);
+			PlayerInformationVerboseCheckBox.setVisible(false);
 		}
 
 		/* If the last radio button selected was outcome history,
@@ -983,6 +987,18 @@ public class graphicalG2ME {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				prefs.putBoolean(PLAYER_INFO_VERBOSE, PlayerInformationVerboseCheckBox.isSelected());
+
+				/* Refresh player information currently in dialog */
+				UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
+						PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag,
+						(int)PlayerInformationMinEventsSpinner.getValue(), PlayerInformationFilterFileTextField.getText());
+			}
+		});
+
+		PlayerInformationMinEventsSpinner.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				prefs.putInt(PLAYER_INFO_MINEVENTS, (int)PlayerInformationMinEventsSpinner.getValue());
 
 				/* Refresh player information currently in dialog */
 				UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
