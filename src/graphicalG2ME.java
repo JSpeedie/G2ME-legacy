@@ -24,6 +24,7 @@ public class graphicalG2ME {
 	private static final String USE_GAMES="USE_GAMES";
 	private static final String RD_ADJUST_ABSENT="RD_ADJUST_ABSENT";
 	private static final String POWER_RANKINGS_VERBOSE="POWER_RANKINGS_VERBOSE";
+	private static final String POWER_RANKINGS_MINEVENTS="POWER_RANKINGS_MINEVENTS";
 	private static final String PLAYER_INFO_VERBOSE="PLAYER_INFO_VERBOSE";
 	private static final String PLAYER_INFO_MINEVENTS="PLAYER_INFO_MINEVENTS";
 	private static final String PLAYER_INFO_RB_SELECTED="PLAYER_INFO_RB_SELECTED";
@@ -35,6 +36,7 @@ public class graphicalG2ME {
 	private static boolean USE_GAMES_DEFAULT=false;
 	private static boolean RD_ADJUST_ABSENT_DEFAULT=true;
 	private static boolean POWER_RANKINGS_VERBOSE_DEFAULT=false;
+	private static int POWER_RANKINGS_MINEVENTS_DEFAULT=1;
 	private static boolean PLAYER_INFO_VERBOSE_DEFAULT=false;
 	private static int PLAYER_INFO_MINEVENTS_DEFAULT=1;
 	private static int PLAYER_INFO_RB_SELECTED_DEFAULT=0;
@@ -428,6 +430,29 @@ public class graphicalG2ME {
 		JAliasedButton SettingsAutoConfigureButton = new JAliasedButton("Attempt Auto-configuration");
 		JAliasedButton SettingsSaveButton = new JAliasedButton("Save");
 		JAliasedButton SettingsResetSavedGUISettingsButton = new JAliasedButton("Reset Saved GUI Settings");
+
+		/* Configure Power Rankings Tab */
+		JPanel PowerRankingsControlBar = new JPanel();
+		PowerRankingsControlBar.setLayout(new BoxLayout(PowerRankingsControlBar, BoxLayout.Y_AXIS));
+		JAliasedCheckBox PowerRankingsVerboseCheckBox = new JAliasedCheckBox("Verbose");
+		PowerRankingsVerboseCheckBox.setSelected(prefs.getBoolean(POWER_RANKINGS_VERBOSE, POWER_RANKINGS_VERBOSE_DEFAULT));
+		JAliasedTextField PowerRankingsFilterFileTextField = new JAliasedTextField();
+		JAliasedButton PowerRankingsFilterFileBrowseButton = new JAliasedButton("Browse For Filter File...");
+		JAliasedButton PowerRankingsSaveButton = new JAliasedButton("Save As...");
+		JLabel PowerRankingsMinEventsLabel = new JLabel("Min. Events:");
+		JPanel PowerRankingsMinEventComponents = new JPanel();
+		PowerRankingsMinEventComponents.setLayout(new BoxLayout(PowerRankingsMinEventComponents, BoxLayout.X_AXIS));
+		JAliasedSpinner PowerRankingsMinEventsSpinner =
+				new JAliasedSpinner(new SpinnerNumberModel(
+						prefs.getInt(POWER_RANKINGS_MINEVENTS, POWER_RANKINGS_MINEVENTS_DEFAULT),
+						1, 1000, 1));
+		PowerRankingsMinEventsSpinner.setToolTipText("Filter Power Ranking Output to Only Include Players Who Have Attended This Many Events");
+		JAliasedTextArea PowerRankingsTextDialog = new JAliasedTextArea();
+		JScrollPane PowerRankingsTextDialogScroll = new JScrollPane(PowerRankingsTextDialog);
+		/* Display current power ranking */
+		UpdateJTextAreaToFlagWithFilters(PowerRankingsTextDialog,
+				PowerRankingsVerboseCheckBox.isSelected(), "O",
+				(int)PowerRankingsMinEventsSpinner.getValue(), PowerRankingsFilterFileTextField.getText());
 
 		/* Configure Player Information Tab */
 		JPanel PlayerInformationControlBar = new JPanel();
