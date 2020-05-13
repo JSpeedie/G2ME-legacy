@@ -261,23 +261,33 @@ public class graphicalG2ME {
 		}
 	}
 
-	private void UpdateJTextAreaToFlag(JTextArea t, String playerName, boolean verbose, String flag) {
+	private void UpdateJTextAreaToFlagWithFilters(JTextArea t, boolean verbose,
+		String flag, int minEvents, String filterFilePath) {
+
 		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
-		String flags = "-n" + flag;
+		String flags = " -n" + flag;
+		String minEventsFlagAndArg = " -m " + minEvents;
+		String filterFileFlagsAndArg = "";
 		int ret = 0;
 
-		if (verbose) flags = "-nv" + flag;
+		if (!filterFilePath.equals("")) {
+			filterFileFlagsAndArg = " -f " + filterFilePath;
+		}
+
+		if (verbose) flags = " -nv" + flag;
 
 		ret = DisplayCommandResultsInJTextArea(
-			prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
-			" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
-			" " + flags + " " + playerName, t, false);
+				prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
+						" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+						minEventsFlagAndArg + filterFileFlagsAndArg +
+						flags, t, false);
 
 		if (ret != 0) {
 			System.err.println("An error occurred running \"" +
-				prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
-				" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
-				" " + flags + " " + playerName + "\"");
+					prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
+					" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
+					minEventsFlagAndArg + filterFileFlagsAndArg +
+					flags + "\"");
 		}
 	}
 
@@ -287,12 +297,12 @@ public class graphicalG2ME {
 		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
 		String flags = " -n" + flag;
 		String minEventsFlagAndArg = " -m " + minEvents;
-		String filter_file_flags_and_arg = "";
+		String filterFileFlagsAndArg = "";
 		String spaceAndPlayerName = " " + playerName;
 		int ret = 0;
 
 		if (!filterFilePath.equals("")) {
-			filter_file_flags_and_arg = " -f " + filterFilePath;
+			filterFileFlagsAndArg = " -f " + filterFilePath;
 		}
 		if (flag.equals("M") || flag.equals("C")) {
 			spaceAndPlayerName = "";
@@ -303,14 +313,14 @@ public class graphicalG2ME {
 		ret = DisplayCommandResultsInJTextArea(
 			prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
 			" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
-			minEventsFlagAndArg + filter_file_flags_and_arg +
+			minEventsFlagAndArg + filterFileFlagsAndArg +
 			flags + spaceAndPlayerName, t, false);
 
 		if (ret != 0) {
 			System.err.println("An error occurred running \"" +
 				prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
 				" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
-				minEventsFlagAndArg + filter_file_flags_and_arg +
+				minEventsFlagAndArg + filterFileFlagsAndArg +
 				flags + spaceAndPlayerName + "\"");
 		}
 	}
@@ -603,7 +613,13 @@ public class graphicalG2ME {
 				SettingsCheckG2MEBinTextField(SettingsG2MEBinTextField);
 				SettingsCheckG2MEDirTextField(SettingsG2MEDirTextField);
 				SettingsCheckG2MEPlayerDirTextField(SettingsG2MEPlayerDirTextField);
+				/* Refresh list of players in Player Info tab */
 				UpdateJListToFilesInDir(PlayerInformationPlayerList, prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
+				/* Display current power ranking in Power Ranking tab */
+				UpdateJTextAreaToFlagWithFilters(PowerRankingsTextDialog,
+						PowerRankingsVerboseCheckBox.isSelected(), "O",
+						(int)PowerRankingsMinEventsSpinner.getValue(), PowerRankingsFilterFileTextField.getText());
+
 			}
 		});
 		/* Set default text for the 2 text fields */
@@ -684,24 +700,6 @@ public class graphicalG2ME {
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
 		tabSettings.add(SettingsSaveButton);
 
-		/* Configure Power Rankings Tab */
-		JPanel PowerRankingsControlBar = new JPanel();
-		PowerRankingsControlBar.setLayout(new BoxLayout(PowerRankingsControlBar, BoxLayout.Y_AXIS));
-		JAliasedButton PowerRankingsGenPRButton = new JAliasedButton("Generate Power Rankings");
-		JAliasedCheckBox PowerRankingsVerboseCheckBox = new JAliasedCheckBox("Verbose");
-		PowerRankingsVerboseCheckBox.setSelected(prefs.getBoolean(POWER_RANKINGS_VERBOSE, POWER_RANKINGS_VERBOSE_DEFAULT));
-		JAliasedTextField PowerRankingsFilterFileTextField = new JAliasedTextField();
-		JAliasedButton PowerRankingsFilterFileBrowseButton = new JAliasedButton("Browse For Filter File...");
-		JAliasedButton PowerRankingsSaveButton = new JAliasedButton("Save As...");
-		JLabel PowerRankingsMinEventsLabel = new JLabel("Min. Events:");
-		JPanel PowerRankingsMinEventComponents = new JPanel();
-		PowerRankingsMinEventComponents.setLayout(new BoxLayout(PowerRankingsMinEventComponents, BoxLayout.X_AXIS));
-		JAliasedSpinner PowerRankingsMinEventsSpinner =
-			new JAliasedSpinner(new SpinnerNumberModel(1, 1, 1000, 1));
-		PowerRankingsMinEventsSpinner.setToolTipText("Filter Power Ranking Output to Only Include Players Who Have Attended This Many Events");
-		JAliasedTextArea PowerRankingsTextDialog = new JAliasedTextArea();
-		JScrollPane PowerRankingsTextDialogScroll = new JScrollPane(PowerRankingsTextDialog);
-
 		PowerRankingsTextDialog.setFont(new Font("monospaced", Font.PLAIN, 12));
 
 		PowerRankingsFilterFileBrowseButton.addActionListener(new ActionListener() {
@@ -718,6 +716,11 @@ public class graphicalG2ME {
 					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
 					try {
 						PowerRankingsFilterFileTextField.setText(DestinationFile.getAbsolutePath());
+
+						/* Refresh power ranking currently in dialog */
+						UpdateJTextAreaToFlagWithFilters(PowerRankingsTextDialog,
+								PowerRankingsVerboseCheckBox.isSelected(), "O",
+								(int)PowerRankingsMinEventsSpinner.getValue(), PowerRankingsFilterFileTextField.getText());
 					} catch (Exception e1) {
 						e1.printStackTrace();
 					}
@@ -725,39 +728,30 @@ public class graphicalG2ME {
 			}
 		});
 
-		PowerRankingsGenPRButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int ret = 0;
-				String no_req_flags = "";
-				String filter_file_flags_and_arg = "";
-				if (PowerRankingsVerboseCheckBox.isSelected()) no_req_flags += "v";
-				if (!PowerRankingsFilterFileTextField.getText().equals("")) {
-					filter_file_flags_and_arg = " -f " + PowerRankingsFilterFileTextField.getText();
-				}
-
-				ret = DisplayCommandResultsInJTextArea(
-					prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
-					" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
-					filter_file_flags_and_arg +
-					" -m " + PowerRankingsMinEventsSpinner.getValue() +
-					" -" + no_req_flags + "O", PowerRankingsTextDialog, false);
-				if (ret != 0) {
-					System.err.println("An error occurred running \"" +
-						prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT) +
-						" -d " + prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT) +
-						filter_file_flags_and_arg +
-						" -m " + PowerRankingsMinEventsSpinner.getValue() +
-						" -" + no_req_flags + "O" + "\"");
-				}
-			}
-		});
 		PowerRankingsVerboseCheckBox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				prefs.putBoolean(POWER_RANKINGS_VERBOSE, PowerRankingsVerboseCheckBox.isSelected());
+
+				/* Refresh power ranking currently in dialog */
+				UpdateJTextAreaToFlagWithFilters(PowerRankingsTextDialog,
+						PowerRankingsVerboseCheckBox.isSelected(), "O",
+						(int)PowerRankingsMinEventsSpinner.getValue(), PowerRankingsFilterFileTextField.getText());
 			}
 		});
+
+		PowerRankingsMinEventsSpinner.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				prefs.putInt(POWER_RANKINGS_MINEVENTS, (int)PowerRankingsMinEventsSpinner.getValue());
+
+				/* Refresh power ranking currently in dialog */
+				UpdateJTextAreaToFlagWithFilters(PowerRankingsTextDialog,
+						PowerRankingsVerboseCheckBox.isSelected(), "O",
+						(int)PowerRankingsMinEventsSpinner.getValue(), PowerRankingsFilterFileTextField.getText());
+			}
+		});
+
 		PowerRankingsSaveButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -787,7 +781,6 @@ public class graphicalG2ME {
 		PowerRankingsTextDialogScroll.setAlignmentY(Component.TOP_ALIGNMENT);
 		PowerRankingsControlBar.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PowerRankingsControlBar.setAlignmentY(Component.TOP_ALIGNMENT);
-		PowerRankingsGenPRButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PowerRankingsFilterFileTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PowerRankingsMinEventComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PowerRankingsMinEventsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -798,10 +791,6 @@ public class graphicalG2ME {
 		int genPRControlBarPrefWidth = 300;
 		int genPRControlBarMaxWidth = 440;
 		/* Dimension settings for the tab */
-		PowerRankingsGenPRButton.setMinimumSize(new Dimension(genPRControlBarMinWidth, TEXTFIELD_HEIGHT));
-		PowerRankingsGenPRButton.setPreferredSize(new Dimension(genPRControlBarPrefWidth, TEXTFIELD_HEIGHT));
-		PowerRankingsGenPRButton.setMaximumSize(new Dimension(genPRControlBarMaxWidth, TEXTFIELD_HEIGHT));
-		PowerRankingsGenPRButton.setToolTipText("Generate Power Rankings");
 		PowerRankingsVerboseCheckBox.setMinimumSize(new Dimension(genPRControlBarMinWidth, CHECKBOX_HEIGHT));
 		PowerRankingsVerboseCheckBox.setPreferredSize(new Dimension(genPRControlBarPrefWidth, CHECKBOX_HEIGHT));
 		PowerRankingsVerboseCheckBox.setMaximumSize(new Dimension(genPRControlBarMaxWidth, CHECKBOX_HEIGHT));
@@ -836,8 +825,6 @@ public class graphicalG2ME {
 		PowerRankingsMinEventComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
 		PowerRankingsMinEventComponents.add(PowerRankingsMinEventsSpinner);
 		/* Add all elements in the control bar to the control bar panel */
-		PowerRankingsControlBar.add(PowerRankingsGenPRButton);
-		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PowerRankingsControlBar.add(PowerRankingsVerboseCheckBox);
 		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PowerRankingsControlBar.add(PowerRankingsMinEventComponents);
