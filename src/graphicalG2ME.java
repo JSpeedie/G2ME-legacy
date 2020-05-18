@@ -1248,8 +1248,8 @@ public class graphicalG2ME {
 		JAliasedButton RunBracketsClearButton = new JAliasedButton("Clear");
 		JAliasedButton RunBracketsResetButton = new JAliasedButton("Reset");
 		JAliasedButton RunBracketsClearLogButton = new JAliasedButton("Clear Log");
-		JAliasedButton RunBracketsRunBracketButton = new JAliasedButton("Run Bracket...");
-		JAliasedButton RunBracketsRunSeasonButton = new JAliasedButton("Run Season...");
+		JAliasedButton RunBracketsRunBracketButton = new JAliasedButton("Run File as Bracket...");
+		JAliasedButton RunBracketsRunSeasonButton = new JAliasedButton("Run File as Season...");
 		JAliasedButton RunBracketsSaveButton = new JAliasedButton("Save As...");
 		JLabel RunBracketsWeightLabel = new JLabel("Weight:");
 		JAliasedSpinner RunBracketsWeightSpinner =
