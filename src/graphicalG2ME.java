@@ -473,6 +473,7 @@ public class graphicalG2ME {
 		JAliasedList PlayerInformationPlayerList = new JAliasedList();
 		JScrollPane PlayerInformationPlayerListScroll = new JScrollPane(PlayerInformationPlayerList);
 		JAliasedTextArea PlayerInformationTextDialog = new JAliasedTextArea();
+		PlayerInformationTextDialog.setEditable(false);
 		JScrollPane PlayerInformationTextDialogScroll = new JScrollPane(PlayerInformationTextDialog);
 		JAliasedTextField PlayerInformationFilterFileTextField = new JAliasedTextField();
 		JAliasedButton PlayerInformationFilterFileBrowseButton = new JAliasedButton("Browse For Filter File...");
@@ -701,6 +702,7 @@ public class graphicalG2ME {
 		tabSettings.add(SettingsSaveButton);
 
 		PowerRankingsTextDialog.setFont(new Font("monospaced", Font.PLAIN, 12));
+		PowerRankingsTextDialog.setEditable(false);
 
 		PowerRankingsFilterFileBrowseButton.addActionListener(new ActionListener() {
 			@Override
