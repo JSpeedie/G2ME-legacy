@@ -476,10 +476,15 @@ public class graphicalG2ME {
 		PlayerInformationTextDialog.setEditable(false);
 		JScrollPane PlayerInformationTextDialogScroll = new JScrollPane(PlayerInformationTextDialog);
 		JAliasedTextField PlayerInformationFilterFileTextField = new JAliasedTextField();
+		PlayerInformationFilterFileTextField.setEditable(false);
 		JAliasedButton PlayerInformationFilterFileBrowseButton = new JAliasedButton("Browse For Filter File...");
+		JAliasedButton PlayerInformationFilterFileClearButton = new JAliasedButton("Clear");
+		PlayerInformationFilterFileClearButton.setToolTipText("Clear Filter File path (get rid of filter)");
 		JLabel PlayerInformationMinEventsLabel = new JLabel("Min. Events:");
 		JPanel PlayerInformationMinEventComponents = new JPanel();
 		PlayerInformationMinEventComponents.setLayout(new BoxLayout(PlayerInformationMinEventComponents, BoxLayout.X_AXIS));
+		JPanel PlayerInformationFilterFileButtonComponents = new JPanel();
+		PlayerInformationFilterFileButtonComponents.setLayout(new BoxLayout(PlayerInformationFilterFileButtonComponents, BoxLayout.X_AXIS));
 		JAliasedSpinner PlayerInformationMinEventsSpinner =
 				new JAliasedSpinner(new SpinnerNumberModel(
 						prefs.getInt(PLAYER_INFO_MINEVENTS, PLAYER_INFO_MINEVENTS_DEFAULT),
@@ -852,6 +857,7 @@ public class graphicalG2ME {
 				PlayerInformationMinEventsLabel.setVisible(true);
 				PlayerInformationFilterFileTextField.setVisible(true);
 				PlayerInformationFilterFileBrowseButton.setVisible(true);
+				PlayerInformationFilterFileClearButton.setVisible(true);
 				PlayerInformationSearchTextField.setVisible(true);
 				PlayerInformationPlayerList.setVisible(true);
 				playerInformationCurrentFlag = playerInfoFlags[0];
@@ -870,6 +876,7 @@ public class graphicalG2ME {
 				PlayerInformationMinEventsLabel.setVisible(true);
 				PlayerInformationFilterFileTextField.setVisible(true);
 				PlayerInformationFilterFileBrowseButton.setVisible(true);
+				PlayerInformationFilterFileClearButton.setVisible(true);
 				PlayerInformationSearchTextField.setVisible(true);
 				PlayerInformationPlayerList.setVisible(true);
 				playerInformationCurrentFlag = playerInfoFlags[1];
@@ -887,6 +894,7 @@ public class graphicalG2ME {
 				PlayerInformationMinEventsLabel.setVisible(false);
 				PlayerInformationFilterFileTextField.setVisible(false);
 				PlayerInformationFilterFileBrowseButton.setVisible(false);
+				PlayerInformationFilterFileClearButton.setVisible(false);
 				PlayerInformationSearchTextField.setVisible(true);
 				PlayerInformationPlayerList.setVisible(true);
 				playerInformationCurrentFlag = playerInfoFlags[2];
@@ -904,6 +912,7 @@ public class graphicalG2ME {
 				PlayerInformationMinEventsLabel.setVisible(false);
 				PlayerInformationFilterFileTextField.setVisible(false);
 				PlayerInformationFilterFileBrowseButton.setVisible(false);
+				PlayerInformationFilterFileClearButton.setVisible(false);
 				PlayerInformationSearchTextField.setVisible(true);
 				PlayerInformationPlayerList.setVisible(true);
 				playerInformationCurrentFlag = playerInfoFlags[3];
@@ -921,6 +930,7 @@ public class graphicalG2ME {
 				PlayerInformationMinEventsLabel.setVisible(true);
 				PlayerInformationFilterFileTextField.setVisible(true);
 				PlayerInformationFilterFileBrowseButton.setVisible(true);
+				PlayerInformationFilterFileClearButton.setVisible(true);
 				PlayerInformationSearchTextField.setVisible(false);
 				PlayerInformationPlayerList.setVisible(false);
 				playerInformationCurrentFlag = playerInfoFlags[4];
@@ -938,6 +948,7 @@ public class graphicalG2ME {
 				PlayerInformationMinEventsLabel.setVisible(true);
 				PlayerInformationFilterFileTextField.setVisible(true);
 				PlayerInformationFilterFileBrowseButton.setVisible(true);
+				PlayerInformationFilterFileClearButton.setVisible(true);
 				PlayerInformationSearchTextField.setVisible(false);
 				PlayerInformationPlayerList.setVisible(false);
 				playerInformationCurrentFlag = playerInfoFlags[5];
@@ -975,9 +986,11 @@ public class graphicalG2ME {
 		if (previousRBSelected == 0 || previousRBSelected == 1 || previousRBSelected == 4 || previousRBSelected == 5) {
 			PlayerInformationFilterFileTextField.setVisible(true);
 			PlayerInformationFilterFileBrowseButton.setVisible(true);
+			PlayerInformationFilterFileClearButton.setVisible(true);
 		} else {
 			PlayerInformationFilterFileTextField.setVisible(false);
 			PlayerInformationFilterFileBrowseButton.setVisible(false);
+			PlayerInformationFilterFileClearButton.setVisible(false);
 		}
 
 		/* If the last radio button selected was outcome history or head-to-heads */
@@ -1032,6 +1045,7 @@ public class graphicalG2ME {
 			public void keyPressed(KeyEvent keyEvent) {}
 			public void keyTyped(KeyEvent keyEvent) {}
 		};
+
 		PlayerInformationFilterFileBrowseButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -1046,10 +1060,26 @@ public class graphicalG2ME {
 					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
 					try {
 						PlayerInformationFilterFileTextField.setText(DestinationFile.getAbsolutePath());
+
+						/* Update player information currently in dialog */
+						UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
+								PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag,
+								(int)PlayerInformationMinEventsSpinner.getValue(), PlayerInformationFilterFileTextField.getText());
 					} catch (Exception e1) {
 						e1.printStackTrace();
 					}
 				}
+			}
+		});
+		PlayerInformationFilterFileClearButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				PlayerInformationFilterFileTextField.setText("");
+
+				/* Update player information currently in dialog */
+				UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
+						PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag,
+						(int)PlayerInformationMinEventsSpinner.getValue(), PlayerInformationFilterFileTextField.getText());
 			}
 		});
 		PlayerInformationSearchTextField.addKeyListener(PlayerInformationSearchKeyListener);
@@ -1090,9 +1120,9 @@ public class graphicalG2ME {
 		/* Use Box Layout for this tab */
 		tabPlayerInformation.setLayout(new BoxLayout(tabPlayerInformation, BoxLayout.X_AXIS));
 		/* Layout settings for the tab */
-		int playerInfoControlBarMinWidth = 120;
-		int playerInfoControlBarPrefWidth = 250;
-		int playerInfoControlBarMaxWidth = 400;
+		int playerInfoControlBarMinWidth = 250;
+		int playerInfoControlBarPrefWidth = 350;
+		int playerInfoControlBarMaxWidth = 600;
 		/* Set sizes for radio buttons */
 		PlayerInformationHistoryButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, CHECKBOX_HEIGHT));
 		PlayerInformationHistoryButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, CHECKBOX_HEIGHT));
@@ -1120,9 +1150,12 @@ public class graphicalG2ME {
 		PlayerInformationFilterFileTextField.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, TEXTFIELD_HEIGHT));
 		PlayerInformationFilterFileTextField.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		PlayerInformationFilterFileTextField.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, TEXTFIELD_HEIGHT));
-		PlayerInformationFilterFileBrowseButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, TEXTFIELD_HEIGHT));
-		PlayerInformationFilterFileBrowseButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, TEXTFIELD_HEIGHT));
-		PlayerInformationFilterFileBrowseButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		PlayerInformationFilterFileBrowseButton.setMinimumSize(new Dimension((int) ((double) playerInfoControlBarMinWidth * 7.0 / 10.0), TEXTFIELD_HEIGHT));
+		PlayerInformationFilterFileBrowseButton.setPreferredSize(new Dimension((int) ((double) playerInfoControlBarPrefWidth * 7.0 / 10.0), TEXTFIELD_HEIGHT));
+		PlayerInformationFilterFileBrowseButton.setMaximumSize(new Dimension((int) ((double) playerInfoControlBarMaxWidth * 7.0 / 10.0), TEXTFIELD_HEIGHT));
+		PlayerInformationFilterFileClearButton.setMinimumSize(new Dimension((int) ((double) playerInfoControlBarMinWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
+		PlayerInformationFilterFileClearButton.setPreferredSize(new Dimension((int) ((double) playerInfoControlBarPrefWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
+		PlayerInformationFilterFileClearButton.setMaximumSize(new Dimension((int) ((double) playerInfoControlBarMaxWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
 		PlayerInformationFilterFileTextField.setToolTipText("File path for a filter file");
 		PlayerInformationMinEventsLabel.setMinimumSize(new Dimension(playerInfoControlBarMinWidth/2, CHECKBOX_HEIGHT));
 		PlayerInformationMinEventsLabel.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth/2, CHECKBOX_HEIGHT));
@@ -1144,11 +1177,15 @@ public class graphicalG2ME {
 		PlayerInformationMinEventComponents.add(PlayerInformationMinEventsLabel);
 		PlayerInformationMinEventComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
 		PlayerInformationMinEventComponents.add(PlayerInformationMinEventsSpinner);
+		/* Add Filter File Button Components */
+		PlayerInformationFilterFileButtonComponents.add(PlayerInformationFilterFileBrowseButton);
+		PlayerInformationFilterFileButtonComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		PlayerInformationFilterFileButtonComponents.add(PlayerInformationFilterFileClearButton);
 		/* Correct Alignments of components in the control bar section */
 		PlayerInformationVerboseCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PlayerInformationMinEventComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PlayerInformationFilterFileTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
-		PlayerInformationFilterFileBrowseButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PlayerInformationFilterFileButtonComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PlayerInformationPlayerListBreak.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PlayerInformationPlayerListBreak.setAlignmentY(Component.CENTER_ALIGNMENT);
 		PlayerInformationSearchTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -1174,7 +1211,7 @@ public class graphicalG2ME {
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PlayerInformationControlBar.add(PlayerInformationFilterFileTextField);
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
-		PlayerInformationControlBar.add(PlayerInformationFilterFileBrowseButton);
+		PlayerInformationControlBar.add(PlayerInformationFilterFileButtonComponents);
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
 		PlayerInformationControlBar.add(PlayerInformationPlayerListBreak);
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
