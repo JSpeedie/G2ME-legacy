@@ -447,7 +447,12 @@ public class graphicalG2ME {
 		JAliasedCheckBox PowerRankingsVerboseCheckBox = new JAliasedCheckBox("Verbose");
 		PowerRankingsVerboseCheckBox.setSelected(prefs.getBoolean(POWER_RANKINGS_VERBOSE, POWER_RANKINGS_VERBOSE_DEFAULT));
 		JAliasedTextField PowerRankingsFilterFileTextField = new JAliasedTextField();
+		PowerRankingsFilterFileTextField.setEditable(false);
 		JAliasedButton PowerRankingsFilterFileBrowseButton = new JAliasedButton("Browse For Filter File...");
+		JAliasedButton PowerRankingsFilterFileClearButton = new JAliasedButton("Clear");
+		JPanel PowerRankingsFilterFileButtonComponents = new JPanel();
+		PowerRankingsFilterFileButtonComponents.setLayout(new BoxLayout(PowerRankingsFilterFileButtonComponents, BoxLayout.X_AXIS));
+		PowerRankingsFilterFileClearButton.setToolTipText("Clear Filter File path (get rid of filter)");
 		JAliasedButton PowerRankingsSaveButton = new JAliasedButton("Save As...");
 		JLabel PowerRankingsMinEventsLabel = new JLabel("Min. Events:");
 		JPanel PowerRankingsMinEventComponents = new JPanel();
@@ -735,6 +740,18 @@ public class graphicalG2ME {
 			}
 		});
 
+		PowerRankingsFilterFileClearButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				PowerRankingsFilterFileTextField.setText("");
+
+				/* Refresh power ranking currently in dialog */
+				UpdateJTextAreaToFlagWithFilters(PowerRankingsTextDialog,
+						PowerRankingsVerboseCheckBox.isSelected(), "O",
+						(int)PowerRankingsMinEventsSpinner.getValue(), PowerRankingsFilterFileTextField.getText());
+			}
+		});
+
 		PowerRankingsVerboseCheckBox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -789,14 +806,15 @@ public class graphicalG2ME {
 		PowerRankingsControlBar.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PowerRankingsControlBar.setAlignmentY(Component.TOP_ALIGNMENT);
 		PowerRankingsFilterFileTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
+		PowerRankingsFilterFileButtonComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PowerRankingsMinEventComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PowerRankingsMinEventsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PowerRankingsMinEventsSpinner.setAlignmentX(Component.LEFT_ALIGNMENT);
 		PowerRankingsSaveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		/* Layout settings for the tab */
-		int genPRControlBarMinWidth = 140;
-		int genPRControlBarPrefWidth = 300;
-		int genPRControlBarMaxWidth = 440;
+		int genPRControlBarMinWidth = 250;
+		int genPRControlBarPrefWidth = 350;
+		int genPRControlBarMaxWidth = 600;
 		/* Dimension settings for the tab */
 		PowerRankingsVerboseCheckBox.setMinimumSize(new Dimension(genPRControlBarMinWidth, CHECKBOX_HEIGHT));
 		PowerRankingsVerboseCheckBox.setPreferredSize(new Dimension(genPRControlBarPrefWidth, CHECKBOX_HEIGHT));
@@ -804,9 +822,12 @@ public class graphicalG2ME {
 		PowerRankingsFilterFileTextField.setMinimumSize(new Dimension(genPRControlBarMinWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsFilterFileTextField.setPreferredSize(new Dimension(genPRControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsFilterFileTextField.setMaximumSize(new Dimension(genPRControlBarMaxWidth, TEXTFIELD_HEIGHT));
-		PowerRankingsFilterFileBrowseButton.setMinimumSize(new Dimension(genPRControlBarMinWidth, TEXTFIELD_HEIGHT));
-		PowerRankingsFilterFileBrowseButton.setPreferredSize(new Dimension(genPRControlBarPrefWidth, TEXTFIELD_HEIGHT));
-		PowerRankingsFilterFileBrowseButton.setMaximumSize(new Dimension(genPRControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		PowerRankingsFilterFileBrowseButton.setMinimumSize(new Dimension((int) ((double) genPRControlBarMinWidth * 7.0 / 10.0), TEXTFIELD_HEIGHT));
+		PowerRankingsFilterFileBrowseButton.setPreferredSize(new Dimension((int) ((double) genPRControlBarPrefWidth * 7.0 / 10.0), TEXTFIELD_HEIGHT));
+		PowerRankingsFilterFileBrowseButton.setMaximumSize(new Dimension((int) ((double) genPRControlBarMaxWidth * 7.0 / 10.0), TEXTFIELD_HEIGHT));
+		PowerRankingsFilterFileClearButton.setMinimumSize(new Dimension((int) ((double) genPRControlBarMinWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
+		PowerRankingsFilterFileClearButton.setPreferredSize(new Dimension((int) ((double) genPRControlBarPrefWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
+		PowerRankingsFilterFileClearButton.setMaximumSize(new Dimension((int) ((double) genPRControlBarMaxWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
 		PowerRankingsFilterFileTextField.setToolTipText("File path for a filter file");
 		PowerRankingsMinEventsLabel.setMinimumSize(new Dimension(genPRControlBarMinWidth/2, CHECKBOX_HEIGHT));
 		PowerRankingsMinEventsLabel.setPreferredSize(new Dimension(genPRControlBarPrefWidth/2, CHECKBOX_HEIGHT));
@@ -824,13 +845,17 @@ public class graphicalG2ME {
 		PowerRankingsSaveButton.setPreferredSize(new Dimension(genPRControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsSaveButton.setMaximumSize(new Dimension(genPRControlBarMaxWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsSaveButton.setToolTipText("Save As...");
-		PowerRankingsTextDialogScroll.setMinimumSize(new Dimension(100, 300));
-		PowerRankingsTextDialogScroll.setPreferredSize(new Dimension(120, 500));
+		PowerRankingsTextDialogScroll.setMinimumSize(new Dimension(500, 300));
+		PowerRankingsTextDialogScroll.setPreferredSize(new Dimension(600, 600));
 		PowerRankingsTextDialogScroll.setMaximumSize(new Dimension(Short.MAX_VALUE, Short.MAX_VALUE));
 		/* Add Minimum Events Components */
 		PowerRankingsMinEventComponents.add(PowerRankingsMinEventsLabel);
 		PowerRankingsMinEventComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
 		PowerRankingsMinEventComponents.add(PowerRankingsMinEventsSpinner);
+		/* Add Filter File Button Components */
+		PowerRankingsFilterFileButtonComponents.add(PowerRankingsFilterFileBrowseButton);
+		PowerRankingsFilterFileButtonComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		PowerRankingsFilterFileButtonComponents.add(PowerRankingsFilterFileClearButton);
 		/* Add all elements in the control bar to the control bar panel */
 		PowerRankingsControlBar.add(PowerRankingsVerboseCheckBox);
 		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
@@ -838,7 +863,7 @@ public class graphicalG2ME {
 		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PowerRankingsControlBar.add(PowerRankingsFilterFileTextField);
 		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
-		PowerRankingsControlBar.add(PowerRankingsFilterFileBrowseButton);
+		PowerRankingsControlBar.add(PowerRankingsFilterFileButtonComponents);
 		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
 		PowerRankingsControlBar.add(PowerRankingsSaveBreak);
@@ -1218,6 +1243,9 @@ public class graphicalG2ME {
 		PlayerInformationControlBar.add(PlayerInformationSearchTextField);
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PlayerInformationControlBar.add(PlayerInformationPlayerListScroll);
+		PlayerInformationTextDialogScroll.setMinimumSize(new Dimension(500, 300));
+		PlayerInformationTextDialogScroll.setPreferredSize(new Dimension(600, 600));
+		PlayerInformationTextDialogScroll.setMaximumSize(new Dimension(Short.MAX_VALUE, Short.MAX_VALUE));
 		/* Add all the elements to the tab (with spacing) */
 		tabPlayerInformation.setBorder(new EmptyBorder(ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING));
 		tabPlayerInformation.add(PlayerInformationTextDialogScroll);
