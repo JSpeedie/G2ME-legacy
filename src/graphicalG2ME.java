@@ -42,6 +42,7 @@ public class graphicalG2ME {
 	private static int PLAYER_INFO_RB_SELECTED_DEFAULT=0;
 
 	private final int ELEMENT_SPACING = 5;
+	private final int ELEMENT_BREAK_SPACING = 10;
 	private final int TEXTFIELD_HEIGHT = 32;
 	private final int CHECKBOX_HEIGHT = 24;
 	private String playerInformationCurrentFlag = "h";
@@ -941,10 +942,9 @@ public class graphicalG2ME {
 		PowerRankingsControlBar.add(PowerRankingsFilterFileTextField);
 		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PowerRankingsControlBar.add(PowerRankingsFilterFileButtonComponents);
-		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
-		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
+		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_BREAK_SPACING)));
 		PowerRankingsControlBar.add(PowerRankingsSaveBreak);
-		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
+		PowerRankingsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_BREAK_SPACING)));
 		PowerRankingsControlBar.add(PowerRankingsSaveButton);
 		/* Add all the elements to the tab (with spacing) */
 		tabPowerRankings.setBorder(new EmptyBorder(ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING));
@@ -1314,9 +1314,9 @@ public class graphicalG2ME {
 		PlayerInformationControlBar.add(PlayerInformationFilterFileTextField);
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PlayerInformationControlBar.add(PlayerInformationFilterFileButtonComponents);
-		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
+		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_BREAK_SPACING)));
 		PlayerInformationControlBar.add(PlayerInformationPlayerListBreak);
-		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
+		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_BREAK_SPACING)));
 		PlayerInformationControlBar.add(PlayerInformationSearchTextField);
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PlayerInformationControlBar.add(PlayerInformationPlayerListScroll);
@@ -1689,17 +1689,17 @@ public class graphicalG2ME {
 		RunBracketsControlBar.add(RunBracketsClearButton);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsResetButton);
-		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_BREAK_SPACING)));
 		RunBracketsControlBar.add(Break);
-		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_BREAK_SPACING)));
 		RunBracketsControlBar.add(RunBracketsWeightComponents);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsUseGamesCheckBox);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsRDAdjustAbsentCheckBox);
-		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_BREAK_SPACING)));
 		RunBracketsControlBar.add(Break2);
-		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, 2 * ELEMENT_SPACING)));
+		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_BREAK_SPACING)));
 		RunBracketsControlBar.add(RunBracketsKeepDataBracketsCheckBox);
 		RunBracketsControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		RunBracketsControlBar.add(RunBracketsRunBracketButton);
