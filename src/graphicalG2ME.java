@@ -50,6 +50,7 @@ public class graphicalG2ME {
 	private String playerRecordsLastName = "";
 	private int playerRecordsSearchLastLength = 0;
 	private String runBracketsLastFile = "";
+	public String noPlayersFoundSearchMessage = "No players found!";
 
 	/* Aliased GUI classes */
 	public class JAliasedTextField extends JTextField {
@@ -79,12 +80,12 @@ public class graphicalG2ME {
 			this.showingHint = true;
 			super.addFocusListener(this);
 			Color c = this.getForeground();
-			alphaNormal = c.getAlpha();
+			this.alphaNormal = c.getAlpha();
 
 			/* Italicize hint */
 			this.setFont(this.getFont().deriveFont(Font.ITALIC));
 			/* Reduce opacity on hint */
-			Color fadedColour = new Color(c.getRed(), c.getGreen(), c.getBlue(), alphaFaded);
+			Color fadedColour = new Color(c.getRed(), c.getGreen(), c.getBlue(), this.alphaFaded);
 			this.setForeground(fadedColour);
 		}
 
@@ -95,11 +96,11 @@ public class graphicalG2ME {
 				this.setFont(this.getFont().deriveFont(Font.PLAIN));
 				/* Return to original opacity for user entered text */
 				Color c = this.getForeground();
-				Color originalColour = new Color(c.getRed(), c.getGreen(), c.getBlue(), alphaNormal);
+				Color originalColour = new Color(c.getRed(), c.getGreen(), c.getBlue(), this.alphaNormal);
 				this.setForeground(originalColour);
 				/* Get rid of hint */
 				super.setText("");
-				showingHint = false;
+				this.showingHint = false;
 			}
 		}
 
@@ -110,17 +111,17 @@ public class graphicalG2ME {
 				this.setFont(this.getFont().deriveFont(Font.ITALIC));
 				/* Reduce opacity on hint */
 				Color c = this.getForeground();
-				Color fadedColour = new Color(c.getRed(), c.getGreen(), c.getBlue(), alphaFaded);
+				Color fadedColour = new Color(c.getRed(), c.getGreen(), c.getBlue(), this.alphaFaded);
 				this.setForeground(fadedColour);
 				/* Display hint */
 				super.setText(hint);
-				showingHint = true;
+				this.showingHint = true;
 			}
 		}
 
 		@Override
 		public String getText() {
-			if (showingHint) {
+			if (this.showingHint) {
 				return "";
 			} else {
 				return super.getText();
@@ -152,6 +153,74 @@ public class graphicalG2ME {
 			graphics2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 			RenderingHints.VALUE_ANTIALIAS_ON);
 			super.paintComponent(g);
+		}
+	}
+
+	public class JAliasedHintableList extends JAliasedList {
+
+		private int alphaFaded = 160;
+		private int alphaNormal;
+		private int fontSizeMessage = 14;
+		private int fontSizeNormal;
+		private int fontStyleMessage = Font.ITALIC;
+		private int fontStyleNormal;
+		private DefaultListCellRenderer cellRenderer;
+
+		public JAliasedHintableList() {
+			super();
+			Color c = this.getForeground();
+			this.alphaNormal = c.getAlpha();
+			this.cellRenderer = (DefaultListCellRenderer) this.getCellRenderer();
+		}
+
+		@Override
+		public void paintComponent(Graphics g) {
+			Graphics2D graphics2d = (Graphics2D) g;
+			graphics2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+					RenderingHints.VALUE_ANTIALIAS_ON);
+			super.paintComponent(g);
+		}
+
+		@Override
+		public void setFont(Font f) {
+			this.fontSizeNormal = f.getSize();
+			this.fontStyleNormal = f.getStyle();
+			this.fontSizeMessage = (int) ((double) f.getSize() * 1.8);
+			super.setFont(f);
+		}
+
+		public void setDisplayTextAsHint(boolean showAsMessage) {
+			if (showAsMessage) {
+				/* Italicize message */
+				super.setFont(this.getFont().deriveFont(fontStyleMessage, this.fontSizeMessage));
+				this.cellRenderer.setFont(this.getFont().deriveFont(fontStyleMessage, this.fontSizeMessage));
+
+				/* Reduce opacity for message */
+				Color c = this.getForeground();
+				Color fadedColour = new Color(c.getRed(), c.getGreen(), c.getBlue(), this.alphaFaded);
+				this.cellRenderer.setForeground(fadedColour);
+
+				/* Render text in list elements as horizontally centered */
+				this.cellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+				/* Disable field so it can only be read by the user */
+				this.setEnabled(false);
+			} else {
+				/* Reset font style */
+				super.setFont(this.getFont().deriveFont(this.fontStyleNormal, this.fontSizeNormal));
+				this.cellRenderer.setFont(this.getFont().deriveFont(this.fontStyleNormal, this.fontSizeNormal));
+
+				/* Increase opacity for text */
+				Color c = this.getForeground();
+				Color fadedColour = new Color(c.getRed(), c.getGreen(), c.getBlue(), this.alphaNormal);
+				this.cellRenderer.setForeground(fadedColour);
+
+				/* Render text in list elements as left aligned (normal) */
+				this.cellRenderer.setHorizontalAlignment(SwingConstants.LEFT);
+
+				/* Enable field so it can be used again */
+				this.setEnabled(true);
+			}
 		}
 	}
 
@@ -326,6 +395,7 @@ public class graphicalG2ME {
 	}
 
 	private void UpdateJListToSearchString(JList l, String s) {
+	private void UpdateJListToSearchString(JAliasedHintableList l, String s) {
 		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
 		File PlayerDirectory = new File(prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
 		File[] listOfFiles = PlayerDirectory.listFiles();
@@ -346,7 +416,14 @@ public class graphicalG2ME {
 					if (mismatch == false) items.add(listOfFiles[i].getName());
 				}
 			}
+			if (items.size() == 0) {
+				l.setDisplayTextAsHint(true);
+				items.add(noPlayersFoundSearchMessage);
+			} else {
+				l.setDisplayTextAsHint(false);
+			}
 			l.setListData(items.toArray());
+
 		}
 	}
 
@@ -1694,6 +1771,9 @@ public class graphicalG2ME {
 					SettingsCheckG2MEBinTextField(SettingsG2MEBinTextField);
 					SettingsCheckG2MEDirTextField(SettingsG2MEDirTextField);
 					SettingsCheckG2MEPlayerDirTextField(SettingsG2MEPlayerDirTextField);
+				} else if (tabbedPane.getSelectedComponent() == tabPlayerInformation){
+					/* Refresh list of players in Player Info tab */
+					UpdateJListToFilesInDir(PlayerInformationPlayerList, prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
 				}
 			}
 		});
