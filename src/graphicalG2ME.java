@@ -51,6 +51,7 @@ public class graphicalG2ME {
 	private String playerRecordsLastName = "";
 	private int playerRecordsSearchLastLength = 0;
 	private String runBracketsLastFile = "";
+	public boolean playerSearchesAreFuzzy = true;
 	public String noPlayersFoundSearchMessage = "No players found!";
 
 	/* Aliased GUI classes */
@@ -405,11 +406,18 @@ public class graphicalG2ME {
 			ArrayList<String> items = new ArrayList<>();
 			for (int i = 0; i < listOfFiles.length; i++) {
 				boolean mismatch = false;
-				// This file can only match the search if its length is shorter
-				// than or equal to the search
-				if (s.length() <= listOfFiles[i].getName().length()) {
+				String playerName = listOfFiles[i].getName();
+
+				if (playerSearchesAreFuzzy) {
+					playerName = playerName.toLowerCase();
+					s = s.toLowerCase();
+				}
+
+				// This file can only match the search if the length of the search string is shorter
+				// than or equal to the player/file name
+				if (s.length() <= playerName.length()) {
 					for (int j = 0; j < s.length(); j++) {
-						if (listOfFiles[i].getName().charAt(j) != s.charAt(j)) {
+						if (playerName.charAt(j) != s.charAt(j)) {
 							mismatch = true;
 							break;
 						}
