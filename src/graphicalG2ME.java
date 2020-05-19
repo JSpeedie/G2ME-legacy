@@ -27,7 +27,9 @@ public class graphicalG2ME {
 	private static final String POWER_RANKINGS_MINEVENTS="POWER_RANKINGS_MINEVENTS";
 	private static final String PLAYER_INFO_VERBOSE="PLAYER_INFO_VERBOSE";
 	private static final String PLAYER_INFO_MINEVENTS="PLAYER_INFO_MINEVENTS";
+	private static final String ALL_PLAYER_INFO_MINEVENTS="ALL_PLAYER_INFO_MINEVENTS";
 	private static final String PLAYER_INFO_RB_SELECTED="PLAYER_INFO_RB_SELECTED";
+	private static final String ALL_PLAYER_INFO_RB_SELECTED="ALL_PLAYER_INFO_RB_SELECTED";
 	/* Prefs defaults */
 	private static String G2ME_BIN_DEFAULT="/usr/local/bin/G2ME";
 	private static String G2ME_DIR_DEFAULT="/home/me/G2MEGit/";
@@ -40,12 +42,15 @@ public class graphicalG2ME {
 	private static boolean PLAYER_INFO_VERBOSE_DEFAULT=false;
 	private static int PLAYER_INFO_MINEVENTS_DEFAULT=1;
 	private static int PLAYER_INFO_RB_SELECTED_DEFAULT=0;
+	private static int ALL_PLAYER_INFO_MINEVENTS_DEFAULT=1;
+	private static int ALL_PLAYER_INFO_RB_SELECTED_DEFAULT=0;
 
 	private final int ELEMENT_SPACING = 5;
 	private final int ELEMENT_BREAK_SPACING = 10;
 	private final int TEXTFIELD_HEIGHT = 32;
 	private final int CHECKBOX_HEIGHT = 24;
 	private String playerInformationCurrentFlag = "h";
+	private String allPlayerInformationCurrentFlag = "M";
 	private String playerInformationLastName = "";
 	private int playerInformationSearchLastLength = 0;
 	private String playerRecordsLastName = "";
@@ -396,7 +401,6 @@ public class graphicalG2ME {
 		}
 	}
 
-	private void UpdateJListToSearchString(JList l, String s) {
 	private void UpdateJListToSearchString(JAliasedHintableList l, String s) {
 		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
 		File PlayerDirectory = new File(prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
@@ -590,25 +594,16 @@ public class graphicalG2ME {
 		PlayerInformationEventsAttendedButton.setToolTipText("Names of All Events Attended");
 		JAliasedRadioButton PlayerInformationNumOutcomesButton = new JAliasedRadioButton("Number of Outcomes (Sets/Games) Played");
 		PlayerInformationNumOutcomesButton.setToolTipText("Number of Outcomes (Sets/Games) Played");
-		JAliasedRadioButton PlayerInformationRecordTableButton = new JAliasedRadioButton("Records/Head-to-Heads Table");
-		PlayerInformationRecordTableButton.setToolTipText("Records/Head-to-Head Table. Requires clicking the Refresh button");
-		JAliasedRadioButton PlayerInformationRecordCSVButton = new JAliasedRadioButton("Records/Head-to-Heads CSV");
-		PlayerInformationRecordCSVButton.setToolTipText("Records/Head-to-Heads Table, but in a CSV, spreadsheet output. Requires" +
-				" clicking the Refresh button");
-		String[] playerInfoFlags = new String[6];
+		String[] playerInfoFlags = new String[4];
 		playerInfoFlags[0] = "h";
 		playerInfoFlags[1] = "R";
 		playerInfoFlags[2] = "A";
 		playerInfoFlags[3] = "c";
-		playerInfoFlags[4] = "M";
-		playerInfoFlags[5] = "C";
 		JAliasedRadioButton[] PlayerInfoRadioButtonArray = new JAliasedRadioButton[6];
 		PlayerInfoRadioButtonArray[0] = PlayerInformationHistoryButton;
 		PlayerInfoRadioButtonArray[1] = PlayerInformationRecordsButton;
 		PlayerInfoRadioButtonArray[2] = PlayerInformationEventsAttendedButton;
 		PlayerInfoRadioButtonArray[3] = PlayerInformationNumOutcomesButton;
-		PlayerInfoRadioButtonArray[4] = PlayerInformationRecordTableButton;
-		PlayerInfoRadioButtonArray[5] = PlayerInformationRecordCSVButton;
 
 		SettingsG2MEBinBrowseButton.addActionListener(new ActionListener() {
 			@Override
@@ -1033,42 +1028,7 @@ public class graphicalG2ME {
 						(int)PlayerInformationMinEventsSpinner.getValue(), PlayerInformationFilterFileTextField.getText());
 			}
 		});
-		PlayerInformationRecordTableButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				PlayerInformationVerboseCheckBox.setVisible(false);
-				PlayerInformationMinEventsSpinner.setVisible(true);
-				PlayerInformationMinEventsLabel.setVisible(true);
-				PlayerInformationFilterFileTextField.setVisible(true);
-				PlayerInformationFilterFileBrowseButton.setVisible(true);
-				PlayerInformationFilterFileClearButton.setVisible(true);
-				PlayerInformationSearchTextField.setVisible(false);
-				PlayerInformationPlayerList.setVisible(false);
-				playerInformationCurrentFlag = playerInfoFlags[4];
-				prefs.putInt(PLAYER_INFO_RB_SELECTED, 4);
-				/* Refresh player information currently in dialog */
-				UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
-						PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag,
-						(int)PlayerInformationMinEventsSpinner.getValue(), PlayerInformationFilterFileTextField.getText());
-			}
-		});
-		PlayerInformationRecordCSVButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				PlayerInformationVerboseCheckBox.setVisible(false);
-				PlayerInformationMinEventsSpinner.setVisible(true);
-				PlayerInformationMinEventsLabel.setVisible(true);
-				PlayerInformationFilterFileTextField.setVisible(true);
-				PlayerInformationFilterFileBrowseButton.setVisible(true);
-				PlayerInformationFilterFileClearButton.setVisible(true);
-				PlayerInformationSearchTextField.setVisible(false);
-				PlayerInformationPlayerList.setVisible(false);
-				playerInformationCurrentFlag = playerInfoFlags[5];
-				prefs.putInt(PLAYER_INFO_RB_SELECTED, 5);
-				/* Refresh player information currently in dialog */
-				UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
-						PlayerInformationVerboseCheckBox.isSelected(), playerInformationCurrentFlag,
-						(int)PlayerInformationMinEventsSpinner.getValue(), PlayerInformationFilterFileTextField.getText());
-			}
-		});
+
 		/* Remember which one was selected, and set GUI accordingly */
 		int previousRBSelected = prefs.getInt(PLAYER_INFO_RB_SELECTED, PLAYER_INFO_RB_SELECTED_DEFAULT);
 		PlayerInfoRadioButtonArray[previousRBSelected].setSelected(true);
@@ -1082,8 +1042,8 @@ public class graphicalG2ME {
 		}
 
 		/* If the last radio button selected was outcome history,
-		 * head-to-heads, head-to-head table or head-to-head CSV */
-		if (previousRBSelected == 0 || previousRBSelected == 1 || previousRBSelected == 4 || previousRBSelected == 5) {
+		 * head-to-heads */
+		if (previousRBSelected == 0 || previousRBSelected == 1) {
 			PlayerInformationMinEventsSpinner.setVisible(true);
 			PlayerInformationMinEventsLabel.setVisible(true);
 		} else {
@@ -1092,8 +1052,8 @@ public class graphicalG2ME {
 		}
 
 		/* If the last radio button selected was outcome history,
-		 * head-to-heads, head-to-head table or head-to-head CSV */
-		if (previousRBSelected == 0 || previousRBSelected == 1 || previousRBSelected == 4 || previousRBSelected == 5) {
+		 * head-to-heads */
+		if (previousRBSelected == 0 || previousRBSelected == 1) {
 			PlayerInformationFilterFileTextField.setVisible(true);
 			PlayerInformationFilterFileBrowseButton.setVisible(true);
 			PlayerInformationFilterFileClearButton.setVisible(true);
@@ -1103,22 +1063,11 @@ public class graphicalG2ME {
 			PlayerInformationFilterFileClearButton.setVisible(false);
 		}
 
-		/* If the last radio button selected was outcome history or head-to-heads */
-		if (previousRBSelected == 4 || previousRBSelected == 5) {
-			PlayerInformationSearchTextField.setVisible(false);
-			PlayerInformationPlayerList.setVisible(false);
-		} else {
-			PlayerInformationSearchTextField.setVisible(true);
-			PlayerInformationPlayerList.setVisible(true);
-		}
-
 		ButtonGroup PlayerInformationButtonGroup = new ButtonGroup();
 		PlayerInformationButtonGroup.add(PlayerInformationHistoryButton);
 		PlayerInformationButtonGroup.add(PlayerInformationRecordsButton);
 		PlayerInformationButtonGroup.add(PlayerInformationEventsAttendedButton);
 		PlayerInformationButtonGroup.add(PlayerInformationNumOutcomesButton);
-		PlayerInformationButtonGroup.add(PlayerInformationRecordTableButton);
-		PlayerInformationButtonGroup.add(PlayerInformationRecordCSVButton);
 
 		PlayerInformationVerboseCheckBox.addActionListener(new ActionListener() {
 			@Override
@@ -1145,6 +1094,7 @@ public class graphicalG2ME {
 		});
 
 		PlayerInformationTextDialog.setFont(new Font("monospaced", Font.PLAIN, 12));
+
 		KeyListener PlayerInformationSearchKeyListener = new KeyListener() {
 			public void keyReleased(KeyEvent keyEvent) {
 				String searchText = PlayerInformationSearchTextField.getText();
@@ -1246,12 +1196,6 @@ public class graphicalG2ME {
 		PlayerInformationNumOutcomesButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, CHECKBOX_HEIGHT));
 		PlayerInformationNumOutcomesButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, CHECKBOX_HEIGHT));
 		PlayerInformationNumOutcomesButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, CHECKBOX_HEIGHT));
-		PlayerInformationRecordTableButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, CHECKBOX_HEIGHT));
-		PlayerInformationRecordTableButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, CHECKBOX_HEIGHT));
-		PlayerInformationRecordTableButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, CHECKBOX_HEIGHT));
-		PlayerInformationRecordCSVButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, CHECKBOX_HEIGHT));
-		PlayerInformationRecordCSVButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, CHECKBOX_HEIGHT));
-		PlayerInformationRecordCSVButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, CHECKBOX_HEIGHT));
 		/* Set sizes for the rest of the control bar */
 		PlayerInformationVerboseCheckBox.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, TEXTFIELD_HEIGHT));
 		PlayerInformationVerboseCheckBox.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, TEXTFIELD_HEIGHT));
@@ -1308,10 +1252,6 @@ public class graphicalG2ME {
 		PlayerInformationControlBar.add(PlayerInformationEventsAttendedButton);
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		PlayerInformationControlBar.add(PlayerInformationNumOutcomesButton);
-		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
-		PlayerInformationControlBar.add(PlayerInformationRecordTableButton);
-		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
-		PlayerInformationControlBar.add(PlayerInformationRecordCSVButton);
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
 		/* Add the rest of the elements in the control bar */
 		PlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
@@ -1723,6 +1663,202 @@ public class graphicalG2ME {
 		tabRunBrackets.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
 		tabRunBrackets.add(RunBracketsControlBar);
 
+		/* Configure Player Information Tab */
+		JPanel AllPlayerInformationControlBar = new JPanel();
+		AllPlayerInformationControlBar.setLayout(new BoxLayout(AllPlayerInformationControlBar, BoxLayout.Y_AXIS));
+		AllPlayerInformationControlBar.setAlignmentY(Component.TOP_ALIGNMENT);
+		JAliasedHintableTextArea AllPlayerInformationTextDialog = new JAliasedHintableTextArea();
+		AllPlayerInformationTextDialog.setEditable(false);
+		JScrollPane AllPlayerInformationTextDialogScroll = new JScrollPane(AllPlayerInformationTextDialog);
+		JAliasedTextField AllPlayerInformationFilterFileTextField = new JAliasedTextField();
+		AllPlayerInformationFilterFileTextField.setEditable(false);
+		JAliasedButton AllPlayerInformationFilterFileBrowseButton = new JAliasedButton("Browse For Filter File...");
+		JAliasedButton AllPlayerInformationFilterFileClearButton = new JAliasedButton("Clear");
+		AllPlayerInformationFilterFileClearButton.setToolTipText("Clear Filter File path (get rid of filter)");
+		JLabel AllPlayerInformationMinEventsLabel = new JLabel("Min. Events:");
+		JPanel AllPlayerInformationMinEventComponents = new JPanel();
+		AllPlayerInformationMinEventComponents.setLayout(new BoxLayout(AllPlayerInformationMinEventComponents, BoxLayout.X_AXIS));
+		JPanel AllPlayerInformationFilterFileButtonComponents = new JPanel();
+		AllPlayerInformationFilterFileButtonComponents.setLayout(new BoxLayout(AllPlayerInformationFilterFileButtonComponents, BoxLayout.X_AXIS));
+		JAliasedSpinner AllPlayerInformationMinEventsSpinner =
+				new JAliasedSpinner(new SpinnerNumberModel(
+						prefs.getInt(ALL_PLAYER_INFO_MINEVENTS, ALL_PLAYER_INFO_MINEVENTS_DEFAULT),
+						1, 1000, 1));
+		AllPlayerInformationMinEventsSpinner.setToolTipText("Filter Power Ranking Output to Only Include Players Who Have Attended This Many Events");
+		JAliasedButton AllPlayerInformationShowDataButton = new JAliasedButton("Show Data");
+		AllPlayerInformationShowDataButton.setToolTipText("Display chosen data set, adhering to minimum event and "
+				+ "filter file filters, if set");
+
+		JAliasedRadioButton AllPlayerInformationRecordTableButton = new JAliasedRadioButton("Records/Head-to-Heads Table");
+		AllPlayerInformationRecordTableButton.setToolTipText("Records/Head-to-Head Table. Requires clicking the Refresh button");
+		JAliasedRadioButton AllPlayerInformationRecordCSVButton = new JAliasedRadioButton("Records/Head-to-Heads CSV");
+		AllPlayerInformationRecordCSVButton.setToolTipText("Records/Head-to-Heads Table, but in a CSV, spreadsheet output. Requires" +
+				" clicking the Refresh button");
+		String[] allPlayerInfoFlags = new String[2];
+		allPlayerInfoFlags[0] = "M";
+		allPlayerInfoFlags[1] = "C";
+		JAliasedRadioButton[] AllPlayerInfoRadioButtonArray = new JAliasedRadioButton[6];
+		AllPlayerInfoRadioButtonArray[0] = AllPlayerInformationRecordTableButton;
+		AllPlayerInfoRadioButtonArray[1] = AllPlayerInformationRecordCSVButton;
+
+		AllPlayerInformationRecordTableButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				AllPlayerInformationMinEventsSpinner.setVisible(true);
+				AllPlayerInformationMinEventsLabel.setVisible(true);
+				AllPlayerInformationFilterFileTextField.setVisible(true);
+				AllPlayerInformationFilterFileBrowseButton.setVisible(true);
+				AllPlayerInformationFilterFileClearButton.setVisible(true);
+				allPlayerInformationCurrentFlag = allPlayerInfoFlags[0];
+				prefs.putInt(ALL_PLAYER_INFO_RB_SELECTED, 0);
+			}
+		});
+
+		AllPlayerInformationRecordCSVButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				AllPlayerInformationMinEventsSpinner.setVisible(true);
+				AllPlayerInformationMinEventsLabel.setVisible(true);
+				AllPlayerInformationFilterFileTextField.setVisible(true);
+				AllPlayerInformationFilterFileBrowseButton.setVisible(true);
+				AllPlayerInformationFilterFileClearButton.setVisible(true);
+				allPlayerInformationCurrentFlag = allPlayerInfoFlags[1];
+				prefs.putInt(ALL_PLAYER_INFO_RB_SELECTED, 1);
+			}
+		});
+
+		/* Remember which one was selected, and set GUI accordingly */
+		int allPlayerPreviousRBSelected = prefs.getInt(ALL_PLAYER_INFO_RB_SELECTED, ALL_PLAYER_INFO_RB_SELECTED_DEFAULT);
+		AllPlayerInfoRadioButtonArray[allPlayerPreviousRBSelected].setSelected(true);
+		allPlayerInformationCurrentFlag = allPlayerInfoFlags[allPlayerPreviousRBSelected];
+
+		ButtonGroup AllPlayerInformationButtonGroup = new ButtonGroup();
+		AllPlayerInformationButtonGroup.add(AllPlayerInformationRecordTableButton);
+		AllPlayerInformationButtonGroup.add(AllPlayerInformationRecordCSVButton);
+
+		AllPlayerInformationMinEventsSpinner.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				prefs.putInt(ALL_PLAYER_INFO_MINEVENTS, (int)AllPlayerInformationMinEventsSpinner.getValue());
+			}
+		});
+
+		AllPlayerInformationTextDialog.setFont(new Font("monospaced", Font.PLAIN, 12));
+
+		AllPlayerInformationFilterFileBrowseButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FileDialog FB = new java.awt.FileDialog((java.awt.Frame) null,
+						"Select Filter File...", FileDialog.LOAD);
+				FB.setDirectory(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
+				FB.setVisible(true);
+
+				/* If a file was successfully chosen */
+				File DestinationFile = new File(FB.getDirectory() + FB.getFile());
+				if (FB.getFile() != null && !DestinationFile.isDirectory()) {
+					System.out.println("File path chosen = " + DestinationFile.getAbsolutePath());
+					try {
+						AllPlayerInformationFilterFileTextField.setText(DestinationFile.getAbsolutePath());
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
+
+		AllPlayerInformationFilterFileClearButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				AllPlayerInformationFilterFileTextField.setText("");
+			}
+		});
+
+		AllPlayerInformationShowDataButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				/* Update player information in dialog */
+				UpdateJTextAreaToFlagWithFilters(AllPlayerInformationTextDialog,
+						false, allPlayerInformationCurrentFlag,
+						(int)AllPlayerInformationMinEventsSpinner.getValue(),
+						AllPlayerInformationFilterFileTextField.getText());
+			}
+		});
+
+		/* Use Box Layout for this tab */
+		tabAllPlayerInformation.setLayout(new BoxLayout(tabAllPlayerInformation, BoxLayout.X_AXIS));
+		/* Layout settings for the tab */
+		int allPlayerInfoControlBarMinWidth = 250;
+		int allPlayerInfoControlBarPrefWidth = 350;
+		int allPlayerInfoControlBarMaxWidth = 600;
+		JSeparator AllPlayerInformationShowDataBreak = new JSeparator(SwingConstants.HORIZONTAL);
+		AllPlayerInformationShowDataBreak.setMinimumSize(new Dimension(playerInfoControlBarMinWidth - 2 * ELEMENT_SPACING, 3));
+		AllPlayerInformationShowDataBreak.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth - 2 * ELEMENT_SPACING, 3));
+		AllPlayerInformationShowDataBreak.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth - 2 * ELEMENT_SPACING, 3));
+		AllPlayerInformationShowDataBreak.setAlignmentX(Component.LEFT_ALIGNMENT);
+		AllPlayerInformationShowDataBreak.setAlignmentY(Component.CENTER_ALIGNMENT);
+		/* Set sizes for radio buttons */
+		AllPlayerInformationRecordTableButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, CHECKBOX_HEIGHT));
+		AllPlayerInformationRecordTableButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, CHECKBOX_HEIGHT));
+		AllPlayerInformationRecordTableButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, CHECKBOX_HEIGHT));
+		AllPlayerInformationRecordCSVButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, CHECKBOX_HEIGHT));
+		AllPlayerInformationRecordCSVButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, CHECKBOX_HEIGHT));
+		AllPlayerInformationRecordCSVButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, CHECKBOX_HEIGHT));
+		/* Set sizes for the rest of the control bar */
+		AllPlayerInformationFilterFileTextField.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, TEXTFIELD_HEIGHT));
+		AllPlayerInformationFilterFileTextField.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, TEXTFIELD_HEIGHT));
+		AllPlayerInformationFilterFileTextField.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, TEXTFIELD_HEIGHT));
+		AllPlayerInformationFilterFileBrowseButton.setMinimumSize(new Dimension((int) ((double) playerInfoControlBarMinWidth * 7.0 / 10.0), TEXTFIELD_HEIGHT));
+		AllPlayerInformationFilterFileBrowseButton.setPreferredSize(new Dimension((int) ((double) playerInfoControlBarPrefWidth * 7.0 / 10.0), TEXTFIELD_HEIGHT));
+		AllPlayerInformationFilterFileBrowseButton.setMaximumSize(new Dimension((int) ((double) playerInfoControlBarMaxWidth * 7.0 / 10.0), TEXTFIELD_HEIGHT));
+		AllPlayerInformationFilterFileClearButton.setMinimumSize(new Dimension((int) ((double) playerInfoControlBarMinWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
+		AllPlayerInformationFilterFileClearButton.setPreferredSize(new Dimension((int) ((double) playerInfoControlBarPrefWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
+		AllPlayerInformationFilterFileClearButton.setMaximumSize(new Dimension((int) ((double) playerInfoControlBarMaxWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
+		AllPlayerInformationFilterFileTextField.setToolTipText("File path for a filter file");
+		AllPlayerInformationMinEventsLabel.setMinimumSize(new Dimension(playerInfoControlBarMinWidth/2, CHECKBOX_HEIGHT));
+		AllPlayerInformationMinEventsLabel.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth/2, CHECKBOX_HEIGHT));
+		AllPlayerInformationMinEventsLabel.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth/2, CHECKBOX_HEIGHT));
+		AllPlayerInformationMinEventsSpinner.setMinimumSize(new Dimension(playerInfoControlBarMinWidth/2, TEXTFIELD_HEIGHT));
+		AllPlayerInformationMinEventsSpinner.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth/2, TEXTFIELD_HEIGHT));
+		AllPlayerInformationMinEventsSpinner.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth/2, TEXTFIELD_HEIGHT));
+		AllPlayerInformationShowDataButton.setMinimumSize(new Dimension(playerInfoControlBarMinWidth, (int) ((double) TEXTFIELD_HEIGHT * 1.5)));
+		AllPlayerInformationShowDataButton.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth, (int) ((double) TEXTFIELD_HEIGHT * 1.5)));
+		AllPlayerInformationShowDataButton.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth, (int) ((double) TEXTFIELD_HEIGHT * 1.5)));
+		/* Add Minimum Events Components */
+		AllPlayerInformationMinEventComponents.add(AllPlayerInformationMinEventsLabel);
+		AllPlayerInformationMinEventComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		AllPlayerInformationMinEventComponents.add(AllPlayerInformationMinEventsSpinner);
+		/* Add Filter File Button Components */
+		AllPlayerInformationFilterFileButtonComponents.add(AllPlayerInformationFilterFileBrowseButton);
+		AllPlayerInformationFilterFileButtonComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		AllPlayerInformationFilterFileButtonComponents.add(AllPlayerInformationFilterFileClearButton);
+		/* Correct Alignments of components in the control bar section */
+		AllPlayerInformationMinEventComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
+		AllPlayerInformationFilterFileTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
+		AllPlayerInformationFilterFileButtonComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
+		AllPlayerInformationRecordTableButton.setAlignmentY(Component.TOP_ALIGNMENT);
+		/* Add the radio buttons to the control bar */
+		AllPlayerInformationControlBar.add(AllPlayerInformationRecordTableButton);
+		AllPlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		AllPlayerInformationControlBar.add(AllPlayerInformationRecordCSVButton);
+		AllPlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		/* Add the rest of the elements in the control bar */
+		AllPlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		AllPlayerInformationControlBar.add(AllPlayerInformationMinEventComponents);
+		AllPlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		AllPlayerInformationControlBar.add(AllPlayerInformationFilterFileTextField);
+		AllPlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
+		AllPlayerInformationControlBar.add(AllPlayerInformationFilterFileButtonComponents);
+		AllPlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_BREAK_SPACING)));
+		AllPlayerInformationControlBar.add(AllPlayerInformationShowDataBreak);
+		AllPlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_BREAK_SPACING)));
+		AllPlayerInformationControlBar.add(AllPlayerInformationShowDataButton);
+		AllPlayerInformationTextDialogScroll.setMinimumSize(new Dimension(500, 300));
+		AllPlayerInformationTextDialogScroll.setPreferredSize(new Dimension(600, 600));
+		AllPlayerInformationTextDialogScroll.setMaximumSize(new Dimension(Short.MAX_VALUE, Short.MAX_VALUE));
+		/* Add all the elements to the tab (with spacing) */
+		tabAllPlayerInformation.setBorder(new EmptyBorder(ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING, ELEMENT_SPACING));
+		tabAllPlayerInformation.add(AllPlayerInformationTextDialogScroll);
+		tabAllPlayerInformation.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
+		tabAllPlayerInformation.add(AllPlayerInformationControlBar);
+
 		JFrame frame = new JFrame("graphicalG2ME");
 		frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		frame.setSize(800, 800);
@@ -1753,6 +1889,9 @@ public class graphicalG2ME {
 				prefs.putInt(PLAYER_INFO_RB_SELECTED, PLAYER_INFO_RB_SELECTED_DEFAULT);
 				PlayerInformationVerboseCheckBox.setSelected(PLAYER_INFO_VERBOSE_DEFAULT);
 				PlayerInfoRadioButtonArray[PLAYER_INFO_RB_SELECTED_DEFAULT].setSelected(true);
+				/* Reset All Player Info Tab */
+				prefs.putInt(ALL_PLAYER_INFO_RB_SELECTED, ALL_PLAYER_INFO_RB_SELECTED_DEFAULT);
+				PlayerInfoRadioButtonArray[ALL_PLAYER_INFO_RB_SELECTED_DEFAULT].setSelected(true);
 				/* Reset Run Brackets Tab */
 				prefs.putDouble(WEIGHT, WEIGHT_DEFAULT);
 				prefs.putBoolean(USE_GAMES, USE_GAMES_DEFAULT);
@@ -1788,6 +1927,7 @@ public class graphicalG2ME {
 		tabbedPane.addTab("Settings", tabSettings);
 		tabbedPane.addTab("Power Rankings", tabPowerRankings);
 		tabbedPane.addTab("Player Info", tabPlayerInformation);
+		tabbedPane.addTab("All Player Info", tabAllPlayerInformation);
 		tabbedPane.addTab("Run Brackets", tabRunBrackets);
 		frame.getContentPane().add(tabbedPane, BorderLayout.CENTER);
 	}
