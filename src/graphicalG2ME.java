@@ -150,6 +150,44 @@ public class graphicalG2ME {
 		}
 	}
 
+	public class JAliasedHintableTextArea extends JAliasedTextArea {
+
+		private int alphaFaded = 160;
+		private int alphaNormal;
+
+		public JAliasedHintableTextArea() {
+			super();
+			Color c = this.getForeground();
+			this.alphaNormal = c.getAlpha();
+		}
+
+		public JAliasedHintableTextArea(String s) {
+			super(s);
+			Color c = this.getForeground();
+			this.alphaNormal = c.getAlpha();
+		}
+
+		public void setDisplayTextAsHint(boolean showAsMessage) {
+			if (showAsMessage) {
+				/* Italicize message */
+				this.setFont(this.getFont().deriveFont(Font.ITALIC));
+
+				/* Reduce opacity for message */
+				Color c = this.getForeground();
+				Color fadedColour = new Color(c.getRed(), c.getGreen(), c.getBlue(), this.alphaFaded);
+				this.setForeground(fadedColour);
+			} else {
+				/* De-Italicize message */
+				this.setFont(this.getFont().deriveFont(Font.PLAIN));
+
+				/* Increase opacity for text */
+				Color c = this.getForeground();
+				Color fadedColour = new Color(c.getRed(), c.getGreen(), c.getBlue(), this.alphaNormal);
+				this.setForeground(fadedColour);
+			}
+		}
+	}
+
 	public class JAliasedList extends JList {
 
 		public JAliasedList() { super(); }
@@ -367,9 +405,10 @@ public class graphicalG2ME {
 		}
 	}
 
-	private void UpdateJTextAreaToFlagWithFilters(JTextArea t, String playerName, boolean verbose,
+	private void UpdateJTextAreaToFlagWithFilters(JAliasedHintableTextArea t, String playerName, boolean verbose,
 		String flag, int minEvents, String filterFilePath) {
 
+		t.setDisplayTextAsHint(false);
 		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
 		String flags = " -n" + flag;
 		String minEventsFlagAndArg = " -m " + minEvents;
@@ -499,15 +538,18 @@ public class graphicalG2ME {
 		JPanel tabSettings = new JPanel(null);
 		JPanel tabPowerRankings = new JPanel(null);
 		JPanel tabPlayerInformation = new JPanel(null);
+		JPanel tabAllPlayerInformation = new JPanel(null);
 		JPanel tabRunBrackets = new JPanel(null);
 		/* Configure tabs */
 		tabSettings.setPreferredSize(tabSettings.getPreferredSize());
 		tabPowerRankings.setPreferredSize(tabPowerRankings.getPreferredSize());
 		tabPlayerInformation.setPreferredSize(tabPlayerInformation.getPreferredSize());
+		tabAllPlayerInformation.setPreferredSize(tabAllPlayerInformation.getPreferredSize());
 		/* Validate tabs */
 		tabSettings.validate();
 		tabPowerRankings.validate();
 		tabPlayerInformation.validate();
+		tabAllPlayerInformation.validate();
 
 		/* Configure Settings Tab */
 		JLabel SettingsG2MEBinLabel = new JLabel("G2ME Binary/Executable file path");
@@ -552,7 +594,7 @@ public class graphicalG2ME {
 						prefs.getInt(POWER_RANKINGS_MINEVENTS, POWER_RANKINGS_MINEVENTS_DEFAULT),
 						1, 1000, 1));
 		PowerRankingsMinEventsSpinner.setToolTipText("Filter Power Ranking Output to Only Include Players Who Have Attended This Many Events");
-		JAliasedTextArea PowerRankingsTextDialog = new JAliasedTextArea();
+		JAliasedHintableTextArea PowerRankingsTextDialog = new JAliasedHintableTextArea();
 		JScrollPane PowerRankingsTextDialogScroll = new JScrollPane(PowerRankingsTextDialog);
 		/* Display current power ranking */
 		UpdateJTextAreaToFlagWithFilters(PowerRankingsTextDialog,
@@ -565,9 +607,9 @@ public class graphicalG2ME {
 		JAliasedCheckBox PlayerInformationVerboseCheckBox = new JAliasedCheckBox("Verbose");
 		PlayerInformationVerboseCheckBox.setSelected(prefs.getBoolean(PLAYER_INFO_VERBOSE, PLAYER_INFO_VERBOSE_DEFAULT));
 		JAliasedSearchField PlayerInformationSearchTextField = new JAliasedSearchField("Search for player...");
-		JAliasedList PlayerInformationPlayerList = new JAliasedList();
+		JAliasedHintableList PlayerInformationPlayerList = new JAliasedHintableList();
 		JScrollPane PlayerInformationPlayerListScroll = new JScrollPane(PlayerInformationPlayerList);
-		JAliasedTextArea PlayerInformationTextDialog = new JAliasedTextArea();
+		JAliasedHintableTextArea PlayerInformationTextDialog = new JAliasedHintableTextArea();
 		PlayerInformationTextDialog.setEditable(false);
 		JScrollPane PlayerInformationTextDialogScroll = new JScrollPane(PlayerInformationTextDialog);
 		JAliasedTextField PlayerInformationFilterFileTextField = new JAliasedTextField();
@@ -1308,9 +1350,9 @@ public class graphicalG2ME {
 		JAliasedSpinner RunBracketsWeightSpinner =
 			new JAliasedSpinner(new SpinnerNumberModel(prefs.getDouble(WEIGHT, WEIGHT_DEFAULT), 0.0, 1000.0, 0.1));
 		RunBracketsWeightSpinner.setToolTipText("Weigh Tournament at Given Value (Not Recommended to be anything other than 1)");
-		JAliasedTextArea RunBracketsTextDialog = new JAliasedTextArea();
+		JAliasedHintableTextArea RunBracketsTextDialog = new JAliasedHintableTextArea();
 		JScrollPane RunBracketsTextDialogScroll = new JScrollPane(RunBracketsTextDialog);
-		JAliasedTextArea RunBracketsLogDialog = new JAliasedTextArea();
+		JAliasedHintableTextArea RunBracketsLogDialog = new JAliasedHintableTextArea();
 		JScrollPane RunBracketsLogDialogScroll = new JScrollPane(RunBracketsLogDialog);
 
 		RunBracketsKeepDataBracketsCheckBox.setSelected(true);
