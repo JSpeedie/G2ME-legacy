@@ -791,6 +791,7 @@ public class graphicalG2ME {
 		JAliasedButton SettingsAutoConfigureButton = new JAliasedButton("Attempt Auto-configuration");
 		JAliasedButton SettingsSaveButton = new JAliasedButton("Save");
 		JAliasedButton SettingsResetSavedGUISettingsButton = new JAliasedButton("Reset Saved GUI Settings");
+		JLabel SettingsFontSizeLabel = new JLabel("Output Dialog Font Size:");
 		JAliasedValueSetter SettingsFontSizeSetter = new JAliasedValueSetter(12, 6, 32);
 
 		/* Configure Power Rankings Tab */
@@ -1184,6 +1185,8 @@ public class graphicalG2ME {
 		tabSettings.add(SettingsAutoConfigureButton);
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
 		tabSettings.add(SettingsSaveButton);
+		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
+		tabSettings.add(SettingsFontSizeLabel);
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
 		tabSettings.add(SettingsFontSizeSetter.getComponents());
 
