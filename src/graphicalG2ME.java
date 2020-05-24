@@ -294,6 +294,8 @@ public class graphicalG2ME {
 		private int lowestAllowableValue;
 		private int highestAllowableValue;
 		private JPanel setterComponents;
+		private ActionListener incActionListener;
+		private ActionListener decActionListener;
 
 		public JAliasedValueSetter(int v, int lowestAllowableValue, int highestAllowableValue) {
 			this.incrementer = new JAliasedButton("+");
@@ -311,49 +313,57 @@ public class graphicalG2ME {
 			this.setterComponents.add(valueField);
 			this.setterComponents.add(incrementer);
 
-			this.incrementer.addActionListener(new ActionListener() {
+			this.incActionListener = new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					/* If incrementing the value is allowed to change anything */
-					if (value + 1 <= highestAllowableValue) {
-						/* If the value before incrementing was the lowest possible value, re-enable the decrementer */
-						if (value == lowestAllowableValue) {
-							decrementer.setEnabled(true);
-						}
-						value++;
-						valueField.setText("" + value);
-
-						/* If increasing the value by 1 once more goes over the highest allowable value,
-						 * disable the incrementer */
-						if (value + 1 > highestAllowableValue) {
-							incrementer.setEnabled(false);
-						}
-					}
+					increment();
 				}
-
-			});
-
-			this.decrementer.addActionListener(new ActionListener() {
+			};
+			this.decActionListener = new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					/* If decrementing the value is allowed to change anything */
-					if (value - 1 >= lowestAllowableValue) {
-						/* If the value before decrementing was the highest possible value, re-enable the incrementer */
-						if (value == highestAllowableValue) {
-							incrementer.setEnabled(true);
-						}
-						value--;
-						valueField.setText("" + value);
-
-						/* If decreasing the value by 1 once more goes under the lowest allowable value,
-						 * disable the decrementer */
-						if (value - 1 < lowestAllowableValue) {
-							decrementer.setEnabled(false);
-						}
-					}
+					decrement();
 				}
+			};
 
-			});
+			this.incrementer.addActionListener(incActionListener);
+			this.decrementer.addActionListener(decActionListener);
+		}
+
+		private void increment() {
+			/* If incrementing the value is allowed to change anything */
+			if (value + 1 <= highestAllowableValue) {
+				/* If the value before incrementing was the lowest possible value, re-enable the decrementer */
+				if (value == lowestAllowableValue) {
+					decrementer.setEnabled(true);
+				}
+				value++;
+				valueField.setText("" + value);
+
+				/* If increasing the value by 1 once more goes over the highest allowable value,
+				 * disable the incrementer */
+				if (value + 1 > highestAllowableValue) {
+					incrementer.setEnabled(false);
+				}
+			}
+		}
+
+		private void decrement() {
+			/* If decrementing the value is allowed to change anything */
+			if (value - 1 >= lowestAllowableValue) {
+				/* If the value before decrementing was the highest possible value, re-enable the incrementer */
+				if (value == highestAllowableValue) {
+					incrementer.setEnabled(true);
+				}
+				value--;
+				valueField.setText("" + value);
+
+				/* If decreasing the value by 1 once more goes under the lowest allowable value,
+				 * disable the decrementer */
+				if (value - 1 < lowestAllowableValue) {
+					decrementer.setEnabled(false);
+				}
+			}
 		}
 
 		public void setValue(int v) {
@@ -411,11 +421,83 @@ public class graphicalG2ME {
 		}
 
 		public void addIncrementerActionListener(ActionListener a) {
-			this.incrementer.addActionListener(a);
+			if (incrementer.getActionListeners().length == 1) {
+				/* If the only ActionListener attached to 'incrementer' is the increment ActionListener,
+				 * remove it, and add this new ActionListener as increment() + the new ActionListener */
+				if (incrementer.getActionListeners()[0].equals(incActionListener)) {
+					incrementer.removeActionListener(incActionListener);
+
+					ActionListener l = new ActionListener() {
+						public void actionPerformed(ActionEvent e2){
+							increment();
+							a.actionPerformed(e2);
+						}
+					};
+					this.incrementer.addActionListener(l);
+				/* Otherwise, increment() is already in an ActionListener,
+				* so just add the new ActionListener as normal */
+				} else {
+					this.incrementer.addActionListener(a);
+				}
+			/* Otherwise, increment() is already in an ActionListener,
+			 * so just add the new ActionListener as normal */
+			} else {
+				this.incrementer.addActionListener(a);
+			}
 		}
 
 		public void addDecrementerActionListener(ActionListener a) {
-			this.decrementer.addActionListener(a);
+			if (decrementer.getActionListeners().length == 1) {
+				/* If the only ActionListener attached to 'decrementer' is the decrement ActionListener,
+				 * remove it, and add this new ActionListener as decrement() + the new ActionListener */
+				if (decrementer.getActionListeners()[0].equals(decActionListener)) {
+					decrementer.removeActionListener(decActionListener);
+
+					ActionListener l = new ActionListener() {
+						public void actionPerformed(ActionEvent e2){
+							decrement();
+							a.actionPerformed(e2);
+						}
+					};
+					this.decrementer.addActionListener(l);
+					/* Otherwise, decrement() is already in an ActionListener,
+					 * so just add the new ActionListener as normal */
+				} else {
+					this.decrementer.addActionListener(a);
+				}
+				/* Otherwise, decrement() is already in an ActionListener,
+				 * so just add the nemal */
+			} else {
+				this.decrementer.addActionListener(a);
+			}
+		}
+
+		public void removeIncrementerActionListener(ActionListener a) {
+			for (ActionListener i : incrementer.getActionListeners()) {
+				if (i.equals(a)) {
+					incrementer.removeActionListener(i);
+
+					/* If this leaves 'incrementer' with no more ActionListeners,
+					 * re-add the base incrementer ActionListener */
+					if (incrementer.getActionListeners().length == 0) {
+						this.incrementer.addActionListener(incActionListener);
+					}
+				}
+			}
+		}
+
+		public void removeDecrementerActionListener(ActionListener a) {
+			for (ActionListener i : decrementer.getActionListeners()) {
+				if (i.equals(a)) {
+					decrementer.removeActionListener(i);
+
+					/* If this leaves 'decrementer' with no more ActionListeners,
+					 * re-add the base decrementer ActionListener */
+					if (decrementer.getActionListeners().length == 0) {
+						this.decrementer.addActionListener(decActionListener);
+					}
+				}
+			}
 		}
 	}
 
