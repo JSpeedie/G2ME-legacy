@@ -30,6 +30,7 @@ public class graphicalG2ME {
 	private static final String ALL_PLAYER_INFO_MINEVENTS="ALL_PLAYER_INFO_MINEVENTS";
 	private static final String PLAYER_INFO_RB_SELECTED="PLAYER_INFO_RB_SELECTED";
 	private static final String ALL_PLAYER_INFO_RB_SELECTED="ALL_PLAYER_INFO_RB_SELECTED";
+	private static final String OUTPUT_FONT_SIZE="OUTPUT_FONT_SIZE";
 	/* Prefs defaults */
 	private static String G2ME_BIN_DEFAULT="/usr/local/bin/G2ME";
 	private static String G2ME_DIR_DEFAULT="/home/me/G2MEGit/";
@@ -44,6 +45,7 @@ public class graphicalG2ME {
 	private static int PLAYER_INFO_RB_SELECTED_DEFAULT=0;
 	private static int ALL_PLAYER_INFO_MINEVENTS_DEFAULT=1;
 	private static int ALL_PLAYER_INFO_RB_SELECTED_DEFAULT=0;
+	private static int OUTPUT_FONT_SIZE_DEFAULT=18;
 
 	private final int ELEMENT_SPACING = 5;
 	private final int ELEMENT_BREAK_SPACING = 10;
@@ -375,9 +377,10 @@ public class graphicalG2ME {
 		}
 	}
 
-	private void UpdateJTextAreaToFlagWithFilters(JTextArea t, boolean verbose,
+	private void UpdateJTextAreaToFlagWithFilters(JAliasedHintableTextArea t, boolean verbose,
 		String flag, int minEvents, String filterFilePath) {
 
+		t.setDisplayTextAsHint(false);
 		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
 		String flags = " -n" + flag;
 		String minEventsFlagAndArg = " -m " + minEvents;
@@ -611,6 +614,9 @@ public class graphicalG2ME {
 		JScrollPane PlayerInformationPlayerListScroll = new JScrollPane(PlayerInformationPlayerList);
 		JAliasedHintableTextArea PlayerInformationTextDialog = new JAliasedHintableTextArea();
 		PlayerInformationTextDialog.setEditable(false);
+		PlayerInformationTextDialog.setDisplayTextAsHint(true);
+		PlayerInformationTextDialog.setText("Select a player from the list to begin. If there are no players, "
+			+ "you may need to adjust your player directory, or run a bracket/season.");
 		JScrollPane PlayerInformationTextDialogScroll = new JScrollPane(PlayerInformationTextDialog);
 		JAliasedTextField PlayerInformationFilterFileTextField = new JAliasedTextField();
 		PlayerInformationFilterFileTextField.setEditable(false);
@@ -646,6 +652,83 @@ public class graphicalG2ME {
 		PlayerInfoRadioButtonArray[1] = PlayerInformationRecordsButton;
 		PlayerInfoRadioButtonArray[2] = PlayerInformationEventsAttendedButton;
 		PlayerInfoRadioButtonArray[3] = PlayerInformationNumOutcomesButton;
+
+		/* Configure Run Brackets Tab */
+		JPanel RunBracketsControlBar = new JPanel();
+		RunBracketsControlBar.setLayout(new BoxLayout(RunBracketsControlBar, BoxLayout.Y_AXIS));
+		JPanel RunBracketsTextComponents = new JPanel();
+		RunBracketsTextComponents.setLayout(new BoxLayout(RunBracketsTextComponents, BoxLayout.Y_AXIS));
+		JPanel RunBracketsWeightComponents = new JPanel();
+		RunBracketsWeightComponents.setLayout(new BoxLayout(RunBracketsWeightComponents, BoxLayout.X_AXIS));
+		JAliasedCheckBox RunBracketsKeepDataBracketsCheckBox = new JAliasedCheckBox("Keep existing data");
+		RunBracketsKeepDataBracketsCheckBox.setToolTipText("Run bracket using existing player data");
+		JAliasedCheckBox RunBracketsKeepDataSeasonsCheckBox = new JAliasedCheckBox("Keep existing data (Season)");
+		RunBracketsKeepDataSeasonsCheckBox.setToolTipText("Run season using existing player data");
+		JAliasedCheckBox RunBracketsUseGamesCheckBox = new JAliasedCheckBox("Use Games");
+		RunBracketsUseGamesCheckBox.setSelected(prefs.getBoolean(USE_GAMES, USE_GAMES_DEFAULT));
+		RunBracketsUseGamesCheckBox.setToolTipText("Use Games as Outcomes Rather Than Sets (Not Recommended)");
+		JAliasedCheckBox RunBracketsRDAdjustAbsentCheckBox = new JAliasedCheckBox("RD Adjust Absent Players");
+		RunBracketsRDAdjustAbsentCheckBox.setSelected(prefs.getBoolean(RD_ADJUST_ABSENT, RD_ADJUST_ABSENT_DEFAULT));
+		RunBracketsRDAdjustAbsentCheckBox.setToolTipText("Adjust the Rating Deviation of Absent Players (Recommended)");
+		JAliasedButton RunBracketsAddButton = new JAliasedButton("Add Bracket...");
+		JAliasedButton RunBracketsOpenButton = new JAliasedButton("Open...");
+		JAliasedButton RunBracketsClearButton = new JAliasedButton("Clear");
+		JAliasedButton RunBracketsResetButton = new JAliasedButton("Reset");
+		JAliasedButton RunBracketsClearLogButton = new JAliasedButton("Clear Log");
+		JAliasedButton RunBracketsRunBracketButton = new JAliasedButton("Run File as Bracket...");
+		JAliasedButton RunBracketsRunSeasonButton = new JAliasedButton("Run File as Season...");
+		JAliasedButton RunBracketsSaveButton = new JAliasedButton("Save As...");
+		JLabel RunBracketsWeightLabel = new JLabel("Weight:");
+		JAliasedSpinner RunBracketsWeightSpinner =
+				new JAliasedSpinner(new SpinnerNumberModel(prefs.getDouble(WEIGHT, WEIGHT_DEFAULT), 0.0, 1000.0, 0.1));
+		RunBracketsWeightSpinner.setToolTipText("Weigh Tournament at Given Value (Not Recommended to be anything other than 1)");
+		JAliasedHintableTextArea RunBracketsTextDialog = new JAliasedHintableTextArea();
+		JScrollPane RunBracketsTextDialogScroll = new JScrollPane(RunBracketsTextDialog);
+		JAliasedHintableTextArea RunBracketsLogDialog = new JAliasedHintableTextArea();
+		JScrollPane RunBracketsLogDialogScroll = new JScrollPane(RunBracketsLogDialog);
+		RunBracketsKeepDataBracketsCheckBox.setSelected(true);
+		RunBracketsKeepDataSeasonsCheckBox.setSelected(false);
+
+		/* Configure All Player Information Tab */
+		JPanel AllPlayerInformationControlBar = new JPanel();
+		AllPlayerInformationControlBar.setLayout(new BoxLayout(AllPlayerInformationControlBar, BoxLayout.Y_AXIS));
+		AllPlayerInformationControlBar.setAlignmentY(Component.TOP_ALIGNMENT);
+		JAliasedHintableTextArea AllPlayerInformationTextDialog = new JAliasedHintableTextArea();
+		AllPlayerInformationTextDialog.setEditable(false);
+		AllPlayerInformationTextDialog.setDisplayTextAsHint(true);
+		AllPlayerInformationTextDialog.setText("Click the \"Show Data\" button to begin. If nothing happens, "
+				+ "you may need to adjust your player directory, or run a bracket/season.");
+		JScrollPane AllPlayerInformationTextDialogScroll = new JScrollPane(AllPlayerInformationTextDialog);
+		JAliasedTextField AllPlayerInformationFilterFileTextField = new JAliasedTextField();
+		AllPlayerInformationFilterFileTextField.setEditable(false);
+		JAliasedButton AllPlayerInformationFilterFileBrowseButton = new JAliasedButton("Browse For Filter File...");
+		JAliasedButton AllPlayerInformationFilterFileClearButton = new JAliasedButton("Clear");
+		AllPlayerInformationFilterFileClearButton.setToolTipText("Clear Filter File path (get rid of filter)");
+		JLabel AllPlayerInformationMinEventsLabel = new JLabel("Min. Events:");
+		JPanel AllPlayerInformationMinEventComponents = new JPanel();
+		AllPlayerInformationMinEventComponents.setLayout(new BoxLayout(AllPlayerInformationMinEventComponents, BoxLayout.X_AXIS));
+		JPanel AllPlayerInformationFilterFileButtonComponents = new JPanel();
+		AllPlayerInformationFilterFileButtonComponents.setLayout(new BoxLayout(AllPlayerInformationFilterFileButtonComponents, BoxLayout.X_AXIS));
+		JAliasedSpinner AllPlayerInformationMinEventsSpinner =
+				new JAliasedSpinner(new SpinnerNumberModel(
+						prefs.getInt(ALL_PLAYER_INFO_MINEVENTS, ALL_PLAYER_INFO_MINEVENTS_DEFAULT),
+						1, 1000, 1));
+		AllPlayerInformationMinEventsSpinner.setToolTipText("Filter Power Ranking Output to Only Include Players Who Have Attended This Many Events");
+		JAliasedButton AllPlayerInformationShowDataButton = new JAliasedButton("Show Data");
+		AllPlayerInformationShowDataButton.setToolTipText("Display chosen data set, adhering to minimum event and "
+				+ "filter file filters, if set");
+
+		JAliasedRadioButton AllPlayerInformationRecordTableButton = new JAliasedRadioButton("Records/Head-to-Heads Table");
+		AllPlayerInformationRecordTableButton.setToolTipText("Records/Head-to-Head Table. Requires clicking the Refresh button");
+		JAliasedRadioButton AllPlayerInformationRecordCSVButton = new JAliasedRadioButton("Records/Head-to-Heads CSV");
+		AllPlayerInformationRecordCSVButton.setToolTipText("Records/Head-to-Heads Table, but in a CSV, spreadsheet output. Requires" +
+				" clicking the Refresh button");
+		String[] allPlayerInfoFlags = new String[2];
+		allPlayerInfoFlags[0] = "M";
+		allPlayerInfoFlags[1] = "C";
+		JAliasedRadioButton[] AllPlayerInfoRadioButtonArray = new JAliasedRadioButton[6];
+		AllPlayerInfoRadioButtonArray[0] = AllPlayerInformationRecordTableButton;
+		AllPlayerInfoRadioButtonArray[1] = AllPlayerInformationRecordCSVButton;
 
 		SettingsG2MEBinBrowseButton.addActionListener(new ActionListener() {
 			@Override
@@ -834,7 +917,7 @@ public class graphicalG2ME {
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
 		tabSettings.add(SettingsSaveButton);
 
-		PowerRankingsTextDialog.setFont(new Font("monospaced", Font.PLAIN, 12));
+		PowerRankingsTextDialog.setFont(new Font("monospaced", Font.PLAIN, prefs.getInt(OUTPUT_FONT_SIZE, OUTPUT_FONT_SIZE_DEFAULT)));
 		PowerRankingsTextDialog.setEditable(false);
 
 		PowerRankingsFilterFileBrowseButton.addActionListener(new ActionListener() {
@@ -1135,7 +1218,7 @@ public class graphicalG2ME {
 			}
 		});
 
-		PlayerInformationTextDialog.setFont(new Font("monospaced", Font.PLAIN, 12));
+		PlayerInformationTextDialog.setFont(new Font("monospaced", Font.PLAIN, prefs.getInt(OUTPUT_FONT_SIZE, OUTPUT_FONT_SIZE_DEFAULT)));
 
 		KeyListener PlayerInformationSearchKeyListener = new KeyListener() {
 			public void keyReleased(KeyEvent keyEvent) {
@@ -1321,42 +1404,7 @@ public class graphicalG2ME {
 		/* Configure data in components on Player History tab */
 		UpdateJListToFilesInDir(PlayerInformationPlayerList, prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
 
-		/* Configure Run Brackets Tab */
-		JPanel RunBracketsControlBar = new JPanel();
-		RunBracketsControlBar.setLayout(new BoxLayout(RunBracketsControlBar, BoxLayout.Y_AXIS));
-		JPanel RunBracketsTextComponents = new JPanel();
-		RunBracketsTextComponents.setLayout(new BoxLayout(RunBracketsTextComponents, BoxLayout.Y_AXIS));
-		JPanel RunBracketsWeightComponents = new JPanel();
-		RunBracketsWeightComponents.setLayout(new BoxLayout(RunBracketsWeightComponents, BoxLayout.X_AXIS));
-		JAliasedCheckBox RunBracketsKeepDataBracketsCheckBox = new JAliasedCheckBox("Keep existing data");
-		RunBracketsKeepDataBracketsCheckBox.setToolTipText("Run bracket using existing player data");
-		JAliasedCheckBox RunBracketsKeepDataSeasonsCheckBox = new JAliasedCheckBox("Keep existing data (Season)");
-		RunBracketsKeepDataSeasonsCheckBox.setToolTipText("Run season using existing player data");
-		JAliasedCheckBox RunBracketsUseGamesCheckBox = new JAliasedCheckBox("Use Games");
-		RunBracketsUseGamesCheckBox.setSelected(prefs.getBoolean(USE_GAMES, USE_GAMES_DEFAULT));
-		RunBracketsUseGamesCheckBox.setToolTipText("Use Games as Outcomes Rather Than Sets (Not Recommended)");
-		JAliasedCheckBox RunBracketsRDAdjustAbsentCheckBox = new JAliasedCheckBox("RD Adjust Absent Players");
-		RunBracketsRDAdjustAbsentCheckBox.setSelected(prefs.getBoolean(RD_ADJUST_ABSENT, RD_ADJUST_ABSENT_DEFAULT));
-		RunBracketsRDAdjustAbsentCheckBox.setToolTipText("Adjust the Rating Deviation of Absent Players (Recommended)");
-		JAliasedButton RunBracketsAddButton = new JAliasedButton("Add Bracket...");
-		JAliasedButton RunBracketsOpenButton = new JAliasedButton("Open...");
-		JAliasedButton RunBracketsClearButton = new JAliasedButton("Clear");
-		JAliasedButton RunBracketsResetButton = new JAliasedButton("Reset");
-		JAliasedButton RunBracketsClearLogButton = new JAliasedButton("Clear Log");
-		JAliasedButton RunBracketsRunBracketButton = new JAliasedButton("Run File as Bracket...");
-		JAliasedButton RunBracketsRunSeasonButton = new JAliasedButton("Run File as Season...");
-		JAliasedButton RunBracketsSaveButton = new JAliasedButton("Save As...");
-		JLabel RunBracketsWeightLabel = new JLabel("Weight:");
-		JAliasedSpinner RunBracketsWeightSpinner =
-			new JAliasedSpinner(new SpinnerNumberModel(prefs.getDouble(WEIGHT, WEIGHT_DEFAULT), 0.0, 1000.0, 0.1));
-		RunBracketsWeightSpinner.setToolTipText("Weigh Tournament at Given Value (Not Recommended to be anything other than 1)");
-		JAliasedHintableTextArea RunBracketsTextDialog = new JAliasedHintableTextArea();
-		JScrollPane RunBracketsTextDialogScroll = new JScrollPane(RunBracketsTextDialog);
-		JAliasedHintableTextArea RunBracketsLogDialog = new JAliasedHintableTextArea();
-		JScrollPane RunBracketsLogDialogScroll = new JScrollPane(RunBracketsLogDialog);
 
-		RunBracketsKeepDataBracketsCheckBox.setSelected(true);
-		RunBracketsKeepDataSeasonsCheckBox.setSelected(false);
 		RunBracketsWeightSpinner.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
@@ -1375,7 +1423,7 @@ public class graphicalG2ME {
 				prefs.putBoolean(RD_ADJUST_ABSENT, RunBracketsRDAdjustAbsentCheckBox.isSelected());
 			}
 		});
-		RunBracketsTextDialog.setFont(new Font("monospaced", Font.PLAIN, 12));
+		RunBracketsTextDialog.setFont(new Font("monospaced", Font.PLAIN, prefs.getInt(OUTPUT_FONT_SIZE, OUTPUT_FONT_SIZE_DEFAULT)));
 		RunBracketsLogDialog.setEditable(false);
 		RunBracketsLogDialog.setEnabled(false);
 
@@ -1705,44 +1753,6 @@ public class graphicalG2ME {
 		tabRunBrackets.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
 		tabRunBrackets.add(RunBracketsControlBar);
 
-		/* Configure Player Information Tab */
-		JPanel AllPlayerInformationControlBar = new JPanel();
-		AllPlayerInformationControlBar.setLayout(new BoxLayout(AllPlayerInformationControlBar, BoxLayout.Y_AXIS));
-		AllPlayerInformationControlBar.setAlignmentY(Component.TOP_ALIGNMENT);
-		JAliasedHintableTextArea AllPlayerInformationTextDialog = new JAliasedHintableTextArea();
-		AllPlayerInformationTextDialog.setEditable(false);
-		JScrollPane AllPlayerInformationTextDialogScroll = new JScrollPane(AllPlayerInformationTextDialog);
-		JAliasedTextField AllPlayerInformationFilterFileTextField = new JAliasedTextField();
-		AllPlayerInformationFilterFileTextField.setEditable(false);
-		JAliasedButton AllPlayerInformationFilterFileBrowseButton = new JAliasedButton("Browse For Filter File...");
-		JAliasedButton AllPlayerInformationFilterFileClearButton = new JAliasedButton("Clear");
-		AllPlayerInformationFilterFileClearButton.setToolTipText("Clear Filter File path (get rid of filter)");
-		JLabel AllPlayerInformationMinEventsLabel = new JLabel("Min. Events:");
-		JPanel AllPlayerInformationMinEventComponents = new JPanel();
-		AllPlayerInformationMinEventComponents.setLayout(new BoxLayout(AllPlayerInformationMinEventComponents, BoxLayout.X_AXIS));
-		JPanel AllPlayerInformationFilterFileButtonComponents = new JPanel();
-		AllPlayerInformationFilterFileButtonComponents.setLayout(new BoxLayout(AllPlayerInformationFilterFileButtonComponents, BoxLayout.X_AXIS));
-		JAliasedSpinner AllPlayerInformationMinEventsSpinner =
-				new JAliasedSpinner(new SpinnerNumberModel(
-						prefs.getInt(ALL_PLAYER_INFO_MINEVENTS, ALL_PLAYER_INFO_MINEVENTS_DEFAULT),
-						1, 1000, 1));
-		AllPlayerInformationMinEventsSpinner.setToolTipText("Filter Power Ranking Output to Only Include Players Who Have Attended This Many Events");
-		JAliasedButton AllPlayerInformationShowDataButton = new JAliasedButton("Show Data");
-		AllPlayerInformationShowDataButton.setToolTipText("Display chosen data set, adhering to minimum event and "
-				+ "filter file filters, if set");
-
-		JAliasedRadioButton AllPlayerInformationRecordTableButton = new JAliasedRadioButton("Records/Head-to-Heads Table");
-		AllPlayerInformationRecordTableButton.setToolTipText("Records/Head-to-Head Table. Requires clicking the Refresh button");
-		JAliasedRadioButton AllPlayerInformationRecordCSVButton = new JAliasedRadioButton("Records/Head-to-Heads CSV");
-		AllPlayerInformationRecordCSVButton.setToolTipText("Records/Head-to-Heads Table, but in a CSV, spreadsheet output. Requires" +
-				" clicking the Refresh button");
-		String[] allPlayerInfoFlags = new String[2];
-		allPlayerInfoFlags[0] = "M";
-		allPlayerInfoFlags[1] = "C";
-		JAliasedRadioButton[] AllPlayerInfoRadioButtonArray = new JAliasedRadioButton[6];
-		AllPlayerInfoRadioButtonArray[0] = AllPlayerInformationRecordTableButton;
-		AllPlayerInfoRadioButtonArray[1] = AllPlayerInformationRecordCSVButton;
-
 		AllPlayerInformationRecordTableButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				AllPlayerInformationMinEventsSpinner.setVisible(true);
@@ -1783,7 +1793,7 @@ public class graphicalG2ME {
 			}
 		});
 
-		AllPlayerInformationTextDialog.setFont(new Font("monospaced", Font.PLAIN, 12));
+		AllPlayerInformationTextDialog.setFont(new Font("monospaced", Font.PLAIN, prefs.getInt(OUTPUT_FONT_SIZE, OUTPUT_FONT_SIZE_DEFAULT)));
 
 		AllPlayerInformationFilterFileBrowseButton.addActionListener(new ActionListener() {
 			@Override
