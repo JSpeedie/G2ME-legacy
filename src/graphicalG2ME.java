@@ -285,6 +285,140 @@ public class graphicalG2ME {
 		}
 	}
 
+	public class JAliasedValueSetter {
+
+		private JAliasedButton incrementer;
+		private JAliasedButton decrementer;
+		private JAliasedTextField valueField;
+		private int value;
+		private int lowestAllowableValue;
+		private int highestAllowableValue;
+		private JPanel setterComponents;
+
+		public JAliasedValueSetter(int v, int lowestAllowableValue, int highestAllowableValue) {
+			this.incrementer = new JAliasedButton("+");
+			this.decrementer = new JAliasedButton("-");
+			this.valueField = new JAliasedTextField("" + v);
+			this.valueField.setEnabled(false);
+			this.valueField.setHorizontalAlignment(SwingConstants.CENTER);
+			this.value = v;
+			this.lowestAllowableValue = lowestAllowableValue;
+			this.highestAllowableValue = highestAllowableValue;
+
+			this.setterComponents = new JPanel(null);
+			this.setterComponents.setLayout(new BoxLayout(this.setterComponents, BoxLayout.X_AXIS));
+			this.setterComponents.add(decrementer);
+			this.setterComponents.add(valueField);
+			this.setterComponents.add(incrementer);
+
+			this.incrementer.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					/* If incrementing the value is allowed to change anything */
+					if (value + 1 <= highestAllowableValue) {
+						/* If the value before incrementing was the lowest possible value, re-enable the decrementer */
+						if (value == lowestAllowableValue) {
+							decrementer.setEnabled(true);
+						}
+						value++;
+						valueField.setText("" + value);
+
+						/* If increasing the value by 1 once more goes over the highest allowable value,
+						 * disable the incrementer */
+						if (value + 1 > highestAllowableValue) {
+							incrementer.setEnabled(false);
+						}
+					}
+				}
+
+			});
+
+			this.decrementer.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					/* If decrementing the value is allowed to change anything */
+					if (value - 1 >= lowestAllowableValue) {
+						/* If the value before decrementing was the highest possible value, re-enable the incrementer */
+						if (value == highestAllowableValue) {
+							incrementer.setEnabled(true);
+						}
+						value--;
+						valueField.setText("" + value);
+
+						/* If decreasing the value by 1 once more goes under the lowest allowable value,
+						 * disable the decrementer */
+						if (value - 1 < lowestAllowableValue) {
+							decrementer.setEnabled(false);
+						}
+					}
+				}
+
+			});
+		}
+
+		public void setValue(int v) {
+			this.value = v;
+			this.valueField.setText("" + v);
+			if (value >= highestAllowableValue) {
+				incrementer.setEnabled(false);
+			}
+			if (value <= lowestAllowableValue) {
+				decrementer.setEnabled(false);
+			}
+		}
+
+		public int getValue() {
+			return this.value;
+		}
+
+		public void setMinimumSize(Dimension d) {
+			int buttonModifierWidth = (int) ((double) d.width/4.0 * 3.0/2.0);
+			int valueFieldWidth = (int) ((double) d.width/4.0);
+
+			this.decrementer.setMinimumSize(new Dimension(buttonModifierWidth, d.height));
+			this.valueField.setMinimumSize(new Dimension(valueFieldWidth, d.height));
+			this.incrementer.setMinimumSize(new Dimension(buttonModifierWidth, d.height));
+		};
+
+		public void setPreferredSize(Dimension d) {
+			int buttonModifierWidth = (int) ((double) d.width/4.0 * 3.0/2.0);
+			int valueFieldWidth = (int) ((double) d.width/4.0);
+
+			this.decrementer.setPreferredSize(new Dimension(buttonModifierWidth, d.height));
+			this.valueField.setPreferredSize(new Dimension(valueFieldWidth, d.height));
+			this.incrementer.setPreferredSize(new Dimension(buttonModifierWidth, d.height));
+		};
+
+		public void setMaximumSize(Dimension d) {
+			int buttonModifierWidth = (int) ((double) d.width/4.0 * 3.0/2.0);
+			int valueFieldWidth = (int) ((double) d.width/4.0);
+
+			this.decrementer.setMaximumSize(new Dimension(buttonModifierWidth, d.height));
+			this.valueField.setMaximumSize(new Dimension(valueFieldWidth, d.height));
+			this.incrementer.setMaximumSize(new Dimension(buttonModifierWidth, d.height));
+		};
+
+		public JPanel getComponents() {
+			return this.setterComponents;
+		}
+
+		public void setAlignmentX(float alignmentX) {
+			this.setterComponents.setAlignmentX(alignmentX);
+		}
+
+		public void setAlignmentY(float alignmentY) {
+			this.setterComponents.setAlignmentY(alignmentY);
+		}
+
+		public void addIncrementerActionListener(ActionListener a) {
+			this.incrementer.addActionListener(a);
+		}
+
+		public void addDecrementerActionListener(ActionListener a) {
+			this.decrementer.addActionListener(a);
+		}
+	}
+
 	public class JAliasedCheckBox extends JCheckBox {
 		public JAliasedCheckBox(String s) {
 			super(s);
