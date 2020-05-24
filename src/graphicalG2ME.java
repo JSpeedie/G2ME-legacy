@@ -709,6 +709,7 @@ public class graphicalG2ME {
 		JAliasedButton SettingsAutoConfigureButton = new JAliasedButton("Attempt Auto-configuration");
 		JAliasedButton SettingsSaveButton = new JAliasedButton("Save");
 		JAliasedButton SettingsResetSavedGUISettingsButton = new JAliasedButton("Reset Saved GUI Settings");
+		JAliasedValueSetter SettingsFontSizeSetter = new JAliasedValueSetter(12, 6, 32);
 
 		/* Configure Power Rankings Tab */
 		JPanel PowerRankingsControlBar = new JPanel();
@@ -961,6 +962,7 @@ public class graphicalG2ME {
 				prefs.put(G2ME_BIN, SettingsG2MEBinTextField.getText());
 				prefs.put(G2ME_DIR, SettingsG2MEDirTextField.getText());
 				prefs.put(G2ME_PLAYER_DIR, SettingsG2MEPlayerDirTextField.getText());
+				prefs.putInt(OUTPUT_FONT_SIZE, SettingsFontSizeSetter.getValue());
 				SettingsCheckG2MEBinTextField(SettingsG2MEBinTextField);
 				SettingsCheckG2MEDirTextField(SettingsG2MEDirTextField);
 				SettingsCheckG2MEPlayerDirTextField(SettingsG2MEPlayerDirTextField);
@@ -973,10 +975,56 @@ public class graphicalG2ME {
 
 			}
 		});
+
+		SettingsFontSizeSetter.addIncrementerActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				prefs.putInt(OUTPUT_FONT_SIZE, SettingsFontSizeSetter.getValue());
+
+				Font PowerRankingsDialogFont = PowerRankingsTextDialog.getFont();
+				PowerRankingsTextDialog.setFont(PowerRankingsDialogFont.deriveFont(
+						PowerRankingsDialogFont.getStyle(), SettingsFontSizeSetter.getValue()));
+
+				Font PlayerInfoDialogFont = PlayerInformationTextDialog.getFont();
+				PlayerInformationTextDialog.setFont(PlayerInfoDialogFont.deriveFont(
+						PlayerInfoDialogFont.getStyle(), SettingsFontSizeSetter.getValue()));
+
+				Font RunBracketsDialogFont = RunBracketsTextDialog.getFont();
+				RunBracketsTextDialog.setFont(RunBracketsDialogFont.deriveFont(
+						RunBracketsDialogFont.getStyle(), SettingsFontSizeSetter.getValue()));
+
+				Font AllPlayerInformationDialogFont = AllPlayerInformationTextDialog.getFont();
+				AllPlayerInformationTextDialog.setFont(AllPlayerInformationDialogFont.deriveFont(
+						AllPlayerInformationDialogFont.getStyle(), SettingsFontSizeSetter.getValue()));
+			}
+		});
+
+		SettingsFontSizeSetter.addDecrementerActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				prefs.putInt(OUTPUT_FONT_SIZE, SettingsFontSizeSetter.getValue());
+
+				Font PowerRankingsDialogFont = PowerRankingsTextDialog.getFont();
+				PowerRankingsTextDialog.setFont(PowerRankingsDialogFont.deriveFont(
+						PowerRankingsDialogFont.getStyle(), SettingsFontSizeSetter.getValue()));
+
+				Font PlayerInfoDialogFont = PlayerInformationTextDialog.getFont();
+				PlayerInformationTextDialog.setFont(PlayerInfoDialogFont.deriveFont(
+						PlayerInfoDialogFont.getStyle(), SettingsFontSizeSetter.getValue()));
+
+				Font RunBracketsDialogFont = RunBracketsTextDialog.getFont();
+				RunBracketsTextDialog.setFont(RunBracketsDialogFont.deriveFont(
+						RunBracketsDialogFont.getStyle(), SettingsFontSizeSetter.getValue()));
+
+				Font AllPlayerInformationDialogFont = AllPlayerInformationTextDialog.getFont();
+				AllPlayerInformationTextDialog.setFont(AllPlayerInformationDialogFont.deriveFont(
+						AllPlayerInformationDialogFont.getStyle(), SettingsFontSizeSetter.getValue()));
+			}
+		});
 		/* Set default text for the 2 text fields */
 		SettingsG2MEBinTextField.setText(prefs.get(G2ME_BIN, G2ME_BIN_DEFAULT));
 		SettingsG2MEDirTextField.setText(prefs.get(G2ME_DIR, G2ME_DIR_DEFAULT));
 		SettingsG2MEPlayerDirTextField.setText(prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
+		SettingsFontSizeSetter.setValue(prefs.getInt(OUTPUT_FONT_SIZE, OUTPUT_FONT_SIZE_DEFAULT));
+
 		/* Check that the file paths lead to existing executables/directories */
 		SettingsCheckG2MEBinTextField(SettingsG2MEBinTextField);
 		SettingsCheckG2MEDirTextField(SettingsG2MEDirTextField);
@@ -1011,6 +1059,9 @@ public class graphicalG2ME {
 		SettingsSaveButton.setMinimumSize(new Dimension(50, TEXTFIELD_HEIGHT));
 		SettingsSaveButton.setPreferredSize(new Dimension(70, TEXTFIELD_HEIGHT));
 		SettingsSaveButton.setMaximumSize(new Dimension(90, TEXTFIELD_HEIGHT));
+		SettingsFontSizeSetter.setMinimumSize(new Dimension(100, TEXTFIELD_HEIGHT));
+		SettingsFontSizeSetter.setPreferredSize(new Dimension(140, TEXTFIELD_HEIGHT));
+		SettingsFontSizeSetter.setMaximumSize(new Dimension(180, TEXTFIELD_HEIGHT));
 		SettingsG2MEBinComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEDirComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsG2MEPlayerDirComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -1021,6 +1072,7 @@ public class graphicalG2ME {
 		SettingsResetSavedGUISettingsButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsAutoConfigureButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		SettingsSaveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		SettingsFontSizeSetter.setAlignmentX(Component.LEFT_ALIGNMENT);
 		/* Add elements to their "hboxes" */
 		SettingsG2MEBinComponents.add(SettingsG2MEBinTextField);
 		SettingsG2MEBinComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
@@ -1050,6 +1102,8 @@ public class graphicalG2ME {
 		tabSettings.add(SettingsAutoConfigureButton);
 		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
 		tabSettings.add(SettingsSaveButton);
+		tabSettings.add(Box.createRigidArea(new Dimension(0,ELEMENT_SPACING)));
+		tabSettings.add(SettingsFontSizeSetter.getComponents());
 
 		PowerRankingsTextDialog.setFont(new Font("monospaced", Font.PLAIN, prefs.getInt(OUTPUT_FONT_SIZE, OUTPUT_FONT_SIZE_DEFAULT)));
 		PowerRankingsTextDialog.setEditable(false);
