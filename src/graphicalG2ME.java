@@ -163,37 +163,65 @@ public class graphicalG2ME {
 
 		private int alphaFaded = 160;
 		private int alphaNormal;
+		private JPanel components;
+		private JLabel hintLabel;
 
 		public JAliasedHintableTextArea() {
 			super();
 			Color c = this.getForeground();
 			this.alphaNormal = c.getAlpha();
+			this.hintLabel = new JLabel();
+			/* Italicize message */
+			int biggerFontSize = (int) ((double) this.hintLabel.getFont().getSize() * 1.3);
+			this.hintLabel.setFont(this.hintLabel.getFont().deriveFont(Font.ITALIC, biggerFontSize));
+
+			/* Reduce opacity for message */
+			Color fadedColour = new Color(c.getRed(), c.getGreen(), c.getBlue(), this.alphaFaded);
+			this.hintLabel.setForeground(fadedColour);
+
+			this.components = new JPanel(null);
+			this.components.setLayout(new OverlayLayout(this.components));
+			this.hintLabel.setAlignmentX(CENTER_ALIGNMENT);
+			this.hintLabel.setHorizontalAlignment(SwingConstants.CENTER);
+			this.components.add(this.hintLabel);
+			this.components.add(this);
 		}
 
 		public JAliasedHintableTextArea(String s) {
 			super(s);
 			Color c = this.getForeground();
 			this.alphaNormal = c.getAlpha();
+			this.hintLabel = new JLabel();
+			/* Italicize message */
+			int biggerFontSize = (int) ((double) this.hintLabel.getFont().getSize() * 1.3);
+			this.hintLabel.setFont(this.hintLabel.getFont().deriveFont(Font.ITALIC, biggerFontSize));
+
+			/* Reduce opacity for message */
+			Color fadedColour = new Color(c.getRed(), c.getGreen(), c.getBlue(), this.alphaFaded);
+			this.hintLabel.setForeground(fadedColour);
+
+			this.components = new JPanel(null);
+			this.components.setLayout(new OverlayLayout(this.components));
+			this.hintLabel.setAlignmentX(CENTER_ALIGNMENT);
+			this.hintLabel.setHorizontalAlignment(SwingConstants.CENTER);
+			this.components.add(this.hintLabel);
+			this.components.add(this);
 		}
 
 		public void setDisplayTextAsHint(boolean showAsMessage) {
 			if (showAsMessage) {
-				/* Italicize message */
-				this.setFont(this.getFont().deriveFont(Font.ITALIC));
-
-				/* Reduce opacity for message */
-				Color c = this.getForeground();
-				Color fadedColour = new Color(c.getRed(), c.getGreen(), c.getBlue(), this.alphaFaded);
-				this.setForeground(fadedColour);
+				hintLabel.setVisible(true);
 			} else {
-				/* De-Italicize message */
-				this.setFont(this.getFont().deriveFont(Font.PLAIN));
-
-				/* Increase opacity for text */
-				Color c = this.getForeground();
-				Color fadedColour = new Color(c.getRed(), c.getGreen(), c.getBlue(), this.alphaNormal);
-				this.setForeground(fadedColour);
+				hintLabel.setVisible(false);
 			}
+		}
+
+		public void setHintText(String s) {
+			hintLabel.setText("<html><div style='text-align: center;'>" + s + "</div></html>");
+		}
+
+		public JPanel getElements() {
+			return this.components;
 		}
 	}
 
@@ -473,7 +501,7 @@ public class graphicalG2ME {
 					this.decrementer.addActionListener(a);
 				}
 				/* Otherwise, decrement() is already in an ActionListener,
-				 * so just add the nemal */
+				 * so just add the normal */
 			} else {
 				this.decrementer.addActionListener(a);
 			}
@@ -840,9 +868,10 @@ public class graphicalG2ME {
 		JAliasedHintableTextArea PlayerInformationTextDialog = new JAliasedHintableTextArea();
 		PlayerInformationTextDialog.setEditable(false);
 		PlayerInformationTextDialog.setDisplayTextAsHint(true);
-		PlayerInformationTextDialog.setText("Select a player from the list to begin. If there are no players, "
-			+ "you may need to adjust your player directory, or run a bracket/season.");
-		JScrollPane PlayerInformationTextDialogScroll = new JScrollPane(PlayerInformationTextDialog);
+		PlayerInformationTextDialog.setHintText("Select a player from the list to begin."
+				+ "<br>If there are no players, you may need to adjust"
+				+ "<br>your player directory, or run a bracket/season.");
+		JScrollPane PlayerInformationTextDialogScroll = new JScrollPane(PlayerInformationTextDialog.getElements());
 		JAliasedTextField PlayerInformationFilterFileTextField = new JAliasedTextField();
 		PlayerInformationFilterFileTextField.setEditable(false);
 		JAliasedButton PlayerInformationFilterFileBrowseButton = new JAliasedButton("Browse For Filter File...");
@@ -917,13 +946,14 @@ public class graphicalG2ME {
 		/* Configure All Player Information Tab */
 		JPanel AllPlayerInformationControlBar = new JPanel();
 		AllPlayerInformationControlBar.setLayout(new BoxLayout(AllPlayerInformationControlBar, BoxLayout.Y_AXIS));
-		AllPlayerInformationControlBar.setAlignmentY(Component.TOP_ALIGNMENT);
+
 		JAliasedHintableTextArea AllPlayerInformationTextDialog = new JAliasedHintableTextArea();
 		AllPlayerInformationTextDialog.setEditable(false);
 		AllPlayerInformationTextDialog.setDisplayTextAsHint(true);
-		AllPlayerInformationTextDialog.setText("Click the \"Show Data\" button to begin. If nothing happens, "
-				+ "you may need to adjust your player directory, or run a bracket/season.");
-		JScrollPane AllPlayerInformationTextDialogScroll = new JScrollPane(AllPlayerInformationTextDialog);
+		AllPlayerInformationTextDialog.setHintText("Click the \"Show Data\" button to begin."
+				+ "<br>If nothing happens, you may need to adjust "
+				+ "<br>your player directory, or run a bracket/season.");
+		JScrollPane AllPlayerInformationTextDialogScroll = new JScrollPane(AllPlayerInformationTextDialog.getElements());
 		JAliasedTextField AllPlayerInformationFilterFileTextField = new JAliasedTextField();
 		AllPlayerInformationFilterFileTextField.setEditable(false);
 		JAliasedButton AllPlayerInformationFilterFileBrowseButton = new JAliasedButton("Browse For Filter File...");
