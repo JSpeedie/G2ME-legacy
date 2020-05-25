@@ -51,6 +51,7 @@ public class graphicalG2ME {
 	private final int ELEMENT_BREAK_SPACING = 10;
 	private final int TEXTFIELD_HEIGHT = 32;
 	private final int CHECKBOX_HEIGHT = 24;
+	private final int DialogScrollSpeed = 20;
 	private String playerInformationCurrentFlag = "h";
 	private String allPlayerInformationCurrentFlag = "M";
 	private String playerInformationLastName = "";
@@ -856,6 +857,8 @@ public class graphicalG2ME {
 		PowerRankingsMinEventsSpinner.setToolTipText(ToolTipMinEvents);
 		JAliasedHintableTextArea PowerRankingsTextDialog = new JAliasedHintableTextArea();
 		JScrollPane PowerRankingsTextDialogScroll = new JScrollPane(PowerRankingsTextDialog);
+		PowerRankingsTextDialogScroll.getHorizontalScrollBar().setUnitIncrement(DialogScrollSpeed);
+		PowerRankingsTextDialogScroll.getVerticalScrollBar().setUnitIncrement(DialogScrollSpeed);
 		/* Display current power ranking */
 		UpdateJTextAreaToFlagWithFilters(PowerRankingsTextDialog,
 				PowerRankingsVerboseCheckBox.isSelected(), "O",
@@ -877,6 +880,8 @@ public class graphicalG2ME {
 				+ "<br>If there are no players, you may need to adjust"
 				+ "<br>your player directory, or run a bracket/season.");
 		JScrollPane PlayerInformationTextDialogScroll = new JScrollPane(PlayerInformationTextDialog.getElements());
+		PlayerInformationTextDialogScroll.getHorizontalScrollBar().setUnitIncrement(DialogScrollSpeed);
+		PlayerInformationTextDialogScroll.getVerticalScrollBar().setUnitIncrement(DialogScrollSpeed);
 		JAliasedTextField PlayerInformationFilterFileTextField = new JAliasedTextField();
 		PlayerInformationFilterFileTextField.setEditable(false);
 		JAliasedButton PlayerInformationFilterFileBrowseButton = new JAliasedButton("Browse For Filter File...");
@@ -943,6 +948,8 @@ public class graphicalG2ME {
 		RunBracketsWeightSpinner.setToolTipText("Weigh Tournament at Given Value (Not Recommended to be anything other than 1)");
 		JAliasedHintableTextArea RunBracketsTextDialog = new JAliasedHintableTextArea();
 		JScrollPane RunBracketsTextDialogScroll = new JScrollPane(RunBracketsTextDialog.getElements());
+		RunBracketsTextDialogScroll.getHorizontalScrollBar().setUnitIncrement(DialogScrollSpeed);
+		RunBracketsTextDialogScroll.getVerticalScrollBar().setUnitIncrement(DialogScrollSpeed);
 		JAliasedHintableTextArea RunBracketsLogDialog = new JAliasedHintableTextArea();
 		JScrollPane RunBracketsLogDialogScroll = new JScrollPane(RunBracketsLogDialog);
 		RunBracketsKeepDataBracketsCheckBox.setSelected(true);
@@ -959,6 +966,8 @@ public class graphicalG2ME {
 				+ "<br>If nothing happens, you may need to adjust "
 				+ "<br>your player directory, or run a bracket/season.");
 		JScrollPane AllPlayerInformationTextDialogScroll = new JScrollPane(AllPlayerInformationTextDialog.getElements());
+		AllPlayerInformationTextDialogScroll.getHorizontalScrollBar().setUnitIncrement(DialogScrollSpeed);
+		AllPlayerInformationTextDialogScroll.getVerticalScrollBar().setUnitIncrement(DialogScrollSpeed);
 		JAliasedTextField AllPlayerInformationFilterFileTextField = new JAliasedTextField();
 		AllPlayerInformationFilterFileTextField.setEditable(false);
 		JAliasedButton AllPlayerInformationFilterFileBrowseButton = new JAliasedButton("Browse For Filter File...");
