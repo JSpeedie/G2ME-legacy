@@ -698,6 +698,8 @@ public class graphicalG2ME {
 		Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
 		File PlayerDirectory = new File(prefs.get(G2ME_PLAYER_DIR, G2ME_PLAYER_DIR_DEFAULT));
 		File[] listOfFiles = PlayerDirectory.listFiles();
+		Object currentlySelectedName = l.getSelectedValue();
+
 		if (listOfFiles != null) {
 			Arrays.sort(listOfFiles);
 			ArrayList<String> items = new ArrayList<>();
@@ -729,7 +731,8 @@ public class graphicalG2ME {
 				l.setDisplayTextAsHint(false);
 			}
 			l.setListData(items.toArray());
-
+			/* Try to select currently selected player */
+			l.setSelectedValue(currentlySelectedName, false);
 		}
 	}
 
@@ -1602,7 +1605,9 @@ public class graphicalG2ME {
 				/* If there is a valid item currently selected */
 				if (PlayerInformationPlayerList.getSelectedIndex() != -1) {
 					String newValue = PlayerInformationPlayerList.getSelectedValue().toString();
-					if (newValue != null) {
+
+					/* If the new name is valid (non-null) and not the one already in use */
+					if (newValue != null && !newValue.equals(playerInformationLastName)) {
 						playerInformationLastName = newValue;
 						/* Update player information currently in dialog */
 						UpdateJTextAreaToFlagWithFilters(PlayerInformationTextDialog, playerInformationLastName,
