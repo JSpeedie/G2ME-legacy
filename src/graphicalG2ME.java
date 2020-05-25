@@ -835,7 +835,8 @@ public class graphicalG2ME {
 		/* Configure Power Rankings Tab */
 		JPanel PowerRankingsControlBar = new JPanel();
 		PowerRankingsControlBar.setLayout(new BoxLayout(PowerRankingsControlBar, BoxLayout.Y_AXIS));
-		JAliasedCheckBox PowerRankingsVerboseCheckBox = new JAliasedCheckBox("Verbose");
+		JAliasedCheckBox PowerRankingsVerboseCheckBox = new JAliasedCheckBox("Verbose Output");
+		PowerRankingsVerboseCheckBox.setToolTipText(ToolTipVerbose);
 		PowerRankingsVerboseCheckBox.setSelected(prefs.getBoolean(POWER_RANKINGS_VERBOSE, POWER_RANKINGS_VERBOSE_DEFAULT));
 		JAliasedTextField PowerRankingsFilterFileTextField = new JAliasedTextField();
 		PowerRankingsFilterFileTextField.setEditable(false);
@@ -852,7 +853,7 @@ public class graphicalG2ME {
 				new JAliasedSpinner(new SpinnerNumberModel(
 						prefs.getInt(POWER_RANKINGS_MINEVENTS, POWER_RANKINGS_MINEVENTS_DEFAULT),
 						1, 1000, 1));
-		PowerRankingsMinEventsSpinner.setToolTipText("Filter Power Ranking Output to Only Include Players Who Have Attended This Many Events");
+		PowerRankingsMinEventsSpinner.setToolTipText(ToolTipMinEvents);
 		JAliasedHintableTextArea PowerRankingsTextDialog = new JAliasedHintableTextArea();
 		JScrollPane PowerRankingsTextDialogScroll = new JScrollPane(PowerRankingsTextDialog);
 		/* Display current power ranking */
@@ -863,7 +864,8 @@ public class graphicalG2ME {
 		/* Configure Player Information Tab */
 		JPanel PlayerInformationControlBar = new JPanel();
 		PlayerInformationControlBar.setLayout(new BoxLayout(PlayerInformationControlBar, BoxLayout.Y_AXIS));
-		JAliasedCheckBox PlayerInformationVerboseCheckBox = new JAliasedCheckBox("Verbose");
+		JAliasedCheckBox PlayerInformationVerboseCheckBox = new JAliasedCheckBox("Verbose Output");
+		PlayerInformationVerboseCheckBox.setToolTipText(ToolTipVerbose);
 		PlayerInformationVerboseCheckBox.setSelected(prefs.getBoolean(PLAYER_INFO_VERBOSE, PLAYER_INFO_VERBOSE_DEFAULT));
 		JAliasedSearchField PlayerInformationSearchTextField = new JAliasedSearchField("Search for player...");
 		JAliasedHintableList PlayerInformationPlayerList = new JAliasedHintableList();
@@ -889,7 +891,7 @@ public class graphicalG2ME {
 				new JAliasedSpinner(new SpinnerNumberModel(
 						prefs.getInt(PLAYER_INFO_MINEVENTS, PLAYER_INFO_MINEVENTS_DEFAULT),
 						1, 1000, 1));
-		PlayerInformationMinEventsSpinner.setToolTipText("Filter Power Ranking Output to Only Include Players Who Have Attended This Many Events");
+		PlayerInformationMinEventsSpinner.setToolTipText(ToolTipMinEvents);
 
 		JAliasedRadioButton PlayerInformationHistoryButton = new JAliasedRadioButton("Outcome History");
 		PlayerInformationHistoryButton.setToolTipText("Opponent, Date, Tournament and Glicko2 Data After Every Outcome (Set/Game)");
@@ -971,7 +973,7 @@ public class graphicalG2ME {
 				new JAliasedSpinner(new SpinnerNumberModel(
 						prefs.getInt(ALL_PLAYER_INFO_MINEVENTS, ALL_PLAYER_INFO_MINEVENTS_DEFAULT),
 						1, 1000, 1));
-		AllPlayerInformationMinEventsSpinner.setToolTipText("Filter Power Ranking Output to Only Include Players Who Have Attended This Many Events");
+		AllPlayerInformationMinEventsSpinner.setToolTipText(ToolTipMinEvents);
 		JAliasedButton AllPlayerInformationShowDataButton = new JAliasedButton("Show Data");
 		AllPlayerInformationShowDataButton.setToolTipText("Display chosen data set, adhering to minimum event and "
 				+ "filter file filters, if set");
@@ -1347,7 +1349,7 @@ public class graphicalG2ME {
 		PowerRankingsFilterFileClearButton.setMinimumSize(new Dimension((int) ((double) genPRControlBarMinWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
 		PowerRankingsFilterFileClearButton.setPreferredSize(new Dimension((int) ((double) genPRControlBarPrefWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
 		PowerRankingsFilterFileClearButton.setMaximumSize(new Dimension((int) ((double) genPRControlBarMaxWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
-		PowerRankingsFilterFileTextField.setToolTipText("File path for a filter file");
+		PowerRankingsFilterFileTextField.setToolTipText(ToolTipFilterFilePath);
 		PowerRankingsMinEventsLabel.setMinimumSize(new Dimension(genPRControlBarMinWidth/2, CHECKBOX_HEIGHT));
 		PowerRankingsMinEventsLabel.setPreferredSize(new Dimension(genPRControlBarPrefWidth/2, CHECKBOX_HEIGHT));
 		PowerRankingsMinEventsLabel.setMaximumSize(new Dimension(genPRControlBarMaxWidth/2, CHECKBOX_HEIGHT));
@@ -1363,7 +1365,7 @@ public class graphicalG2ME {
 		PowerRankingsSaveButton.setMinimumSize(new Dimension(genPRControlBarMinWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsSaveButton.setPreferredSize(new Dimension(genPRControlBarPrefWidth, TEXTFIELD_HEIGHT));
 		PowerRankingsSaveButton.setMaximumSize(new Dimension(genPRControlBarMaxWidth, TEXTFIELD_HEIGHT));
-		PowerRankingsSaveButton.setToolTipText("Save As...");
+		PowerRankingsSaveButton.setToolTipText("Save power ranking to a file");
 		PowerRankingsTextDialogScroll.setMinimumSize(new Dimension(500, 300));
 		PowerRankingsTextDialogScroll.setPreferredSize(new Dimension(600, 600));
 		PowerRankingsTextDialogScroll.setMaximumSize(new Dimension(Short.MAX_VALUE, Short.MAX_VALUE));
@@ -1650,7 +1652,7 @@ public class graphicalG2ME {
 		PlayerInformationFilterFileClearButton.setMinimumSize(new Dimension((int) ((double) playerInfoControlBarMinWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
 		PlayerInformationFilterFileClearButton.setPreferredSize(new Dimension((int) ((double) playerInfoControlBarPrefWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
 		PlayerInformationFilterFileClearButton.setMaximumSize(new Dimension((int) ((double) playerInfoControlBarMaxWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
-		PlayerInformationFilterFileTextField.setToolTipText("File path for a filter file");
+		PlayerInformationFilterFileTextField.setToolTipText(ToolTipFilterFilePath);
 		PlayerInformationMinEventsLabel.setMinimumSize(new Dimension(playerInfoControlBarMinWidth/2, CHECKBOX_HEIGHT));
 		PlayerInformationMinEventsLabel.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth/2, CHECKBOX_HEIGHT));
 		PlayerInformationMinEventsLabel.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth/2, CHECKBOX_HEIGHT));
@@ -2151,10 +2153,6 @@ public class graphicalG2ME {
 
 		/* Use Box Layout for this tab */
 		tabAllPlayerInformation.setLayout(new BoxLayout(tabAllPlayerInformation, BoxLayout.X_AXIS));
-		/* Layout settings for the tab */
-		int allPlayerInfoControlBarMinWidth = 250;
-		int allPlayerInfoControlBarPrefWidth = 350;
-		int allPlayerInfoControlBarMaxWidth = 600;
 		JSeparator AllPlayerInformationShowDataBreak = new JSeparator(SwingConstants.HORIZONTAL);
 		AllPlayerInformationShowDataBreak.setMinimumSize(new Dimension(playerInfoControlBarMinWidth - 2 * ELEMENT_SPACING, 3));
 		AllPlayerInformationShowDataBreak.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth - 2 * ELEMENT_SPACING, 3));
@@ -2178,7 +2176,7 @@ public class graphicalG2ME {
 		AllPlayerInformationFilterFileClearButton.setMinimumSize(new Dimension((int) ((double) playerInfoControlBarMinWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
 		AllPlayerInformationFilterFileClearButton.setPreferredSize(new Dimension((int) ((double) playerInfoControlBarPrefWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
 		AllPlayerInformationFilterFileClearButton.setMaximumSize(new Dimension((int) ((double) playerInfoControlBarMaxWidth * 3.0 / 10.0), TEXTFIELD_HEIGHT));
-		AllPlayerInformationFilterFileTextField.setToolTipText("File path for a filter file");
+		AllPlayerInformationFilterFileTextField.setToolTipText(ToolTipFilterFilePath);
 		AllPlayerInformationMinEventsLabel.setMinimumSize(new Dimension(playerInfoControlBarMinWidth/2, CHECKBOX_HEIGHT));
 		AllPlayerInformationMinEventsLabel.setPreferredSize(new Dimension(playerInfoControlBarPrefWidth/2, CHECKBOX_HEIGHT));
 		AllPlayerInformationMinEventsLabel.setMaximumSize(new Dimension(playerInfoControlBarMaxWidth/2, CHECKBOX_HEIGHT));
