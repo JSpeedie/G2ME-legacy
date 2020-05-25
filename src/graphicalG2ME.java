@@ -942,7 +942,7 @@ public class graphicalG2ME {
 				new JAliasedSpinner(new SpinnerNumberModel(prefs.getDouble(WEIGHT, WEIGHT_DEFAULT), 0.0, 1000.0, 0.1));
 		RunBracketsWeightSpinner.setToolTipText("Weigh Tournament at Given Value (Not Recommended to be anything other than 1)");
 		JAliasedHintableTextArea RunBracketsTextDialog = new JAliasedHintableTextArea();
-		JScrollPane RunBracketsTextDialogScroll = new JScrollPane(RunBracketsTextDialog);
+		JScrollPane RunBracketsTextDialogScroll = new JScrollPane(RunBracketsTextDialog.getElements());
 		JAliasedHintableTextArea RunBracketsLogDialog = new JAliasedHintableTextArea();
 		JScrollPane RunBracketsLogDialogScroll = new JScrollPane(RunBracketsLogDialog);
 		RunBracketsKeepDataBracketsCheckBox.setSelected(true);
@@ -986,7 +986,7 @@ public class graphicalG2ME {
 		String[] allPlayerInfoFlags = new String[2];
 		allPlayerInfoFlags[0] = "M";
 		allPlayerInfoFlags[1] = "C";
-		JAliasedRadioButton[] AllPlayerInfoRadioButtonArray = new JAliasedRadioButton[6];
+		JAliasedRadioButton[] AllPlayerInfoRadioButtonArray = new JAliasedRadioButton[2];
 		AllPlayerInfoRadioButtonArray[0] = AllPlayerInformationRecordTableButton;
 		AllPlayerInfoRadioButtonArray[1] = AllPlayerInformationRecordCSVButton;
 
@@ -2195,10 +2195,17 @@ public class graphicalG2ME {
 		AllPlayerInformationFilterFileButtonComponents.add(Box.createRigidArea(new Dimension(ELEMENT_SPACING, 0)));
 		AllPlayerInformationFilterFileButtonComponents.add(AllPlayerInformationFilterFileClearButton);
 		/* Correct Alignments of components in the control bar section */
+		AllPlayerInformationRecordTableButton.setAlignmentY(Component.TOP_ALIGNMENT);
+		AllPlayerInformationRecordTableButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		AllPlayerInformationRecordCSVButton.setAlignmentY(Component.TOP_ALIGNMENT);
+		AllPlayerInformationRecordCSVButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 		AllPlayerInformationMinEventComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
 		AllPlayerInformationFilterFileTextField.setAlignmentX(Component.LEFT_ALIGNMENT);
 		AllPlayerInformationFilterFileButtonComponents.setAlignmentX(Component.LEFT_ALIGNMENT);
-		AllPlayerInformationRecordTableButton.setAlignmentY(Component.TOP_ALIGNMENT);
+		AllPlayerInformationShowDataBreak.setAlignmentY(Component.CENTER_ALIGNMENT);
+		AllPlayerInformationShowDataBreak.setAlignmentX(Component.LEFT_ALIGNMENT);
+		AllPlayerInformationShowDataButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+
 		/* Add the radio buttons to the control bar */
 		AllPlayerInformationControlBar.add(AllPlayerInformationRecordTableButton);
 		AllPlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_SPACING)));
