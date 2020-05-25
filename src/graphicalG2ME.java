@@ -61,6 +61,13 @@ public class graphicalG2ME {
 	public boolean playerSearchesAreFuzzy = true;
 	public String noPlayersFoundSearchMessage = "No players found!";
 
+	private String ToolTipFilterFilePath =
+			"File path for a filter file. Click the browse button to choose a filter file";
+	private String ToolTipMinEvents =
+			"Filter Power Ranking output to only include players who have attended this many events";
+	private String ToolTipVerbose =
+			"Add more information to the output";
+
 	/* Aliased GUI classes */
 	public class JAliasedTextField extends JTextField {
 
