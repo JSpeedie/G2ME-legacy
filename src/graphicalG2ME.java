@@ -2217,6 +2217,7 @@ public class graphicalG2ME {
 		AllPlayerInformationControlBar.add(AllPlayerInformationShowDataBreak);
 		AllPlayerInformationControlBar.add(Box.createRigidArea(new Dimension(0, ELEMENT_BREAK_SPACING)));
 		AllPlayerInformationControlBar.add(AllPlayerInformationShowDataButton);
+		AllPlayerInformationControlBar.add(Box.createVerticalGlue());
 		AllPlayerInformationTextDialogScroll.setMinimumSize(new Dimension(500, 300));
 		AllPlayerInformationTextDialogScroll.setPreferredSize(new Dimension(600, 600));
 		AllPlayerInformationTextDialogScroll.setMaximumSize(new Dimension(Short.MAX_VALUE, Short.MAX_VALUE));
