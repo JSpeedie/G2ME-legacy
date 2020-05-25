@@ -2294,7 +2294,7 @@ public class graphicalG2ME {
 		tabbedPane.addTab("Settings", tabSettings);
 		tabbedPane.addTab("Power Rankings", tabPowerRankings);
 		tabbedPane.addTab("Player Info", tabPlayerInformation);
-		tabbedPane.addTab("All Player Info", tabAllPlayerInformation);
+		tabbedPane.addTab("Full Player Matchup Info", tabAllPlayerInformation);
 		tabbedPane.addTab("Run Brackets", tabRunBrackets);
 		frame.getContentPane().add(tabbedPane, BorderLayout.CENTER);
 	}
