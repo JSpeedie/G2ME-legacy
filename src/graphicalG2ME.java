@@ -856,6 +856,7 @@ public class graphicalG2ME {
 						1, 1000, 1));
 		PowerRankingsMinEventsSpinner.setToolTipText(ToolTipMinEvents);
 		JAliasedHintableTextArea PowerRankingsTextDialog = new JAliasedHintableTextArea();
+		PowerRankingsTextDialog.setDisplayTextAsHint(true);
 		JScrollPane PowerRankingsTextDialogScroll = new JScrollPane(PowerRankingsTextDialog);
 		PowerRankingsTextDialogScroll.getHorizontalScrollBar().setUnitIncrement(DialogScrollSpeed);
 		PowerRankingsTextDialogScroll.getVerticalScrollBar().setUnitIncrement(DialogScrollSpeed);
