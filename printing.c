@@ -246,7 +246,7 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 		else output_colour = NORMAL;
 	}
 	fprintf(stdout, "%*d  %*d  %-*s  %*d  %s%-*s%s  %d  %*s%.4lf  %*s%.4lf  " \
-		"%*s%.8lf  %*d-%d%*s  %-*s  %*d  %s%-*s%s %*d\n", \
+		"%*s%.8lf  %*d-%d%*s  %-*s  %*d  %s%-*s%s  %*d\n", \
 		longest_nl, E.len_name, longest_opp_nl, E.len_opp_name, \
 		E.len_name, E.name, longest_opp_id, E.opp_id, output_colour, \
 		longest_name, E.opp_name, reset_colour, E.is_competitor, \
@@ -462,6 +462,8 @@ int print_player_file_verbose(char* file_path) {
 		/* If a filter file was specified, and the entry passes the
 		 * minimum event filter */
 		if (f_flag_used == 1 && print == 1) {
+			found_name = 0;
+
 			FILE *filter_file = fopen(filter_file_path, "r");
 			if (filter_file == NULL) {
 				perror("fopen (print_player_file_verbose)");
