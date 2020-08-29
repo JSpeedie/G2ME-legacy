@@ -353,6 +353,7 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
 			setRating(p1, DEF_RATING);
 			setRd(p1, DEF_RD);
 			p1->vol = DEF_VOL;
+		/* File does not yet exist */
 		} else {
 			/* Read latest entries into usable data */
 			int ret;
@@ -1236,8 +1237,16 @@ int run_single_bracket(char *bracket_file_path) {
 			fflush(stdout);
 		}
 	}
-	// TODO: always uses -1, won't work properly with -k
-	int ret = update_players(bracket_file_path, -1);
+
+	short latest_season_id = s_file_get_latest_season_id();
+	/* If the system has not seen any activity yet, update season id from
+	 * uninitialized -1 to safe 0 */
+	if (latest_season_id == -1) {
+		s_file_set_latest_season_id(latest_season_id + 1);
+		latest_season_id = 0;
+	}
+	int ret = update_players(bracket_file_path, latest_season_id);
+
 	if (silent == 0 && silent_all == 0) {
 		if (ret == 0) {
 			fprintf(stdout, "DONE\n");
