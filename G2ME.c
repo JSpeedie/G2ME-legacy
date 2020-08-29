@@ -63,7 +63,7 @@ char colour_output = 1;
 char print_ties = 1;
 char player_list_file[MAX_FILE_PATH_LEN + 1];
 char calc_absent_players = 1;
-double outcome_weight = 1;
+double flag_outcome_weight = 1;
 struct tournament_attendee *tourn_atten;
 unsigned long tourn_atten_len = 0;
 unsigned long tourn_atten_size = SIZE_TOURNAMENT_NAMES_LEN;
@@ -459,9 +459,9 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
 
 	/* Adjust changes in glicko data based on weight of given game/set */
 	new_p1.__rating = \
-		p1->__rating + ((new_p1.__rating - p1->__rating) * outcome_weight);
-	new_p1.__rd = p1->__rd + ((new_p1.__rd - p1->__rd) * outcome_weight);
-	new_p1.vol = p1->vol + ((new_p1.vol - p1->vol) * outcome_weight);
+		p1->__rating + ((new_p1.__rating - p1->__rating) * flag_outcome_weight);
+	new_p1.__rd = p1->__rd + ((new_p1.__rd - p1->__rd) * flag_outcome_weight);
+	new_p1.vol = p1->vol + ((new_p1.vol - p1->vol) * flag_outcome_weight);
 
 	struct entry p1_new_entry =
 		create_entry(&new_p1, p1_name, p2_name, *p1_gc, *p2_gc, \
@@ -2150,7 +2150,7 @@ int main(int argc, char **argv) {
 			case 's': silent = 1; break;
 			case 'S': silent_all = 1; break;
 			case 'v': verbose = 1; break;
-			case 'w': outcome_weight = strtod(optarg, NULL); break;
+			case 'w': flag_outcome_weight = strtod(optarg, NULL); break;
 		}
 	}
 
