@@ -78,7 +78,10 @@ struct record *get_all_records(char *, long *);
 
 
 /* MurmurHash2, by Austin Appleby */
-unsigned int murmur_hash2(const void *key, int len, unsigned int seed) {
+unsigned int murmur_hash2(const void *key, unsigned int seed) {
+	/* Get the length here rather than receiving it as argument (wasting memory
+	 * and time on passing a variable) */
+	int len = strlen(key);
 	/* 'm' and 'r' are mixing constants generated offline.
 	 * They're not really 'magic', they just happen to work well. */
 	const unsigned int m = 0x5bd1e995;
@@ -320,8 +323,8 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
 	char *full_p1_path = player_dir_file_path_with_player_dir(p1_name);
 	char *full_p2_path = player_dir_file_path_with_player_dir(p2_name);
 
-	unsigned int p1_name_hash = murmur_hash2(p1_name, strlen(p1_name), 0);
-	unsigned int p2_name_hash = murmur_hash2(p2_name, strlen(p2_name), 0);
+	unsigned int p1_name_hash = murmur_hash2(p1_name, 0);
+	unsigned int p2_name_hash = murmur_hash2(p2_name, 0);
 
 	char p1_in_mem;
 	struct entry *p1_E = NULL;
@@ -913,8 +916,8 @@ int update_players(char* bracket_file_path, short season_id) {
 		sscanf(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], \
 			"%s %s %hhd %hhd %hhd %hhd %hd", \
 			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
-		unsigned int p1_name_hash = murmur_hash2(p1_name, strlen(p1_name), 0);
-		unsigned int p2_name_hash = murmur_hash2(p2_name, strlen(p2_name), 0);
+		unsigned int p1_name_hash = murmur_hash2(p1_name, 0);
+		unsigned int p2_name_hash = murmur_hash2(p2_name, 0);
 		char already_in = 0;
 		char already_in2 = 0;
 		if (0 == hashtable_quickfind(p1_name, p1_name_hash)) {
@@ -1015,8 +1018,7 @@ int update_players(char* bracket_file_path, short season_id) {
 		// Set id in hashtable too
 		struct entry *hashtable_E;
 		unsigned int player_hash = \
-			murmur_hash2(&tourn_atten[o].name[0], \
-				strlen(&tourn_atten[o].name[0]), 0);
+			murmur_hash2(&tourn_atten[o].name[0], 0);
 		int search = hashtable_find(&tourn_atten[o].name[0], player_hash, \
 			&hashtable_E);
 
@@ -1120,8 +1122,8 @@ int update_players(char* bracket_file_path, short season_id) {
 		short p2_id;
 		struct entry *p1_entry;
 		struct entry *p2_entry;
-		unsigned int p1_name_hash = murmur_hash2(p1_name, strlen(p1_name), 0);
-		unsigned int p2_name_hash = murmur_hash2(p2_name, strlen(p2_name), 0);
+		unsigned int p1_name_hash = murmur_hash2(p1_name, 0);
+		unsigned int p2_name_hash = murmur_hash2(p2_name, 0);
 
 		if (0 == hashtable_find(p1_name, p1_name_hash, &p1_entry) \
 			&& p1_entry != NULL) {
