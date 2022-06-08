@@ -20,10 +20,13 @@ OBJ = ${SRC:.c=.o}
 BIN = ${SRC:.c=}
 MAN = $(SRC:.c=.1.gz)
 
-all: compile install
 
+# "compile" first because we want "make" to just compile the program, and the
+# default target is always the the first one that doesn't begin with "."
 compile: G2ME.c $(DEP)
 	$(CC) $(CFLAGS) G2ME.c $(DEP) $(INCS) $(LIBS) -o G2ME
+
+all: compile install
 
 install: $(BIN)
 	@mkdir -p ${DESTDIR}${PREFIX}/bin
