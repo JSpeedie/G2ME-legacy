@@ -1,11 +1,11 @@
 # Table of Contents
 <details><summary>Click to Expand</summary><p>
 
-* [Screenshots](#screenshots)
-* [Technical Description](#technical-description)
 * [Purpose](#purpose)
-* [What are the advantages of G2ME?](#what-are-the-advantages-of-g2me)
+* [Technical Description](#technical-description)
 * [Installation](#installation)
+* [Screenshots](#screenshots)
+* [What are the advantages of G2ME?](#what-are-the-advantages-of-g2me)
 * [Example Walkthroughs](#example-walkthroughs)
 	* [FAQ/General Usage Walkthrough](#faqgeneral-usage-walkthrough)
 * [Converting Challonge Brackets](#converting-challonge-brackets)
@@ -46,11 +46,14 @@
 	* [Season File Format](#season-file-format)
 </p></details>
 
-## Screenshots
 
-![Power Rankings Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MEPowerRankingsPic.png)
-![Run Brackets Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MERunBracketsPic.png)
-![Player Info Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MEPlayerInfoPic.png)
+## Purpose
+
+This program was made out of a necessity to make an accurate ranking
+(list of players from highest to lowest rating) for the UTSC Smash Club. The
+official webpage for Glicko2 has links to implementations of Glicko2 in a
+handful of languages, but the choices were very limited, and provided no form
+of storage or management for players in the system.
 
 
 ## Technical Description
@@ -63,35 +66,19 @@ to MMR from dota, ranks from cs go, and is version 2 of an improvement
 of elo from chess.
 
 
-## Purpose
-
-This program was made out of a necessity to make an accurate ranking
-(list of players from highest to lowest rating) for the UTSC Smash Club. The
-official webpage for Glicko2 has links to implementations of Glicko2 in a
-handful of languages, but the choices were very limited, and provided no form
-of storage or management for players in the system.
-
-
-## What are the advantages of G2ME?
-
-This program takes simple file input, and saves lots of player information.
-This is in stark contrast to existing Glicko2 implementations that only provide
-functions for calculating one's new rating, after playing someone else. G2ME
-not only allows one to calculate the ratings of people without having to touch
-code, but it also stores much more information, including players' Glicko2
-history, their head-to-heads, the tournaments they've attended, and more.
-
-
 ## Installation
 
 <details><summary>Linux/MacOS (Click to Expand)</summary><p>
 To get up and running, launch a terminal and run the following commands
 
-```
-$ git clone https://www.github.com/JSpeedie/G2ME G2MEGit
-$ cd G2MEGit
-$ make
-$ sudo make install
+```bash
+# If you want to push to the repo
+git clone git@github.com:JSpeedie/G2ME.git G2MEGit
+# If you are just installing
+git clone https://www.github.com/JSpeedie/G2ME G2MEGit
+cd G2MEGit
+make
+sudo make install
 ```
 
 You are now ready to use `G2ME`! You can skip to the Walkthrough section, if you
@@ -118,6 +105,24 @@ always `cd` into the directory containing this project before running any
 commands. You can choose not to, but you may have to specify the player
 directory for every `G2ME` command you run by using `-d` (which is a hassle).
 </p></details>
+
+
+## Screenshots
+
+![Power Rankings Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MEPowerRankingsPic.png)
+![Run Brackets Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MERunBracketsPic.png)
+![Player Info Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MEPlayerInfoPic.png)
+
+
+## What are the advantages of G2ME?
+
+This program takes simple file input, and saves lots of player information.
+This is in stark contrast to existing Glicko2 implementations that only provide
+functions for calculating one's new rating, after playing someone else. G2ME
+not only allows one to calculate the ratings of people without having to touch
+code, but it also stores much more information, including players' Glicko2
+history, their head-to-heads, the tournaments they've attended, and more.
+
 
 ## Example Walkthroughs
 
