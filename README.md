@@ -63,7 +63,7 @@ system with many people more manageable.
 
 If you've ever played dota2, csgo, or followed chess, Glicko2 is very similar
 to MMR from dota, ranks from cs go, and is version 2 of an improvement
-of elo from chess.
+of elo (namely, Glicko) from chess.
 
 
 ## Installation
@@ -117,16 +117,18 @@ directory for every `G2ME` command you run by using `-d` (which is a hassle).
 ## What are the advantages of G2ME?
 
 This program takes simple file input, and saves lots of player information.
-This is in stark contrast to existing Glicko2 implementations that only provide
-functions for calculating one's new rating, after playing someone else. G2ME
-not only allows one to calculate the ratings of people without having to touch
-code, but it also stores much more information, including players' Glicko2
-history, their head-to-heads, the tournaments they've attended, and more.
+This is in stark contrast to the Glicko2 implementations that existed at the
+start of this project, which only provided functions for calculating one's new
+rating after playing someone else. `G2ME` not only allows one to calculate the
+ratings of people without having to touch code, but it also *stores* the Glicko2
+information *plus* all players' Glicko2 history, their head-to-heads, the
+tournaments they've attended, and more.
 
 
 ## Example Walkthroughs
 
 <details><summary>Starter Walkthrough (Click to Expand)</summary><p>
+
 First you need to create a bracket file. For instance, a single elimination
 tournament of 4 players could have a bracket file like this:
 
@@ -169,7 +171,7 @@ TheBestPlayer  ABadPlayer   1662.3  290.3  0.060000  3-0  28/3/2018  example1
 TheBestPlayer  AGoodPlayer  1791.9  247.5  0.060000  3-2  28/3/2018  example1
 ```
 
-* Creating a pr of all the players in the system
+* Creating a ranking of all the players in the system
 
 ```
 $ G2ME -O
@@ -345,7 +347,7 @@ given outcome. In this example, TheBestPlayer's rating was 1662.3 *after*
 they won over ABadPlayer.
 </p></details>
 
-#### 6. Create a PR of players who have attended at least *x* events
+#### 6. Create a ranking of players who have attended at least *x* events
 <details><summary>Click to Expand</summary><p>
 
 ```
@@ -360,7 +362,7 @@ Same output as `G2ME -O`, but it only includes players who have attended
 at least (`>=`) *x* events.
 </p></details>
 
-#### 7. Create a PR of a certain group of players
+#### 7. Create a ranking of a certain group of players
 <details><summary>Click to Expand</summary><p>
 
 ```
@@ -422,7 +424,7 @@ changes.* After filling in the info, lines 7 and 8 should look something like:
 
 ```
 user = "UTSCSmash"
-key = "Yfdjo82L8jfJYu8E3wb7fUr3WneFIrq5bQBjwla7"
+key = "Yfdjo82L8jfJYu8E3wb7fUr3WheFIrq5bQBiwla8"
 ```
 
 ### Step 2
