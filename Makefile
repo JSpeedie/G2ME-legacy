@@ -10,21 +10,34 @@ LIBS = -L/usr/lib -lm -lpthread
 # Flags
 CFLAGS = -Wall
 # Compiler and linker
-# CC = gcc -ggdb
+# CC = gcc -g
 CC = gcc
 
-SRC = G2ME.c
-DEP = glicko2.c entry_file.c opp_files.c tournament_files.c printing.c \
+SRC = G2ME.c server.c
+G2MEDEP = glicko2.c entry_file.c opp_files.c tournament_files.c printing.c \
 	fileops.c sorting.c player_dir.c
+G2MESERVERDEP = clientserverutil.c
+# G2MESERVERDEP = entry_file.c opp_files.c tournament_files.c printing.c \
+	fileops.c player_dir.c
+G2MECLIENTDEP = clientserverutil.c
 OBJ = ${SRC:.c=.o}
 BIN = ${SRC:.c=}
 MAN = $(SRC:.c=.1.gz)
 
 
-# "compile" first because we want "make" to just compile the program, and the
+# `compile` first because we want `make` to just compile the program, and the
 # default target is always the the first one that doesn't begin with "."
-compile: G2ME.c $(DEP)
-	$(CC) $(CFLAGS) G2ME.c $(DEP) $(INCS) $(LIBS) -o G2ME
+compile: G2ME G2ME-server G2ME-client
+
+G2ME: G2ME.c $(G2MEDEP)
+	$(CC) $(CFLAGS) G2ME.c $(G2MEDEP) $(INCS) $(LIBS) -o G2ME
+
+G2ME-server: server.c $(G2MESERVERDEP)
+	$(CC) $(CFLAGS) server.c $(G2MESERVERDEP) $(INCS) $(LIBS) -o G2ME-server
+
+#G2ME-client: G2ME-client.c $(G2MESERVERDEP)
+G2ME-client: client.c $(G2MECLIENTDEP)
+	$(CC) $(CFLAGS) client.c $(G2MECLIENTDEP) $(INCS) $(LIBS) -o G2ME-client
 
 all: compile install
 
