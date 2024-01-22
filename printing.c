@@ -566,7 +566,7 @@ int print_player_file(char* file_path) {
 
 			FILE *filter_file = fopen(filter_file_path, "r");
 			if (filter_file == NULL) {
-				perror("fopen (print_player_file_verbose)");
+				perror("fopen (print_player_file)");
 				return -1;
 			}
 
@@ -576,7 +576,7 @@ int print_player_file(char* file_path) {
 				/* Replace newline with null terminator */
 				char *end_of_line = strchr(line, '\n');
 				if (end_of_line == NULL) {
-					perror("strchr (filter_player_list)");
+					perror("strchr (print_player_file)");
 					return -2;
 				}
 				*end_of_line = '\0';

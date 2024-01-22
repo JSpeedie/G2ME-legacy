@@ -308,7 +308,6 @@ int opp_file_add_new_opponent(struct entry *E) {
 	remove(full_opp_file_path);
 	/* Copy temp file to original file path */
 	rename(new_file_name, full_opp_file_path);
-	free(full_opp_file_path);
 
 	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
 	FILE *opp_id_file = fopen(full_opp_id_file_path, "rb+");
@@ -320,6 +319,7 @@ int opp_file_add_new_opponent(struct entry *E) {
 		perror("");
 		return -1;
 	}
+	free(full_opp_file_path);
 	/* Update counter at start of file */
 	if (1 != fwrite(&num_opp, sizeof(short), 1, opp_id_file)) return -12;
 
