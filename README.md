@@ -4,6 +4,7 @@
 * [Screenshots](#screenshots)
 * [Technical Description](#technical-description)
 * [Purpose](#purpose)
+* [Elements of Note](#elements-of-note)
 * [What are the advantages of G2ME?](#what-are-the-advantages-of-g2me)
 * [Installation](#installation)
 * [Example Walkthroughs](#example-walkthroughs)
@@ -72,6 +73,25 @@ handful of languages, but the choices were very limited, and provided no form
 of storage or management for players in the system.
 
 
+## Elements of Note
+
+* Threading
+    * When crunching a bracket, the program checks how many cores the computer
+      has which it could make use of, and then divides the list of players who
+      did not attend the event by the number of cores and starts one thread per
+      core, each adjusting 1/corenum players RDs.
+* An implementation of a hashtable using the MurmurHash2 hash algorithm
+    * When crunching a bracket, all players' who have had their
+      Glicko2 data changed so far have their most recent Glicko2 data stored in
+      memory in a hashtable that is searchable through hashing their name. This
+      is done to prevent accessing player files to get their latest Glicko2
+      data as having them in memory (and especially in a quickly-searchable
+      hashtable) means much faster access.
+* Custom binary file formats
+    * This program makes use of 6 binary file formats to store data efficiently.
+
+
+
 ## What are the advantages of G2ME?
 
 This program takes simple file input, and saves lots of player information.
@@ -87,7 +107,7 @@ history, their head-to-heads, the tournaments they've attended, and more.
 <details><summary>Linux/MacOS (Click to Expand)</summary><p>
 To get up and running, launch a terminal and run the following commands
 
-```
+```bash
 $ git clone https://www.github.com/JSpeedie/G2ME G2MEGit
 $ cd G2MEGit
 $ make
