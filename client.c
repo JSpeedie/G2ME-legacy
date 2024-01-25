@@ -12,7 +12,7 @@
 
 /* Program documentation. */
 static char doc[] =
-	"Argp example #3 -- a program with options and arguments using argp";
+	"G2ME-client -- a client for G2ME";
 
 /* A description of the arguments we accept. */
 static char args_doc[] = "ARG1 ARG2";
@@ -20,11 +20,13 @@ static char args_doc[] = "ARG1 ARG2";
 /* Make sure you specify the 3rd field in each entry, otherwise argp will treat the
  * option as not taking an argument */
 static struct argp_option options[] = {
-	{"address",  'a',  "SERVER_ADDRESS",  0,                    "The ip address of the server" },
-	{"history",  'h',  "PLAYER_NAME",     0,                    "Output a given player's outcome history"},
-	{"output",   'O',  "STDOUT",          OPTION_ARG_OPTIONAL,  "Output a ranking of all players in the system" },/* This doesn't take an argument */
-	{"port",     'p',  "PORT",            0,                    "The port of the server" },
-	{"record",   'R',  "PLAYER_NAME",     0,                    "Output to FILE instead of standard output" },
+	{"address",        'a',  "SERVER_ADDRESS",  0,                    "The ip address of the server" },
+	{"matchup-csv",    'C',  "",                OPTION_ARG_OPTIONAL,  "Output a CSV of all the head-to-heads of all the players in the system" }, /* This does not take an argument */
+	{"history",        'h',  "PLAYER_NAME",     0,                    "Output a given player's outcome history"},
+	{"matchup-table",  'M',  "",                OPTION_ARG_OPTIONAL,  "Output a table of all the head-to-heads of all the players in the system" }, /* This does not take an argument */
+	{"output",         'O',  "",                OPTION_ARG_OPTIONAL,  "Output a ranking of all players in the system" }, /* This does not take an argument */
+	{"port",           'p',  "PORT",            0,                    "The port of the server" },
+	{"record",         'R',  "PLAYER_NAME",     0,                    "Output to FILE instead of standard output" },
 	{ 0 }
 };
 
@@ -33,8 +35,12 @@ struct arguments {
 	/* -a */
 	int server_address_flag_set;
 	char * server_address;
+	/* -C */
+	int matchup_csv_flag_set;
 	/* -h */
 	int history_flag_set;
+	/* -M */
+	int matchup_table_flag_set;
 	/* -O */
 	int output_flag_set;
 	/* -p */
@@ -56,9 +62,15 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 			arguments->server_address = arg;
 			arguments->server_address_flag_set = 1;
 			break;
+		case 'C':
+			arguments->matchup_csv_flag_set = 1;
+			break;
 		case 'h':
 			arguments->player_name = arg;
 			arguments->history_flag_set = 1;
+			break;
+		case 'M':
+			arguments->matchup_table_flag_set = 1;
 			break;
 		case 'O':
 			arguments->output_flag_set = 1;
@@ -96,7 +108,9 @@ int main(int argc, char **argv) {
 
 	/* Default values. */
 	arguments.server_address_flag_set = 0;
+	arguments.matchup_csv_flag_set = 0;
 	arguments.history_flag_set = 0;
+	arguments.matchup_table_flag_set = 0;
 	arguments.output_flag_set = 0;
 	arguments.port = 0;
 	arguments.port_flag_set = 0;
@@ -131,26 +145,36 @@ int main(int argc, char **argv) {
 	/* Connected successfully */
 	} else {
 		int request_type = 0;
-		if (arguments.history_flag_set == 1) {
+		if (arguments.matchup_csv_flag_set == 1) {
+			request_type = (int) 'C';
+		} else if (arguments.history_flag_set == 1) {
 			request_type = (int) 'h';
+		} else if (arguments.matchup_table_flag_set == 1) {
+			request_type = (int) 'M';
 		} else if (arguments.output_flag_set == 1) {
 			request_type = (int) 'O';
 		} else if (arguments.record_flag_set == 1) {
 			request_type = (int) 'R';
 		}
 
+		/* Convert 'request_type' to network byte order */
+		int request_type_n;
+		htonarb((char *) &request_type, sizeof(int), (char *) &request_type_n);
+
 		/* h flag or R flag */
 		if (arguments.history_flag_set == 1 || arguments.record_flag_set == 1) {
 			unsigned int player_name_len = strlen(arguments.player_name);
+			unsigned int player_name_len_n;
+			htonarb((char *) &player_name_len, sizeof(int), (char *) &player_name_len_n);
 
 			/* Put all the content of the message into an unpadded chunk of memory */
-			char msg[sizeof(request_type) + sizeof(unsigned int) + strlen(arguments.player_name)];
+			char msg[sizeof(request_type_n) + sizeof(unsigned int) + strlen(arguments.player_name)];
 			/* First the request type */
-			memcpy(&msg[0], &request_type, sizeof(request_type));
+			memcpy(&msg[0], &request_type_n, sizeof(request_type_n));
 			/* then the length of the player name */
-			memcpy(&msg[sizeof(request_type)], &player_name_len, sizeof(player_name_len));
+			memcpy(&msg[sizeof(request_type_n)], &player_name_len_n, sizeof(player_name_len_n));
 			/* then the player name */
-			memcpy(&msg[sizeof(request_type) + sizeof(unsigned int)], arguments.player_name, strlen(arguments.player_name));
+			memcpy(&msg[sizeof(request_type_n) + sizeof(unsigned int)], arguments.player_name, strlen(arguments.player_name));
 
 			/* Send request to server */
 			ssize_t nbytes = write(client_fd, &msg[0], sizeof(msg));
@@ -170,12 +194,15 @@ int main(int argc, char **argv) {
 				}
 				free(response);
 			}
-		/* O flag */
-		} else if (arguments.output_flag_set == 1) {
+		/* C flag, M flag, O flag */
+		} else if (arguments.matchup_csv_flag_set == 1 \
+			|| arguments.matchup_table_flag_set == 1 \
+			|| arguments.output_flag_set == 1) {
+
 			/* Put all the content of the message into an unpadded chunk of memory */
-			char msg[sizeof(request_type)];
+			char msg[sizeof(request_type_n)];
 			/* First the request type */
-			memcpy(&msg[0], &request_type, sizeof(request_type));
+			memcpy(&msg[0], &request_type_n, sizeof(request_type_n));
 
 			/* Send request to server */
 			ssize_t nbytes = write(client_fd, &msg[0], sizeof(msg));
