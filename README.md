@@ -1013,6 +1013,54 @@ intention is that one can value different events more or less than others.
 **This flag is not recommended for use.**
 
 
+## G2ME-server Usage
+
+### The 'p' flag
+
+This flag takes an argument of a port number, specifying the port through which
+the server should be accessed. This flag \fBmust\fP be specified.
+
+
+## G2ME-client Usage
+
+### The 'a' flag
+
+This flag takes an argument of an IP address, specifying the address of the
+machine running `G2ME-server` that we would like to reach. This flag
+**must** be specified.
+
+### The 'C' flag
+
+This flag takes no arguments and asks the server to return a CSV of all the
+head-to-heads of all the players in the system on the server.
+
+### The 'h' flag
+
+This flag takes an argument of a player name whose Glicko2 outcome history will
+be returned by the server, provided they exist in the G2ME data on the server.
+
+### The 'M' flag
+
+This flag takes no arguments and asks the server to return a table of all the
+head-to-heads of all the players in the system on the server.
+
+### The 'O' flag
+
+This flag takes no arguments and asks the server to return an ordered list of
+players in their system, ranked from highest Glicko2 rating to lowest.
+
+### The 'p' flag
+
+This flag takes an argument of a port number, specifying the port through which
+the server should be accessed. This flag **must** be specified.
+
+### The 'R' flag
+
+This flag takes an argument of a player name whose records (i.e., their
+head-to-heads) will be returned by the server, provided they exist in the G2ME
+data on the server.
+
+
 ## The Glicko2 System Explained
 
 In chess they often use elo to generate a number that represents your skill.
