@@ -79,11 +79,11 @@ This repo contains:
 
 ## Purpose
 
-This program was made out of a necessity to rank (from highest to lowest
-rating) the competitors in the UTSC Smash Club. The official webpage for
-Glicko2 has links to implementations of Glicko2 in a handful of languages, but
-when this project began the choices were very limited, and provided no form of
-storage or management for players in the system.
+This program was made out of the necessity to rank the competitors in the UTSC
+Smash Club. The official webpage for Glicko2 has links to implementations of
+Glicko2 in a handful of languages, but when this project began the choices were
+very limited, and provided no form of storage or management for players in the
+system.
 
 
 ## Elements of Note
