@@ -11,7 +11,7 @@
 
 /* Program documentation. */
 static char doc[] =
-	"Argp example #3 -- a program with options and arguments using argp";
+	"G2ME-server -- a server for G2ME";
 
 /* A description of the arguments we accept. */
 static char args_doc[] = "ARG1 ARG2";
@@ -121,7 +121,8 @@ int main(int argc, char **argv) {
 			exit(-1);
 		/* New client connected successfully */
 		} else {
-			printf("Notice: Received a new client!\n"); // TODO: remove
+			fprintf(stdout, "Notice: Received a new client %s:%d!\n", \
+				inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 			pid_t p;
 			p = fork();
 			/* If fork() failed */
@@ -129,25 +130,29 @@ int main(int argc, char **argv) {
 				fprintf(stderr, "ERROR: fork() failed\n");
 			/* If child process... */
 			} else if (p == 0) {
-				int request_type = 0;
+				int request_type_n = 0;
 				char *argument;
 
-				ssize_t nbytes = read(new_socket, &request_type, sizeof(request_type));
-				if ((long long) nbytes < (long long) sizeof(request_type)) {
+				ssize_t nbytes = read(new_socket, &request_type_n, sizeof(request_type_n));
+				/* Convert 'request_type_n' to host byte order */
+				int request_type;
+				ntoharb((char *) &request_type_n, sizeof(request_type_n), (char *) &request_type);
+
+				if ((long long) nbytes < (long long) sizeof(request_type_n)) {
 					fprintf(stderr, "ERROR: Failed to read request type info from client\n");
 					exit(-1);
 				}
 
 				/* If the request is for a command that requires an argument */
 				if (request_type == (int) 'h' || request_type == (int) 'R') {
-					/*****/
-					/* Replace code with read_msg_from_packet() */
-					/*****/
 					/* RA: Read the argument specified along side the request type,
 					 * if the request type comes with an argument */
-					unsigned int argument_len = 0;
+					unsigned int argument_len_n = 0;
 					/* RA1. Parse the length of argument */
-					nbytes = read(new_socket, &argument_len, sizeof(argument_len));
+					nbytes = read(new_socket, &argument_len_n, sizeof(argument_len_n));
+					/* Convert 'argument_len_n' to host byte order */
+					unsigned int argument_len;
+					ntoharb((char *) &argument_len_n, sizeof(argument_len_n), (char *) &argument_len);
 					if ((long long) nbytes < (long long) sizeof(argument_len)) {
 						fprintf(stderr, "ERROR: Failed to read argument from client request\n");
 						exit(-1);
@@ -160,9 +165,6 @@ int main(int argc, char **argv) {
 						fprintf(stderr, "ERROR: Failed to read argument from client request\n");
 						exit(-1);
 					}
-					/*****/
-					/* End replace */
-					/*****/
 					argument[argument_len] = '\0';
 				}
 
@@ -186,9 +188,13 @@ int main(int argc, char **argv) {
 						fprintf(stderr, "ERROR: Failed to redirect stdout to pipe\n");
 					}
 
-					/* execute G2ME with the right flags */
-					if (request_type == (int) 'h') {
+					/* execute G2ME with the appropriate flags */
+					if (request_type == (int) 'C') {
+						execl("./G2ME", "./G2ME", "-C", (char *) NULL);
+					} else if (request_type == (int) 'h') {
 						execl("./G2ME", "./G2ME", "-h", argument, (char *) NULL);
+					} else if (request_type == (int) 'M') {
+						execl("./G2ME", "./G2ME", "-M", (char *) NULL);
 					} else if (request_type == (int) 'O') {
 						execl("./G2ME", "./G2ME", "-O", (char *) NULL);
 					} else if (request_type == (int) 'R') {
@@ -196,7 +202,7 @@ int main(int argc, char **argv) {
 					}
 
 					/* If this point is reached, the execl() command failed */
-					fprintf(stderr, "ERROR: execl() failed\n");
+					fprintf(stderr, "ERROR: failed execl() call\n");
 					exit(-1);
 				/* If parent process... */
 				} else {
@@ -236,21 +242,16 @@ int main(int argc, char **argv) {
 						* done reading from it */
 					close(pc_pipe[0]);
 
-					/* // TODO: remove: */
-					/* /1* At this point we have a char array 'recv_buf' with 'recv_len' */
-					/* * elements that we can do with as we please. For this program, we'll */
-					/* * just print them *1/ */
-					/* for (int i = 0; i < recv_len; i++) { */
-					/* 	printf("%c", recv_buf[i]); */
-					/* } */
-
 					/* PFS3: Update the message length inside the message. */
 					ssize_t packet_len = sizeof(ssize_t) + recv_len;
+					/* Convert 'packet_len' to network byte order */
+					ssize_t packet_len_n;
+					ntoharb((char *) &packet_len, sizeof(packet_len), (char *) &packet_len_n);
 					/*               &(msg[0])   : get the memory address of the 0th byte of 'msg'.
 					*    (ssize_t *) &(msg[0])   : cast that address (which is of type 'char *') to the address of a ssize_t.
 					* (*((ssize_t *) &(msg[0]))) : dereference our casted pointer so we can treat the memory starting at the 0th byte of 'msg' as a 'ssize_t'.
 					*/
-					(*((ssize_t *) &(msg[0]))) = packet_len;
+					(*((ssize_t *) &(msg[0]))) = packet_len_n;
 
 					/* Send the requested data to the client */
 					ssize_t nbytes = write(new_socket, msg, packet_len);

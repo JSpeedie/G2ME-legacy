@@ -17,8 +17,6 @@ SRC = G2ME.c server.c
 G2MEDEP = glicko2.c entry_file.c opp_files.c tournament_files.c printing.c \
 	fileops.c sorting.c player_dir.c
 G2MESERVERDEP = clientserverutil.c
-# G2MESERVERDEP = entry_file.c opp_files.c tournament_files.c printing.c \
-	fileops.c player_dir.c
 G2MECLIENTDEP = clientserverutil.c
 OBJ = ${SRC:.c=.o}
 BIN = ${SRC:.c=}
@@ -35,7 +33,6 @@ G2ME: G2ME.c $(G2MEDEP)
 G2ME-server: server.c $(G2MESERVERDEP)
 	$(CC) $(CFLAGS) server.c $(G2MESERVERDEP) $(INCS) $(LIBS) -o G2ME-server
 
-#G2ME-client: G2ME-client.c $(G2MESERVERDEP)
 G2ME-client: client.c $(G2MECLIENTDEP)
 	$(CC) $(CFLAGS) client.c $(G2MECLIENTDEP) $(INCS) $(LIBS) -o G2ME-client
 

@@ -7,4 +7,7 @@
 #include <unistd.h>
 #include <argp.h>
 
+char is_big_endian();
+char * htonarb (char * input, char num_bytes, char * ret);
+char * ntoharb (char * input, char num_bytes, char * ret);
 int read_msg_from_packet(int socket, ssize_t *msg_len, char **ret);
