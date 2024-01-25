@@ -7,8 +7,12 @@
 * [Elements of Note](#elements-of-note)
 * [What are the advantages of G2ME?](#what-are-the-advantages-of-g2me)
 * [Installation](#installation)
+* [What are the advantages of G2ME?](#what-are-the-advantages-of-g2me)
 * [Example Walkthroughs](#example-walkthroughs)
-	* [FAQ/General Usage Walkthrough](#faqgeneral-usage-walkthrough)
+	* [Starter Walkthrough](#starter-walkthrough)
+	* [Season Walkthrough](#season-walkthrough)
+	* [GUI Walkthrough](#gui-walkthrough)
+	* [FAQ/General Usage Walkthroughs](#faqgeneral-usage-walkthroughs)
 * [Converting Challonge Brackets](#converting-challonge-brackets)
 * [Converting Smash.gg Events](#converting-smashgg-events)
 * [G2ME Usage](#g2me-usage)
@@ -104,27 +108,19 @@ system.
     * This program makes use of 6 binary file formats to store data efficiently.
 
 
-
-## What are the advantages of G2ME?
-
-This program takes simple file input, and saves lots of player information.
-This is in stark contrast to existing Glicko2 implementations that only provide
-functions for calculating one's new rating, after playing someone else. G2ME
-not only allows one to calculate the ratings of people without having to touch
-code, but it also stores much more information, including players' Glicko2
-history, their head-to-heads, the tournaments they've attended, and more.
-
-
 ## Installation
 
 <details><summary>Linux/MacOS (Click to Expand)</summary><p>
 To get up and running, launch a terminal and run the following commands
 
 ```bash
-$ git clone https://www.github.com/JSpeedie/G2ME G2MEGit
-$ cd G2MEGit
-$ make
-$ sudo make install
+# If you want to push to the repo
+git clone git@github.com:JSpeedie/G2ME.git G2MEGit
+# If you are just installing
+git clone https://www.github.com/JSpeedie/G2ME G2MEGit
+cd G2MEGit
+make
+sudo make install
 ```
 
 You are now ready to use `G2ME`! You can skip to the Walkthrough section, if you
@@ -152,79 +148,24 @@ commands. You can choose not to, but you may have to specify the player
 directory for every `G2ME` command you run by using `-d` (which is a hassle).
 </p></details>
 
+
+## What are the advantages of G2ME?
+
+This program takes simple file input, and saves lots of player information.
+This is in stark contrast to the Glicko2 implementations that existed at the
+start of this project, which only provided functions for calculating one's new
+rating after playing someone else. `G2ME` not only allows one to calculate the
+ratings of people without having to touch code, but it also *stores* the Glicko2
+information *plus* all players' Glicko2 history, their head-to-heads, the
+tournaments they've attended, and more.
+
+
 ## Example Walkthroughs
 
-<details><summary>GUI Walkthrough (Click to Expand)</summary><p>
+### Starter Walkthrough
 
-To launch the Java GUI you can run:
+<details><summary>Click to Expand</summary><p>
 
-```
-$ java -jar out/artifacts/graphicalG2ME.jar
-```
-
-### Settings tab
-
-Once the GUI appears, it should show the "Settings" tab. Make sure everything is
-configured correctly, bearing in mind both that if any of the filepaths are
-red, they need to be changed and that there is a button which will attempt to
-auto-configure these values. Click the "Save" button if you or the
-auto-configuration changed anything, and you should be ready to use the G2ME
-through the GUI.
-
-### Power Rankings tab
-
-You can generate a power ranking (i.e. an ordered list of players from highest
-to lowest Glicko2 rating) in the "Power Rankings" tab. You can specify a
-minimum number of events a player must have attended before they can appear on
-the list (just like the `-m` flag) through the spinner, as well as hand
-selecting which players can appear in the list by specifying a filter file
-(just like the `-f` flag) via the "Browse for Filter File..." button. Provided
-there is data in the G2ME system, you can then produce the ratings list by
-clicking the "Generate Power Rankings" button.
-
-### Player Info tab
-
-On the "Player Info" tab, you can produce information about individual players.
-Selecting one player, the types of information that can be produced include: a
-list of all the outcomes in their Glicko2 history, a list of their
-head-to-heads against other players, a list of the events they have attended,
-and the number of events they have attended. On top of this, this tab can also
-produce information about many players at once, such a table or CSV of the
-head-to-heads of many (by default, all) players in the system. Selecting 1 of
-the 6 radio buttons on this tab will determine what information will be output.
-
-For any of the first 4 options, you must also select a player name from the
-list in the bottom right. If there are no players to choose from there, then
-the GUI has not been configured correctly in the "Settings" tab, or there is no
-data in the G2ME system. You can also search the player list with the text
-field above the list (Note: the search will return only names that begin with
-the exact substring that you enter).
-
-Selecting one of the last 2 options will disable the player name list, as it
-does not target any one player in specific. To generate the information for
-these 2 options simply click the "Refresh" button. You can specify a minimum
-number of events a player must have attended before they can appear in the
-table or CSV the list (just like the `-m` flag) through the spinner, as well as
-hand selecting which players can appear in the table or CSV by specifying a
-filter file (just like the `-f` flag) via the "Browse for Filter File..."
-button.
-
-### Run Brackets tab
-
-Here you can produce data for the G2ME system by running seasons or brackets.
-You can type out a bracket or season and then in the main text box and then use
-the "Save As..." button to save the file somewhere before running it. You can
-also use the "Open..." button to open up a season or bracket file for editing.
-
-You can then run a bracket or season by clicking the "Run Bracket..." or "Run
-Season..." buttons and selecting a bracket or season file, respectively. G2ME's
-output will appear in the log at the bottom of the tab letting you know of any
-errors.
-
-
-</p></details>
-
-<details><summary>Starter Walkthrough (Click to Expand)</summary><p>
 First you need to create a bracket file. For instance, a single elimination
 tournament of 4 players could have a bracket file like this:
 
@@ -267,7 +208,7 @@ TheBestPlayer  ABadPlayer   1662.3  290.3  0.060000  3-0  28/3/2018  example1
 TheBestPlayer  AGoodPlayer  1791.9  247.5  0.060000  3-2  28/3/2018  example1
 ```
 
-* Creating a pr of all the players in the system
+* Creating a ranking of all the players in the system
 
 ```
 $ G2ME -O
@@ -299,7 +240,9 @@ TheBestPlayer   1-0-0        1-0-0         -              -
 
 </p></details>
 
-<details><summary>Season Walkthrough (Click to Expand)</summary><p>
+### Season Walkthrough
+
+<details><summary>Click to Expand</summary><p>
 
 The previous walkthough is fine if you only ever want to run one bracket,
 but if you want a season of brackets, running `G2ME -kb ...` many times
@@ -346,14 +289,83 @@ rating systems struggle under a lack of data.
 
 </p></details>
 
-### FAQ/General Usage Walkthrough
+### GUI Walkthrough
+
+<details><summary>Click to Expand</summary><p>
+
+To launch the Java GUI you can run:
+
+```
+$ java -jar out/artifacts/graphicalG2ME.jar
+```
+
+#### Settings tab
+
+Once the GUI appears, it should show the "Settings" tab. Make sure everything is
+configured correctly, bearing in mind both that if any of the filepaths are
+red, they need to be changed and that there is a button which will attempt to
+auto-configure these values. Click the "Save" button if you or the
+auto-configuration changed anything, and you should be ready to use the G2ME
+through the GUI.
+
+##### Power Rankings tab
+
+You can generate a power ranking (i.e. an ordered list of players from highest
+to lowest Glicko2 rating) in the "Power Rankings" tab. You can specify a
+minimum number of events a player must have attended before they can appear on
+the list (just like the `-m` flag) through the spinner, as well as hand
+selecting which players can appear in the list by specifying a filter file
+(just like the `-f` flag) via the "Browse for Filter File..." button. Provided
+there is data in the G2ME system, you can then produce the ratings list by
+clicking the "Generate Power Rankings" button.
+
+#### Player Info tab
+
+On the "Player Info" tab, you can produce information about individual players.
+Selecting one player, the types of information that can be produced include: a
+list of all the outcomes in their Glicko2 history, a list of their
+head-to-heads against other players, a list of the events they have attended,
+and the number of events they have attended. On top of this, this tab can also
+produce information about many players at once, such a table or CSV of the
+head-to-heads of many (by default, all) players in the system. Selecting 1 of
+the 6 radio buttons on this tab will determine what information will be output.
+
+For any of the first 4 options, you must also select a player name from the
+list in the bottom right. If there are no players to choose from there, then
+the GUI has not been configured correctly in the "Settings" tab, or there is no
+data in the G2ME system. You can also search the player list with the text
+field above the list (Note: the search will return only names that begin with
+the exact substring that you enter).
+
+Selecting one of the last 2 options will disable the player name list, as it
+does not target any one player in specific. To generate the information for
+these 2 options simply click the "Refresh" button. You can specify a minimum
+number of events a player must have attended before they can appear in the
+table or CSV the list (just like the `-m` flag) through the spinner, as well as
+hand selecting which players can appear in the table or CSV by specifying a
+filter file (just like the `-f` flag) via the "Browse for Filter File..."
+button.
+
+#### Run Brackets tab
+
+Here you can produce data for the G2ME system by running seasons or brackets.
+You can type out a bracket or season and then in the main text box and then use
+the "Save As..." button to save the file somewhere before running it. You can
+also use the "Open..." button to open up a season or bracket file for editing.
+
+You can then run a bracket or season by clicking the "Run Bracket..." or "Run
+Season..." buttons and selecting a bracket or season file, respectively. G2ME's
+output will appear in the log at the bottom of the tab letting you know of any
+errors.
+
+</p></details>
+
+### FAQ/General Usage Walkthroughs
 
 <details><summary>Click to Expand</summary><p>
 
 If you are wondering how to actually make use of the data the system now
-has, here's how it's done.
-
-This walkthrough will discuss how to do the following:
+has, here are some more short walkthroughs:
 
 #### 1. Get the names of the events a given player has attended
 <details><summary>Click to Expand</summary><p>
@@ -443,7 +455,7 @@ given outcome. In this example, TheBestPlayer's rating was 1662.3 *after*
 they won over ABadPlayer.
 </p></details>
 
-#### 6. Create a PR of players who have attended at least *x* events
+#### 6. Create a ranking of players who have attended at least *x* events
 <details><summary>Click to Expand</summary><p>
 
 ```
@@ -458,7 +470,7 @@ Same output as `G2ME -O`, but it only includes players who have attended
 at least (`>=`) *x* events.
 </p></details>
 
-#### 7. Create a PR of a certain group of players
+#### 7. Create a ranking of a certain group of players
 <details><summary>Click to Expand</summary><p>
 
 ```
@@ -520,7 +532,7 @@ changes.* After filling in the info, lines 7 and 8 should look something like:
 
 ```
 user = "UTSCSmash"
-key = "Yfdjo82L8jfJYu8E3wb7fUr3WneFIrq5bQBjwla7"
+key = "Yfdjo82L8jfJYu8E3wb7fUr3WheFIrq5bQBiwla8"
 ```
 
 ### Step 2
@@ -662,7 +674,6 @@ Once this is all done, you're ready to continue with `G2ME`!
 If you'd like to add the data from this bracket to the existing
 player data in the system, make sure to use the `-k` flag!
 </p></details>
-
 
 
 ## G2ME Usage
