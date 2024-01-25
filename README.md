@@ -11,7 +11,7 @@
 	* [FAQ/General Usage Walkthrough](#faqgeneral-usage-walkthrough)
 * [Converting Challonge Brackets](#converting-challonge-brackets)
 * [Converting Smash.gg Events](#converting-smashgg-events)
-* [Usage](#usage)
+* [G2ME Usage](#g2me-usage)
 	* [The '0' flag](#the-0-flag)
 	* [The 'A' flag](#the-A-flag-1)
 	* [The 'b' flag](#the-b-flag)
@@ -35,6 +35,16 @@
 	* [The 'S' flag](#the-s-flag-1)
 	* [The 'v' flag](#the-v-flag)
 	* [The 'w' flag](#the-w-flag)
+* [G2ME-server Usage](#g2me-server-usage)
+	* [The 'p' flag](#the-p-flag)
+* [G2ME-client Usage](#g2me-client-usage)
+	* [The 'a' flag](#the-a-flag)
+	* [The 'C' flag](#the-C-flag)
+	* [The 'h' flag](#the-h-flag)
+	* [The 'M' flag](#the-M-flag)
+	* [The 'O' flag](#the-O-flag)
+	* [The 'p' flag](#the-p-flag)
+	* [The 'R' flag](#the-R-flag)
 * [The Glicko2 System Explained](#the-glicko2-system-explained)
 * [The Player File Format](#the-player-file-format)
 	* [Player File: Starter Data](#player-file-starter-data)
@@ -49,28 +59,31 @@
 
 ## Screenshots
 
-![Power Rankings Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MEPowerRankingsPic.png)
-![Run Brackets Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MERunBracketsPic.png)
+![Power Rankings Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MEPowerRankingsPic.png)  
+![Run Brackets Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MERunBracketsPic.png)  
 ![Player Info Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MEPlayerInfoPic.png)
 
 
 ## Technical Description
 
-C implementation of Glicko2 + the real program that makes handling a Glicko
-system with many people more manageable.
-
-If you've ever played dota2, csgo, or followed chess, Glicko2 is very similar
-to MMR from dota, ranks from cs go, and is version 2 of an improvement
-of elo from chess.
+This repo contains:
+* A C implementation of the Glicko2 rating algorithms.
+* code for compiling the `G2ME` executable which makes handling a Glicko system
+  with many people more manageable.
+* the code for compiling the `G2ME-server` and `G2ME-client` executables which
+  allow for remotely accessing the data in the system.
+* A Java `.jar` file that functions as a GUI for using the `G2ME` executable.
+* Full documentation for all 3 executables available both here, further down in
+  the README, and in manpages.
 
 
 ## Purpose
 
-This program was made out of a necessity to make an accurate ranking
-(list of players from highest to lowest rating) for the UTSC Smash Club. The
-official webpage for Glicko2 has links to implementations of Glicko2 in a
-handful of languages, but the choices were very limited, and provided no form
-of storage or management for players in the system.
+This program was made out of a necessity to rank (from highest to lowest
+rating) the competitors in the UTSC Smash Club. The official webpage for
+Glicko2 has links to implementations of Glicko2 in a handful of languages, but
+when this project began the choices were very limited, and provided no form of
+storage or management for players in the system.
 
 
 ## Elements of Note
@@ -582,7 +595,7 @@ player data in the system, make sure to use the `-k` flag!
 
 
 
-## Usage
+## G2ME Usage
 
 ### The '0' flag
 
