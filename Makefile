@@ -6,35 +6,52 @@ PREFIX = /usr/local
 MANPREFIX = /usr/share/man
 # gcc flags for includes
 INCS = -I. -I/usr/include
-LIBS = -L/usr/lib -lm -lpthread
+G2MELIBS = -L/usr/lib -lm -lpthread
+LIBS = -L/usr/lib
 # Flags
 CFLAGS = -Wall
 # Compiler and linker
 # CC = gcc -g
 CC = gcc
 
-SRC = G2ME.c server.c
 G2MEDEP = glicko2.c entry_file.c opp_files.c tournament_files.c printing.c \
 	fileops.c sorting.c player_dir.c
-G2MESERVERDEP = clientserverutil.c
-G2MECLIENTDEP = clientserverutil.c
+G2MESERVERDEP = clientserverutil.o
+G2MECLIENTDEP = clientserverutil.o
+
+SRC = G2ME.c server.c client.c
 OBJ = ${SRC:.c=.o}
-BIN = ${SRC:.c=}
-MAN = $(SRC:.c=.1.gz)
+BIN = G2ME G2ME-server G2ME-client
+# MAN should be defined as all the array elements in BIN appended with a ".1.gz"
+MAN = G2ME.1.gz G2ME-server.1.gz G2ME-client.1.gz
 
 
 # `compile` first because we want `make` to just compile the program, and the
 # default target is always the the first one that doesn't begin with "."
-compile: G2ME G2ME-server G2ME-client
+compile: G2ME server client
+# compile: G2ME server client clean
 
 G2ME: G2ME.c $(G2MEDEP)
-	$(CC) $(CFLAGS) G2ME.c $(G2MEDEP) $(INCS) $(LIBS) -o G2ME
+	$(CC) $(CFLAGS) G2ME.c $(G2MEDEP) $(INCS) $(G2MELIBS) -o G2ME
 
-G2ME-server: server.c $(G2MESERVERDEP)
-	$(CC) $(CFLAGS) server.c $(G2MESERVERDEP) $(INCS) $(LIBS) -o G2ME-server
+# Build the object file needed for G2ME-server and G2ME-client targets
+# -c flag stops gcc from linking
+clientserverutil.o: clientserverutil.c
+	$(CC) $(CFLAGS) clientserverutil.c -c
 
-G2ME-client: client.c $(G2MECLIENTDEP)
-	$(CC) $(CFLAGS) client.c $(G2MECLIENTDEP) $(INCS) $(LIBS) -o G2ME-client
+# Build the object file (-c flag stops gcc from linking)
+server.o: server.c
+	$(CC) $(CFLAGS) server.c -c
+
+# Build the object file (-c flag stops gcc from linking)
+client.o: client.c
+	$(CC) $(CFLAGS) client.c -c
+
+server: server.o $(G2MESERVERDEP)
+	$(CC) $(CFLAGS) server.o $(G2MESERVERDEP) $(INCS) $(LIBS) -o G2ME-server
+
+client: client.o $(G2MECLIENTDEP)
+	$(CC) $(CFLAGS) client.o $(G2MECLIENTDEP) $(INCS) $(LIBS) -o G2ME-client
 
 all: compile install
 
@@ -53,11 +70,12 @@ uninstall:
 	@for page in $(MAN); do \
 		rm -f $(MANPREFIX)/man1/$$page; \
 	done
+	@rm -f G2ME G2ME-server G2ME-client ${OBJ} G2ME-${VERSION}.tar.gz
 
 test: compile
 	@cd tests && sh runtestcases.sh
 
-# Needs to be fixed
+# Needs to be tested - should simply remove all the object files
 clean:
 	@echo cleaning
-	@rm -f G2ME ${OBJ} G2ME-${VERSION}.tar.gz
+	@rm -f ${OBJ}
