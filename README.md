@@ -1,6 +1,6 @@
 ## Screenshots
 
-![Power Rankings Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2ME-terminal-demo.gif)  
+<img src="https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2ME-terminal-demo.gif" width="50%"/>
 ![Power Rankings Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MEPowerRankingsPic.png)  
 ![Run Brackets Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MERunBracketsPic.png)  
 ![Player Info Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MEPlayerInfoPic.png)
@@ -48,7 +48,8 @@ system.
 
 ## Installation
 
-<details><summary>Linux/MacOS (Click to Expand)</summary><p>
+### Linux/MacOS
+
 To get up and running, launch a terminal and run the following commands
 
 ```bash
@@ -68,9 +69,9 @@ Note that if you plan on using this program from the terminal, you should
 always `cd` into the directory containing this project before running any
 commands. You can choose not to, but you may have to specify the player
 directory for every `G2ME` command you run by using `-d` (which is a hassle).
-</p></details>
 
-<details><summary>Windows (Click to Expand)</summary><p>
+### Windows
+
 It's recommended you use the GUI and set the binary path to be one of the 2
 exe's provided. If you wish to use it in the shell for windows, it's even
 simpler. Just download one of the exe's, change into its directory and you're
@@ -84,7 +85,6 @@ Note that if you plan on using this program from the terminal, you should
 always `cd` into the directory containing this project before running any
 commands. You can choose not to, but you may have to specify the player
 directory for every `G2ME` command you run by using `-d` (which is a hassle).
-</p></details>
 
 
 ## What are the advantages of G2ME?
