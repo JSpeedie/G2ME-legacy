@@ -1,9 +1,11 @@
 ## Screenshots
 
-<img src="https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2ME-terminal-demo.gif" width="50%"/>
-![Power Rankings Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MEPowerRankingsPic.png)  
-![Run Brackets Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MERunBracketsPic.png)  
-![Player Info Pic](https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MEPlayerInfoPic.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2ME-terminal-demo.gif" width="66%"/>
+  <img src="https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MEPowerRankingsPic.png" width="66%" />
+  <img src="https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MERunBracketsPic.png" width="66%" />
+  <img src="https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2MEPlayerInfoPic.png" width="66%" />
+</p>
 
 
 ## Technical Description
