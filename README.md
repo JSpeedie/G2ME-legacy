@@ -15,8 +15,8 @@ This repo contains:
 * the code for compiling the `G2ME-server` and `G2ME-client` executables which
   allow for remotely accessing the data in the system.
 * A Java `.jar` file that functions as a GUI for using the `G2ME` executable.
-* Full documentation for all 3 executables available both here, further down in
-  the README, and in manpages.
+* Full documentation for all 3 executables available both on the Git
+  Repository's wiki and in the manpages.
 
 
 ## Purpose
