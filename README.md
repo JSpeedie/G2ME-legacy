@@ -30,6 +30,9 @@ system.
 
 ## Elements of Note
 
+* Network communication
+    * This repo contains both a server and client for `G2ME` which allow for
+      remote access to data.
 * Threading
     * When crunching a bracket, the program checks how many cores the computer
       has which it could make use of, and then divides the list of players who
