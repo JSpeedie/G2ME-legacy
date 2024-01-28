@@ -16,7 +16,7 @@ This repo contains:
   allow for remotely accessing the data in the system.
 * A Java `.jar` file that functions as a GUI for using the `G2ME` executable.
 * Full documentation for all 3 executables available both on the Git
-  Repository's wiki and in the manpages.
+  Repository's [wiki](https://github.com/JSpeedie/G2ME/wiki) and in the manpages.
 
 
 ## Purpose
