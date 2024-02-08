@@ -33,11 +33,13 @@ system.
 * Network communication
     * This repo contains both a server and client for `G2ME` which allow for
       remote access to data.
-* Threading
-    * When crunching a bracket, the program checks how many cores the computer
-      has which it could make use of, and then divides the list of players who
-      did not attend the event by the number of cores and starts one thread per
-      core, each adjusting 1/corenum players RDs.
+* Forking and Threading
+    * When crunching a bracket, once the program has parsed all the outcomes
+      contained in it and built a list of all its attendees, the program forks.
+      The parent process then calculates the updated Glicko data for all
+      attendees (based on the outcomes) while the child process breaks into
+      multiple threads which work together to apply RD adjustments to all
+      absent players.
 * An implementation of a hashtable using the MurmurHash2 hash algorithm
     * When crunching a bracket, all players' who have had their
       Glicko2 data changed so far have their most recent Glicko2 data stored in
