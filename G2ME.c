@@ -4,15 +4,17 @@
 #include <getopt.h>
 #include <libgen.h>
 #include <math.h>
+#include <pthread.h>
+#include <semaphore.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
-#include <pthread.h>
 /* Windows includes */
 #ifdef _WIN32
 #include <windows.h>
@@ -654,10 +656,13 @@ void *adjust_p(void *arg) {
  * \param 'year' a char representing the year of the tournament
  * \param '*t_id' a short representing the id of the tournament.
  * \param '*t_name' a string containing the name of the tournament.
+ * \param 'available_cores' the number of available cores or processors
+ *     on the computer. Used to determine how many threads to divide
+ *     the work up between.
  * \return void.
 */
 void adjust_absent_players_no_file(char day, char month, \
-	short year, short t_id, char* t_name) {
+	short year, short t_id, char* t_name, int available_cores) {
 
 	DIR *p_dir;
 	/* If the directory could not be accessed, print error and return */
@@ -667,26 +672,16 @@ void adjust_absent_players_no_file(char day, char month, \
 		return;
 	}
 
-	int max_forks;
-/* Set the max number of forks to the number of processors available */
-#ifdef _WIN32
-	SYSTEM_INFO info;
-	GetSystemInfo(&info);
-	max_forks = info.dwNumberOfProcessors;
-#else
-	max_forks = sysconf(_SC_NPROCESSORS_ONLN);
-#endif
-	if (max_forks < 1) max_forks = 8;
 	char did_not_comp = 1;
 
-	ThreadArgs args[max_forks];
+	ThreadArgs args[available_cores];
 	/* Initialize parent thread work */
 	args[0].size_of_files = 2 * MINIMUM_ADJ_BEFORE_FORK;
 	args[0].files = \
 		(char *)malloc(args[0].size_of_files * (MAX_NAME_LEN + 1));
 
 	/* Set static data for all threads such as date, tournament id, etc */
-	for (int i = 0; i < max_forks; i++) {
+	for (int i = 0; i < available_cores; i++) {
 		args[i].num_adjustments = 0;
 		args[i].day = day;
 		args[i].month = month;
@@ -752,7 +747,7 @@ void adjust_absent_players_no_file(char day, char month, \
 				/* If this thread has hit its minimum capacity */
 				if (args[cur_f].num_adjustments >= MINIMUM_ADJ_BEFORE_FORK) {
 					cur_f++;
-					if (cur_f >= max_forks) {
+					if (cur_f >= available_cores) {
 						all_thread_min_cap_reached = 1;
 					} else {
 						args[cur_f].size_of_files = MINIMUM_ADJ_BEFORE_FORK;
@@ -767,7 +762,7 @@ void adjust_absent_players_no_file(char day, char month, \
 			/* Otherwise, distribute RD adjustments evenly amongst threads */
 			} else {
 				cur_f++;
-				if (cur_f >= max_forks) {
+				if (cur_f >= available_cores) {
 					cur_f = 0;
 				}
 			}
@@ -776,7 +771,7 @@ void adjust_absent_players_no_file(char day, char month, \
 
 	closedir(p_dir);
 
-	pthread_t thread_id[max_forks - 1];
+	pthread_t thread_id[available_cores - 1];
 
 	for (int f = 0; f < total_threads_needed; f++) {
 		pthread_create(&thread_id[f], NULL, adjust_p, &args[f+1]);
@@ -1097,19 +1092,266 @@ int update_players(char* bracket_file_path, short season_id) {
 #endif
 	if (available_cores < 1) available_cores = 1;
 
+	/* Create the necessary synchronization variables. In this case,
+	* a fork occurs where the parent runs through all the tournament outcomes,
+	* calculating new Glicko2 data for all players who attended while the
+	* child process (likely through a collection of pthreads) performs
+	* RD adjustments on all players who did not attend. We want the child
+	* and parent to wait for one another to finish before moving on to the
+	* next bracket and this will be achieved by creating a barrier through
+	* the use of 1 semaphore, 2 mutexes, and 3 ints. */
+
+	/* mmap() the semaphore, the two mutexes, and 2 of the 3 synchronization
+	 * integers so they can be shared between processes */
+	sem_t *update_players_semaphore;
+	if (MAP_FAILED == (update_players_semaphore = mmap(NULL, sizeof(sem_t), \
+		PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0))) {
+
+		fprintf(stderr, \
+			"ERROR: Unable to mmap() semaphore when crunching bracket.\n");
+	}
+	pthread_mutex_t *proc_at_or_past_barrier_mutex;
+	if (MAP_FAILED == (proc_at_or_past_barrier_mutex = mmap(NULL, sizeof(pthread_mutex_t), \
+		PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0))) {
+
+		fprintf(stderr, \
+			"ERROR: Unable to mmap() mutex when crunching bracket.\n");
+	}
+	pthread_mutex_t *proc_finished_mutex;
+	if (MAP_FAILED == (proc_finished_mutex = mmap(NULL, sizeof(pthread_mutex_t), \
+		PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0))) {
+
+		fprintf(stderr, \
+			"ERROR: Unable to mmap() mutex when crunching bracket.\n");
+	}
+	/* A variable to be protected by its own mutex that stores how many threads
+	 * have completed their work. It is used to determine which thread is the
+	 * last one to finish its work (and thus should increment the semaphore). */
+	char *proc_finished = NULL;
+	if (MAP_FAILED == (proc_finished = mmap(NULL, sizeof(char), \
+		PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0))) {
+
+		fprintf(stderr, \
+			"ERROR: Unable to mmap() synchronization variable when crunching bracket.\n");
+	}
+	*proc_finished = 0;
+	/* A variable to be protected by its own mutex that stores how many threads
+	 * are at or have past the barrier. It is used to determine which thread is
+	 * the last one to pass the barrier (and thus must cleanup the
+	 * synchronization objects. */
+	char *proc_at_or_past_barrier = NULL;
+	if (MAP_FAILED == (proc_at_or_past_barrier = mmap(NULL, sizeof(char), \
+		PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0))) {
+
+		fprintf(stderr, \
+			"ERROR: Unable to mmap() synchronization variable when crunching bracket.\n");
+	}
+	*proc_at_or_past_barrier = 0;
+	/* A variable that represents how many processes must reach the barrier
+	 * before the barrier is lowered for all processes. We initialize it
+	 * to 0 here but it will be set properly later. */
+	char barrier_count = 0;
+
+	/* In order to ensure synchronization, the involved processes
+	 * will perform the following steps:
+	 *
+	 * 1. Complete its respective work.
+	 * 2. a. Lock the proc_finished mutex.
+	 *    b. Increment the proc_finished variable.
+	 *    c. Store in a variable whether proc_finished is now equal to the
+	 *       number of processes/threads being synchronized (i.e., the
+	 *       barrier count).
+	 *    d. Unlock the proc_finished mutex
+	 *    e. Check the aforementioned variable to determine if proc_finished
+	 *       is equal to the barrier count. If it is, that means that the
+	 *       barrier threshold has been met, and all processes waiting at the
+	 *       barrier can proceed. If this is the case, increment the semaphore.
+	 * 4. a. Lock the proc_at_or_past_barrier mutex.
+	 *    b. Increment the proc_at_or_past_barrier variable.
+	 *    c. Store in a variable whether proc_at_or_past_barrier is now equal
+	 *       to the number of processes/threads being synchronized (i.e., the
+	 *       barrier count).
+	 *    d. Decrement the semaphore. The semaphore will wait to be decremented
+	 *       until the last process has finished its work.
+	 *    e. Unlock the proc_at_or_past_barrier mutex (allowing another
+	 *       finished process to check if all other processes have finished)
+	 *    f. Increment the semaphore (so the next finished process' check will
+	 *       work).
+	 *    g. Check the aforementioned variable to determine if
+	 *       proc_at_or_past_barrier is equal to the barrier count. If it is,
+	 *       that means that this process is the last one to get through the
+	 *       barrier. Destroy the proc_finished mutex, the
+	 *       proc_at_or_past_barrier mutex, and the semaphore.
+	 *    h. munmap() the memory segment for the proc_finished mutex,
+	 *       the proc_at_or_past_barrier mutex, the semaphore, and the 2
+	 *       mmapped synchronization variables.
+	 * 5. The process can now go on to do its "post-barrier" work!
+	 */
+
 	if (calc_absent_players == 1) {
 		if (available_cores > 1) {
+			/* Init the semaphore to be shared between processes (pshared is
+			 * non-zero) and to have a value of 0 */
+			if (-1 == sem_init(update_players_semaphore, 1, 0)) {
+				fprintf(stderr, \
+					"ERROR: Unable to initialize semaphore when crunching bracket.\n");
+			}
+			/* Initialize the barrier count to the number of processes that
+			 * must have reached the barrier before any of them can proceed. In
+			 * this case we will only have a 2 processes, a parent and child */
+			barrier_count = 2;
+			/* Init the mutex to be shared between processes */
+			pthread_mutexattr_t proc_at_or_past_barrier_mutex_attr;
+			pthread_mutexattr_init(&proc_at_or_past_barrier_mutex_attr);
+			pthread_mutexattr_setpshared(&proc_at_or_past_barrier_mutex_attr, \
+				PTHREAD_PROCESS_SHARED);
+
+			if (-1 == pthread_mutex_init(proc_at_or_past_barrier_mutex, \
+				&proc_at_or_past_barrier_mutex_attr)) {
+
+				fprintf(stderr, \
+					"ERROR: Unable to initialize mutex when crunching bracket.\n");
+			}
+
+			pthread_mutexattr_destroy(&proc_at_or_past_barrier_mutex_attr);
+
+			/* Init the mutex to be shared between processes */
+			pthread_mutexattr_t proc_finished_mutex_attr;
+			pthread_mutexattr_init(&proc_finished_mutex_attr);
+			pthread_mutexattr_setpshared(&proc_finished_mutex_attr, \
+				PTHREAD_PROCESS_SHARED);
+
+			if (-1 == pthread_mutex_init(proc_finished_mutex, \
+				&proc_finished_mutex_attr)) {
+
+				fprintf(stderr, \
+					"ERROR: Unable to initialize mutex when crunching bracket.\n");
+			}
+
+			pthread_mutexattr_destroy(&proc_finished_mutex_attr);
+
 			pid_t p;
 			p = fork();
-			/* If child process, run adjustments while parent crunches numbers */
+			/* If child process, run adjustments while parent crunches numbers
+			 * in accordance with the barrier protocol specified above */
 			if (p == 0) {
+				/* 1. Do the child process' work */
 				adjust_absent_players_no_file(day, month, year, \
-					Et.tournament_id, t_name);
+					Et.tournament_id, t_name, available_cores);
+
+				/* 2a. Lock the proc_finished mutex */
+				if (0 != pthread_mutex_lock(proc_finished_mutex)) {
+					fprintf(stderr, \
+						"ERROR: Failed to attempt to lock mutex when crunching bracket.\n");
+				}
+
+				/* 2b. Increment the proc_finished variable. */
+				(*proc_finished)++;
+
+				/* 2c. Store in a variable whether or not the barrier count has
+				 * been reached */
+				char is_last_process = ((*proc_finished) == barrier_count);
+
+				/* 2d. Unlock the proc_finished mutex */
+				if (0 != pthread_mutex_unlock(proc_finished_mutex)) {
+					fprintf(stderr, \
+						"ERROR: Failed to attempt to lock mutex when crunching bracket.\n");
+				}
+
+				/* 2e. If the barrier count has been reached, increment the
+				 * semaphore */
+				if (is_last_process == 1) {
+					if (-1 == sem_post(update_players_semaphore)) {
+						fprintf(stderr, \
+							"ERROR: Failed to post semaphore when crunching bracket.\n");
+					}
+				}
+
+				/* 3a. Wait for the proc_at_or_past_barrier mutex. */
+				if (0 != pthread_mutex_lock(proc_at_or_past_barrier_mutex)) {
+					fprintf(stderr, \
+						"ERROR: Failed to attempt to lock mutex when crunching bracket.\n");
+				}
+
+				/* 3b. Increment the proc_at_or_past_barrier variable. */
+				(*proc_at_or_past_barrier)++;
+
+				/* 3c. Store in a variable whether or not the barrier count has
+				 * been reached */
+				is_last_process = ((*proc_at_or_past_barrier) == barrier_count);
+
+				/* 3d. Decrement the semaphore */
+				if (-1 == sem_wait(update_players_semaphore)) {
+					fprintf(stderr, \
+						"ERROR: Failed to wait for semaphore when crunching bracket.\n");
+				}
+
+				/* 3e. Unlock the proc_at_or_past_barrier mutex. */
+				if (0 != pthread_mutex_unlock(proc_at_or_past_barrier_mutex)) {
+					fprintf(stderr, \
+						"ERROR: Failed to attempt to lock mutex when crunching bracket.\n");
+				}
+
+				/* 3f. Increment the semaphore */
+				if (-1 == sem_post(update_players_semaphore)) {
+					fprintf(stderr, \
+						"ERROR: Failed to post semaphore when crunching bracket.\n");
+				}
+
+				/* 3g. If the this is the last process getting through the
+				 * barrier, destroy the synchronization objects */
+				if (is_last_process == 1) {
+					if (-1 == sem_destroy(update_players_semaphore)) {
+						fprintf(stderr, \
+							"ERROR: Unable to destroy semaphore when crunching bracket.\n");
+					}
+					if (-1 == pthread_mutex_destroy(proc_finished_mutex)) {
+						fprintf(stderr, \
+							"ERROR: Unable to destroy mutex when crunching bracket.\n");
+					}
+					if (-1 == pthread_mutex_destroy(proc_at_or_past_barrier_mutex)) {
+						fprintf(stderr, \
+							"ERROR: Unable to destroy mutex when crunching bracket.\n");
+					}
+				}
+
+				/* 3h. For this process, munmap() the memory used for sharing
+				 * the synchronization objects between processes */
+				if (-1 == munmap(update_players_semaphore, sizeof(sem_t))) {
+					fprintf(stderr, \
+						"ERROR: Unable to munmap() semaphore when crunching bracket.\n");
+				}
+				if (-1 == munmap(proc_finished_mutex, sizeof(pthread_mutex_t))) {
+					fprintf(stderr, \
+						"ERROR: Unable to munmap() mutex when crunching bracket.\n");
+				}
+				if (-1 == munmap(proc_at_or_past_barrier_mutex, sizeof(pthread_mutex_t))) {
+					fprintf(stderr, \
+						"ERROR: Unable to munmap() mutex when crunching bracket.\n");
+				}
+				if (-1 == munmap(proc_finished, sizeof(char))) {
+					fprintf(stderr, \
+						"ERROR: Unable to munmap() synchronization variable when crunching bracket.\n");
+				}
+				if (-1 == munmap(proc_at_or_past_barrier, sizeof(char))) {
+					fprintf(stderr, \
+						"ERROR: Unable to munmap() synchronization variable when crunching bracket.\n");
+				}
+
+				/* 4. At this point, this process has past the barrier and can
+				 * do its post-barrier work! */
+
 				exit(0);
+			/* If parent process, decrement semaphore before doing
+			 * parent-process work */
+			} else {
+				/* 1. Do the parent process' work. The parent process
+				 * does a lot of work after this, so the next synchronization
+				 * step is far down this function. */
 			}
 		} else {
 			adjust_absent_players_no_file(day, month, year, \
-				Et.tournament_id, t_name);
+				Et.tournament_id, t_name, available_cores);
 		}
 	}
 
@@ -1261,11 +1503,109 @@ int update_players(char* bracket_file_path, short season_id) {
 	}
 
 	if (available_cores > 1) {
-		/* Wait for all the child processes to finish to avoid data errors */
-		pid_t wpid;
-		int status = 0;
-		while ((wpid = wait(&status)) > 0);
-		/* At this point all the kids have exited, parent can continue */
+		/* At this point the work of the parent process is done */
+
+		/* 2a. Lock the proc_finished mutex */
+		if (0 != pthread_mutex_lock(proc_finished_mutex)) {
+			fprintf(stderr, \
+				"ERROR: Failed to attempt to lock mutex when crunching bracket.\n");
+		}
+
+		/* 2b. Increment the proc_finished variable. */
+		(*proc_finished)++;
+
+		/* 2c. Store in a variable whether or not the barrier count has
+		 * been reached */
+		char is_last_process = ((*proc_finished) == barrier_count);
+
+		/* 2d. Unlock the proc_finished mutex */
+		if (0 != pthread_mutex_unlock(proc_finished_mutex)) {
+			fprintf(stderr, \
+				"ERROR: Failed to attempt to lock mutex when crunching bracket.\n");
+		}
+
+		/* 2e. If the barrier count has been reached, increment the
+		 * semaphore */
+		if (is_last_process == 1) {
+			if (-1 == sem_post(update_players_semaphore)) {
+				fprintf(stderr, \
+					"ERROR: Failed to post semaphore when crunching bracket.\n");
+			}
+		}
+
+		/* 3a. Wait for the proc_at_or_past_barrier mutex. */
+		if (0 != pthread_mutex_lock(proc_at_or_past_barrier_mutex)) {
+			fprintf(stderr, \
+				"ERROR: Failed to attempt to lock mutex when crunching bracket.\n");
+		}
+
+		/* 3b. Increment the proc_at_or_past_barrier variable. */
+		(*proc_at_or_past_barrier)++;
+
+		/* 3c. Store in a variable whether or not the barrier count has
+		 * been reached */
+		is_last_process = ((*proc_at_or_past_barrier) == barrier_count);
+
+		/* 3d. Decrement the semaphore */
+		if (-1 == sem_wait(update_players_semaphore)) {
+			fprintf(stderr, \
+				"ERROR: Failed to wait for semaphore when crunching bracket.\n");
+		}
+
+		/* 3e. Unlock the proc_at_or_past_barrier mutex. */
+		if (0 != pthread_mutex_unlock(proc_at_or_past_barrier_mutex)) {
+			fprintf(stderr, \
+				"ERROR: Failed to attempt to lock mutex when crunching bracket.\n");
+		}
+
+		/* 3f. Increment the semaphore */
+		if (-1 == sem_post(update_players_semaphore)) {
+			fprintf(stderr, \
+				"ERROR: Failed to post semaphore when crunching bracket.\n");
+		}
+
+		/* 3g. If the this is the last process getting through the
+		 * barrier, destroy the synchronization objects */
+		if (is_last_process == 1) {
+			if (-1 == sem_destroy(update_players_semaphore)) {
+				fprintf(stderr, \
+					"ERROR: Unable to destroy semaphore when crunching bracket.\n");
+			}
+			if (-1 == pthread_mutex_destroy(proc_finished_mutex)) {
+				fprintf(stderr, \
+					"ERROR: Unable to destroy mutex when crunching bracket.\n");
+			}
+			if (-1 == pthread_mutex_destroy(proc_at_or_past_barrier_mutex)) {
+				fprintf(stderr, \
+					"ERROR: Unable to destroy mutex when crunching bracket.\n");
+			}
+		}
+
+		/* 3h. For this process, munmap() the memory used for sharing
+		 * the synchronization objects between processes */
+		if (-1 == munmap(update_players_semaphore, sizeof(sem_t))) {
+			fprintf(stderr, \
+				"ERROR: Unable to munmap() semaphore when crunching bracket.\n");
+		}
+		if (-1 == munmap(proc_finished_mutex, sizeof(pthread_mutex_t))) {
+			fprintf(stderr, \
+				"ERROR: Unable to munmap() mutex when crunching bracket.\n");
+		}
+		if (-1 == munmap(proc_at_or_past_barrier_mutex, sizeof(pthread_mutex_t))) {
+			fprintf(stderr, \
+				"ERROR: Unable to munmap() mutex when crunching bracket.\n");
+		}
+		if (-1 == munmap(proc_finished, sizeof(char))) {
+			fprintf(stderr, \
+				"ERROR: Unable to munmap() synchronization variable when crunching bracket.\n");
+		}
+		if (-1 == munmap(proc_at_or_past_barrier, sizeof(char))) {
+			fprintf(stderr, \
+				"ERROR: Unable to munmap() synchronization variable when crunching bracket.\n");
+		}
+
+		/* 4. At this point, this process has past the barrier and can
+		 * do its post-barrier work! */
 	}
 
 	return 0;

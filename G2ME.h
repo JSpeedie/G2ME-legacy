@@ -67,7 +67,7 @@ void update_player_on_outcome(short, char *, short, char *, struct player *, \
 
 /* Adjustments */
 void adjust_absent_player(char *, char, char, short, short, char *);
-void adjust_absent_players_no_file(char, char, short, short, char *);
+void adjust_absent_players_no_file(char, char, short, short, char *, int);
 
 
 /* Glicko2 number crunching functions */

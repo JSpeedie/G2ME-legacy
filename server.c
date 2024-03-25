@@ -118,7 +118,6 @@ int main(int argc, char **argv) {
 		if ((new_socket = accept(server_fd, (struct sockaddr *) &address, &addrlen)) < 0) {
 			/* New client did NOT connect successfully */
 			fprintf(stderr, "ERROR: on new client connection\n");
-			exit(-1);
 		/* New client connected successfully */
 		} else {
 			fprintf(stdout, "Notice: Received a new client %s:%d!\n", \

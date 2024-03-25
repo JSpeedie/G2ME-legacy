@@ -67,7 +67,6 @@ void clear_file(char* file) {
 		perror("fopen (clear_file)");
 		return;
 	}
-	fprintf(victim, "");
 	fclose(victim);
 #elif _WIN32
 	/* Open the file, with read and write, Share for reading,
@@ -84,7 +83,6 @@ void clear_file(char* file) {
 		perror("fopen (clear_file)");
 		return;
 	}
-	fprintf(victim, "");
 	fclose(victim);
 #endif
 
