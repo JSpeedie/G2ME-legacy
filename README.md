@@ -1,8 +1,8 @@
 ## Screenshots
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2ME-terminal-demo.gif" width="66%"/>
-  <img src="https://raw.githubusercontent.com/wiki/JSpeedie/G2ME/images/G2ME-GUI.png" width="66%" />
+  <img src="https://raw.githubusercontent.com/wiki/JSpeedie/G2ME-legacy/images/G2ME-terminal-demo.gif" width="66%"/>
+  <img src="https://raw.githubusercontent.com/wiki/JSpeedie/G2ME-legacy/images/G2ME-GUI.png" width="66%" />
 </p>
 
 
@@ -16,7 +16,7 @@ This repo contains:
   allow for remotely accessing the data in the system.
 * A Java `.jar` file that functions as a GUI for using the `G2ME` executable.
 * Full documentation for all 3 executables available both on the Git
-  Repository's [wiki](https://github.com/JSpeedie/G2ME/wiki) and in the manpages.
+  Repository's [wiki](https://github.com/JSpeedie/G2ME-legacy/wiki) and in the manpages.
 
 
 ## Purpose
