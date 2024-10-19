@@ -21,7 +21,7 @@ This repo contains:
 
 ## Purpose
 
-This program was made out of the necessity to rank the competitors in the UTSC
+This program was made out of the necessity to rank the competitors in the UofT
 Smash Club. The official webpage for Glicko2 has links to implementations of
 Glicko2 in a handful of languages, but when this project began the choices were
 very limited, and provided no form of storage or management for players in the
@@ -97,50 +97,47 @@ commands. You can choose not to, but you may have to specify the player
 directory for every `G2ME` command you run by using `-d` (which is a hassle).
 
 
-## What are the advantages of G2ME?
+## What are the benefits of using G2ME over using another Glicko-2 project?
 
-This program takes simple file input, and saves lots of player information.
-This is in stark contrast to the Glicko2 implementations that existed at the
-start of this project, which only provided functions for calculating one's new
-rating after playing someone else. `G2ME` not only allows one to calculate the
-ratings of people without having to touch code, but it also *stores* the Glicko2
-information *plus* all players' Glicko2 history, their head-to-heads, the
-tournaments they've attended, and more.
+The main benefit is that `G2ME` stores the Glicko-2 data of players. This means
+I can calculate the Glicko-2 data for a collection of players one week, and if
+some of the same players also compete the next week, `G2ME` will automatically
+use their latest Glicko-2 values when running the new calculations.
+
+`G2ME` also stores additional data on all players. For instance, `G2ME` stores
+the entire Glicko-2 history of all players that have entered the system. It
+stores their head-to-heads, the tournaments they've attended, and more, and this
+can be useful for further evaluating players.
 
 
 ## The Glicko2 System Briefly Explained
 
-In chess they often use elo to generate a number that represents your skill.
-Some have raised concerns with elo as a rating system. For instance, consider 2
-players with the same rating, but who have been playing for vastly different
-amounts of time. One who has only just played their first set, the other who
-has been playing at this club (or what have you) for years. In ELO, They have
-no discernible difference. They have only one number representing
-each of them and no way of representing novelty. Glicko2 fixes this by
-adding `RD` aka Rating Deviation (literally the Standard Deviation of that
-players Rating). This allows future calculations to factor in the certainty of
-someones rating. The more sure the system is of the loser's rating, (usually)
-the larger the change in the winner's rating.  Glicko2 also uses one other
-number. Volatility. This number usually defaults to 0.06 (although it depends
-on the system and who's managing it) and the higher it is, the more erratic
-that player's results have been. This number is also used in calculations to
-reduce the effect on a player who was upset (lost a set/game as the favourite) by
-a player with erratic placings and inversely, to reduce the increase in rating
-for the erratic player who just upset someone.
+In chess they often use Elo to generate a single number that represents the
+skill of a competitor. The Elo system is still widely used in the world of
+chess, but it has garnered some criticism since it's invention. For instance,
+consider 2 players with the same rating, but who have been playing for vastly
+different amounts of time. The first player has just finished their first-ever
+set, but the second player has been playing at this club for years. Through the
+eyes of Elo, there is no difference between these 2 players. In reality, we
+might have good reason to be quite confident in the rating of the second
+player, who has achieved their rating over dozens and perhaps even hundreds of
+sets. When it comes to the first player, we might not be so sure of their
+rating after a single set. Perhaps they were very nervous or they got extremely
+lucky. Glicko-2 aims to improve on Elo and solve problems like this by adding
+more variables that we associate with each player. Glicko-2 not only has a
+rating value, but also an "RD" or Rating Deviation (literally the Standard
+Deviation of that players Rating) and a Volatility. The former allows future
+Glicko-2 calculations to factor in the certainty of someone's rating. The more
+sure the system is of the loser of a set's rating, (usually) the larger the
+change in the winner's rating. The volatility value, on the other hand, usually
+defaults to 0.06 (although it depends on the system and who's managing it) and
+a higher value represents that the player's results have been more erratic.
+This number is also used in calculations to reduce the effect on players who
+suffered surprising wins or losses to erratic players.
 
-Long story short, Glicko2 adds 2 other numbers to help represent a player and
-facilitate more accurate ratings. To the end user, the rating is still the most
+In short, Glicko-2 adds 2 other variables to help represent a player's
+perceived skill more accurately, and insodoing, Glicko-2 facilitates more
+accurate player ratings. To the end user, the rating variable is still the most
 important number, but the manager can use RD (and/or volatility) to determine
 if they have enough concrete data on a player to include them in their pr, for
-example. Other uses include just a volatility pr/consistency pr.
-
-
-## TODO
-
-* Add option for user to set time period where a player receives
-no RD adjustments for missing events (default 1 or 2 weeks?)
-* Make sure glicko2.c meets code conventions (line length, doc string,
-no TODOs)
-* Move barebones glicko2 C implementation to separate repo for those who just
-want that part of the project.
-* Remove TODOs in G2ME.c, make sure invalid input/error checking is sound
+example.
