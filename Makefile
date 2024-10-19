@@ -23,7 +23,8 @@ SRC = G2ME.c server.c client.c
 OBJ = ${SRC:.c=.o}
 BIN = G2ME G2ME-server G2ME-client
 # MAN should be defined as all the array elements in BIN appended with a ".1.gz"
-MAN = G2ME.1.gz G2ME-server.1.gz G2ME-client.1.gz
+# e.g. MAN = G2ME.1.gz G2ME-server.1.gz G2ME-client.1.gz
+MAN := $(shell find man/ -name '*.1.gz')
 
 
 # `compile` first because we want `make` to just compile the program, and the

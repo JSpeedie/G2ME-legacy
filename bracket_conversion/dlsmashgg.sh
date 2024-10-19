@@ -1,6 +1,8 @@
+#!/usr/bin/env bash
+#
 # Example:
 # I have a tournament: https://smash.gg/tournament/toronto-stock-exchange-7/events
-# $ sh dlsmashgg.sh toronto-stock-exchange-7
+# $ ./dlsmashgg.sh toronto-stock-exchange-7
 # All that's needed now is to add the date for every set
 
 # Take a tournament "url name" and print all the brackets that could
