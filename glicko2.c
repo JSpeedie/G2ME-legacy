@@ -37,14 +37,6 @@ typedef struct player {
 }Player;
 
 
-/* Function prototypes */
-/* double _delta(struct player*, double*, int, double*, double*, double); */
-/* double _E(struct player*, double, double); */
-/* double _g(double); */
-/* double _newVol(struct player*, double*, int, double*, double*, double); */
-/* double _v(struct player*, double*, int, double*); */
-
-
 /** Returns the value of a given struct player's rating (μ) on the Glicko-2
  * scale. This function paired with the 'getRd()' function constitute Step 2 of
  * the Glicko-2 Algorithm.
