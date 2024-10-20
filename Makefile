@@ -80,6 +80,9 @@ $(TESTDIR)/bin:
 $(TESTDIR)/bin/player_tests: glicko2.c tests/player_tests.c
 	$(CC) $(CFLAGS) $^ -lm -lcriterion -o $@
 
+$(TESTDIR)/bin/output_tests: G2ME.o $(G2MEOBJ) tests/output_tests.c
+	$(CC) $(CFLAGS) $^ $(INCS) $(G2MELIBS) -lcriterion -o $@
+
 test: $(TESTDIR)/bin $(TESTBIN)
 	for test in $(TESTBIN); do ./$$test ; done
 
