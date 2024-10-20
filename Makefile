@@ -74,8 +74,11 @@ $(TESTDIR)/bin:
 
 # $(TESTDIR)/bin/%: $(TESTOBJ)
 # 	$(CC) $(CFLAGS) $(TESTOBJ) $(G2MELIBS) -lcriterion -o $@
-$(TESTDIR)/bin/%: $(TESTDIR)/%.c $(TESTDEP)
-	$(CC) $(CFLAGS) $(TESTDEP) $< $(G2MELIBS) -lcriterion -o $@
+# $(TESTDIR)/bin/%: $(TESTDIR)/%.c $(TESTDEP)
+# 	$(CC) $(CFLAGS) $(TESTDEP) $< $(G2MELIBS) -lcriterion -o $@
+
+$(TESTDIR)/bin/player_tests: glicko2.c tests/player_tests.c
+	$(CC) $(CFLAGS) $^ -lm -lcriterion -o $@
 
 test: $(TESTDIR)/bin $(TESTBIN)
 	for test in $(TESTBIN); do ./$$test ; done
