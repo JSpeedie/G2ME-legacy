@@ -359,6 +359,58 @@ testM() {
 }
 
 
+testc() {
+	# {{{
+	# Setup
+	if [[ ! -d "${PRODUCED_OUTPUT}" ]]; then
+		mkdir ${PRODUCED_OUTPUT}
+	fi
+	../G2ME -B input/TEST.sea > /dev/null
+
+	TEST_NAME_LIST=(
+		"testc1"
+		"testc2"
+		"testc3"
+	)
+	TEST_COMMAND_LIST=(
+		"../G2ME -c Dylan"
+		"../G2ME -c Michael"
+		"../G2ME -c Valerie"
+	)
+
+	# The number of elements in the name list and the command list should be
+	# the same
+	if [[ "${#TEST_COMMAND_LIST[@]}" -ne "${#TEST_COMMAND_LIST[@]}" ]]; then
+		echo "Test suite configured incorrectly."
+	fi
+
+	# Print each element of the array 'FILE_LIST' on its own line
+	for i in "${!TEST_COMMAND_LIST[@]}"; do
+		testname=${TEST_NAME_LIST[$i]}
+		testcommand=${TEST_COMMAND_LIST[$i]}
+
+		# Run the test command, putting the output in a dedicated file in
+		# the produced output directory
+		$(${testcommand} > ${PRODUCED_OUTPUT}/${testname})
+
+		# Compare the output from the test command to the expected output
+		if cmp ${PRODUCED_OUTPUT}/${testname} ${EXPECTED_OUTPUT}/${testname} &> /dev/null; then
+			passes=$((passes+1))
+			echo -n "."
+		else
+			# If the produced output is not an exact match to the expected
+			# output, output the names of the files that differ plus the lines
+			# where they differ
+			fails=$((fails+1))
+			echo "E"
+			echo "Files \"${PRODUCED_OUTPUT}/${testname}\" and \"${EXPECTED_OUTPUT}/${testname}\" differ"
+			diff -U 0 ${PRODUCED_OUTPUT}/${testname} ${EXPECTED_OUTPUT}/${testname} | tail -n +4
+		fi
+	done
+	# }}}
+}
+
+
 testC() {
 	# {{{
 	# Setup
@@ -485,6 +537,7 @@ runalltests() {
 	testb2vO
 	testBvO
 	testM
+	testc
 	testC
 	testh
 }
