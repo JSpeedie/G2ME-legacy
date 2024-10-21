@@ -54,11 +54,17 @@ system.
       hashtable) means much faster access.
 * Custom binary file formats
     * This program makes use of 6 binary file formats to store data efficiently.
+* Unit testing and integration testing
+    * The Criterion unit-testing framework is used to unit-test base-level
+      structs and associated functions and my own custom testing framework is
+      used to run integration tests on the complete `G2ME` binary.
 
 
-## Installation
+## Installation, Running, Testing
 
 ### Linux/MacOS
+
+##### Installation
 
 To get up and running, launch a terminal and run the following commands
 
@@ -72,13 +78,26 @@ make
 sudo make install
 ```
 
-You are now ready to use `G2ME`! You can skip to the Walkthrough section, if you
-would like.
+##### Running the program
+
+You are now ready to use `G2ME`! At this point it may be helpful to visit the
+[wiki](https://github.com/JSpeedie/G2ME-legacy/wiki) and specifically the 
+[Walkthroughs](https://github.com/JSpeedie/G2ME-legacy/wiki/Walkthroughs)
+section to get a sense of how to use `G2ME`.
 
 Note that if you plan on using this program from the terminal, you should
 always `cd` into the directory containing this project before running any
 commands. You can choose not to, but you may have to specify the player
 directory for every `G2ME` command you run by using `-d` (which is a hassle).
+
+##### Testing
+
+You can run all the unit tests and integration tests using the following
+command:
+
+```bash
+make test
+```
 
 ### Windows
 
