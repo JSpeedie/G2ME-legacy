@@ -14,7 +14,7 @@ CFLAGS = -Wall
 # CC = gcc -ggdb3
 CC = gcc
 
-G2MEDEP = glicko2.c entry_file.c opp_files.c tournament_files.c printing.c \
+G2MEDEP = glicko2.c entry.c entry_file.c opp_files.c tournament_files.c printing.c \
 	fileops.c sorting.c player_dir.c
 G2MEOBJ = ${G2MEDEP:.c=.o}
 G2MESERVEROBJ = clientserverutil.o
@@ -35,7 +35,7 @@ TESTBIN = $(patsubst $(TESTDIR)/%.c, $(TESTDIR)/bin/%, $(TESTSRC))
 # TESTOBJ = For all elements in '$(G2MEDEP)' matching '%.c', add an element '%.o'
 # TESTOBJ = $(patsubst %.c, %.o, $(G2MEDEP))
 TESTDEP = player_dir.c sorting.c fileops.c printing.c tournament_files.c \
-	opp_files.c entry_file.c glicko2.c
+	opp_files.c entry_file.c entry.c glicko2.c
 
 # `compile` first because we want `make` to just compile the program, and the
 # default target is always the the first one that doesn't begin with "."
@@ -80,7 +80,11 @@ $(TESTDIR)/bin:
 $(TESTDIR)/bin/player_tests: glicko2.c tests/player_tests.c
 	$(CC) $(CFLAGS) $^ -lm -lcriterion -o $@
 
-$(TESTDIR)/bin/output_tests: G2ME.o $(G2MEOBJ) tests/output_tests.c
+$(TESTDIR)/bin/entry_tests: glicko2.c entry.c tests/entry_tests.c
+	$(CC) $(CFLAGS) $^ -lm -lcriterion -o $@
+
+# $(TESTDIR)/bin/output_tests: G2ME.o $(G2MEOBJ) tests/output_tests.c
+$(TESTDIR)/bin/output_tests: G2ME.c $(G2MEOBJ) tests/output_tests.c
 	$(CC) $(CFLAGS) $^ $(INCS) $(G2MELIBS) -lcriterion -o $@
 
 test: $(TESTDIR)/bin $(TESTBIN)
