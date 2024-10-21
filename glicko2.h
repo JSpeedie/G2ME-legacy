@@ -6,6 +6,7 @@
 #define DEF_RD 350.0
 #define DEF_TAU 0.5
 
+
 typedef struct player {
 	/* The system constant, which constrains the change in
 	 * volatility over time. */
@@ -14,6 +15,7 @@ typedef struct player {
 	double __rd;
 	double vol;
 }Player;
+
 
 /* Function prototypes because this is not python */
 double getRating(struct player*);

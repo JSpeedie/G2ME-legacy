@@ -2,31 +2,11 @@
 #define G2ME_ENTRY_FILE
 
 #include <stdio.h>
+/* Local Includes */
+#include "entry.h"
 
-#define MAX_NAME_LEN 64
+
 #define OUTPUT_TEMP_LEN 24
-
-typedef struct entry {
-	unsigned short id;
-	unsigned short opp_id;
-	unsigned short tournament_id;
-	unsigned short season_id;
-	unsigned char len_name;
-	unsigned char len_opp_name;
-	char name[MAX_NAME_LEN];
-	char opp_name[MAX_NAME_LEN];
-	double rating;
-	double RD;
-	double vol;
-	signed char gc;
-	signed char opp_gc;
-	unsigned char is_competitor;
-	unsigned char day;
-	unsigned char month;
-	unsigned short year;
-	unsigned char len_t_name;
-	char t_name[MAX_NAME_LEN];
-}Entry;
 
 
 /* Season file functions */

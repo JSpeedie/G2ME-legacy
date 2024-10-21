@@ -51,40 +51,30 @@ typedef struct linked_list_node {
 }LinkedListNode;
 
 
+int hashtable_reset();
+
 /* struct record helpers */
 int init_record(struct record *);
-
-
-/* struct player and struct entry helpers */
-void init_player_from_entry(struct player *, struct entry *);
-struct entry create_entry(struct player *, char *, char *, \
-	char, char, char, char, short, char *, short, char);
-
 
 void update_player_on_outcome(short, char *, short, char *, struct player *, \
 	struct player *, char *, char *, char, char, short, short, char *, short);
 
-
 /* Adjustments */
 void adjust_absent_player(char *, char, char, short, short, char *);
 void adjust_absent_players_no_file(char, char, short, short, char *, int);
-
 
 /* Glicko2 number crunching functions */
 int update_players(char *, short);
 int run_single_bracket(char *);
 int run_brackets(char *);
 
-
 /* Generate Ratings */
 int generate_ratings_file(char *, char *);
 int generate_ratings_file_full(char *);
 
-
 /* Records */
 int get_record(char *, char *, struct record *);
 struct record *get_all_records(char *, long *);
-
 
 /* Random helper functions */
 long longest_name(char *, int);
