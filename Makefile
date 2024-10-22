@@ -85,8 +85,7 @@ $(TESTDIR)/bin/entry_tests: glicko2.c entry.c tests/entry_tests.c
 $(TESTDIR)/bin/output_tests: G2ME.c $(G2MEOBJ) tests/output_tests.c
 	$(CC) $(CFLAGS) $^ $(INCS) $(G2MELIBS) -lcriterion -o $@
 
-# test: compile
-test: $(TESTDIR)/bin $(TESTBIN)
+test: compile $(TESTDIR)/bin $(TESTBIN)
 	@echo "Running unit tests:"
 	@for test in $(TESTBIN); do ./$$test ; done
 	@echo "Running integration tests:"
