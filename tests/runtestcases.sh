@@ -11,7 +11,7 @@ testB1A() {
 	if [[ ! -d "${PRODUCED_OUTPUT}" ]]; then
 		mkdir ${PRODUCED_OUTPUT}
 	fi
-	../G2ME -B input/TEST.sea > /dev/null
+	../G2ME -B input/TEST.sea &> /dev/null
 
 	TEST_NAME_LIST=(
 		"testB1A1"
@@ -65,7 +65,7 @@ testb1vo() {
 	if [[ ! -d "${PRODUCED_OUTPUT}" ]]; then
 		mkdir ${PRODUCED_OUTPUT}
 	fi
-	../G2ME -b input/TEST1 > /dev/null
+	../G2ME -b input/TEST1 &> /dev/null
 
 	TEST_NAME_LIST=(
 		"testb1o"
@@ -131,7 +131,7 @@ testb2vo() {
 	if [[ ! -d "${PRODUCED_OUTPUT}" ]]; then
 		mkdir ${PRODUCED_OUTPUT}
 	fi
-	../G2ME -b input/TEST2 > /dev/null
+	../G2ME -b input/TEST2 &> /dev/null
 
 	TEST_NAME_LIST=(
 		"testb2o"
@@ -197,7 +197,7 @@ testB1vo() {
 	if [[ ! -d "${PRODUCED_OUTPUT}" ]]; then
 		mkdir ${PRODUCED_OUTPUT}
 	fi
-	../G2ME -B input/TEST.sea > /dev/null
+	../G2ME -B input/TEST.sea &> /dev/null
 
 	TEST_NAME_LIST=(
 		"testB1o"
@@ -263,7 +263,7 @@ testb1vO() {
 	if [[ ! -d "${PRODUCED_OUTPUT}" ]]; then
 		mkdir ${PRODUCED_OUTPUT}
 	fi
-	../G2ME -b input/TEST1 > /dev/null
+	../G2ME -b input/TEST1 &> /dev/null
 
 	TEST_NAME_LIST=(
 		"testb1O"
@@ -317,7 +317,7 @@ testb2vO() {
 	if [[ ! -d "${PRODUCED_OUTPUT}" ]]; then
 		mkdir ${PRODUCED_OUTPUT}
 	fi
-	../G2ME -b input/TEST2 > /dev/null
+	../G2ME -b input/TEST2 &> /dev/null
 
 	TEST_NAME_LIST=(
 		"testb2O"
@@ -371,7 +371,7 @@ testB1vO() {
 	if [[ ! -d "${PRODUCED_OUTPUT}" ]]; then
 		mkdir ${PRODUCED_OUTPUT}
 	fi
-	../G2ME -B input/TEST.sea > /dev/null
+	../G2ME -B input/TEST.sea &> /dev/null
 
 	TEST_NAME_LIST=(
 		"testB1O"
@@ -437,7 +437,7 @@ testB1c() {
 	if [[ ! -d "${PRODUCED_OUTPUT}" ]]; then
 		mkdir ${PRODUCED_OUTPUT}
 	fi
-	../G2ME -B input/TEST.sea > /dev/null
+	../G2ME -B input/TEST.sea &> /dev/null
 
 	TEST_NAME_LIST=(
 		"testB1c1"
@@ -493,7 +493,7 @@ testB1C() {
 	if [[ ! -d "${PRODUCED_OUTPUT}" ]]; then
 		mkdir ${PRODUCED_OUTPUT}
 	fi
-	../G2ME -B input/TEST.sea > /dev/null
+	../G2ME -B input/TEST.sea &> /dev/null
 
 	TEST_NAME_LIST=(
 		"testB1C1"
@@ -551,7 +551,7 @@ testB1h() {
 	if [[ ! -d "${PRODUCED_OUTPUT}" ]]; then
 		mkdir ${PRODUCED_OUTPUT}
 	fi
-	../G2ME -B input/TEST.sea > /dev/null
+	../G2ME -B input/TEST.sea &> /dev/null
 
 	TEST_NAME_LIST=(
 		"testB1h1"
@@ -619,7 +619,7 @@ testB1M() {
 	if [[ ! -d "${PRODUCED_OUTPUT}" ]]; then
 		mkdir ${PRODUCED_OUTPUT}
 	fi
-	../G2ME -B input/TEST.sea > /dev/null
+	../G2ME -B input/TEST.sea &> /dev/null
 
 	TEST_NAME_LIST=(
 		"testB1M1"
@@ -677,7 +677,7 @@ testB1R() {
 	if [[ ! -d "${PRODUCED_OUTPUT}" ]]; then
 		mkdir ${PRODUCED_OUTPUT}
 	fi
-	../G2ME -B input/TEST.sea > /dev/null
+	../G2ME -B input/TEST.sea &> /dev/null
 
 	TEST_NAME_LIST=(
 		"testB1R1"
