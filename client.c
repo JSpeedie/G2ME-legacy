@@ -6,9 +6,9 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <argp.h>
-
-#include "G2ME.h"
+/* Local Includes */
 #include "clientserverutil.h"
+
 
 /* Program documentation. */
 static char doc[] =

@@ -1,11 +1,10 @@
-/* Non-windows includes */
+/* General includes */
+#include <string.h>
 #include <unistd.h>
 /* Windows includes */
 #ifdef _WIN32
 #include <windows.h>
 #endif
-
-#include <string.h>
 /* Local Includes */
 #include "entry.h"
 #include "glicko2.h"

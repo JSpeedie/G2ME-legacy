@@ -2,11 +2,16 @@
 #define G2ME_ENTRY_FILE
 
 #include <stdio.h>
+#include <stdbool.h>
 /* Local Includes */
 #include "entry.h"
 
 
 #define OUTPUT_TEMP_LEN 24
+/* The starting size for a tournament list */
+#define TOURN_LIST_START_SIZE 128
+/* The number of elements to increment the size of a pr entry array by */
+#define TOURN_LIST_REALLOC_INC 4
 
 
 /* Season file functions */
@@ -58,9 +63,9 @@ int entry_file_append_entry_to_file(struct entry *, char *);
 
 
 /* PR output functions */
-int entry_file_append_pr_entry_to_file(struct entry *, char *, int);
+int entry_file_append_pr_entry_to_file(struct entry *, char *, int, bool);
 int entry_file_append_pr_entry_to_file_verbose(struct entry *, char *, \
-	int, int, int);
+	int, int, int, bool);
 
 
 /* Read start of file functions */

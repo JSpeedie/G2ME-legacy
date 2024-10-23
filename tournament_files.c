@@ -124,37 +124,23 @@ int write_new_t_name(struct entry *E, FILE *f) {
  */
 int t_file_add_new_tournament(struct entry *E) {
 #ifdef _WIN32
-	// TODO: switch to windows temp file stuff
-	/* Get the name for the temp file */
-	// TODO what if .[original name] already exists? */
-	char dir[strlen(file_path) + 1];
-	char base[strlen(file_path) + 1];
-	memset(dir, 0, sizeof(dir));
-	memset(base, 0, sizeof(base));
-	strncpy(dir, file_path, sizeof(dir) - 1);
-	strncpy(base, file_path, sizeof(base) - 1);
+	char *full_t_file_path = data_dir_file_path_t_file();
 
-	char new_file_name[MAX_FILE_PATH_LEN + 1];
-	memset(new_file_name, 0, sizeof(new_file_name));
-	/* Add the full path up to the file */
-	strncat(new_file_name, dirname(dir), sizeof(new_file_name) - 1);
-	strncat(new_file_name, \
-		"/", sizeof(new_file_name) - strlen(new_file_name) - 1);
-	/* Add the temp file */
-	strncat(new_file_name, \
-		".", sizeof(new_file_name) - strlen(new_file_name) - 1);
-	strncat(new_file_name, \
-		basename(base), sizeof(new_file_name) - strlen(new_file_name) - 1);
-
-	FILE *t_file = fopen(file_path, "rb");
+	FILE *t_file = fopen(full_t_file_path, "rb");
 	if (t_file == NULL) {
 		fprintf(stderr, \
 			"Error: t_file_add_new_tournament(): " \
 			"opening file \"%s\": ", \
-			file_path);
+			full_t_file_path);
 		perror("");
 		return -1;
 	}
+
+	char new_file_name[] = { "tempG2MEXXXXXX\0" };
+	int r = mkstemp(new_file_name);
+	close(r);
+	unlink(new_file_name);
+
 	FILE *new_file = fopen(new_file_name, "wb+");
 	if (new_file == NULL) {
 		fprintf(stderr, \

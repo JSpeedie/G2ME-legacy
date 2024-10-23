@@ -1,6 +1,5 @@
-/* Non-windows includes */
+/* General Includes */
 #include <dirent.h>
-#include <errno.h>
 #include <getopt.h>
 #include <libgen.h>
 #include <math.h>
@@ -9,21 +8,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
-/* Windows includes */
+/* Windows Includes */
 #ifdef _WIN32
 #include <windows.h>
+/* Non-Windows Includes */
+#else
+#include <sys/wait.h>
+#include <sys/mman.h>
 #endif
 
 
 #include "G2ME.h"
 #include "entry.h"
 #include "entry_file.h"
+#include "pr.h"
 #include "opp_files.h"
 #include "tournament_files.h"
 #include "fileops.h"
@@ -342,7 +344,7 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
 #ifdef __linux__
 		if (access(full_p1_path, R_OK | W_OK) == -1) {
 #elif _WIN32
-		if (_access(full_p1_path, 0) == -1) {
+		if (access(full_p1_path, 0) == -1) {
 #else
 		if (access(full_p1_path, R_OK | W_OK) == -1) {
 #endif
@@ -405,7 +407,7 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
 #ifdef __linux__
 		if (access(full_p2_path, R_OK | W_OK) == -1) {
 #elif _WIN32
-		if (_access(full_p2_path, 0) == -1) {
+		if (access(full_p2_path, 0) == -1) {
 #else
 		if (access(full_p2_path, R_OK | W_OK) == -1) {
 #endif
@@ -854,7 +856,6 @@ int update_players(char* bracket_file_path, short season_id) {
 	for (int j = 0; j < num_outcomes; j++) {
 /* Read data from one line of bracket file into all the variables */
 #ifdef _WIN32
-
 		char *token = \
 			strtok(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], " ");
 		int temp;
@@ -902,6 +903,7 @@ int update_players(char* bracket_file_path, short season_id) {
 		sscanf(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], \
 			"%s %s %hhd %hhd %hhd %hhd %hd", \
 			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
+#endif
 		unsigned int p1_name_hash = simple_murmur_hash2(p1_name);
 		unsigned int p2_name_hash = simple_murmur_hash2(p2_name);
 		char already_in = 0;
@@ -917,7 +919,7 @@ int update_players(char* bracket_file_path, short season_id) {
 		} else {
 			hashtable_insert(p2_name, p2_name_hash);
 		}
-#endif
+
 		if (calc_absent_players == 1) {
 
 			//for (unsigned long i = 0; i < tourn_atten_len; i++) {
@@ -1033,6 +1035,12 @@ int update_players(char* bracket_file_path, short season_id) {
 #endif
 	if (available_cores < 1) available_cores = 1;
 
+#ifdef _WIN32
+	if (calc_absent_players == 1) {
+		adjust_absent_players_no_file(day, month, year, \
+			Et.tournament_id, t_name, available_cores);
+	}
+#else
 	/* Create the necessary synchronization variables. In this case,
 	* a fork occurs where the parent runs through all the tournament outcomes,
 	* calculating new Glicko2 data for all players who attended while the
@@ -1295,6 +1303,7 @@ int update_players(char* bracket_file_path, short season_id) {
 				Et.tournament_id, t_name, available_cores);
 		}
 	}
+#endif
 
 	for (int j = 0; j < num_outcomes; j++) {
 		/* Read data from one line of bracket file into all the variables */
@@ -1443,6 +1452,8 @@ int update_players(char* bracket_file_path, short season_id) {
 		}
 	}
 
+#ifdef _WIN32
+#else
 	if (available_cores > 1) {
 		/* At this point the work of the parent process is done */
 
@@ -1548,6 +1559,7 @@ int update_players(char* bracket_file_path, short season_id) {
 		/* 4. At this point, this process has past the barrier and can
 		 * do its post-barrier work! */
 	}
+#endif
 
 	return 0;
 }
@@ -1761,7 +1773,7 @@ int generate_ratings_file(char* filter_file_path, char* output_file_path) {
 #ifdef __linux__
 		if (access(full_player_path, R_OK | W_OK) == -1) {
 #elif _WIN32
-		if (_access(full_player_path, R_OK | W_OK) == -1) {
+		if (access(full_player_path, R_OK | W_OK) == -1) {
 #else
 		if (access(full_player_path, R_OK | W_OK) == -1) {
 #endif
@@ -1821,16 +1833,18 @@ int generate_ratings_file(char* filter_file_path, char* output_file_path) {
 	/* Append each entry pr file */
 	for (int i = 0; i < pr_entries_num; i++) {
 		if (verbose == 1) {
-			entry_file_append_pr_entry_to_file_verbose( \
+			append_pr_entry_to_file_verbose( \
 				&players_pr_entries[i], \
 				output_file_path, \
 				longest_name_length, \
 				longest_attended, \
-				longest_outcomes);
+				longest_outcomes,
+				(bool) flag_output_to_stdout);
 		} else {
-			entry_file_append_pr_entry_to_file(&players_pr_entries[i], \
+			append_pr_entry_to_file(&players_pr_entries[i], \
 				output_file_path, \
-				longest_name_length);
+				longest_name_length, \
+				(bool) flag_output_to_stdout);
 		}
 	}
 
@@ -1941,17 +1955,19 @@ int generate_ratings_file_full(char *output_file_path) {
 		/* Append each entry pr file */
 		for (int i = 0; i < pr_entries_num; i++) {
 			if (verbose == 1) {
-				entry_file_append_pr_entry_to_file_verbose( \
+				append_pr_entry_to_file_verbose( \
 					&players_pr_entries[i], \
 					output_file_path, \
 					longest_name_length, \
 					longest_attended, \
-					longest_outcomes);
+					longest_outcomes, \
+					(bool) flag_output_to_stdout);
 			} else {
-				entry_file_append_pr_entry_to_file( \
+				append_pr_entry_to_file( \
 					&players_pr_entries[i], \
 					output_file_path, \
-					longest_name_length);
+					longest_name_length, \
+					(bool) flag_output_to_stdout);
 			}
 		}
 		return 0;

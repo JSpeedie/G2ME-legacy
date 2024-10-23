@@ -1,9 +1,14 @@
 #ifndef G2ME_G2ME
 #define G2ME_G2ME
 
-#define MAX_FILE_PATH_LEN 512
+#include "entry_file.h"
+#include "fileops.h"
+#include "glicko2.h"
+
 #define MAX_BRACKET_FILE_LINE_LEN 512
+/* The number of elements to increment the size of a pr entry array by */
 #define REALLOC_PR_ENTRIES_INC 4
+/* The starting size for a pr entry array */
 #define SIZE_PR_ENTRY 128
 #define REALLOC_BRACKET_PATHS_INC 8
 #define SIZE_BRACKET_PATHS 128
@@ -16,7 +21,6 @@
 #define MINIMUM_ADJ_BEFORE_FORK 24
 #define SIZE_ATTEN_HASHTABLE 128
 
-extern char flag_output_to_stdout;
 extern char colour_output;
 extern char f_flag_used;
 extern char verbose;
@@ -26,9 +30,6 @@ extern char data_dir[MAX_FILE_PATH_LEN + 1];
 extern int pr_minimum_events;
 extern char filter_file_path[MAX_FILE_PATH_LEN + 1];
 extern char DIR_TERMINATOR;
-
-#include "entry_file.h"
-#include "glicko2.h"
 
 typedef struct record {
 	char name[MAX_NAME_LEN + 1];

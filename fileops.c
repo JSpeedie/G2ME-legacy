@@ -10,8 +10,9 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
+/* Local Includes */
+#include "fileops.h"
 
-#include "G2ME.h"
 
 /** Returns an int represent whether the file path is to
  * a directory or not.

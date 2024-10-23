@@ -13,8 +13,10 @@ CFLAGS = -Wall
 # Compiler and linker
 # CC = gcc -ggdb3
 CC = gcc
+WCC32 = i686-w64-mingw32-gcc
+WCC64 = x86_64-w64-mingw32-gcc
 
-G2MEDEP = glicko2.c entry.c entry_file.c opp_files.c tournament_files.c printing.c \
+G2MEDEP = glicko2.c entry.c entry_file.c pr.c opp_files.c tournament_files.c printing.c \
 	fileops.c sorting.c player_dir.c
 G2MEOBJ = ${G2MEDEP:.c=.o}
 G2MESERVEROBJ = clientserverutil.o
@@ -44,6 +46,14 @@ compile: G2ME server client
 
 G2ME: G2ME.o $(G2MEOBJ)
 	$(CC) $(CFLAGS) $< $(G2MEOBJ) $(INCS) $(G2MELIBS) -o G2ME
+
+# This rule requires the mingw-w64-gcc compilers. On Arch they can be installed
+# with 'sudo pacman -S mingw-w64-gcc'
+windows: G2ME.c $(G2MEDEP)
+	# $(WCC32) $(CFLAGS) $< $(G2MEOBJ) $(INCS) $(G2MELIBS) -o G2ME32.exe
+	# $(WCC64) $(CFLAGS) $< $(G2MEOBJ) $(INCS) $(G2MELIBS) -o G2ME64.exe
+	$(WCC32) $(CFLAGS) $< $(G2MEDEP) -o G2ME32.exe
+	$(WCC64) $(CFLAGS) $< $(G2MEDEP) -o G2ME64.exe
 
 # Build the object file needed for G2ME-server and G2ME-client targets
 # -c flag stops gcc from linking

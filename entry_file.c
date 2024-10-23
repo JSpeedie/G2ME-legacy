@@ -1,23 +1,21 @@
-/* Windows includes */
-#ifdef _WIN32
-#include <io.h>
-//#include <windows.h>
-//#include <fcntl.h>
-#endif
-/* Non-windows includes */
+/* General Includes */
 #include <dirent.h>
-#include <errno.h>
 #include <getopt.h>
 #include <libgen.h>
-#include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-#include "G2ME.h"
+/* Windows includes */
+#ifdef _WIN32
+#include <io.h>
+//#include <windows.h>
+//#include <fcntl.h>
+#endif
+/* Local Includes */
 #include "opp_files.h"
 #include "tournament_files.h"
 #include "player_dir.h"
@@ -975,115 +973,6 @@ int entry_file_append_entry_to_file(struct entry *E, char *file_path) {
 }
 
 
-/** Appends a pr entry (the name and glicko2 data for a player) to a given
- * file. Returns an int representing success.
- *
- * \param '*E' the struct entry to append to the pr file.
- * \param '*file_path' the file path for the pr file.
- * \return 0 upon success, negative number on failure.
- */
-int entry_file_append_pr_entry_to_file(struct entry *E, char *file_path, \
-	int longest_name_length) {
-
-	FILE *entry_file;
-
-	if (flag_output_to_stdout == 0) {
-		entry_file = fopen(file_path, "a+");
-		if (entry_file == NULL) {
-			perror("fopen (entry_file_append_pr_entry_to_file)");
-			return -1;
-		}
-	} else {
-		entry_file = stdout;
-	}
-
-	if (fprintf(entry_file, "%*s  %6.1lf  %5.1lf  %10.8lf\n", \
-		longest_name_length, E->name, E->rating, E->RD, E->vol) < 0) {
-
-		perror("fprintf");
-		return -3;
-	}
-
-	if (flag_output_to_stdout == 0) {
-		fclose(entry_file);
-	}
-	return 0;
-}
-
-
-/** Appends a pr entry (the name and glicko2 data for a player) to a given
- * file. Returns an int representing success.
- *
- * Difference with verbosity: Adds 3 columns: Events attended,
- * outcomes gone through, and glicko rating change since last event.
- * Changes with verbosity: Adds more decimals to output of glicko variables.
- *
- * \param '*E' the struct entry to append to the pr file.
- * \param '*file_path' the file path for the pr file.
- * \return 0 upon success, negative number on failure.
- */
-int entry_file_append_pr_entry_to_file_verbose(struct entry *E, \
-	char *file_path, int longest_name_length, int longest_attended_count, \
-	int longest_outcome_count) {
-
-	FILE *entry_file;
-
-	if (flag_output_to_stdout == 0) {
-		entry_file = fopen(file_path, "a+");
-		if (entry_file == NULL) {
-			perror("fopen (entry_file_append_pr_entry_to_file_verbose)");
-			return -1;
-		}
-	} else {
-		entry_file = stdout;
-	}
-
-	char *full_player_path = player_dir_file_path_with_player_dir(E->name);
-	int attended_count = entry_file_get_events_attended_count(full_player_path);
-	int outcome_count = entry_file_get_outcome_count(full_player_path);
-	double glicko_change = entry_file_get_glicko_change_since_last_event(full_player_path);
-	free(full_player_path);
-	char temp[OUTPUT_TEMP_LEN];
-	// TODO: fix magic number thing
-	sprintf(temp, "%4.3lf", E->rating);
-	unsigned int rating_length = strlen(temp);
-	sprintf(temp, "%3.3lf", E->RD);
-	unsigned int rd_length = strlen(temp);
-
-	/* <= 0.0001 to handle double rounding errors */
-	if (fabs(glicko_change) <= 0.0001) {
-		/* If unable to write to the file */
-		// TODO: remove magic numbers 7 and 6
-		if (fprintf(entry_file, "%*s  %*s%4.3lf  %*s%3.3lf  %10.8lf  %*d  %*d\n", \
-			longest_name_length, E->name, 8-rating_length, "", \
-			E->rating, 7-rd_length, "", E->RD, E->vol, \
-			longest_attended_count, attended_count, \
-			longest_outcome_count, outcome_count) < 0) {
-
-			perror("fprintf (append_pr_entry_to_file_verbose)");
-			return -2;
-		}
-	} else {
-		/* If unable to write to the file */
-		if (fprintf(entry_file, "%*s  %*s%4.3lf  %*s%3.3lf  %10.8lf  %*d  %*d  %+5.1lf\n", \
-			longest_name_length, E->name, 8-rating_length, "",
-			E->rating, 7-rd_length, "", E->RD, E->vol, \
-			longest_attended_count, attended_count, \
-			longest_outcome_count, outcome_count, \
-			glicko_change) < 0) {
-
-			perror("fprintf (entry_file_append_pr_entry_to_file_verbose)");
-			return -3;
-		}
-	}
-
-	if (flag_output_to_stdout == 0) {
-		fclose(entry_file);
-	}
-	return 0;
-}
-
-
 /** Reads a player file at the given file path, reads the "Player 1"
  * data into the given entry parameter.
  *
@@ -1208,10 +1097,10 @@ int entry_file_get_events_attended_count(char *file_path) {
 }
 
 
-/** Takes a file path to a player file and a pointer to an integer.
- * Returns an array of all the names of the tournaments the player
- * has attended that weren't RD adjustments (or NULL) and modifies '*ret_count'
- * to be the number of elements in that array.
+/** Takes a file path to a player file and a pointer to an integer. Returns an
+ * array of all the names of the tournaments the player has attended that
+ * weren't RD adjustments (or NULL) and modifies '*ret_count' to be the number
+ * of elements in that array.
  *
  * \param '*file_path' the player file to read
  * \param '*ret_count' the integer to modify to contain the number of
@@ -1229,10 +1118,10 @@ char *entry_file_get_events_attended(char *file_path, int *ret_count) {
 
 	char len_of_name;
 	char name[MAX_NAME_LEN + 1];
-	long tourneys_size = SIZE_PR_ENTRY;
+	long tourneys_size = TOURN_LIST_START_SIZE;
 	long tourneys_num = 0;
 	char *tourneys = \
-		(char *)calloc(SIZE_PR_ENTRY * (MAX_NAME_LEN + 1), sizeof(char));
+		(char *)calloc(TOURN_LIST_START_SIZE * (MAX_NAME_LEN + 1), sizeof(char));
 	char in_tourneys = 0;
 	struct entry cur_entry;
 	memset(name, 0, sizeof(name));
@@ -1261,9 +1150,9 @@ char *entry_file_get_events_attended(char *file_path, int *ret_count) {
 		if (in_tourneys == 0 && cur_entry.is_competitor == 1) {
 			/* If there is no space to add this tournament, reallocate */
 			if (tourneys_num + 1 > tourneys_size) {
-				tourneys_size += REALLOC_PR_ENTRIES_INC;
+				tourneys_size += TOURN_LIST_REALLOC_INC;
 				tourneys = (char*)realloc(tourneys, \
-					SIZE_PR_ENTRY * (MAX_NAME_LEN + 1) * sizeof(char));
+					TOURN_LIST_START_SIZE * (MAX_NAME_LEN + 1) * sizeof(char));
 				if (tourneys == NULL) {
 					perror("realloc (entry_file_get_events_attended)");
 					return NULL;

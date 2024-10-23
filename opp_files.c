@@ -4,7 +4,6 @@
 #endif
 /* Non-windows includes */
 #include <dirent.h>
-#include <errno.h>
 #include <getopt.h>
 #include <libgen.h>
 #include <math.h>
@@ -16,7 +15,6 @@
 #include <unistd.h>
 
 #include "opp_files.h"
-#include "G2ME.h"
 #include "player_dir.h"
 
 
@@ -191,29 +189,9 @@ int write_new_opp_name(struct entry *E, FILE *f) {
  */
 int opp_file_add_new_opponent(struct entry *E) {
 #ifdef _WIN32
-	// TODO: switch to windows temp file stuff
-	/* Get the name for the temp file */
-	// TODO what if .[original name] already exists? */
-	char dir[strlen(file_path) + 1];
-	char base[strlen(file_path) + 1];
-	memset(dir, 0, sizeof(dir));
-	memset(base, 0, sizeof(base));
-	strncpy(dir, file_path, sizeof(dir) - 1);
-	strncpy(base, file_path, sizeof(base) - 1);
+	char *full_opp_file_path = data_dir_file_path_opp_file();
 
-	char new_file_name[MAX_FILE_PATH_LEN + 1];
-	memset(new_file_name, 0, sizeof(new_file_name));
-	/* Add the full path up to the file */
-	strncat(new_file_name, dirname(dir), sizeof(new_file_name) - 1);
-	strncat(new_file_name, "/", \
-		sizeof(new_file_name) - strlen(new_file_name) - 1);
-	/* Add the temp file */
-	strncat(new_file_name, ".", \
-		sizeof(new_file_name) - strlen(new_file_name) - 1);
-	strncat(new_file_name, basename(base), \
-		sizeof(new_file_name) - strlen(new_file_name) - 1);
-
-	FILE *opp_file = fopen(file_path, "rb");
+	FILE *opp_file = fopen(full_opp_file_path, "rb");
 	if (opp_file == NULL) {
 		fprintf(stderr, \
 			"Error: opp_file_add_new_opponent(): " \
@@ -222,12 +200,19 @@ int opp_file_add_new_opponent(struct entry *E) {
 		perror("");
 		return -1;
 	}
+
+	char new_file_name[] = { "tempG2MEXXXXXX\0" };
+	int r = mkstemp(new_file_name);
+	close(r);
+	unlink(new_file_name);
+
 	FILE *new_file = fopen(new_file_name, "wb+");
 	if (new_file == NULL) {
 		fprintf(stderr, \
 			"Error: opp_file_add_new_opponent(): " \
 			"opening file \"%s\": ", \
 			new_file_name);
+		perror("");
 		return -2;
 	}
 /* If this is being compiled on macOS or Linux */
