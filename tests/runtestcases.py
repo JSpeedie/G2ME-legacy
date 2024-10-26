@@ -129,6 +129,7 @@ def run_test_list(tests: [Test]) -> (int, int):
     # }}}
 
 
+# 2 tests
 def test_A(log_file=None) -> (int, int):
     # {{{
     # Setup
@@ -141,8 +142,8 @@ def test_A(log_file=None) -> (int, int):
         input_dir = Path(".\\input")
     season1 = str(input_dir / Path("TEST.sea"))
 
-    # Define the tests
-    B1_test_list=[
+    # Define the B1 test collection
+    B1_test_collection=[
         Test(test_name="testB1A1",
              setup_cmd_list=[
                 # ../G2ME -B input/TEST.sea
@@ -164,11 +165,402 @@ def test_A(log_file=None) -> (int, int):
         ),
     ]
 
-    # Run the tests
-    return run_test_list(B1_test_list);
+    # Run all the test collections associated with the test suite
+    test_collection_list = [
+        B1_test_collection,
+    ]
+
+    total_passes = 0
+    total_fails = 0
+
+    for tc in test_collection_list:
+        (passes, fails) = run_test_list(tc)
+        total_passes += passes
+        total_fails += fails
+
+    return (total_passes, total_fails)
     # }}}
 
 
+# 3 tests
+def test_c(log_file=None) -> (int, int):
+    # {{{
+    # Setup
+    g2me_exec = ""
+    if os.name == "posix": # If this is being run on linux/macOS
+        g2me_exec = "../G2ME"
+        input_dir = Path("input")
+    elif os.name == "nt": # If this is being run on windows
+        g2me_exec = "..\\G2ME64.exe"
+        input_dir = Path(".\\input")
+    season1 = str(input_dir / Path("TEST.sea"))
+
+    # Define the B1 test collection
+    B1_test_collection=[
+        Test(test_name="testB1c1",
+             setup_cmd_list=[
+                # ../G2ME -B input/TEST.sea
+                g2me_exec + " -B " + season1,
+             ],
+             # ../G2ME -c Dylan
+             test_cmd=g2me_exec + " -c Dylan",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1c2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -c Michael
+             test_cmd=g2me_exec + " -c Michael",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1c3",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -c Valerie
+             test_cmd=g2me_exec + " -c Valerie",
+             redirect=True,
+             log_file=log_file,
+        ),
+    ]
+
+    # Run all the test collections associated with the test suite
+    test_collection_list = [
+        B1_test_collection,
+    ]
+
+    total_passes = 0
+    total_fails = 0
+
+    for tc in test_collection_list:
+        (passes, fails) = run_test_list(tc)
+        total_passes += passes
+        total_fails += fails
+
+    return (total_passes, total_fails)
+    # }}}
+
+
+# 12 tests
+def test_C(log_file=None) -> (int, int):
+    # {{{
+    # Setup
+    g2me_exec = ""
+    if os.name == "posix": # If this is being run on linux/macOS
+        g2me_exec = "../G2ME"
+        input_dir = Path("input")
+    elif os.name == "nt": # If this is being run on windows
+        g2me_exec = "..\\G2ME64.exe"
+        input_dir = Path(".\\input")
+    season1 = str(input_dir / Path("TEST.sea"))
+    bracket1 = str(input_dir / Path("TEST1"))
+    bracket2 = str(input_dir / Path("TEST2"))
+    filter1 = str(input_dir / Path("filter1"))
+
+    # Define the b1 test collection
+    b1_test_collection=[
+        Test(test_name="testb1C",
+             setup_cmd_list=[
+                # ../G2ME -b input/TEST1
+                g2me_exec + " -b " + bracket1,
+             ],
+             # ../G2ME -C
+             test_cmd=g2me_exec + " -C",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1mC",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -C
+             test_cmd=g2me_exec + " -m 2 -C",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1fC",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -C
+             test_cmd=g2me_exec + " -f " + filter1 + " -C",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1mfC",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -f input/filter1 -C
+             test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -C",
+             redirect=True,
+             log_file=log_file,
+        ),
+    ]
+
+    # Define the b2 test collection
+    b2_test_collection=[
+        Test(test_name="testb2C",
+             setup_cmd_list=[
+                # ../G2ME -b input/TEST2
+                g2me_exec + " -b " + bracket2,
+             ],
+             # ../G2ME -C
+             test_cmd=g2me_exec + " -C",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2mC",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -C
+             test_cmd=g2me_exec + " -m 2 -C",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2fC",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -C
+             test_cmd=g2me_exec + " -f " + filter1 + " -C",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2mfC",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -f input/filter1 -C
+             test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -C",
+             redirect=True,
+             log_file=log_file,
+        ),
+    ]
+
+    # Define the B1 test collection
+    B1_test_collection=[
+        Test(test_name="testB1C",
+             setup_cmd_list=[
+                # ../G2ME -B input/TEST.sea
+                g2me_exec + " -B " + season1,
+             ],
+             # ../G2ME -C
+             test_cmd=g2me_exec + " -C",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1mC",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -C
+             test_cmd=g2me_exec + " -m 2 -C",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1fC",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -C
+             test_cmd=g2me_exec + " -f " + filter1 + " -C",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1mfC",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -f input/filter1 -C
+             test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -C",
+             redirect=True,
+             log_file=log_file,
+        ),
+    ]
+
+    # Run all the test collections associated with the test suite
+    test_collection_list = [
+        b1_test_collection,
+        b2_test_collection,
+        B1_test_collection,
+    ]
+
+    total_passes = 0
+    total_fails = 0
+
+    for tc in test_collection_list:
+        (passes, fails) = run_test_list(tc)
+        total_passes += passes
+        total_fails += fails
+
+    return (total_passes, total_fails)
+    # }}}
+
+
+# 12 tests
+def test_M(log_file=None) -> (int, int):
+    # {{{
+    # Setup
+    g2me_exec = ""
+    if os.name == "posix": # If this is being run on linux/macOS
+        g2me_exec = "../G2ME"
+        input_dir = Path("input")
+    elif os.name == "nt": # If this is being run on windows
+        g2me_exec = "..\\G2ME64.exe"
+        input_dir = Path(".\\input")
+    season1 = str(input_dir / Path("TEST.sea"))
+    bracket1 = str(input_dir / Path("TEST1"))
+    bracket2 = str(input_dir / Path("TEST2"))
+    filter1 = str(input_dir / Path("filter1"))
+
+    # Define the b1 test collection
+    b1_test_collection=[
+        Test(test_name="testb1M",
+             setup_cmd_list=[
+                # ../G2ME -b input/TEST1
+                g2me_exec + " -b " + bracket1,
+             ],
+             # ../G2ME -M
+             test_cmd=g2me_exec + " -M",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1mM",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -M
+             test_cmd=g2me_exec + " -m 2 -M",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1fM",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -M
+             test_cmd=g2me_exec + " -f " + filter1 + " -M",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1mfM",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -f input/filter1 -M
+             test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -M",
+             redirect=True,
+             log_file=log_file,
+        ),
+    ]
+
+    # Define the b2 test collection
+    b2_test_collection=[
+        Test(test_name="testb2M",
+             setup_cmd_list=[
+                # ../G2ME -b input/TEST2
+                g2me_exec + " -b " + bracket2,
+             ],
+             # ../G2ME -M
+             test_cmd=g2me_exec + " -M",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2mM",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -M
+             test_cmd=g2me_exec + " -m 2 -M",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2fM",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -M
+             test_cmd=g2me_exec + " -f " + filter1 + " -M",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2mfM",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -f input/filter1 -M
+             test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -M",
+             redirect=True,
+             log_file=log_file,
+        ),
+    ]
+
+    # Define the B1 test collection
+    B1_test_collection=[
+        Test(test_name="testB1M",
+             setup_cmd_list=[
+                # ../G2ME -B input/TEST.sea
+                g2me_exec + " -B " + season1,
+             ],
+             # ../G2ME -M
+             test_cmd=g2me_exec + " -M",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1mM",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -M
+             test_cmd=g2me_exec + " -m 2 -M",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1fM",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -M
+             test_cmd=g2me_exec + " -f " + filter1 + " -M",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1mfM",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -f input/filter1 -M
+             test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -M",
+             redirect=True,
+             log_file=log_file,
+        ),
+    ]
+
+    # Run all the test collections associated with the test suite
+    test_collection_list = [
+        b1_test_collection,
+        b2_test_collection,
+        B1_test_collection,
+    ]
+
+    total_passes = 0
+    total_fails = 0
+
+    for tc in test_collection_list:
+        (passes, fails) = run_test_list(tc)
+        total_passes += passes
+        total_fails += fails
+
+    return (total_passes, total_fails)
+    # }}}
+
+
+# 24 tests
 def test_o(log_file=None) -> (int, int):
     # {{{
     # Setup
@@ -434,6 +826,7 @@ def test_o(log_file=None) -> (int, int):
     # }}}
 
 
+# 24 tests
 def test_O(log_file=None) -> (int, int):
     # {{{
     # Setup
@@ -451,7 +844,7 @@ def test_O(log_file=None) -> (int, int):
 
     # Define the b1 test collection
     b1_test_collection=[
-        Test(test_name="testb1o",
+        Test(test_name="testb1O",
              setup_cmd_list=[
                 # ../G2ME -b input/TEST1
                 g2me_exec + " -b " + bracket1,
@@ -709,6 +1102,9 @@ if __name__ == "__main__":
 
     test_suite_list = [
         test_A,
+        test_c,
+        test_C,
+        test_M,
         test_o,
         test_O,
     ]
