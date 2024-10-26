@@ -16,7 +16,7 @@ CC = gcc
 WCC32 = i686-w64-mingw32-gcc
 WCC64 = x86_64-w64-mingw32-gcc
 
-G2MEDEP = glicko2.c entry.c entry_file.c pr.c opp_files.c tournament_files.c printing.c \
+G2MEDEP = glicko2.c entry.c p_files.c pr.c opp_files.c tournament_files.c printing.c \
 	fileops.c sorting.c player_dir.c
 G2MEOBJ = ${G2MEDEP:.c=.o}
 G2MESERVEROBJ = clientserverutil.o
@@ -37,7 +37,7 @@ TESTBIN = $(patsubst $(TESTDIR)/%.c, $(TESTDIR)/bin/%, $(TESTSRC))
 # TESTOBJ = For all elements in '$(G2MEDEP)' matching '%.c', add an element '%.o'
 # TESTOBJ = $(patsubst %.c, %.o, $(G2MEDEP))
 TESTDEP = player_dir.c sorting.c fileops.c printing.c tournament_files.c \
-	opp_files.c entry_file.c entry.c glicko2.c
+	opp_files.c p_files.c entry.c glicko2.c
 
 # `compile` first because we want `make` to just compile the program, and the
 # default target is always the the first one that doesn't begin with "."
@@ -50,10 +50,10 @@ G2ME: G2ME.o $(G2MEOBJ)
 # This rule requires the mingw-w64-gcc compilers. On Arch they can be installed
 # with 'sudo pacman -S mingw-w64-gcc'
 windows: G2ME.c $(G2MEDEP)
-	# $(WCC32) $(CFLAGS) $< $(G2MEOBJ) $(INCS) $(G2MELIBS) -o G2ME32.exe
-	# $(WCC64) $(CFLAGS) $< $(G2MEOBJ) $(INCS) $(G2MELIBS) -o G2ME64.exe
-	$(WCC32) $(CFLAGS) $< $(G2MEDEP) -o G2ME32.exe
-	$(WCC64) $(CFLAGS) $< $(G2MEDEP) -o G2ME64.exe
+	# --static to create a statically linked binary to avoid issues with
+	# pthreads on windows
+	$(WCC32) --static $(CFLAGS) $< $(G2MEDEP) -o G2ME32.exe
+	$(WCC64) --static $(CFLAGS) $< $(G2MEDEP) -o G2ME64.exe
 
 # Build the object file needed for G2ME-server and G2ME-client targets
 # -c flag stops gcc from linking

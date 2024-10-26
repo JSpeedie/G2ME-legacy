@@ -20,11 +20,10 @@
 #include <sys/wait.h>
 #include <sys/mman.h>
 #endif
-
-
+/* Local Includes */
 #include "G2ME.h"
 #include "entry.h"
-#include "entry_file.h"
+#include "p_files.h"
 #include "pr.h"
 #include "opp_files.h"
 #include "tournament_files.h"
@@ -41,8 +40,8 @@ char PLAYER_DIR[] = { ".players/" };
 char DATA_DIR[] = { ".data/" };
 char DIR_TERMINATOR = '/';
 #elif _WIN32
-char PLAYER_DIR[] = { ".players\\" };
-char DATA_DIR[] = { ".data\\" };
+char PLAYER_DIR[] = { ".\\.players\\" };
+char DATA_DIR[] = { ".\\.data\\" };
 char DIR_TERMINATOR = '\\';
 #else
 char PLAYER_DIR[] = { ".players/" };
@@ -355,7 +354,7 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
 		} else {
 			/* Read latest entries into usable data */
 			int ret;
-			if (0 == (ret = entry_file_read_last_entry_minimal(full_p1_path, \
+			if (0 == (ret = p_file_read_last_entry_minimal(full_p1_path, \
 				&p1_latest))) {
 
 				p1_latest.id = p1_id;
@@ -378,7 +377,7 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
 				}
 			} else {
 				fprintf(stderr, \
-					"entry_file_read_last_entry (%d) (update_player_on_outcome)", \
+					"p_file_read_last_entry (%d) (update_player_on_outcome)", \
 					ret);
 				perror("");
 			}
@@ -417,7 +416,7 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
 		} else {
 			/* Read latest entries into usable data */
 			int ret;
-			if (0 == (ret = entry_file_read_last_entry_minimal(full_p2_path, \
+			if (0 == (ret = p_file_read_last_entry_minimal(full_p2_path, \
 				&p2_latest))) {
 
 				p2_latest.id = p2_id;
@@ -437,7 +436,7 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
 				init_player_from_entry(p2, &p2_latest);
 			} else {
 				fprintf(stderr, \
-					"entry_file_read_last_entry (%d) (update_player_on_outcome)", \
+					"p_file_read_last_entry (%d) (update_player_on_outcome)", \
 					ret);
 				perror("");
 			}
@@ -467,7 +466,7 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
 
 	p1_new_entry.opp_id = p2_id;
 	p1_new_entry.tournament_id = t_id;
-	int ret = entry_file_append_entry_to_file_id(&p1_new_entry, full_p1_path);
+	int ret = p_file_append_entry_to_file_id(&p1_new_entry, full_p1_path);
 
 	p1_new_entry.id = p1_id;
 
@@ -484,6 +483,7 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
 	if (ret != 0) {
 		fprintf(stderr, "Error appending entry to file \"%s\"\n", \
 			full_p1_path);
+		fprintf(stderr, "ret = \"%d\"\n", ret);
 	}
 
 	free(full_p1_path);
@@ -521,7 +521,7 @@ void adjust_absent_player(char *player_file, char day, char month, \
 #endif
 		struct player P;
 		struct entry latest_ent;
-		if (0 == entry_file_read_last_entry_absent(full_file_path, \
+		if (0 == p_file_read_last_entry_absent(full_file_path, \
 			&latest_ent)) {
 
 			/* If this adjustment is taking place on a different
@@ -553,7 +553,7 @@ void adjust_absent_player(char *player_file, char day, char month, \
 				strncpy(latest_ent.t_name, t_name, MAX_NAME_LEN);
 				latest_ent.len_t_name = strlen(latest_ent.t_name);
 				latest_ent.t_name[latest_ent.len_t_name] = '\0';
-				entry_file_append_adjustment_to_file_id(&latest_ent, \
+				p_file_append_adjustment_to_file_id(&latest_ent, \
 					full_file_path);
 			}
 		}
@@ -856,48 +856,54 @@ int update_players(char* bracket_file_path, short season_id) {
 	for (int j = 0; j < num_outcomes; j++) {
 /* Read data from one line of bracket file into all the variables */
 #ifdef _WIN32
-		char *token = \
-			strtok(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], " ");
-		int temp;
+		/* char *token = \ */
+		/* 	strtok(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], " "); */
+		/* int temp; */
 
-		if (token == NULL) fprintf(stderr, \
-			"Not enough arguments given in bracket file\n");
-		strncpy(p1_name, token, MAX_NAME_LEN);
+		/* if (token == NULL) fprintf(stderr, \ */
+		/* 	"Not enough arguments given in bracket file\n"); */
+		/* strncpy(p1_name, token, MAX_NAME_LEN); */
 
-		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, \
-			"Not enough arguments given in bracket file\n");
-		strncpy(p2_name, token, MAX_NAME_LEN);
+		/* token = strtok(NULL, " "); */
+		/* if (token == NULL) fprintf(stderr, \ */
+		/* 	"Not enough arguments given in bracket file\n"); */
+		/* strncpy(p2_name, token, MAX_NAME_LEN); */
 
-		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, \
-			"Not enough arguments given in bracket file\n");
-		sscanf(token, "%d", &temp);
-		p1_gc = (char)temp;
+		/* token = strtok(NULL, " "); */
+		/* if (token == NULL) fprintf(stderr, \ */
+		/* 	"Not enough arguments given in bracket file\n"); */
+		/* sscanf(token, "%d", &temp); */
+		/* p1_gc = (char)temp; */
 
-		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, \
-			"Not enough arguments given in bracket file\n");
-		sscanf(token, "%d", &temp);
-		p2_gc = (char)temp;
+		/* token = strtok(NULL, " "); */
+		/* if (token == NULL) fprintf(stderr, \ */
+		/* 	"Not enough arguments given in bracket file\n"); */
+		/* sscanf(token, "%d", &temp); */
+		/* p2_gc = (char)temp; */
 
-		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, \
-			"Not enough arguments given in bracket file\n");
-		sscanf(token, "%d", &temp);
-		day = (char)temp;
+		/* token = strtok(NULL, " "); */
+		/* if (token == NULL) fprintf(stderr, \ */
+		/* 	"Not enough arguments given in bracket file\n"); */
+		/* sscanf(token, "%d", &temp); */
+		/* day = (char)temp; */
 
-		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, \
-			"Not enough arguments given in bracket file\n");
-		sscanf(token, "%d", &temp);
-		month = (char)temp;
+		/* token = strtok(NULL, " "); */
+		/* if (token == NULL) fprintf(stderr, \ */
+		/* 	"Not enough arguments given in bracket file\n"); */
+		/* sscanf(token, "%d", &temp); */
+		/* month = (char)temp; */
 
-		token = strtok(NULL, " ");
-		if (token == NULL) fprintf(stderr, \
-			"Not enough arguments given in bracket file\n");
-		sscanf(token, "%d", &temp);
-		year = (short)temp;
+		/* token = strtok(NULL, " "); */
+		/* if (token == NULL) fprintf(stderr, \ */
+		/* 	"Not enough arguments given in bracket file\n"); */
+		/* sscanf(token, "%d", &temp); */
+		/* year = (short)temp; */
+
+
+
+		sscanf(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], \
+			"%s %s %hhd %hhd %hhd %hhd %hd", \
+			p1_name, p2_name, &p1_gc, &p2_gc, &day, &month, &year);
 /* If compiling on macOS or Linux */
 #else
 		sscanf(&outcomes[j * (MAX_FILE_PATH_LEN + 1)], \
@@ -1781,13 +1787,13 @@ int generate_ratings_file(char* filter_file_path, char* output_file_path) {
 		}
 
 		/* If the player file was able to be read properly... */
-		if (0 == entry_file_read_last_entry(full_player_path, &temp)) {
+		if (0 == p_file_read_last_entry(full_player_path, &temp)) {
 			// TODO: something here
 			int num_events = \
-				entry_file_get_events_attended_count(full_player_path);
+				p_file_get_events_attended_count(full_player_path);
 
 			if (longest_attended < num_events) longest_attended = num_events;
-			int num_outcomes = entry_file_get_outcome_count(full_player_path);
+			int num_outcomes = p_file_get_outcome_count(full_player_path);
 
 			if (longest_outcomes < num_outcomes) {
 				longest_outcomes = num_outcomes;
@@ -1892,19 +1898,19 @@ int generate_ratings_file_full(char *output_file_path) {
 				char *full_player_path = \
 					player_dir_file_path_with_player_dir(entry->d_name);
 				/* If the player file was able to be read properly... */
-				if (0 == entry_file_read_last_entry(full_player_path, &temp)) {
+				if (0 == p_file_read_last_entry(full_player_path, &temp)) {
 					// TODO: finish this, if the m flag isn't used, no need to
 					// do all this
 					//if (pr_minimum_events > 0) {
 					int num_events = \
-						entry_file_get_events_attended_count(full_player_path);
+						p_file_get_events_attended_count(full_player_path);
 
 					if (longest_attended < num_events) {
 						longest_attended = num_events;
 					}
 
 					int num_outcomes = \
-						entry_file_get_outcome_count(full_player_path);
+						p_file_get_outcome_count(full_player_path);
 
 					if (longest_outcomes < num_outcomes) {
 						longest_outcomes = num_outcomes;
@@ -1994,7 +2000,7 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	char *full_player1_path = player_dir_file_path_with_player_dir(player1);
 	/* Read the starter data in the file */
 	struct entry ent;
-	entry_file_read_start_from_file(full_player1_path, &ent);
+	p_file_read_start_from_file(full_player1_path, &ent);
 
 	FILE *p_file = fopen(full_player1_path, "rb");
 	if (p_file == NULL) {
@@ -2011,7 +2017,7 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	init_record(ret);
 
 	int num_ent = \
-		entry_file_get_number_of_outcomes_against(full_player1_path, player2);
+		p_file_get_number_of_outcomes_against(full_player1_path, player2);
 	int cur_opp_ent_num = 0;
 	unsigned long num_of_last_outcomes = sizeof(ret->last_outcomes) - 1;
 
@@ -2021,15 +2027,15 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	/* Get to the entries in the player file */
 	if (0 != fseek(p_file, 0, SEEK_SET)) return -4;
 	int t;
-	if (0 != (t = entry_file_open_get_to_entries(p_file))) {
+	if (0 != (t = p_file_open_position_at_start_of_entries(p_file))) {
 		fprintf(stderr, \
-			"Error: get_record: (%d) (entry_file_open_get_to_entries(%s)): ", \
+			"Error: get_record: (%d) (p_file_open_position_at_start_of_entries(%s)): ", \
 			t, full_player1_path);
 		perror("");
 		return -2;
 	}
 
-	while (entry_file_open_read_next_opp_entry( \
+	while (p_file_open_read_next_opp_entry( \
 		p_file, &ent, ent.opp_id) == 0) {
 
 		/* If the opponent for the given entry is the player of interest */
@@ -2078,12 +2084,12 @@ struct record *get_all_records(char *file_path, long *num_of_records) {
 
 	short *opp_id_list = NULL;
 	short **p_opp_id_list = &opp_id_list;
-	*num_of_records = entry_file_number_of_opponents(file_path, p_opp_id_list);
+	*num_of_records = p_file_number_of_opponents(file_path, p_opp_id_list);
 	struct record *ret = \
 		(struct record *)malloc(sizeof(struct record) * *num_of_records);
 	/* Read the starter data in the file */
 	struct entry ent;
-	entry_file_read_start_from_file(file_path, &ent);
+	p_file_read_start_from_file(file_path, &ent);
 
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
@@ -2099,22 +2105,22 @@ struct record *get_all_records(char *file_path, long *num_of_records) {
 	/* Get number of entries for every opponent */
 	// CONSIDER: only do if verbose? (Only used if verbose)
 	long *num_outcome_all = \
-		entry_file_get_all_number_of_outcomes_against(file_path, \
+		p_file_get_all_number_of_outcomes_against(file_path, \
 		*num_of_records, opp_id_list);
 	/* Array containing the current number of entries for a given opponent */
 	int *cur_opp_num_of_ent = (int *) calloc(*num_of_records, sizeof(int));
 
 	/* Get to the entries in the player file */
-	int r = entry_file_open_get_to_entries(p_file);
+	int r = p_file_open_position_at_start_of_entries(p_file);
 	if (r != 0) {
-		perror("get_all_records (entry_file_open_get_to_entries)");
+		perror("get_all_records (p_file_open_position_at_start_of_entries)");
 		free(num_outcome_all);
 		free(cur_opp_num_of_ent);
 		return NULL;
 	}
 
 	short prev_entrys_season = 0;
-	while (entry_file_open_read_entry(p_file, &ent) == 0) {
+	while (p_file_open_read_entry(p_file, &ent) == 0) {
 		int j = 0;
 		/* Find position (j) of opp_id being searched for */
 		for (j = 0; j < *num_of_records; j++) {
@@ -2300,7 +2306,7 @@ int filter_player_list_min_events(char **players_pointer, short *num_players) {
 	for (int i = 0; i < *num_players; i++) {
 		char *full_player_path = \
 			player_dir_file_path_with_player_dir(&players[i * (MAX_NAME_LEN + 1)]);
-		int num_events = entry_file_get_events_attended_count(full_player_path);
+		int num_events = p_file_get_events_attended_count(full_player_path);
 
 		/* If the player passes the filter (has gone to enough events */
 		if (num_events >= pr_minimum_events) {
@@ -2379,7 +2385,7 @@ int main(int argc, char **argv) {
 				char *full_player_path = \
 					player_dir_file_path_with_player_dir(optarg);
 				char *attended = \
-					entry_file_get_events_attended(full_player_path, &count);
+					p_file_get_events_attended(full_player_path, &count);
 				print_player_attended(attended, count);
 				free(full_player_path);
 				free(attended);
@@ -2393,7 +2399,7 @@ int main(int argc, char **argv) {
 					player_dir_file_path_with_player_dir(optarg);
 
 				fprintf(stdout, "%d\n", \
-					entry_file_get_outcome_count(full_player_path));
+					p_file_get_outcome_count(full_player_path));
 
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);

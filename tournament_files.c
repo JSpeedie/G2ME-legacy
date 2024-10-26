@@ -23,9 +23,10 @@
  * found the tournament in the system.
  *
  * \param '*t_name' the name of the tournament to be searched for.
- * \return integer representing whether the function failed or succeeded.
- *     It will return < 0 if the function failed, and tournament's id (>=0)
- *     if it succeeded.
+ * \return integer representing whether the a tournament of the given name was
+ *     not found (-1), was found (>= 0) or if an error was experienced (<= -2).
+ *     If the tournament of the given name was found, its id is returned as the
+ *     return value.
  */
 int t_file_contains_tournament(char *t_name) {
 	char *full_t_file_path = data_dir_file_path_t_file();
@@ -43,7 +44,7 @@ int t_file_contains_tournament(char *t_name) {
 	int ret = -1;
 	unsigned short num_t;
 	char temp_name[MAX_NAME_LEN + 1];
-	if (1 != fread(&num_t, sizeof(short), 1, t_file)) return -7;
+	if (1 != fread(&num_t, sizeof(short), 1, t_file)) return -3;
 
 	/* Binary search on file to find given name's id */
 	long L = 0;
@@ -58,15 +59,15 @@ int t_file_contains_tournament(char *t_name) {
 		/* Read corresponding t_id of the array[m] */
 		unsigned long start_of_m = ftell(t_file);
 		short t_id = -1;
-		if (1 != fread(&t_id, sizeof(short), 1, t_file)) return -8;
+		if (1 != fread(&t_id, sizeof(short), 1, t_file)) return -4;
 
 		/* Read t name of the array[m] */
 		int j = 0;
-		if (1 != fread(&temp_name[j], sizeof(char), 1, t_file)) return -11;
+		if (1 != fread(&temp_name[j], sizeof(char), 1, t_file)) return -5;
 		/* Provided it hasn't hit a null terminator or end of file */
 		while (temp_name[j] != '\0' && j < MAX_NAME_LEN && !(feof(t_file))) {
 			j++;
-			if (1 != fread(&temp_name[j], sizeof(char), 1, t_file)) return -11;
+			if (1 != fread(&temp_name[j], sizeof(char), 1, t_file)) return -6;
 		}
 		/* Seek to start of array[m] so fseek to next spot isn't offset */
 		fseek(t_file, start_of_m, SEEK_SET);
@@ -86,6 +87,7 @@ int t_file_contains_tournament(char *t_name) {
 
 	fclose(t_file);
 	free(full_t_file_path);
+
 	/* The tournament name was not found, return -1 */
 	return ret;
 }

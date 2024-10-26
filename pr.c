@@ -12,7 +12,7 @@
 #endif
 /* Local Includes */
 #include "player_dir.h"
-#include "entry_file.h"
+#include "p_files.h"
 
 /** Appends a pr entry (the name and glicko2 data for a player) to a given
  * file. Returns an int representing success.
@@ -24,19 +24,19 @@
 int append_pr_entry_to_file(struct entry *E, char *file_path, \
 	int longest_name_length, bool output_to_stdout) {
 
-	FILE *entry_file;
+	FILE *p_file;
 
 	if (!output_to_stdout) {
-		entry_file = fopen(file_path, "a+");
-		if (entry_file == NULL) {
-			perror("fopen (entry_file_append_pr_entry_to_file)");
+		p_file = fopen(file_path, "a+");
+		if (p_file == NULL) {
+			perror("fopen (p_file_append_pr_entry_to_file)");
 			return -1;
 		}
 	} else {
-		entry_file = stdout;
+		p_file = stdout;
 	}
 
-	if (fprintf(entry_file, "%*s  %6.1lf  %5.1lf  %10.8lf\n", \
+	if (fprintf(p_file, "%*s  %6.1lf  %5.1lf  %10.8lf\n", \
 		longest_name_length, E->name, E->rating, E->RD, E->vol) < 0) {
 
 		perror("fprintf");
@@ -44,7 +44,7 @@ int append_pr_entry_to_file(struct entry *E, char *file_path, \
 	}
 
 	if (!output_to_stdout) {
-		fclose(entry_file);
+		fclose(p_file);
 	}
 	return 0;
 }
@@ -65,22 +65,22 @@ int append_pr_entry_to_file_verbose(struct entry *E, \
 	char *file_path, int longest_name_length, int longest_attended_count, \
 	int longest_outcome_count, bool output_to_stdout) {
 
-	FILE *entry_file;
+	FILE *p_file;
 
 	if (!output_to_stdout) {
-		entry_file = fopen(file_path, "a+");
-		if (entry_file == NULL) {
-			perror("fopen (entry_file_append_pr_entry_to_file_verbose)");
+		p_file = fopen(file_path, "a+");
+		if (p_file == NULL) {
+			perror("fopen (p_file_append_pr_entry_to_file_verbose)");
 			return -1;
 		}
 	} else {
-		entry_file = stdout;
+		p_file = stdout;
 	}
 
 	char *full_player_path = player_dir_file_path_with_player_dir(E->name);
-	int attended_count = entry_file_get_events_attended_count(full_player_path);
-	int outcome_count = entry_file_get_outcome_count(full_player_path);
-	double glicko_change = entry_file_get_glicko_change_since_last_event(full_player_path);
+	int attended_count = p_file_get_events_attended_count(full_player_path);
+	int outcome_count = p_file_get_outcome_count(full_player_path);
+	double glicko_change = p_file_get_glicko_change_since_last_event(full_player_path);
 	free(full_player_path);
 	char temp[OUTPUT_TEMP_LEN];
 	// TODO: fix magic number thing
@@ -93,7 +93,7 @@ int append_pr_entry_to_file_verbose(struct entry *E, \
 	if (fabs(glicko_change) <= 0.0001) {
 		/* If unable to write to the file */
 		// TODO: remove magic numbers 7 and 6
-		if (fprintf(entry_file, "%*s  %*s%4.3lf  %*s%3.3lf  %10.8lf  %*d  %*d\n", \
+		if (fprintf(p_file, "%*s  %*s%4.3lf  %*s%3.3lf  %10.8lf  %*d  %*d\n", \
 			longest_name_length, E->name, 8-rating_length, "", \
 			E->rating, 7-rd_length, "", E->RD, E->vol, \
 			longest_attended_count, attended_count, \
@@ -104,20 +104,20 @@ int append_pr_entry_to_file_verbose(struct entry *E, \
 		}
 	} else {
 		/* If unable to write to the file */
-		if (fprintf(entry_file, "%*s  %*s%4.3lf  %*s%3.3lf  %10.8lf  %*d  %*d  %+5.1lf\n", \
+		if (fprintf(p_file, "%*s  %*s%4.3lf  %*s%3.3lf  %10.8lf  %*d  %*d  %+5.1lf\n", \
 			longest_name_length, E->name, 8-rating_length, "",
 			E->rating, 7-rd_length, "", E->RD, E->vol, \
 			longest_attended_count, attended_count, \
 			longest_outcome_count, outcome_count, \
 			glicko_change) < 0) {
 
-			perror("fprintf (entry_file_append_pr_entry_to_file_verbose)");
+			perror("fprintf (p_file_append_pr_entry_to_file_verbose)");
 			return -3;
 		}
 	}
 
 	if (!output_to_stdout) {
-		fclose(entry_file);
+		fclose(p_file);
 	}
 	return 0;
 }

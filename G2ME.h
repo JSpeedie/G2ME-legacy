@@ -1,7 +1,7 @@
 #ifndef G2ME_G2ME
 #define G2ME_G2ME
 
-#include "entry_file.h"
+#include "p_files.h"
 #include "fileops.h"
 #include "glicko2.h"
 

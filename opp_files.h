@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 /* Local Includes */
-#include "entry_file.h"
+#include "entry.h"
 
 
 /* Opp file operations */

@@ -1,11 +1,8 @@
 /* Non-windows includes */
 #include <dirent.h>
-#include <errno.h>
 #include <getopt.h>
 #include <libgen.h>
 #include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -14,8 +11,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-
-#include "glicko2.h"
+/* Local Includes */
 #include "G2ME.h"
 
 void merge(struct entry *first_array, int first_length, \

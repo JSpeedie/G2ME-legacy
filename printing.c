@@ -11,9 +11,10 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-
-#include "player_dir.h"
+/* Local Includes */
 #include "opp_files.h"
+#include "p_files.h"
+#include "player_dir.h"
 #include "sorting.h"
 
 char NOTHING[] = { "" };
@@ -320,7 +321,7 @@ void print_entry_name(struct entry E, int longest_name, int longest_rating, \
  */
 int print_player_file_verbose(char* file_path) {
 	struct entry E;
-	entry_file_read_start_from_file(file_path, &E);
+	p_file_read_start_from_file(file_path, &E);
 
 	/* Open file for reading */
 	FILE *p_file = fopen(file_path, "rb");
@@ -346,9 +347,9 @@ int print_player_file_verbose(char* file_path) {
 	unsigned long int longest_s_id = 0;
 
 	fseek(p_file, 0, SEEK_SET);
-	entry_file_open_get_to_entries(p_file);
+	p_file_open_position_at_start_of_entries(p_file);
 	/* Get the longest lengths of the parts of an entry in string form */
-	while (entry_file_open_read_entry(p_file, &E) == 0) {
+	while (p_file_open_read_entry(p_file, &E) == 0) {
 		char count_entry = 1;
 		/* If a minimum event filter was set */
 		if (pr_minimum_events > 0) {
@@ -358,7 +359,7 @@ int print_player_file_verbose(char* file_path) {
 				char *full_player_path = \
 					player_dir_file_path_with_player_dir(E.opp_name);
 				int attended_count = \
-					entry_file_get_events_attended_count(full_player_path);
+					p_file_get_events_attended_count(full_player_path);
 				free(full_player_path);
 
 				/* If the opponent in this entry doesn't pass the filter */
@@ -437,9 +438,9 @@ int print_player_file_verbose(char* file_path) {
 	}
 
 	fseek(p_file, 0, SEEK_SET);
-	entry_file_open_get_to_entries(p_file);
+	p_file_open_position_at_start_of_entries(p_file);
 
-	while (entry_file_open_read_entry(p_file, &E) == 0) {
+	while (p_file_open_read_entry(p_file, &E) == 0) {
 		char print = 1;
 
 		/* If a minimum event filter was set */
@@ -450,7 +451,7 @@ int print_player_file_verbose(char* file_path) {
 				char *full_player_path = \
 					player_dir_file_path_with_player_dir(E.opp_name);
 				int attended_count = \
-					entry_file_get_events_attended_count(full_player_path);
+					p_file_get_events_attended_count(full_player_path);
 				free(full_player_path);
 
 				/* If the opponent in this entry doesn't pass the filter */
@@ -516,7 +517,7 @@ int print_player_file_verbose(char* file_path) {
  */
 int print_player_file(char* file_path) {
 	struct entry E;
-	entry_file_read_start_from_file(file_path, &E);
+	p_file_read_start_from_file(file_path, &E);
 
 	/* Open file for reading */
 	FILE *p_file = fopen(file_path, "rb");
@@ -538,9 +539,9 @@ int print_player_file(char* file_path) {
 	unsigned long int longest_date = 0;
 
 	fseek(p_file, 0, SEEK_SET);
-	entry_file_open_get_to_entries(p_file);
+	p_file_open_position_at_start_of_entries(p_file);
 	/* Get the longest lengths of the parts of an entry in string form */
-	while (entry_file_open_read_entry(p_file, &E) == 0) {
+	while (p_file_open_read_entry(p_file, &E) == 0) {
 		char count_entry = 1;
 		/* If a minimum event filter was set */
 		if (pr_minimum_events > 0) {
@@ -550,7 +551,7 @@ int print_player_file(char* file_path) {
 				char *full_player_path = \
 					player_dir_file_path_with_player_dir(E.opp_name);
 				int attended_count = \
-					entry_file_get_events_attended_count(full_player_path);
+					p_file_get_events_attended_count(full_player_path);
 				free(full_player_path);
 
 				/* If the opponent in this entry doesn't pass the filter */
@@ -618,9 +619,9 @@ int print_player_file(char* file_path) {
 	}
 
 	fseek(p_file, 0, SEEK_SET);
-	entry_file_open_get_to_entries(p_file);
+	p_file_open_position_at_start_of_entries(p_file);
 
-	while (entry_file_open_read_entry(p_file, &E) == 0) {
+	while (p_file_open_read_entry(p_file, &E) == 0) {
 		char print = 1;
 
 		/* If a minimum event filter was set */
@@ -631,7 +632,7 @@ int print_player_file(char* file_path) {
 				char *full_player_path = \
 					player_dir_file_path_with_player_dir(E.opp_name);
 				int attended_count = \
-					entry_file_get_events_attended_count(full_player_path);
+					p_file_get_events_attended_count(full_player_path);
 				free(full_player_path);
 
 				/* If the opponent in this entry doesn't pass the filter */
@@ -732,7 +733,7 @@ int print_player_records(char *file_path) {
 						player_dir_file_path_with_player_dir( \
 							records[i].opp_name);
 					attended_count = \
-						entry_file_get_events_attended_count(full_player_path);
+						p_file_get_events_attended_count(full_player_path);
 					free(full_player_path);
 				}
 			}

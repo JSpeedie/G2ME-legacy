@@ -12,7 +12,7 @@
 #include <windows.h>
 #endif
 
-#include "sorting.h" /* Includes G2ME.h -> glicko2.h, entry_file.h */
+#include "sorting.h" /* Includes G2ME.h -> glicko2.h, p_files.h */
 #include "fileops.h"
 
 char OPP_FILE_NAME[] = { "of" };
@@ -26,23 +26,23 @@ char SEASON_FILE_NAME[] = { "sf" };
  * \return A string that is the file path to the player directory +
  *     the given string.
  */
-char *player_dir_file_path_with_player_dir(char *s) {
-	int new_path_size = sizeof(char) * (MAX_FILE_PATH_LEN - MAX_NAME_LEN);
-	char *new_path = (char *) malloc(new_path_size);
+char *player_dir_file_path_with_player_dir(char *file_name) {
+	int path_size = \
+		sizeof(char) * (strlen(player_dir) + 1 + strlen(file_name) + 1);
+	char *path = (char *) malloc(path_size);
 
 	/* Copy the player directory file path into the return string */
-	strncpy(new_path, player_dir, new_path_size - 1);
-	size_t len_new_path = strlen(new_path);
+	strncpy(path, player_dir, strlen(player_dir) + 1);
+	size_t len_path = strlen(path);
 	/* If the last character in the player directory path is not a '/' */
-	if (new_path[len_new_path - 1] != DIR_TERMINATOR) {
+	if (path[len_path - 1] != DIR_TERMINATOR) {
 		/* Append a '/' or '\' */
-		new_path[len_new_path] = DIR_TERMINATOR;
+		path[len_path] = DIR_TERMINATOR;
+		path[len_path + 1] = '\0';
 	}
+	strncat(path, file_name, strlen(file_name) + 1);
 
-	/* Append the player file to the player dir file path */
-	strncat(new_path, s, new_path_size - len_new_path - 1);
-
-	return new_path;
+	return path;
 }
 
 /** Takes a string and prepends the data directory file path to it.
@@ -447,7 +447,7 @@ char *player_dir_players_list(char *players, int *num, char type) {
 				char *full_player_path = \
 					player_dir_file_path_with_player_dir(entry->d_name);
 
-				entry_file_get_events_attended(full_player_path, &num_events);
+				p_file_get_events_attended(full_player_path, &num_events);
 				/* If the player attended the minimum number of events */
 				if (num_events >= pr_minimum_events) {
 					if (type == LEXIO) {
