@@ -259,10 +259,10 @@ int p_file_open_read_entry_tournament_id(FILE *f, struct entry *E) {
 }
 
 
-/** Reads all the starter data in a player entry file leaving the FILE '*f' at
+/** Reads all the starter data in a player file leaving the FILE '*f' at
  * a position where it can start reading entries.
  *
- * \param '*f' a player entry file opened in 'rb' mode.
+ * \param '*f' a player file opened in 'rb' mode.
  * \return a negative int on failure, 0 upon success.
  */
 int p_file_open_position_at_start_of_entries(FILE *f) {
@@ -277,10 +277,10 @@ int p_file_open_position_at_start_of_entries(FILE *f) {
 }
 
 
-/** Reads all the starter data in a player entry file and seeks such the FILE
+/** Reads all the starter data in a player file and seeks such the FILE
  * '*f' is at a position where it can start appending a new entry.
  *
- * \param '*f' a player entry file opened in 'rb' mode.
+ * \param '*f' a player file opened in 'rb' mode.
  * \return a negative int on failure, 0 upon success.
  */
 int p_file_open_position_for_appending_entry(FILE *f) {
@@ -692,12 +692,12 @@ int p_file_append_adjustment_to_file_id(struct entry *E, char *file_path) {
 }
 
 
-/** Initializes a new, fresh entry file at '*file_path' with the info contained
+/** Initializes a new, fresh player file at '*file_path' with the info contained
  * in the struct entry '*E'.
  *
  * \param '*E' a struct entry containing the len_name, and name, of the player
- *     we want to initialize an entry file for.
- * \param '*file_path' a file path to where we want the entry file.
+ *     we want to initialize a player file for.
+ * \param '*file_path' a file path to where we want the player file.
  * \return 0 upon success, a negative integer upon failure.
  */
 int p_file_initialize(struct entry *E, char *file_path) {
@@ -705,7 +705,7 @@ int p_file_initialize(struct entry *E, char *file_path) {
 	/* FILE *p_file = fopen(file_path, "wb+"); */
 	FILE *p_file = fopen(file_path, "w+b");
 	if (p_file == NULL) {
-		fprintf(stderr, "Error initializing an entry file \"%s\"" \
+		fprintf(stderr, "Error initializing a player file \"%s\"" \
 			"(p_file_initialize): ", file_path);
 		perror("");
 		return -1;
@@ -713,7 +713,7 @@ int p_file_initialize(struct entry *E, char *file_path) {
 
 	int len_name = strlen(E->name);
 	if (1 != fwrite(&len_name, sizeof(char), 1, p_file)) {
-		fprintf(stderr, "Error initializing an entry file \"%s\"" \
+		fprintf(stderr, "Error initializing a player file \"%s\"" \
 			"(p_file_initialize): ", file_path);
 		perror("");
 		return -2;
@@ -721,22 +721,22 @@ int p_file_initialize(struct entry *E, char *file_path) {
 	if (strlen(E->name)
 		!= fwrite(E->name, sizeof(char), strlen(E->name), p_file)) {
 
-		fprintf(stderr, "Error initializing an entry file \"%s\"" \
+		fprintf(stderr, "Error initializing a player file \"%s\"" \
 			"(p_file_initialize): ", file_path);
 		perror("");
 		return -3;
 	}
 	/* Write the number of outcomes and tournaments attended this player has.
-	 * Since we initializing the entry file, both values must be 0 */
+	 * Since we initializing the player file, both values must be 0 */
 	unsigned long lzero = 0;
 	if (1 != fwrite(&lzero, sizeof(long), 1, p_file)) {
-		fprintf(stderr, "Error initializing an entry file \"%s\"" \
+		fprintf(stderr, "Error initializing a player file \"%s\"" \
 			"(p_file_initialize): ", file_path);
 		perror("");
 		return -4;
 	}
 	if (1 != fwrite(&lzero, sizeof(long), 1, p_file)) {
-		fprintf(stderr, "Error initializing an entry file \"%s\"" \
+		fprintf(stderr, "Error initializing a player file \"%s\"" \
 			"(p_file_initialize): ", file_path);
 		perror("");
 		return -5;
@@ -817,11 +817,11 @@ int p_file_append_entry_to_file_id(struct entry *E, char *file_path) {
 	}
 	char pfile_exists = (access_ret == 0);
 #endif
-	/* If the player entry file did not exist, create a new one */
+	/* If the player file did not exist, create a new one */
 	if (!pfile_exists) {
 		if (0 != p_file_initialize(E, file_path)) {
 			fprintf(stderr, "ERROR: p_file_append_entry_to_file_id(): " \
-				"Failed to initialize entry file: \"%s\"\n", file_path);
+				"Failed to initialize player: \"%s\"\n", file_path);
 		}
 	}
 
@@ -875,7 +875,7 @@ int p_file_append_entry_to_file_id(struct entry *E, char *file_path) {
 	// TODO: make this its own function
 	/* If this entry is a competitor entry */
 	if ( (E->day & (1 << ((sizeof(E->day) * 8) - 1))) == 0) {
-		/* Update the number of outcome data in the entry file */
+		/* Update the number of outcome data in the player file */
 		FILE *p_file2 = fopen(file_path, "rb+");
 		if (p_file2 == NULL) {
 			fprintf(stderr, "Error opening file \"%s\" and updating " \
@@ -943,11 +943,11 @@ int p_file_append_entry_to_file(struct entry *E, char *file_path) {
 #else
 	char pfile_exists = access(file_path, R_OK) != -1;
 #endif
-	/* If the player entry file did not exist, create a new one */
+	/* If the player file did not exist, create a new one */
 	if (!pfile_exists) {
 		if (0 != p_file_initialize(E, file_path)) {
 			fprintf(stderr, "ERROR: p_file_append_entry_to_file_id(): " \
-				"Failed to initialize entry file: \"%s\"\n", file_path);
+				"Failed to initialize player file: \"%s\"\n", file_path);
 		}
 	}
 
@@ -959,9 +959,9 @@ int p_file_append_entry_to_file(struct entry *E, char *file_path) {
 	}
 
 	int ret;
-	/* If the entry file does not already contain an id for this opponent */
+	/* If the opponent file does not already contain an id for this opponent */
 	if (-1 == (ret = opp_file_contains_opponent(E->opp_name))) {
-		/* Add the new opponent to the entry file. This also corrects
+		/* Add the new opponent to the opponent file. This also corrects
 		 * the opp_id if it is incorrect */
 		if (0 != (ret = opp_file_add_new_opponent(E))) {
 			fprintf(stderr, "Error (%d) on opp_file_add_new_opponent(E, %s)\n", ret, file_path);
@@ -971,22 +971,20 @@ int p_file_append_entry_to_file(struct entry *E, char *file_path) {
 	} else if (ret < -1) {
 		fprintf(stderr, "Error (%d) on opp_file_contains_opponent(%s, %s)\n", ret, E->opp_name, file_path);
 		return -8;
-	/* If the entry file does contain an id for this opponent */
+	/* If the opponent file does contain an id for this opponent */
 	} else {
 		/* Fix the opp_id in case it wasn't set */
 		E->opp_id = (unsigned short) ret;
 	}
-	/* If the entry file does not already contain an id for this tournament */
+	/* If the tournament file does not already contain an id for this tournament */
 	if (-1 == (ret = t_file_contains_tournament(E->t_name))) {
-		/* Add the new tournament to the entry file. This also corrects
+		/* Add the new tournament to the tournament file. This also corrects
 		 * the t_id if it is incorrect */
 		if (0 != t_file_add_new_tournament(E)) return -9;
 	/* If there was an error */
 	} else if (ret < -1) {
-		printf("experienced issue with 't_file_contains_tournament()', which " \
-				"returned %d\n", ret);
 		return -10;
-	/* If the entry file does contain an id for this tournament */
+	/* If the tournament file does contain an id for this tournament */
 	} else {
 		/* Fix the tournament_id in case it wasn't set */
 		E->tournament_id = (unsigned short) ret;
@@ -1019,7 +1017,7 @@ int p_file_append_entry_to_file(struct entry *E, char *file_path) {
 	// TODO: make this its own function
 	/* If this entry is a competitor entry */
 	if ( (E->day & (1 << ((sizeof(E->day) * 8) - 1))) == 0) {
-		/* Update the number of outcome data in the entry file */
+		/* Update the number of outcome data in the player file */
 		FILE *p_file2 = fopen(file_path, "rb+");
 		if (p_file2 == NULL) {
 			perror("fopen (p_file_append_entry_to_file)");
@@ -1115,11 +1113,11 @@ int p_file_open_read_start_from_file(FILE *f, struct entry *E) {
 }
 
 
-/** Takes a file path to a entry file and returns the number of valid
+/** Takes a file path to a player file and returns the number of valid
  * outcomes (or sets, games, what have you) this player has played in
  * the history of the system.
  *
- * \param '*file_path' the file path to an entry file.
+ * \param '*file_path' the file path to a player file.
  * \return an integer representing whether the function succeeded or not.
  *     0 upon success, and a negative value upon failure.
  */
@@ -1141,13 +1139,13 @@ int p_file_get_outcome_count(char *file_path) {
 }
 
 
-/** Takes an open entry file and returns the number of valid outcomes (or sets,
- * games, what have you) this player has played in the history of the system.
- * This function could leave the file cursor in multiple possible positions
- * depending on how it exited. For this reason it is recommended that you
- * manually reposition the file cursor after calling this function.
+/** Takes an open player file and returns the number of valid outcomes (or
+ * sets, games, what have you) this player has played in the history of the
+ * system. This function could leave the file cursor in multiple possible
+ * positions depending on how it exited. For this reason it is recommended that
+ * you manually reposition the file cursor after calling this function.
  *
- * \param '*f' the open entry file.
+ * \param '*f' the open player file.
  * \return an integer representing whether the function succeeded or not.
  *     0 upon success, and a negative value upon failure.
  */
@@ -1159,7 +1157,7 @@ int p_file_open_get_outcome_count(FILE *f) {
 	if (0 != fseek(f, 0, SEEK_SET)) {
 		return -1;
 	}
-	/* Read the first piece of data in the entry file: the length of the
+	/* Read the first piece of data in the player file: the length of the
 	 * player's name */
 	if (1 != fread(&ln, sizeof(char), 1, f)) {
 		return -2;
@@ -1179,11 +1177,11 @@ int p_file_open_get_outcome_count(FILE *f) {
 }
 
 
-/** Takes a file path to a entry file and returns the number of valid events
+/** Takes a file path to a player file and returns the number of valid events
  * (or tournaments, what have you) this player has played at in the history of
  * the system.
  *
- * \param '*file_path' the file path to an entry file.
+ * \param '*file_path' the file path to a player file.
  * \return an integer representing whether the function succeeded or not.
  *     0 upon success, and a negative value upon failure.
  */
@@ -1281,10 +1279,10 @@ char *p_file_get_events_attended(char *file_path, int *ret_count) {
 }
 
 
-/** Takes a file path to an entry file and returns the change in Glicko2
+/** Takes a file path to a player file and returns the change in Glicko2
  * rating since the last tournament.
  *
- * \param '*file_path' a file path to an entry file.
+ * \param '*file_path' a file path to a player file.
  * \return a double representing the change in rating since the last tournament
  *     this player attended.
  */
