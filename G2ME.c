@@ -777,15 +777,16 @@ int update_players(char* bracket_file_path, short season_id) {
 	strncpy(Et.t_name, t_name, sizeof(t_name));
 	Et.len_t_name = strlen(Et.t_name);
 	int ret = 0;
-	/* If the entry file does not already contain an id for this tournament */
+	/* If the tournament file does not already contain an id for this
+	 * tournament */
 	if (-1 == (ret = t_file_contains_tournament(Et.t_name))) {
-		/* Add the new tournament to the entry file. This also corrects
+		/* Add the new tournament to the tournament file. This also corrects
 		 * the t_id if it is incorrect */
 		if (0 != t_file_add_new_tournament(&Et)) return -8;
 	/* If there was an error */
 	} else if (ret < -1) {
 		return -9;
-	/* If the entry file does contain an id for this tournament */
+	/* If the tournament file does contain an id for this tournament */
 	} else {
 		/* Fix the tournament_id in case it wasn't set */
 		Et.tournament_id = (unsigned short) ret;
@@ -989,13 +990,13 @@ int update_players(char* bracket_file_path, short season_id) {
 	for (unsigned long o = 0; o < tourn_atten_len; o++) {
 		int ret = 0;
 		/* Get opp_ids for all players who attended this tournament */
-		/* If the entry file does not already contain an id for this opponent */
+		/* If the opponent file does not already contain an id for this opponent */
 		struct entry E;
 		if (-1 == (ret = \
 			opp_file_open_contains_opponent(opp_file, \
 				&tourn_atten[o].name[0]))) {
 
-			/* Add the new opponent to the entry file. This also corrects
+			/* Add the new opponent to the opponent file. This also corrects
 			 * the t_id if it is incorrect */
 			strncpy(&E.opp_name[0], &tourn_atten[o].name[0], MAX_NAME_LEN);
 			E.len_opp_name = strlen(E.opp_name);
@@ -1003,7 +1004,7 @@ int update_players(char* bracket_file_path, short season_id) {
 		/* If there was an error */
 		} else if (ret < -1) {
 			return -9;
-		/* If the entry file does contain an id for this opponent */
+		/* If the opponent file does contain an id for this opponent */
 		} else {
 			/* Fix the opp_id in case it wasn't set */
 			E.opp_id = (unsigned short) ret;
