@@ -1764,9 +1764,9 @@ if __name__ == "__main__":
     total_passes = 0
     total_fails = 0
 
-	# if [[ ! -d "${PRODUCED_OUTPUT}" ]]; then
-	# 	mkdir ${PRODUCED_OUTPUT}
-	# fi
+    # Create the produced output directory (and its parents) if they don't exist.
+    # If they do exist, do nothing (i.e. don't raise an error)
+    produced_output_dir.mkdir(parents=True, exist_ok=True)
 
     test_suite_list = [
         test_A,
