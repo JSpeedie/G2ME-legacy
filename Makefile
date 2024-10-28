@@ -99,7 +99,7 @@ test: compile $(TESTDIR)/bin $(TESTBIN)
 	@echo "Running unit tests:"
 	@for test in $(TESTBIN); do ./$$test ; done
 	@echo "Running integration tests:"
-	@cd tests && sh runtestcases.sh; cd ..
+	@cd tests && python3 runtestcases.py; cd ..
 
 install: $(BIN)
 	@mkdir -p ${DESTDIR}${PREFIX}/bin

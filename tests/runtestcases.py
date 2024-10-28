@@ -129,7 +129,6 @@ def run_test_list(tests: [Test]) -> (int, int):
     # }}}
 
 
-# 2 tests
 def test_A(log_file=None) -> (int, int):
     # {{{
     # Setup
@@ -182,7 +181,6 @@ def test_A(log_file=None) -> (int, int):
     # }}}
 
 
-# 3 tests
 def test_c(log_file=None) -> (int, int):
     # {{{
     # Setup
@@ -244,7 +242,6 @@ def test_c(log_file=None) -> (int, int):
     # }}}
 
 
-# 12 tests
 def test_C(log_file=None) -> (int, int):
     # {{{
     # Setup
@@ -402,7 +399,6 @@ def test_C(log_file=None) -> (int, int):
     # }}}
 
 
-# 24 tests
 def test_h(log_file=None) -> (int, int):
     # {{{
     # Setup
@@ -620,6 +616,15 @@ def test_h(log_file=None) -> (int, int):
              redirect=True,
              log_file=log_file,
         ),
+        Test(test_name="testB1fvh2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -vh Dylan
+             test_cmd=g2me_exec + " -f " + filter1 + " -vh Dylan",
+             redirect=True,
+             log_file=log_file,
+        ),
         Test(test_name="testB1mvh1",
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
@@ -668,7 +673,6 @@ def test_h(log_file=None) -> (int, int):
     # }}}
 
 
-# 12 tests
 def test_M(log_file=None) -> (int, int):
     # {{{
     # Setup
@@ -826,7 +830,6 @@ def test_M(log_file=None) -> (int, int):
     # }}}
 
 
-# 24 tests
 def test_o(log_file=None) -> (int, int):
     # {{{
     # Setup
@@ -1092,7 +1095,6 @@ def test_o(log_file=None) -> (int, int):
     # }}}
 
 
-# 24 tests
 def test_O(log_file=None) -> (int, int):
     # {{{
     # Setup
@@ -1358,6 +1360,406 @@ def test_O(log_file=None) -> (int, int):
     # }}}
 
 
+def test_R(log_file=None) -> (int, int):
+    # {{{
+    # Setup
+    g2me_exec = ""
+    if os.name == "posix": # If this is being run on linux/macOS
+        g2me_exec = "../G2ME"
+        input_dir = Path("input")
+    elif os.name == "nt": # If this is being run on windows
+        g2me_exec = "..\\G2ME64.exe"
+        input_dir = Path(".\\input")
+    filter1 = str(input_dir / Path("filter1"))
+    bracket1 = str(input_dir / Path("TEST1"))
+    bracket2 = str(input_dir / Path("TEST2"))
+    season1 = str(input_dir / Path("TEST.sea"))
+
+    # Define the b1 test collection
+    b1_test_collection=[
+        Test(test_name="testb1R1",
+             setup_cmd_list=[
+                # ../G2ME -b input/TEST1
+                g2me_exec + " -b " + bracket1,
+             ],
+             # ../G2ME -R Dylan
+             test_cmd=g2me_exec + " -R Dylan",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1R2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -R Michael
+             test_cmd=g2me_exec + " -R Michael",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1vR1",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -vR Victoria
+             test_cmd=g2me_exec + " -vR Victoria",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1vR2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -vR Aiden
+             test_cmd=g2me_exec + " -vR Aiden",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1fR1",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -R Aiden
+             test_cmd=g2me_exec + " -f " + filter1 + " -R Aiden",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1fR2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -R Dylan
+             test_cmd=g2me_exec + " -f " + filter1 + " -R Dylan",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1fvR1",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -vR Victoria
+             test_cmd=g2me_exec + " -f " + filter1 + " -vR Victoria",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1fvR2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -vR Michael
+             test_cmd=g2me_exec + " -f " + filter1 + " -vR Michael",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1mR1",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -R Owen
+             test_cmd=g2me_exec + " -m 2 -R Owen",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1mR2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 1 -R Noah
+             test_cmd=g2me_exec + " -m 1 -R Noah",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1mvR1",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -vR Amy
+             test_cmd=g2me_exec + " -m 2 -vR Amy",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1mvR2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 3 -vR Owen
+             test_cmd=g2me_exec + " -m 3 -vR Owen",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb1mfvR",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # /G2ME -m 2 -f input/filter1 -vR Michael
+             test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -vR Michael",
+             redirect=True,
+             log_file=log_file,
+        ),
+    ]
+
+    # Define the b2 test collection
+    b2_test_collection=[
+        Test(test_name="testb2R1",
+             setup_cmd_list=[
+                # ../G2ME -b input/TEST2
+                g2me_exec + " -b " + bracket2,
+             ],
+             # ../G2ME -R James
+             test_cmd=g2me_exec + " -R James",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2R2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -R Michael
+             test_cmd=g2me_exec + " -R Michael",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2vR1",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -vR Victoria
+             test_cmd=g2me_exec + " -vR Victoria",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2vR2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -vR Jess
+             test_cmd=g2me_exec + " -vR Jess",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2fR1",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -R Jess
+             test_cmd=g2me_exec + " -f " + filter1 + " -R Jess",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2fR2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -R James
+             test_cmd=g2me_exec + " -f " + filter1 + " -R James",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2fvR1",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -vR Victoria
+             test_cmd=g2me_exec + " -f " + filter1 + " -vR Victoria",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2fvR2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -vR Michael
+             test_cmd=g2me_exec + " -f " + filter1 + " -vR Michael",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2mR1",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -R Christian
+             test_cmd=g2me_exec + " -m 2 -R Christian",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2mR2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 1 -R Jayden
+             test_cmd=g2me_exec + " -m 1 -R Jayden",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2mvR1",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -vR Madison
+             test_cmd=g2me_exec + " -m 2 -vR Madison",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2mvR2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 3 -vR Christian
+             test_cmd=g2me_exec + " -m 3 -vR Christian",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testb2mfvR",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # /G2ME -m 2 -f input/filter1 -vR Michael
+             test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -vR Michael",
+             redirect=True,
+             log_file=log_file,
+        ),
+    ]
+
+    # Define the B1 test collection
+    B1_test_collection=[
+        Test(test_name="testB1R1",
+             setup_cmd_list=[
+                # ../G2ME -B input/TEST.sea
+                g2me_exec + " -B " + season1,
+             ],
+             # ../G2ME -R Dylan
+             test_cmd=g2me_exec + " -R Dylan",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1R2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -R Michael
+             test_cmd=g2me_exec + " -R Michael",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1vR1",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -vR Victoria
+             test_cmd=g2me_exec + " -vR Victoria",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1vR2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -vR Aiden
+             test_cmd=g2me_exec + " -vR Aiden",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1fR1",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -R Aiden
+             test_cmd=g2me_exec + " -f " + filter1 + " -R Aiden",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1fR2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -R Dylan
+             test_cmd=g2me_exec + " -f " + filter1 + " -R Dylan",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1fvR1",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -vR Victoria
+             test_cmd=g2me_exec + " -f " + filter1 + " -vR Victoria",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1fvR2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -f input/filter1 -vR Michael
+             test_cmd=g2me_exec + " -f " + filter1 + " -vR Michael",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1mR1",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -R Owen
+             test_cmd=g2me_exec + " -m 2 -R Owen",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1mR2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 1 -R Noah
+             test_cmd=g2me_exec + " -m 1 -R Noah",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1mvR1",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 2 -vR Amy
+             test_cmd=g2me_exec + " -m 2 -vR Amy",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1mvR2",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # ../G2ME -m 3 -vR Owen
+             test_cmd=g2me_exec + " -m 3 -vR Owen",
+             redirect=True,
+             log_file=log_file,
+        ),
+        Test(test_name="testB1mfvR",
+             setup_cmd_list=[
+                # Nothing - Use setup from previous test
+             ],
+             # /G2ME -m 2 -f input/filter1 -vR Michael
+             test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -vR Michael",
+             redirect=True,
+             log_file=log_file,
+        ),
+    ]
+
+    # Run all the test collections associated with the test suite
+    test_collection_list = [
+        b1_test_collection,
+        b2_test_collection,
+        B1_test_collection,
+    ]
+
+    total_passes = 0
+    total_fails = 0
+
+    for tc in test_collection_list:
+        (passes, fails) = run_test_list(tc)
+        total_passes += passes
+        total_fails += fails
+
+    return (total_passes, total_fails)
+    # }}}
+
+
 if __name__ == "__main__":
     total_passes = 0
     total_fails = 0
@@ -1374,6 +1776,7 @@ if __name__ == "__main__":
         test_M,
         test_o,
         test_O,
+        test_R,
     ]
 
     log_file = open(log_file_path, 'w')
