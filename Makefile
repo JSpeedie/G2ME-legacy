@@ -50,8 +50,8 @@ G2ME: G2ME.o $(G2MEOBJ)
 # This rule requires the mingw-w64-gcc compilers. On Arch they can be installed
 # with 'sudo pacman -S mingw-w64-gcc'
 windows: G2ME.c $(G2MEDEP)
-	# --static to create a statically linked binary to avoid issues with
-	# pthreads on windows
+	@# --static to create a statically linked binary to avoid issues with
+	@# pthreads on windows
 	$(WCC32) --static $(CFLAGS) $< $(G2MEDEP) -o G2ME32.exe
 	$(WCC64) --static $(CFLAGS) $< $(G2MEDEP) -o G2ME64.exe
 
