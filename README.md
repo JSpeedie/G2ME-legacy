@@ -56,8 +56,8 @@ system.
     * This program makes use of 6 binary file formats to store data efficiently.
 * Unit testing and integration testing
     * The Criterion unit-testing framework is used to unit-test base-level
-      structs and associated functions and my own custom testing framework is
-      used to run integration tests on the complete `G2ME` binary.
+      structs and associated functions and my own custom Python testing
+      framework is used to run integration tests on the complete `G2ME` binary.
 
 
 ## Installation, Running, Testing
