@@ -18,5 +18,6 @@ int make_dir(const char *);
 void clear_file(char *);
 char *extend_path(const char *, const char *);
 char *extend_path2(const char *, const char *, const char *);
+int copy_file(const char *, const char *);
 
 #endif

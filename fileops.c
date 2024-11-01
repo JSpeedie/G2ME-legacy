@@ -232,3 +232,58 @@ char *extend_path2(const char *root, const char *ext1, const char *ext2) {
 
 	return path;
 }
+
+
+/* NOTE: the function below is an inefficient implementation of the functionality
+ * of copying one file to another destination. You can google it to do more research,
+ * but most operating systems have support for more sophisticated "copy-on-write"
+ * functionality, copies done exclusively in kernel mode, and so on. Basically,
+ * if performance is a big concern, don't use the function below and do more
+ * research. If you just need some basic file copying functionality and fork()
+ * -> exec()ing 'cp' will be less efficient (because you're copying small files)
+ *  then feel free to use the function below.
+ */
+/** Takes 2 file paths and copies the contents of the file pointed to
+ * by the first path to the location pointed to by the second path.
+ *
+ * \param '*src_path' the file path for the file that will be copied.
+ * \param '*dest_path' the file path where we want the file copied to.
+ * \return a negative integer upon an error, 0 on success.
+ */
+int copy_file(const char *src_path, const char *dest_path) {
+	/* Open the file, checking for error */
+	FILE *src = fopen(src_path, "rb");
+	if (src == NULL) return - 1;
+	FILE *dest = fopen(dest_path, "w");
+	if (dest== NULL) {
+		fclose(src);
+		return - 1;
+	}
+
+	/* Create a buffer of 8192 chars, every byte initialized to 0 */
+	size_t num_bytes = 8192;
+	char *buf = calloc(num_bytes, sizeof(char));
+	if (buf == NULL) {
+		fclose(src);
+		fclose(dest);
+		return -1;
+	}
+
+	size_t bytes_read = 0;
+
+	/* Read 'num_bytes' of the source file ... */
+	while (0 < (bytes_read = fread(buf, 1, num_bytes, src))) {
+		/* And write them to the destination file */
+		if (bytes_read != fwrite(buf, 1, bytes_read, dest)) {
+			fclose(src);
+			fclose(dest);
+			free(buf);
+			return -1;
+		}
+	}
+
+	fclose(src);
+	fclose(dest);
+	free(buf);
+	return 0;
+}
