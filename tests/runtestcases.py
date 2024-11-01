@@ -1,3 +1,4 @@
+import difflib
 import filecmp
 import os
 import subprocess
@@ -30,8 +31,9 @@ class Test():
                                 stdout=subprocess.DEVNULL,
                                 stderr=subprocess.STDOUT)
             if ret != 0:
-                print("ERROR: the script was unable to successfully execute " +
-                    "all the setup commands for the test. Exiting test...");
+                print(f"ERROR: Test \"{self.test_name}\" was unable to " +
+                    "successfully execute all its setup commands. " +
+                    "Exiting test...");
                 return False
 
         return True
@@ -48,8 +50,9 @@ class Test():
             return (passes, fails)
 
         # Create Path vars for the produced and expected output
-        produced = str(produced_output_dir / self.test_name)
-        expected = str(expected_output_dir / self.test_name)
+        produced = produced_output_dir / self.test_name
+        expected = expected_output_dir / self.test_name
+        produced_str = str(produced)
         # Construct the test command
         cmd = []
         cmd.extend(self.test_cmd.split(" "))
@@ -62,40 +65,57 @@ class Test():
         # file for comparison
         if self.redirect:
             if self.log_file != None:
-                print("[{}]: ".format(datetime.now()), end="", file=self.log_file)
+                print("[{}]: ".format(datetime.now()), end="",
+                      file=self.log_file)
                 print("{}: ".format(self.test_name), end="", file=self.log_file)
-                print(f"Executing test command \"{self.test_cmd}\", saving output to \"{produced}\"", file=self.log_file)
+                print(f"Executing test command \"{self.test_cmd}\", " +
+                      f"saving output to \"{produced_str}\"",
+                      file=self.log_file)
             # Call command, sending output to the dedicated command output file
-            stdout_file = open(produced, 'w')
+            stdout_file = open(produced_str, 'w')
             subprocess_stdout = stdout_file
         else:
-            cmd.extend(produced.split(" "))
+            cmd.extend(produced_str.split(" "))
             if self.log_file != None:
-                print("[{}]: ".format(datetime.now()), end="", file=self.log_file)
-                print("{}: ".format(self.test_name), end="", file=self.log_file)
-                print(f"Executing test command \"{self.test_cmd} {produced}\"", file=self.log_file)
+                print("[{}]: ".format(datetime.now()), end="",
+                      file=self.log_file)
+                print("{}: ".format(self.test_name), end="",
+                      file=self.log_file)
+                print("Executing test command " +
+                      f"\"{self.test_cmd} {produced_str}\"", file=self.log_file)
 
         # Run the test command
         ret = subprocess.call(cmd,
                               stdout=subprocess_stdout,
                               stderr=subprocess.DEVNULL)
         if ret != 0:
-            print("ERROR: the script was unable to successfully execute " +
-                "the test command. Exiting test...");
+            print(f"ERROR: Test \"{self.test_name}\" was unable to " +
+                "successfully execute the test command. " +
+                "Exiting test...");
             if self.log_file != None:
-                print("[{}]: ".format(datetime.now()), end="", file=self.log_file)
+                print("[{}]: ".format(datetime.now()), end="",
+                      file=self.log_file)
                 print("{}: ".format(self.test_name), end="", file=self.log_file)
-                print(f"ERROR: failure experienced when executing test command.", file=self.log_file)
+                print(f"ERROR: failure experienced when executing test " +
+                      "command.", file=self.log_file)
             return (passes, fails)
 
         # Compare the output from the test command to the expected output
-        test_result = filecmp.cmp(produced, expected, shallow=False)
-        if test_result:
+        # cmp_result = filecmp.cmp(produced, expected, shallow=False)
+
+        # Get the produced output from the test and the expected output, and
+        # remove OS specific symbols
+        produced_content = produced.read_text().replace('\r', '');
+        expected_content = expected.read_text().replace('\r', '');
+        # Compare the output from the test command to the expected output
+        cmp_result = (produced_content == expected_content)
+        if cmp_result:
             passes += 1
         else:
             fails += 1
             if self.log_file != None:
-                print("[{}]: ".format(datetime.now()), end="", file=self.log_file)
+                print("[{}]: ".format(datetime.now()), end="",
+                      file=self.log_file)
                 print("{}: ".format(self.test_name), end="", file=self.log_file)
                 print(f"test failed.", file=self.log_file)
 
@@ -118,9 +138,24 @@ def run_test_list(tests: [Test]) -> (int, int):
             print("E")
             print(f"Files \"{produced_output_dir}/{t.test_name}\" and " +
                   f"\"{expected_output_dir}/{t.test_name}\" differ")
-            # TODO: ? not sure how to diff the files from python, diff won't
-            # be available on windows environments?
-            # diff -U 0 ${PRODUCED_OUTPUT}/${testname} ${EXPECTED_OUTPUT}/${testname} | tail -n +4
+
+            # If the actual output differed from the expected output
+            # then diff the two outputs
+            produced = produced_output_dir / t.test_name
+            produced_content_for_diff = \
+                produced.read_text().replace('\r', '').splitlines()
+            expected = expected_output_dir / t.test_name
+            expected_content_for_diff = \
+                expected.read_text().replace('\r', '').splitlines()
+
+            # Print out a diff of the two files
+            for line in difflib.unified_diff(produced_content_for_diff,
+                                                expected_content_for_diff,
+                                                fromfile=str(produced),
+                                                tofile=str(expected),
+                                                lineterm='',
+                                                n=0):
+                print(line)
 
         list_total_passes += passes
         list_total_fails += fails
