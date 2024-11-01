@@ -17,7 +17,7 @@ WCC32 = i686-w64-mingw32-gcc
 WCC64 = x86_64-w64-mingw32-gcc
 
 G2MEDEP = glicko2.c entry.c p_files.c pr.c opp_files.c tournament_files.c printing.c \
-	fileops.c sorting.c player_dir.c
+	fileops.c sorting.c player_dir.c data_dir.c
 G2MEOBJ = ${G2MEDEP:.c=.o}
 G2MESERVEROBJ = clientserverutil.o
 G2MECLIENTOBJ = clientserverutil.o
@@ -34,10 +34,12 @@ TESTDIR = tests
 TESTSRC = $(wildcard $(TESTDIR)/*.c)
 # TESTBIN = For all elements in '$(TESTSRC)' matching '$(TESTDIR)/%.c', add an element '$(TESTDIR)/bin/%'
 TESTBIN = $(patsubst $(TESTDIR)/%.c, $(TESTDIR)/bin/%, $(TESTSRC))
+# TESTBINLOCAL = For all elements in '$(TESTBIN)' matching '$(TESTDIR)/bin/%', add an element 'bin/%'
+TESTBINLOCAL = $(patsubst $(TESTDIR)/bin/%, bin/%, $(TESTBIN))
 # TESTOBJ = For all elements in '$(G2MEDEP)' matching '%.c', add an element '%.o'
 # TESTOBJ = $(patsubst %.c, %.o, $(G2MEDEP))
-TESTDEP = player_dir.c sorting.c fileops.c printing.c tournament_files.c \
-	opp_files.c p_files.c entry.c glicko2.c
+TESTDEP = player_dir.c data_dir.c sorting.c fileops.c printing.c \
+	tournament_files.c opp_files.c p_files.c entry.c glicko2.c
 
 # `compile` first because we want `make` to just compile the program, and the
 # default target is always the the first one that doesn't begin with "."
@@ -91,13 +93,20 @@ $(TESTDIR)/bin/player_tests: glicko2.c tests/player_tests.c
 $(TESTDIR)/bin/entry_tests: glicko2.c entry.c tests/entry_tests.c
 	$(CC) $(CFLAGS) $^ -lm -lcriterion -o $@
 
+$(TESTDIR)/bin/p_file_tests: p_files.o opp_files.o tournament_files.o entry.o player_dir.o data_dir.o glicko2.o fileops.o tests/p_file_tests.o
+	$(CC) $(CFLAGS) $^ -lm -lcriterion -o $@
+
 # $(TESTDIR)/bin/output_tests: G2ME.o $(G2MEOBJ) tests/output_tests.c
 $(TESTDIR)/bin/output_tests: G2ME.c $(G2MEOBJ) tests/output_tests.c
 	$(CC) $(CFLAGS) $^ $(INCS) $(G2MELIBS) -lcriterion -o $@
 
-test: compile $(TESTDIR)/bin $(TESTBIN)
+test: unit_test integration_test
+
+unit_test: compile $(TESTDIR)/bin $(TESTBIN)
 	@echo "Running unit tests:"
-	@for test in $(TESTBIN); do ./$$test ; done
+	@cd tests && for test in $(TESTBINLOCAL); do echo "Running $$test"; ./$$test --verbose=1; done; cd ..
+
+integration_test: compile
 	@echo "Running integration tests:"
 	@cd tests && python3 runtestcases.py; cd ..
 
