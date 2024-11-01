@@ -6,11 +6,9 @@
 #include "../fileops.h"
 #include "../p_files.h"
 #include "../player_dir.h"
+#include "testing.h"
 
 
-static const char *DATA_DIR_EXPECTED_ROOT = "tests_expected";
-static const char *DATA_DIR_INPUT_ROOT = "tests_input";
-static const char *DATA_DIR_ACTUAL_ROOT = "tests_actual";
 const char *SUITE_EXT = "p_file_tests";
 
 
