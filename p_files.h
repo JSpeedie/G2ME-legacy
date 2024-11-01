@@ -14,11 +14,6 @@
 #define TOURN_LIST_REALLOC_INC 4
 
 
-/* Season file functions */
-short s_file_get_latest_season_id(void);
-int s_file_set_latest_season_id(int);
-
-
 int p_file_initialize(Entry *, const char *);
 
 

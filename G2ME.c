@@ -1579,11 +1579,11 @@ int run_single_bracket(char *bracket_file_path) {
 		}
 	}
 
-	short latest_season_id = s_file_get_latest_season_id();
+	short latest_season_id = s_file_get_latest_season_id(data_dir);
 	/* If the system has not seen any activity yet, update season id from
 	 * uninitialized -1 to safe 0 */
 	if (latest_season_id == -1) {
-		s_file_set_latest_season_id(latest_season_id + 1);
+		s_file_set_latest_season_id(data_dir, latest_season_id + 1);
 		latest_season_id = 0;
 	}
 	int ret = update_players(bracket_file_path, latest_season_id);
@@ -1619,7 +1619,7 @@ int run_brackets(char *bracket_list_file_path) {
 		return -1;
 	}
 
-	short latest_season_id = s_file_get_latest_season_id();
+	short latest_season_id = s_file_get_latest_season_id(data_dir);
 	char line[MAX_FILE_PATH_LEN + 2]; /* + 1 for \n and +1 for \0 */
 	int bracket_paths_size = SIZE_BRACKET_PATHS;
 	char *bracket_paths = \
@@ -1707,7 +1707,7 @@ int run_brackets(char *bracket_list_file_path) {
 		}
 		update_players(&bracket_paths[j * (MAX_FILE_PATH_LEN + 1)], \
 			latest_season_id + 1);
-		s_file_set_latest_season_id(latest_season_id + 1);
+		s_file_set_latest_season_id(data_dir, latest_season_id + 1);
 
 		if (silent == 0 && silent_all == 0) fprintf(stdout, "DONE\n");
 		/* small silent only affects the first following input flag.
