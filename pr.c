@@ -61,8 +61,9 @@ int append_pr_entry_to_file(struct entry *E, char *file_path, \
  * \param '*file_path' the file path for the pr file.
  * \return 0 upon success, negative number on failure.
  */
-int append_pr_entry_to_file_verbose(struct entry *E, \
-	char *file_path, int longest_name_length, int longest_attended_count, \
+int append_pr_entry_to_file_verbose(const char *player_dir, \
+	const char *data_dir_file_path, struct entry *E, char *file_path, \
+	int longest_name_length, int longest_attended_count, \
 	int longest_outcome_count, bool output_to_stdout) {
 
 	FILE *p_file;
@@ -77,10 +78,12 @@ int append_pr_entry_to_file_verbose(struct entry *E, \
 		p_file = stdout;
 	}
 
-	char *full_player_path = player_dir_file_path_with_player_dir(E->name);
+	char *full_player_path = player_dir_file_path_with_player_dir(player_dir, E->name);
 	int attended_count = p_file_get_events_attended_count(full_player_path);
 	int outcome_count = p_file_get_outcome_count(full_player_path);
-	double glicko_change = p_file_get_glicko_change_since_last_event(full_player_path);
+	double glicko_change = \
+		p_file_get_glicko_change_since_last_event(data_dir_file_path, \
+			full_player_path);
 	free(full_player_path);
 	char temp[OUTPUT_TEMP_LEN];
 	// TODO: fix magic number thing

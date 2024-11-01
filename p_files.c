@@ -17,14 +17,6 @@
 #include "p_files.h"
 #include "opp_files.h"
 #include "tournament_files.h"
-#include "player_dir.h"
-
-
-int p_file_read_start_from_file(char *, struct entry *);
-int p_file_get_outcome_count(char *);
-int p_file_get_events_attended_count(char *);
-char *p_file_get_events_attended(char *, int *);
-double p_file_get_glicko_change_since_last_event(char *);
 
 
 /* The number of bytes used to store an Entry in a player file.
@@ -58,6 +50,59 @@ void p_file_process_read_entry(Entry *E) {
 }
 
 
+/** Initializes a new, fresh player file at '*file_path' with the info contained
+ * in the struct entry '*E'.
+ *
+ * \param '*E' a struct entry containing the len_name, and name, of the player
+ *     we want to initialize a player file for.
+ * \param '*file_path' a file path to where we want the player file.
+ * \return 0 upon success, a negative integer upon failure.
+ */
+int p_file_initialize(Entry *E, const char *file_path) {
+	/* Open file for writing */
+	/* FILE *p_file = fopen(file_path, "wb+"); */
+	FILE *p_file = fopen(file_path, "w+b");
+	if (p_file == NULL) {
+		fprintf(stderr, "ERROR: p_file_initialize(): fopen(\"%s\"): %s\n", \
+			file_path, strerror(errno));
+		return -1;
+	}
+
+	int len_name = strlen(E->name);
+	if (1 != fwrite(&len_name, sizeof(char), 1, p_file)) {
+		fprintf(stderr, "ERROR: p_file_initialize(): fwrite(\"%s\"): %s\n", \
+			file_path, strerror(errno));
+		return -2;
+	}
+	if (strlen(E->name)
+		!= fwrite(E->name, sizeof(char), strlen(E->name), p_file)) {
+
+		fprintf(stderr, "Error initializing a player file \"%s\"" \
+			"(p_file_initialize): ", file_path);
+		perror("");
+		return -3;
+	}
+	/* Write the number of outcomes and tournaments attended this player has.
+	 * Since we initializing the player file, both values must be 0 */
+	unsigned long lzero = 0;
+	if (1 != fwrite(&lzero, sizeof(long), 1, p_file)) {
+		fprintf(stderr, "Error initializing a player file \"%s\"" \
+			"(p_file_initialize): ", file_path);
+		perror("");
+		return -4;
+	}
+	if (1 != fwrite(&lzero, sizeof(long), 1, p_file)) {
+		fprintf(stderr, "Error initializing a player file \"%s\"" \
+			"(p_file_initialize): ", file_path);
+		perror("");
+		return -5;
+	}
+	fclose(p_file);
+
+	return 0;
+}
+
+
 /** Reads contents of a player file to a struct entry. Returns 0 upon success,
  * and a negative number upon failure. Function expects that starter data
  * has already been passed and that the FILE is on an entry.
@@ -67,7 +112,9 @@ void p_file_process_read_entry(Entry *E) {
  *     copied to.
  * \return 0 upon success, or a negative number upon failure.
  */
-int p_file_open_read_entry(FILE *f, struct entry *E) {
+int p_file_open_read_entry(const char *data_dir_file_path, FILE *f, \
+	struct entry *E) {
+
 	// Read opponent name id
 	if (1 != fread(&E->opp_id, sizeof(short), 1, f)) { return -1; }
 	if (1 != fread(&E->rating, sizeof(double), 1, f)) { return -2; }
@@ -87,14 +134,14 @@ int p_file_open_read_entry(FILE *f, struct entry *E) {
 	/* Sets opp_name and len_opp_name of E to be according to opponent
 	 * name E->opp_id */
 	int r;
-	if (0 != (r = opp_file_get_name_from_id(E))) {
+	if (0 != (r = opp_file_get_name_from_id(data_dir_file_path, E))) {
 		fprintf(stderr, "Error (%d) on opp_file_get_name_from_id() " \
 			"searching for id (%d)\n", r, E->opp_id);
 		return -12;
 	}
 	/* Sets t_name and len_t_name of E to be according to tournament
 	 * name E->tournament_id */
-	if (0 != (r = t_file_get_tournament_name_from_id(E))) {
+	if (0 != (r = t_file_get_tournament_name_from_id(data_dir_file_path, E))) {
 		fprintf(stderr, "Error (%d) on entry_get_tournament_name_from_id() " \
 			"searching for id (%d)\n", r, E->tournament_id);
 		return -13;
@@ -114,7 +161,9 @@ int p_file_open_read_entry(FILE *f, struct entry *E) {
  *     read an entry that has the same opp_id as the one provided.
  * \return 0 upon success, or a negative number upon failure.
  */
-int p_file_open_read_next_opp_entry(FILE *f, struct entry *E, short opp_id) {
+int p_file_open_read_next_opp_entry(const char *data_dir_file_path, FILE *f, \
+	struct entry *E, short opp_id) {
+
 	/* Set to starter data. No opp_id will ever be negative, just starts
 	 * the loop */
 	if (1 != fread(&E->opp_id, sizeof(short), 1, f)) return -1;
@@ -144,13 +193,13 @@ int p_file_open_read_next_opp_entry(FILE *f, struct entry *E, short opp_id) {
 	/* Sets opp_name and len_opp_name of E to be according to opponent
 	 * name E->opp_id */
 	int r;
-	if (0 != (r = opp_file_get_name_from_id(E))) {
+	if (0 != (r = opp_file_get_name_from_id(data_dir_file_path, E))) {
 		perror("opp_file_get_name_from_id (read_entry)");
 		return -12;
 	}
 	/* Sets t_name and len_t_name of E to be according to tournament
 	 * name E->tournament_id */
-	if (0 != (r = t_file_get_tournament_name_from_id(E))) {
+	if (0 != (r = t_file_get_tournament_name_from_id(data_dir_file_path, E))) {
 		fprintf(stderr, "Error: t_file_get_tournament_name_from_id (%d)", r);
 		return -13;
 	}
@@ -200,8 +249,10 @@ int p_file_open_read_entry_minimal(FILE *f, struct entry *E) {
  * \param '*E' the struct entry to store an entry found in the file too
  * \return 0 upon success, or a negative number upon failure.
  */
-int p_file_open_read_entry_absent(FILE *f, struct entry *E) {
-	/* SKip over opp id */
+int p_file_open_read_entry_absent(const char *data_dir_file_path, FILE *f, \
+	struct entry *E) {
+
+	/* Skip over opp id */
 	if (0 != fseek(f, sizeof(short), SEEK_CUR)) { return -1; } //2
 	/* Read glicko2 data */
 	if (1 != fread(&E->rating, sizeof(double), 1, f)) { return -3; } //8 10
@@ -222,7 +273,7 @@ int p_file_open_read_entry_absent(FILE *f, struct entry *E) {
 	/* Sets t_name and len_t_name of E to be according to tournament
 	 * name E->tournament_id */
 	int r;
-	if (0 != (r = t_file_get_tournament_name_from_id(E))) {
+	if (0 != (r = t_file_get_tournament_name_from_id(data_dir_file_path, E))) {
 		fprintf(stderr, "Error: t_file_get_tournament_name_from_id (%d)", r);
 		return -13;
 	}
@@ -301,7 +352,9 @@ int p_file_open_position_for_appending_entry(FILE *f) {
  * \return a long representing the number of unique opponents in this player
  *     file.
  */
-long p_file_number_of_opponents(char *file_path, short **ret_opp_id_list) {
+long p_file_number_of_opponents(const char *data_dir_file_path, \
+	const char *file_path, short **ret_opp_id_list) {
+
 	int ret = 0;
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
@@ -315,7 +368,7 @@ long p_file_number_of_opponents(char *file_path, short **ret_opp_id_list) {
 
 	p_file_open_position_at_start_of_entries(p_file);
 	/* While the function is still able to read entries from the old file */
-	while (0 == p_file_open_read_entry(p_file, &E)) {
+	while (0 == p_file_open_read_entry(data_dir_file_path, p_file, &E)) {
 		char already_in = 0;
 		int i = 0;
 		for (i = 0; i < num_opp_ids; i++) {
@@ -355,7 +408,7 @@ long p_file_number_of_opponents(char *file_path, short **ret_opp_id_list) {
  * \return upon success, a positive integer representing the number
  *     of opponents this player has played.
  */
-long p_file_number_of_events(char *file_path) {
+long p_file_number_of_events(const char *file_path) {
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
 		perror("fopen (p_file_number_of_events)");
@@ -380,7 +433,9 @@ long p_file_number_of_events(char *file_path) {
  * \param '*file_path' the file path of the file to be read.
  * \return 0 upon success, or a negative number upon failure.
  */
-int p_file_get_number_of_entries(char *file_path) {
+int p_file_get_number_of_entries(const char *data_dir_file_path, \
+	const char *file_path) {
+
 	FILE *base_file = fopen(file_path, "rb");
 	if (base_file == NULL) {
 		perror("fopen (p_file_get_number_of_entries)");
@@ -395,7 +450,7 @@ int p_file_get_number_of_entries(char *file_path) {
 	struct entry *cur_entry = (struct entry *)malloc(sizeof(struct entry));
 	p_file_open_position_at_start_of_entries(base_file);
 	/* While the function is still able to read entries from the old file */
-	while (0 == p_file_open_read_entry(base_file, cur_entry)) {
+	while (0 == p_file_open_read_entry(data_dir_file_path, base_file, cur_entry)) {
 		entries++;
 	}
 	free(cur_entry);
@@ -412,7 +467,9 @@ int p_file_get_number_of_entries(char *file_path) {
  * \param '*player2' the file name (not path) of a player file
  * \return 0 upon success, or a negative number upon failure.
  */
-long p_file_get_number_of_outcomes_against(char *file_path, char *player2) {
+long p_file_get_number_of_outcomes_against(const char *data_dir_file_path, \
+	const char *file_path, char *player2) {
+
 	FILE *base_file = fopen(file_path, "rb");
 	if (base_file == NULL) {
 		perror("fopen (p_file_get_number_of_outcomes_against)");
@@ -424,7 +481,7 @@ long p_file_get_number_of_outcomes_against(char *file_path, char *player2) {
 	struct entry *cur_entry = (struct entry *)malloc(sizeof(struct entry));
 	p_file_open_position_at_start_of_entries(base_file);
 	/* While the function is still able to read entries from the old file */
-	while (0 == p_file_open_read_entry(base_file, cur_entry)) {
+	while (0 == p_file_open_read_entry(data_dir_file_path, base_file, cur_entry)) {
 		if (0 == strcmp(cur_entry->opp_name, player2)) {
 			entries++;
 		}
@@ -450,7 +507,8 @@ long p_file_get_number_of_outcomes_against(char *file_path, char *player2) {
  *     opp_id in this player file.
  * \return NULL upon failure, an array of longs (pointer) upon success.
  */
-long *p_file_get_all_number_of_outcomes_against(char *file_path, \
+long *p_file_get_all_number_of_outcomes_against( \
+	const char *data_dir_file_path, const char *file_path, \
 	long num_opp_ids, short *opp_id_list) {
 
 	FILE *base_file = fopen(file_path, "rb");
@@ -464,7 +522,7 @@ long *p_file_get_all_number_of_outcomes_against(char *file_path, \
 	struct entry E;
 	p_file_open_position_at_start_of_entries(base_file);
 	/* While the function is still able to read entries from the old file */
-	while (0 == p_file_open_read_entry(base_file, &E)) {
+	while (0 == p_file_open_read_entry(data_dir_file_path, base_file, &E)) {
 		int i = 0;
 		for (i = 0; i < num_opp_ids; i++) {
 			if (E.opp_id == opp_id_list[i]) {
@@ -486,7 +544,7 @@ long *p_file_get_all_number_of_outcomes_against(char *file_path, \
  * \return a long representing the offset within the file at which the last
  *     entry begins
  */
-long p_file_get_last_entry_offset(char *file_path) {
+long p_file_get_last_entry_offset(const char *file_path) {
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
 		perror("fopen (p_file_get_last_entry_offset)");
@@ -518,7 +576,9 @@ long p_file_get_last_entry_offset(char *file_path) {
  * \param '*ret' a struct entry pointer to have the data read into.
  * \return 0 upon success, a negative int upon failure.
  */
-int p_file_read_last_entry(char *file_path, struct entry *ret) {
+int p_file_read_last_entry(const char *data_dir_file_path, \
+	const char *file_path, struct entry *ret) {
+
 	/* Open files for reading contents */
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
@@ -536,7 +596,7 @@ int p_file_read_last_entry(char *file_path, struct entry *ret) {
 	fseek(p_file, -SIZE_OF_AN_ENTRY, SEEK_END);
 	/* If reading the last entry failed */
 	int r = 0;
-	if (0 != (r = p_file_open_read_entry(p_file, ret))) {
+	if (0 != (r = p_file_open_read_entry(data_dir_file_path, p_file, ret))) {
 		fprintf(stderr, "Error (%d) on p_file_open_read_entry()\n", r);
 		return -3;
 	}
@@ -555,7 +615,7 @@ int p_file_read_last_entry(char *file_path, struct entry *ret) {
  * \param '*ret' a struct entry pointer to have the data read into.
  * \return 0 upon success, a negative int upon failure.
  */
-int p_file_read_last_entry_minimal(char* file_path, struct entry *ret) {
+int p_file_read_last_entry_minimal(const char *file_path, struct entry *ret) {
 	/* Open files for reading contents */
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
@@ -582,7 +642,9 @@ int p_file_read_last_entry_minimal(char* file_path, struct entry *ret) {
  * \param '*ret' a struct entry pointer to have the data read into.
  * \return 0 upon success, a negative int upon failure.
  */
-int p_file_read_last_entry_absent(char* file_path, struct entry *ret) {
+int p_file_read_last_entry_absent(const char *data_dir_file_path, \
+	const char *file_path, struct entry *ret) {
+
 	/* Open files for reading contents */
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
@@ -593,7 +655,9 @@ int p_file_read_last_entry_absent(char* file_path, struct entry *ret) {
 
 	fseek(p_file, -SIZE_OF_AN_ENTRY, SEEK_END);
 	/* If reading the last entry failed */
-	if (0 != p_file_open_read_entry_absent(p_file, ret)) return -1;
+	if (0 != p_file_open_read_entry_absent(data_dir_file_path, p_file, ret)) {
+		return -1;
+	}
 	fclose(p_file);
 
 	return 0;
@@ -609,7 +673,9 @@ int p_file_read_last_entry_absent(char* file_path, struct entry *ret) {
  * \param '*ret' a struct entry pointer to have the data read into.
  * \return 0 upon success, a negative int upon failure.
  */
-int p_file_read_last_entry_tournament_id(char* file_path, struct entry *ret) {
+int p_file_read_last_entry_tournament_id(const char *file_path, \
+	struct entry *ret) {
+
 	/* Open files for reading contents */
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
@@ -657,7 +723,7 @@ int p_file_open_read_last_entry_tournament_id(FILE *f, struct entry *ret) {
  * \return int that is 0 upon the function succeeding and negative upon
  *     any sort of failure.
  */
-int p_file_append_adjustment_to_file_id(struct entry *E, char *file_path) {
+int p_file_append_adjustment_to_file_id(struct entry *E, const char *file_path) {
 	/* File guaranteed to exist as it was found by reading player
 	 * directory contents */
 
@@ -692,61 +758,6 @@ int p_file_append_adjustment_to_file_id(struct entry *E, char *file_path) {
 }
 
 
-/** Initializes a new, fresh player file at '*file_path' with the info contained
- * in the struct entry '*E'.
- *
- * \param '*E' a struct entry containing the len_name, and name, of the player
- *     we want to initialize a player file for.
- * \param '*file_path' a file path to where we want the player file.
- * \return 0 upon success, a negative integer upon failure.
- */
-int p_file_initialize(struct entry *E, char *file_path) {
-	/* Open file for writing */
-	/* FILE *p_file = fopen(file_path, "wb+"); */
-	FILE *p_file = fopen(file_path, "w+b");
-	if (p_file == NULL) {
-		fprintf(stderr, "Error initializing a player file \"%s\"" \
-			"(p_file_initialize): ", file_path);
-		perror("");
-		return -1;
-	}
-
-	int len_name = strlen(E->name);
-	if (1 != fwrite(&len_name, sizeof(char), 1, p_file)) {
-		fprintf(stderr, "Error initializing a player file \"%s\"" \
-			"(p_file_initialize): ", file_path);
-		perror("");
-		return -2;
-	}
-	if (strlen(E->name)
-		!= fwrite(E->name, sizeof(char), strlen(E->name), p_file)) {
-
-		fprintf(stderr, "Error initializing a player file \"%s\"" \
-			"(p_file_initialize): ", file_path);
-		perror("");
-		return -3;
-	}
-	/* Write the number of outcomes and tournaments attended this player has.
-	 * Since we initializing the player file, both values must be 0 */
-	unsigned long lzero = 0;
-	if (1 != fwrite(&lzero, sizeof(long), 1, p_file)) {
-		fprintf(stderr, "Error initializing a player file \"%s\"" \
-			"(p_file_initialize): ", file_path);
-		perror("");
-		return -4;
-	}
-	if (1 != fwrite(&lzero, sizeof(long), 1, p_file)) {
-		fprintf(stderr, "Error initializing a player file \"%s\"" \
-			"(p_file_initialize): ", file_path);
-		perror("");
-		return -5;
-	}
-	fclose(p_file);
-
-	return 0;
-}
-
-
 /** Appends an entry to a given player file and return an int representing
  * whether the function succeeded or not.
  *
@@ -758,7 +769,7 @@ int p_file_initialize(struct entry *E, char *file_path) {
  * \return int that is 0 upon the function succeeding and negative upon
  *     any sort of failure.
  */
-int p_file_append_entry_to_file_id(struct entry *E, char *file_path) {
+int p_file_append_entry_to_file_id(struct entry *E, const char *file_path) {
 	/* If the file did not exist */
 #ifdef __linux__
 	/* Check for read and write access */
@@ -934,7 +945,9 @@ int p_file_append_entry_to_file_id(struct entry *E, char *file_path) {
  * \return int that is 0 upon the function succeeding and negative upon
  *     any sort of failure.
  */
-int p_file_append_entry_to_file(struct entry *E, char *file_path) {
+int p_file_append_entry_to_file(struct entry *E, \
+	const char *data_dir_file_path, const char *file_path) {
+
 	/* If the file did not exist */
 #ifdef __linux__
 	char pfile_exists = access(file_path, R_OK) != -1;
@@ -960,10 +973,10 @@ int p_file_append_entry_to_file(struct entry *E, char *file_path) {
 
 	int ret;
 	/* If the opponent file does not already contain an id for this opponent */
-	if (-1 == (ret = opp_file_contains_opponent(E->opp_name))) {
+	if (-1 == (ret = opp_file_contains_opponent(data_dir_file_path, E->opp_name))) {
 		/* Add the new opponent to the opponent file. This also corrects
 		 * the opp_id if it is incorrect */
-		if (0 != (ret = opp_file_add_new_opponent(E))) {
+		if (0 != (ret = opp_file_add_new_opponent(data_dir_file_path, E))) {
 			fprintf(stderr, "Error (%d) on opp_file_add_new_opponent(E, %s)\n", ret, file_path);
 			return -7;
 		}
@@ -977,10 +990,10 @@ int p_file_append_entry_to_file(struct entry *E, char *file_path) {
 		E->opp_id = (unsigned short) ret;
 	}
 	/* If the tournament file does not already contain an id for this tournament */
-	if (-1 == (ret = t_file_contains_tournament(E->t_name))) {
+	if (-1 == (ret = t_file_contains_tournament(data_dir_file_path, E->t_name))) {
 		/* Add the new tournament to the tournament file. This also corrects
 		 * the t_id if it is incorrect */
-		if (0 != t_file_add_new_tournament(E)) return -9;
+		if (0 != t_file_add_new_tournament(data_dir_file_path, E)) return -9;
 	/* If there was an error */
 	} else if (ret < -1) {
 		return -10;
@@ -1071,7 +1084,7 @@ int p_file_append_entry_to_file(struct entry *E, char *file_path) {
  * \param '*file_path' the file path of the file to be read.
  * \return 0 upon success, or a negative number upon failure.
  */
-int p_file_read_start_from_file(char *file_path, struct entry *E) {
+int p_file_read_start_from_file(const char *file_path, struct entry *E) {
 	/* Open file for appending */
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
@@ -1121,7 +1134,7 @@ int p_file_open_read_start_from_file(FILE *f, struct entry *E) {
  * \return an integer representing whether the function succeeded or not.
  *     0 upon success, and a negative value upon failure.
  */
-int p_file_get_outcome_count(char *file_path) {
+int p_file_get_outcome_count(const char *file_path) {
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
 		perror("fopen (p_file_get_outcome_count)");
@@ -1185,7 +1198,7 @@ int p_file_open_get_outcome_count(FILE *f) {
  * \return an integer representing whether the function succeeded or not.
  *     0 upon success, and a negative value upon failure.
  */
-int p_file_get_events_attended_count(char *file_path) {
+int p_file_get_events_attended_count(const char *file_path) {
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
 		perror("fopen (p_file_get_events_attended_count)");
@@ -1217,7 +1230,9 @@ int p_file_get_events_attended_count(char *file_path) {
  *     tournaments attended by the player that MUST BE FREED LATER. Upon
  *     failure, it returns a pointer to NULL.
  */
-char *p_file_get_events_attended(char *file_path, int *ret_count) {
+char *p_file_get_events_attended(const char *data_dir_file_path, \
+	const char *file_path, int *ret_count) {
+
 	FILE *p_file = fopen(file_path, "rb");
 	if (p_file == NULL) {
 		perror("fopen (get_player_attended)");
@@ -1244,7 +1259,7 @@ char *p_file_get_events_attended(char *file_path, int *ret_count) {
 	fseek(p_file, 0, SEEK_SET);
 	p_file_open_position_at_start_of_entries(p_file);
 
-	while (p_file_open_read_entry(p_file, &cur_entry) == 0) {
+	while (p_file_open_read_entry(data_dir_file_path, p_file, &cur_entry) == 0) {
 		in_tourneys = 0;
 		/* Check if the tournament that entry was from
 		 * is already in the array */
@@ -1286,7 +1301,8 @@ char *p_file_get_events_attended(char *file_path, int *ret_count) {
  * \return a double representing the change in rating since the last tournament
  *     this player attended.
  */
-double p_file_get_glicko_change_since_last_event(char* file_path) {
+double p_file_get_glicko_change_since_last_event( \
+	const char *data_dir_file_path, const char *file_path) {
 
 	double ret = 0;
 	struct entry last_entry;
@@ -1295,7 +1311,9 @@ double p_file_get_glicko_change_since_last_event(char* file_path) {
 	 * been to one event, this function returns the right value */
 	last_entry.rating = DEF_RATING;
 
-	if (0 != p_file_read_last_entry(file_path, &actual_last)) return 0;
+	if (0 != p_file_read_last_entry(data_dir_file_path, file_path, &actual_last)) {
+		return 0;
+	}
 	ret = actual_last.rating - last_entry.rating;
 
 	FILE *p_file = fopen(file_path, "rb");
@@ -1317,7 +1335,7 @@ double p_file_get_glicko_change_since_last_event(char* file_path) {
 	if (0 != fseek(p_file, -2 * SIZE_OF_AN_ENTRY, SEEK_END)) return 0;
 
 	while (ftell(p_file) >= entries_begin \
-		&& 0 == p_file_open_read_entry(p_file, &last_entry) ) {
+		&& 0 == p_file_open_read_entry(data_dir_file_path, p_file, &last_entry) ) {
 		/* If it reads an entry has a different name and date to the last
 		 * tournament */
 		if (0 != strcmp(last_entry.t_name, actual_last.t_name)

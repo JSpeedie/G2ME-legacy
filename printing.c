@@ -16,6 +16,7 @@
 #include "p_files.h"
 #include "player_dir.h"
 #include "sorting.h"
+#include "printing.h"
 
 char NOTHING[] = { "" };
 char NORMAL[] = { "\x1B[0m" };
@@ -319,7 +320,9 @@ void print_entry_name(struct entry E, int longest_name, int longest_rating, \
  * \return 0 if the function succeeded and a negative number if there was
  *     a failure.
  */
-int print_player_file_verbose(char* file_path) {
+int print_player_file_verbose(const char *data_dir_file_path, \
+	const char *player_dir, char* file_path, int minimum_events) {
+
 	struct entry E;
 	p_file_read_start_from_file(file_path, &E);
 
@@ -349,21 +352,21 @@ int print_player_file_verbose(char* file_path) {
 	fseek(p_file, 0, SEEK_SET);
 	p_file_open_position_at_start_of_entries(p_file);
 	/* Get the longest lengths of the parts of an entry in string form */
-	while (p_file_open_read_entry(p_file, &E) == 0) {
+	while (p_file_open_read_entry(data_dir_file_path, p_file, &E) == 0) {
 		char count_entry = 1;
 		/* If a minimum event filter was set */
-		if (pr_minimum_events > 0) {
+		if (minimum_events > 0) {
 			/* RD-adjustments will not meet minimum event requirements */
 			if (E.is_competitor == 0) count_entry = 0;
 			else {
 				char *full_player_path = \
-					player_dir_file_path_with_player_dir(E.opp_name);
+					player_dir_file_path_with_player_dir(player_dir, E.opp_name);
 				int attended_count = \
 					p_file_get_events_attended_count(full_player_path);
 				free(full_player_path);
 
 				/* If the opponent in this entry doesn't pass the filter */
-				if (attended_count < pr_minimum_events) count_entry = 0;
+				if (attended_count < minimum_events) count_entry = 0;
 			}
 		}
 
@@ -440,22 +443,22 @@ int print_player_file_verbose(char* file_path) {
 	fseek(p_file, 0, SEEK_SET);
 	p_file_open_position_at_start_of_entries(p_file);
 
-	while (p_file_open_read_entry(p_file, &E) == 0) {
+	while (p_file_open_read_entry(data_dir_file_path, p_file, &E) == 0) {
 		char print = 1;
 
 		/* If a minimum event filter was set */
-		if (pr_minimum_events > 0) {
+		if (minimum_events > 0) {
 			/* RD-adjustments will not meet minimum event requirements */
 			if (E.is_competitor == 0) print = 0;
 			else {
 				char *full_player_path = \
-					player_dir_file_path_with_player_dir(E.opp_name);
+					player_dir_file_path_with_player_dir(player_dir, E.opp_name);
 				int attended_count = \
 					p_file_get_events_attended_count(full_player_path);
 				free(full_player_path);
 
 				/* If the opponent in this entry doesn't pass the filter */
-				if (attended_count < pr_minimum_events) print = 0;
+				if (attended_count < minimum_events) print = 0;
 			}
 		}
 
@@ -515,7 +518,9 @@ int print_player_file_verbose(char* file_path) {
  * \return 0 if the function succeeded and a negative number if there was
  *     a failure.
  */
-int print_player_file(char* file_path) {
+int print_player_file(const char *data_dir_file_path, const char *player_dir, \
+	const char *file_path, int minimum_events) {
+
 	struct entry E;
 	p_file_read_start_from_file(file_path, &E);
 
@@ -541,21 +546,21 @@ int print_player_file(char* file_path) {
 	fseek(p_file, 0, SEEK_SET);
 	p_file_open_position_at_start_of_entries(p_file);
 	/* Get the longest lengths of the parts of an entry in string form */
-	while (p_file_open_read_entry(p_file, &E) == 0) {
+	while (p_file_open_read_entry(data_dir_file_path, p_file, &E) == 0) {
 		char count_entry = 1;
 		/* If a minimum event filter was set */
-		if (pr_minimum_events > 0) {
+		if (minimum_events > 0) {
 			/* RD-adjustments will not meet minimum event requirements */
 			if (E.is_competitor == 0) count_entry = 0;
 			else {
 				char *full_player_path = \
-					player_dir_file_path_with_player_dir(E.opp_name);
+					player_dir_file_path_with_player_dir(player_dir, E.opp_name);
 				int attended_count = \
 					p_file_get_events_attended_count(full_player_path);
 				free(full_player_path);
 
 				/* If the opponent in this entry doesn't pass the filter */
-				if (attended_count < pr_minimum_events) count_entry = 0;
+				if (attended_count < minimum_events) count_entry = 0;
 			}
 		}
 
@@ -621,22 +626,22 @@ int print_player_file(char* file_path) {
 	fseek(p_file, 0, SEEK_SET);
 	p_file_open_position_at_start_of_entries(p_file);
 
-	while (p_file_open_read_entry(p_file, &E) == 0) {
+	while (p_file_open_read_entry(data_dir_file_path, p_file, &E) == 0) {
 		char print = 1;
 
 		/* If a minimum event filter was set */
-		if (pr_minimum_events > 0) {
+		if (minimum_events > 0) {
 			/* RD-adjustments will not meet minimum event requirements */
 			if (E.is_competitor == 0) print = 0;
 			else {
 				char *full_player_path = \
-					player_dir_file_path_with_player_dir(E.opp_name);
+					player_dir_file_path_with_player_dir(player_dir, E.opp_name);
 				int attended_count = \
 					p_file_get_events_attended_count(full_player_path);
 				free(full_player_path);
 
 				/* If the opponent in this entry doesn't pass the filter */
-				if (attended_count < pr_minimum_events) print = 0;
+				if (attended_count < minimum_events) print = 0;
 			}
 		}
 
@@ -698,7 +703,9 @@ int print_player_file(char* file_path) {
 // TODO: divide function into 3 subfunctions, player_passes_filters,
 //       one that gets the array of records, and one that prints the records
 // TODO: improve efficiency for checking players pass filters
-int print_player_records(char *file_path) {
+int print_player_records(const char *player_dir, char *file_path, \
+	int minimum_events) {
+
 	/* Get all records and sort them alphabetically */
 	long num_rec = 0;
 	// TODO: add filter to get_all_records, array indexed by opp_id,
@@ -728,9 +735,9 @@ int print_player_records(char *file_path) {
 			} else {
 				/* No need to retrieve attended_count if the minimum
 				 * criteria is zero */
-				if (pr_minimum_events != 0) {
+				if (minimum_events != 0) {
 					char *full_player_path = \
-						player_dir_file_path_with_player_dir( \
+						player_dir_file_path_with_player_dir(player_dir, \
 							records[i].opp_name);
 					attended_count = \
 						p_file_get_events_attended_count(full_player_path);
@@ -741,7 +748,7 @@ int print_player_records(char *file_path) {
 			continue;
 		}
 
-		if (attended_count >= pr_minimum_events) {
+		if (attended_count >= minimum_events) {
 			passes_filter = 1;
 			/* Filter players to be the ones in the given '-f' flag file */
 			if (f_flag_used == 1) {
@@ -861,12 +868,13 @@ void print_player_attended(char *attended, int count) {
  *
  * \return a negative integer upon failure, and 0 upon success.
  */
-int print_matchup_table(void) {
+int print_matchup_table(const char *data_dir_file_path, int minimum_events) {
 	int space_between_columns = 3;
 	/* Get the number of players and the names of all players in the system */
 	short num_players;
 	char *players = \
-		opp_file_get_all_opponent_names(EXCLUDE_RD_ADJ, &num_players);
+		opp_file_get_all_opponent_names(data_dir_file_path, EXCLUDE_RD_ADJ, \
+			&num_players);
 	if (players == NULL) {
 		fprintf(stderr, \
 			"opp_file_get_all_opponent_names (print_matchup_table)");
@@ -887,7 +895,7 @@ int print_matchup_table(void) {
 	}
 
 	/* Filter players so that it keeps only those that pass the  '-m' flag */
-	if (pr_minimum_events > 0) {
+	if (minimum_events > 0) {
 		int ret = 0;
 		if (0 != (ret = \
 			filter_player_list_min_events(&players, &num_players))) {
@@ -1068,11 +1076,14 @@ int add_to_line(char *s, long *line_length, long *line_size, char **ret) {
  *
  * \return a negative integer upon failure, and 0 upon success.
  */
-int print_matchup_table_csv(void) {
+int print_matchup_table_csv(const char *data_dir_file_path, \
+	int minimum_events) {
+
 	/* Get the number of players and the names of all players in the system */
 	short num_players;
 	char *players = \
-		opp_file_get_all_opponent_names(EXCLUDE_RD_ADJ, &num_players);
+		opp_file_get_all_opponent_names(data_dir_file_path, EXCLUDE_RD_ADJ, \
+			&num_players);
 	if (players == NULL) {
 		fprintf(stderr, \
 			"Error: print_matchup_table_csv(): " \
@@ -1095,7 +1106,7 @@ int print_matchup_table_csv(void) {
 	}
 
 	/* Filter players so that it keeps only those that pass the  '-m' flag */
-	if (pr_minimum_events > 0) {
+	if (minimum_events > 0) {
 		int ret = 0;
 		if (0 != (ret = \
 			filter_player_list_min_events(&players, &num_players))) {

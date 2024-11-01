@@ -4,7 +4,6 @@
 #endif
 /* Non-windows includes */
 #include <dirent.h>
-#include <errno.h>
 #include <getopt.h>
 #include <libgen.h>
 #include <math.h>
@@ -14,9 +13,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-#include "G2ME.h"
-#include "player_dir.h"
+/* Local Includes */
+#include "entry.h"
+#include "data_dir.h"
 
 
 /** Takes an tournaments name and returns an int representing whether it
@@ -28,8 +27,8 @@
  *     If the tournament of the given name was found, its id is returned as the
  *     return value.
  */
-int t_file_contains_tournament(char *t_name) {
-	char *full_t_file_path = data_dir_file_path_t_file();
+int t_file_contains_tournament(const char *data_dir_file_path, char *t_name) {
+	char *full_t_file_path = data_dir_file_path_t_file(data_dir_file_path);
 
 	FILE* t_file = fopen(full_t_file_path, "rb+");
 	if (t_file == NULL) {
@@ -124,9 +123,8 @@ int write_new_t_name(struct entry *E, FILE *f) {
  * \return integer representing whether the function failed or succeeded.
  *     It will return < 0 if the function failed, and 0 if it succeeded.
  */
-int t_file_add_new_tournament(struct entry *E) {
-#ifdef _WIN32
-	char *full_t_file_path = data_dir_file_path_t_file();
+int t_file_add_new_tournament(const char *data_dir_file_path, struct entry *E) {
+	char *full_t_file_path = data_dir_file_path_t_file(data_dir_file_path);
 
 	FILE *t_file = fopen(full_t_file_path, "rb");
 	if (t_file == NULL) {
@@ -143,33 +141,11 @@ int t_file_add_new_tournament(struct entry *E) {
 	close(r);
 	unlink(new_file_name);
 
-	FILE *new_file = fopen(new_file_name, "wb+");
-	if (new_file == NULL) {
-		fprintf(stderr, \
-			"Error: t_file_add_new_tournament(): " \
-			"opening file \"%s\": ", \
-			new_file_name);
-		perror("");
-		return -2;
-	}
+// TODO: may need to modify the lines of code above for windows
+#ifdef _WIN32
 /* If compiling on macOS or Linux */
 #else
-	char *full_t_file_path = data_dir_file_path_t_file();
-
-	FILE *t_file = fopen(full_t_file_path, "rb");
-	if (t_file == NULL) {
-		fprintf(stderr, \
-			"Error: t_file_add_new_tournament(): " \
-			"opening file \"%s\": ", \
-			full_t_file_path);
-		perror("");
-		return -1;
-	}
-
-	char new_file_name[] = { "tempG2MEXXXXXX\0" };
-	int r = mkstemp(new_file_name);
-	close(r);
-	unlink(new_file_name);
+#endif
 
 	FILE *new_file = fopen(new_file_name, "wb+");
 	if (new_file == NULL) {
@@ -180,7 +156,6 @@ int t_file_add_new_tournament(struct entry *E) {
 		perror("");
 		return -2;
 	}
-#endif
 	char zero = '\0';
 	unsigned short num_t;
 	char wrote_new_name = 0;
@@ -232,7 +207,7 @@ int t_file_add_new_tournament(struct entry *E) {
 	rename(new_file_name, full_t_file_path);
 	free(full_t_file_path);
 
-	char *full_t_id_file_path = data_dir_file_path_t_id_file();
+	char *full_t_id_file_path = data_dir_file_path_t_id_file(data_dir_file_path);
 	FILE *t_id_file = fopen(full_t_id_file_path, "rb+");
 	if (t_id_file == NULL) {
 		fprintf(stderr, \
@@ -267,9 +242,11 @@ int t_file_add_new_tournament(struct entry *E) {
  *     the name, if this function is successful.
  * \return 0 upon success, and a negative value if there was an error.
  */
-int t_file_get_tournament_name_from_id(struct entry *E) {
+int t_file_get_tournament_name_from_id(const char *data_dir_file_path, \
+	struct entry *E) {
 
-	char *full_t_id_file_path = data_dir_file_path_t_id_file();
+	char *full_t_id_file_path = \
+		data_dir_file_path_t_id_file(data_dir_file_path);
 	FILE* t_id_file = fopen(full_t_id_file_path, "rb+");
 	if (t_id_file == NULL) {
 		fprintf(stderr, \
@@ -316,9 +293,10 @@ int t_file_get_tournament_name_from_id(struct entry *E) {
  * \return non-negative number upon success (the tournament's id), -1 if the
  *     name could not be found, and < -1 if there was an error.
  */
-int t_file_get_tournament_id_from_name(struct entry *E) {
+int t_file_get_tournament_id_from_name(const char *data_dir_file_path, \
+	struct entry *E) {
 
-	char *full_t_file_path = data_dir_file_path_t_file();
+	char *full_t_file_path = data_dir_file_path_t_file(data_dir_file_path);
 	FILE* t_file = fopen(full_t_file_path, "rb+");
 	if (t_file == NULL) {
 		fprintf(stderr, \
@@ -386,9 +364,10 @@ int t_file_get_tournament_id_from_name(struct entry *E) {
  * \return number >= -1 upon success (the most recent season id),
  *     and < -2 if there was an error.
  */
-short s_file_get_latest_season_id(void) {
+short s_file_get_latest_season_id(const char *data_dir_file_path) {
 
-	char *full_season_file_path = data_dir_file_path_season_file();
+	char *full_season_file_path = \
+		data_dir_file_path_season_file(data_dir_file_path);
 	FILE* s_file = fopen(full_season_file_path, "rb+");
 	if (s_file == NULL) {
 		fprintf(stderr, \
@@ -411,9 +390,10 @@ short s_file_get_latest_season_id(void) {
  *
  * \return 0 upon success, a negative number if there was an error.
  */
-int s_file_set_latest_season_id(int new_s_id) {
+int s_file_set_latest_season_id(const char *data_dir_file_path, int new_s_id) {
 
-	char *full_season_file_path = data_dir_file_path_season_file();
+	char *full_season_file_path = \
+		data_dir_file_path_season_file(data_dir_file_path);
 	FILE* s_file = fopen(full_season_file_path, "rb+");
 	if (s_file == NULL) {
 		fprintf(stderr, \

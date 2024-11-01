@@ -22,9 +22,9 @@ void print_entry(struct entry);
 void print_entry_name_verbose(struct entry, int, \
 	int, int, int, int, int, int, int, int, int, int, int, int);
 void print_entry_name(struct entry, int, int, int, int, int, int, int);
-int print_player_file_verbose(char *);
-int print_player_file(char *);
-int print_player_records(char *);
+int print_player_file_verbose(const char *, const char *, char *, int);
+int print_player_file(const char *, const char *, const char *, int);
+int print_player_records(const char *, char *, int);
 void print_player_attended(char *, int);
-int print_matchup_table(void);
-int print_matchup_table_csv(void);
+int print_matchup_table(const char *, int);
+int print_matchup_table_csv(const char *, int);

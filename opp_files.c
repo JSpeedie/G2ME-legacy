@@ -15,7 +15,7 @@
 #include <unistd.h>
 
 #include "opp_files.h"
-#include "player_dir.h"
+#include "data_dir.h"
 
 
 /** Takes an open opp_file, and an  opponents name and returns an int
@@ -87,9 +87,10 @@ int opp_file_open_contains_opponent(FILE *f, char *opp_name) {
  *     It will return < 0 if the function failed, and opponent's id (>=0)
  *     if it succeeded.
  */
-int opp_file_contains_opponent(char *opp_name) {
+int opp_file_contains_opponent(const char *data_dir_file_path, \
+	const char *opp_name) {
 
-	char *full_opp_file_path = data_dir_file_path_opp_file();
+	char *full_opp_file_path = data_dir_file_path_opp_file(data_dir_file_path);
 
 	FILE* opp_file = fopen(full_opp_file_path, "rb+");
 	if (opp_file == NULL) {
@@ -187,9 +188,11 @@ int write_new_opp_name(struct entry *E, FILE *f) {
  * \return integer representing whether the function failed or succeeded.
  *     It will return < 0 if the function failed, and 0 if it succeeded.
  */
-int opp_file_add_new_opponent(struct entry *E) {
+int opp_file_add_new_opponent(const char *data_dir_file_path, \
+	struct entry *E) {
+
 #ifdef _WIN32
-	char *full_opp_file_path = data_dir_file_path_opp_file();
+	char *full_opp_file_path = data_dir_file_path_opp_file(data_dir_file_path);
 
 	FILE *opp_file = fopen(full_opp_file_path, "rb");
 	if (opp_file == NULL) {
@@ -217,7 +220,7 @@ int opp_file_add_new_opponent(struct entry *E) {
 	}
 /* If this is being compiled on macOS or Linux */
 #else
-	char *full_opp_file_path = data_dir_file_path_opp_file();
+	char *full_opp_file_path = data_dir_file_path_opp_file(data_dir_file_path);
 
 	FILE *opp_file = fopen(full_opp_file_path, "rb");
 	if (opp_file == NULL) {
@@ -294,7 +297,8 @@ int opp_file_add_new_opponent(struct entry *E) {
 	/* Copy temp file to original file path */
 	rename(new_file_name, full_opp_file_path);
 
-	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
+	char *full_opp_id_file_path = \
+		data_dir_file_path_opp_id_file(data_dir_file_path);
 	FILE *opp_id_file = fopen(full_opp_id_file_path, "rb+");
 	if (opp_id_file == NULL) {
 		fprintf(stderr, \
@@ -332,10 +336,12 @@ int opp_file_add_new_opponent(struct entry *E) {
  * \return integer representing whether the function failed or succeeded.
  *     It will return < 0 if the function failed, and 0 if it succeeded.
  */
-int opp_file_get_name_from_id(struct entry *E) {
+int opp_file_get_name_from_id(const char *data_dir_file_path, \
+	struct entry *E) {
 
 	int j = 0;
-	char *full_opp_id_file_path = data_dir_file_path_opp_id_file();
+	char *full_opp_id_file_path = \
+		data_dir_file_path_opp_id_file(data_dir_file_path);
 	FILE* opp_id_file = fopen(full_opp_id_file_path, "rb+");
 	if (opp_id_file == NULL) {
 		fprintf(stderr, \
@@ -382,9 +388,10 @@ int opp_file_get_name_from_id(struct entry *E) {
  * \return integer representing whether the function failed or succeeded.
  *     It will return < 0 if the function failed, and >= 0 if it succeeded.
  */
-int opp_file_get_id_from_name(struct entry *E) {
+int opp_file_get_id_from_name(const char *data_dir_file_path, \
+	struct entry *E) {
 
-	char *full_opp_file_path = data_dir_file_path_opp_file();
+	char *full_opp_file_path = data_dir_file_path_opp_file(data_dir_file_path);
 	FILE* opp_file = fopen(full_opp_file_path, "rb+");
 	if (opp_file == NULL) {
 		fprintf(stderr, \
@@ -458,9 +465,10 @@ int opp_file_get_id_from_name(struct entry *E) {
  * \return a positive integer representing the number of opponents in the
  *     system upon success, and a negative integer upon failure.
  */
-int opp_file_num_opponents(char exclude_rd_adj) {
+int opp_file_num_opponents(const char *data_dir_file_path, \
+	char exclude_rd_adj) {
 
-	char *full_opp_file_path = data_dir_file_path_opp_file();
+	char *full_opp_file_path = data_dir_file_path_opp_file(data_dir_file_path);
 	FILE* opp_file = fopen(full_opp_file_path, "rb+");
 	if (opp_file == NULL) {
 		fprintf(stderr, \
@@ -497,10 +505,10 @@ int opp_file_num_opponents(char exclude_rd_adj) {
  *     each containing the name of an opponent in the system. Returns NULL,
  *     upon failure.
  */
-char *opp_file_get_all_opponent_names(char exclude_rd_adj, \
-	short *ret_array_len) {
+char *opp_file_get_all_opponent_names(const char *data_dir_file_path, \
+	char exclude_rd_adj, short *ret_array_len) {
 
-	char *full_opp_file_path = data_dir_file_path_opp_file();
+	char *full_opp_file_path = data_dir_file_path_opp_file(data_dir_file_path);
 
 	FILE* opp_file = fopen(full_opp_file_path, "rb+");
 	if (opp_file == NULL) {

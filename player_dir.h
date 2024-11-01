@@ -1,13 +1,16 @@
-char *player_dir_file_path_with_player_dir(char *);
-char *data_dir_file_path_with_data_dir(char *);
-char *data_dir_file_path_opp_file(void);
-char *data_dir_file_path_opp_id_file(void);
-char *data_dir_file_path_t_file(void);
-char *data_dir_file_path_t_id_file(void);
-char *data_dir_file_path_season_file(void);
-int player_dir_reset_players(void);
-int data_dir_reset(void);
-int player_dir_check_and_create(void);
-int data_dir_check_and_create(void);
-char *player_dir_players_list(char *, int *, char);
-void player_dir_num_players(int *);
+#ifndef G2ME_PLAYER_DIR
+#define G2ME_PLAYER_DIR
+
+
+extern const char *DEFAULT_PLAYER_DIR;
+
+
+/* Player Dir functions */
+int player_dir_check_and_create(const char *);
+int player_dir_reset_players(const char *);
+void player_dir_num_players(const char *, int *);
+char *player_dir_players_list(const char *, const char *, char *, int *, \
+	char, int);
+char *player_dir_file_path_with_player_dir(const char *, const char *);
+
+#endif

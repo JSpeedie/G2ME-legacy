@@ -25,11 +25,7 @@ extern char colour_output;
 extern char f_flag_used;
 extern char verbose;
 extern char print_ties;
-extern char player_dir[MAX_FILE_PATH_LEN + 1];
-extern char data_dir[MAX_FILE_PATH_LEN + 1];
-extern int pr_minimum_events;
 extern char filter_file_path[MAX_FILE_PATH_LEN + 1];
-extern char DIR_TERMINATOR;
 
 typedef struct record {
 	char name[MAX_NAME_LEN + 1];
