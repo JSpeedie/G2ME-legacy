@@ -87,6 +87,7 @@ Test(p_file_tests, initializePlayerFile) {
 
 
 Test(p_file_tests, appendEntryToPlayerFile) {
+	/* {{{ */
 	/* Setup */
 	Entry E;
 	Player P;
@@ -175,6 +176,7 @@ Test(p_file_tests, appendEntryToPlayerFile) {
 
 	cr_expect_file_contents_eq(actual, expected, \
 		"Appending this entry to this player file should work.");
+	/* }}} */
 }
 
 
