@@ -17,14 +17,17 @@ int chars_needed_to_print_record_no_ties(struct record *);
 
 
 void print_player(struct player *);
-void print_entry_verbose(struct entry);
-void print_entry(struct entry);
+void print_entry_verbose(struct entry, bool);
+void print_entry(struct entry, bool);
 void print_entry_name_verbose(struct entry, int, \
-	int, int, int, int, int, int, int, int, int, int, int, int);
-void print_entry_name(struct entry, int, int, int, int, int, int, int);
-int print_player_file_verbose(const char *, const char *, char *, int);
-int print_player_file(const char *, const char *, const char *, int);
-int print_player_records(const char *, char *, int);
+	int, int, int, int, int, int, int, int, int, int, int, int, bool);
+void print_entry_name(struct entry, int, int, int, int, int, int, int, \
+	bool);
+int print_player_file_verbose(const char *, const char *, char *, int, \
+	g2me_state_t *);
+int print_player_file(const char *, const char *, const char *, int, \
+	g2me_state_t *);
+int print_player_records(const char *, char *, int, g2me_state_t *);
 void print_player_attended(char *, int);
-int print_matchup_table(const char *, int);
-int print_matchup_table_csv(const char *, int);
+int print_matchup_table(const char *, int, g2me_state_t *);
+int print_matchup_table_csv(const char *, int, g2me_state_t *);

@@ -1,6 +1,7 @@
 /* Non-windows includes */
 #include <dirent.h>
 #include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -151,13 +152,13 @@ void print_player(struct player *P) {
 
  * \param 'E' the struct entry to print
  */
-void print_entry_verbose(struct entry E) {
+void print_entry_verbose(struct entry E, bool colour_output) {
 	/* Process date data into one string */
 	char date[chars_needed_to_print_date(E.day, E.month, E.year) + 1];
 	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
 	char *output_colour = NOTHING;
 	char *reset_colour = NOTHING;
-	if (colour_output == 1) {
+	if (colour_output == true) {
 		/* If this player won against their opponent,
 		 * Set their opponent's name colour to green.
 		 * If they lost, to red, and if they tied, to yellow */
@@ -180,13 +181,13 @@ void print_entry_verbose(struct entry E) {
  *
  * \param 'E' the struct entry to print
  */
-void print_entry(struct entry E) {
+void print_entry(struct entry E, bool colour_output) {
 	/* Process date data into one string */
 	char date[chars_needed_to_print_date(E.day, E.month, E.year) + 1];
 	sprintf(date, "%d/%d/%d", E.day, E.month, E.year);
 	char *output_colour = NOTHING;
 	char *reset_colour = NOTHING;
-	if (colour_output == 1) {
+	if (colour_output == true) {
 		/* If this player won against their opponent,
 		 * Set their opponent's name colour to green.
 		 * If they lost, to red, and if they tied, to yellow */
@@ -217,7 +218,8 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 	int longest_opp_nl, int longest_opp_id, int longest_name, \
 	int longest_rating, int longest_RD, int longest_vol, \
 	int longest_gc, int longest_opp_gc, int longest_t_id, \
-	int longest_date, int longest_t_name, int longest_s_id) {
+	int longest_date, int longest_t_name, int longest_s_id, \
+	bool colour_output) {
 
 	/* Process date data into one string */
 	char date[chars_needed_to_print_date(E.day, E.month, E.year) + 1];
@@ -235,7 +237,7 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
 	char *output_colour = NOTHING;
 	char *tournament_colour = NOTHING;
 	char *reset_colour = NOTHING;
-	if (colour_output == 1) {
+	if (colour_output == true) {
 		/* If this player won against their opponent,
 		 * Set their opponent's name colour to green.
 		 * If they lost, to red, and if they tied, to yellow */
@@ -269,7 +271,7 @@ void print_entry_name_verbose(struct entry E, int longest_nl, \
  */
 void print_entry_name(struct entry E, int longest_name, int longest_rating, \
 	int longest_RD, int longest_vol, int longest_gc, int longest_opp_gc, \
-	int longest_date) {
+	int longest_date, bool colour_output) {
 
 	/* Process date data into one string */
 	char date[chars_needed_to_print_date(E.day, E.month, E.year) + 1];
@@ -287,7 +289,7 @@ void print_entry_name(struct entry E, int longest_name, int longest_rating, \
 	char *output_colour = NOTHING;
 	char *tournament_colour = NOTHING;
 	char *reset_colour = NOTHING;
-	if (colour_output == 1) {
+	if (colour_output == true) {
 		/* If this player won against their opponent,
 		 * Set their opponent's name colour to green.
 		 * If they lost, to red, and if they tied, to yellow */
@@ -321,7 +323,8 @@ void print_entry_name(struct entry E, int longest_name, int longest_rating, \
  *     a failure.
  */
 int print_player_file_verbose(const char *data_dir_file_path, \
-	const char *player_dir, char* file_path, int minimum_events) {
+	const char *player_dir, char* file_path, int minimum_events, \
+	g2me_state_t *state) {
 
 	struct entry E;
 	p_file_read_start_from_file(file_path, &E);
@@ -373,10 +376,10 @@ int print_player_file_verbose(const char *data_dir_file_path, \
 		char found_name = 1;
 		/* If a filter file was specified, and the entry passes the
 		 * minimum event filter */
-		if (f_flag_used == 1 && count_entry == 1) {
+		if (state->flags.f_flag_used == 1 && count_entry == 1) {
 			found_name = 0;
 
-			FILE *filter_file = fopen(filter_file_path, "r");
+			FILE *filter_file = fopen(state->flags.filter_file_path, "r");
 			if (filter_file == NULL) {
 				perror("fopen (print_player_file_verbose)");
 				return -1;
@@ -465,10 +468,10 @@ int print_player_file_verbose(const char *data_dir_file_path, \
 		char found_name = 1;
 		/* If a filter file was specified, and the entry passes the
 		 * minimum event filter */
-		if (f_flag_used == 1 && print == 1) {
+		if (state->flags.f_flag_used == 1 && print == 1) {
 			found_name = 0;
 
-			FILE *filter_file = fopen(filter_file_path, "r");
+			FILE *filter_file = fopen(state->flags.filter_file_path, "r");
 			if (filter_file == NULL) {
 				perror("fopen (print_player_file_verbose)");
 				return -1;
@@ -502,7 +505,7 @@ int print_player_file_verbose(const char *data_dir_file_path, \
 			print_entry_name_verbose(E, longest_nl, longest_opp_nl, \
 				longest_opp_id, longest_name, longest_rating, longest_RD, \
 				longest_vol, longest_gc, longest_opp_gc, longest_t_id, \
-				longest_date, longest_t_name, longest_s_id);
+				longest_date, longest_t_name, longest_s_id, state);
 		}
 	}
 
@@ -519,7 +522,7 @@ int print_player_file_verbose(const char *data_dir_file_path, \
  *     a failure.
  */
 int print_player_file(const char *data_dir_file_path, const char *player_dir, \
-	const char *file_path, int minimum_events) {
+	const char *file_path, int minimum_events, g2me_state_t *state) {
 
 	struct entry E;
 	p_file_read_start_from_file(file_path, &E);
@@ -567,10 +570,10 @@ int print_player_file(const char *data_dir_file_path, const char *player_dir, \
 		char found_name = 1;
 		/* If a filter file was specified, and the entry passes the
 		 * minimum event filter */
-		if (f_flag_used == 1 && count_entry == 1) {
+		if (state->flags.f_flag_used == 1 && count_entry == 1) {
 			found_name = 0;
 
-			FILE *filter_file = fopen(filter_file_path, "r");
+			FILE *filter_file = fopen(state->flags.filter_file_path, "r");
 			if (filter_file == NULL) {
 				perror("fopen (print_player_file)");
 				return -1;
@@ -648,10 +651,10 @@ int print_player_file(const char *data_dir_file_path, const char *player_dir, \
 		char found_name = 1;
 		/* If a filter file was specified, and the entry passes the
 		 * minimum event filter */
-		if (f_flag_used == 1 && print == 1) {
+		if (state->flags.f_flag_used == 1 && print == 1) {
 			found_name = 0;
 
-			FILE *filter_file = fopen(filter_file_path, "r");
+			FILE *filter_file = fopen(state->flags.filter_file_path, "r");
 			if (filter_file == NULL) {
 				perror("fopen (print_player_file_verbose)");
 				return -1;
@@ -683,7 +686,8 @@ int print_player_file(const char *data_dir_file_path, const char *player_dir, \
 
 		if (print == 1) {
 			print_entry_name(E, longest_name, longest_rating, longest_RD, \
-				longest_vol, longest_gc, longest_opp_gc, longest_date);
+				longest_vol, longest_gc, longest_opp_gc, longest_date, \
+				state->flags.colour_output);
 		}
 	}
 
@@ -704,7 +708,7 @@ int print_player_file(const char *data_dir_file_path, const char *player_dir, \
 //       one that gets the array of records, and one that prints the records
 // TODO: improve efficiency for checking players pass filters
 int print_player_records(const char *player_dir, char *file_path, \
-	int minimum_events) {
+	int minimum_events, g2me_state_t *state) {
 
 	/* Get all records and sort them alphabetically */
 	long num_rec = 0;
@@ -751,9 +755,9 @@ int print_player_records(const char *player_dir, char *file_path, \
 		if (attended_count >= minimum_events) {
 			passes_filter = 1;
 			/* Filter players to be the ones in the given '-f' flag file */
-			if (f_flag_used == 1) {
+			if (state->flags.f_flag_used == 1) {
 				passes_filter = 0;
-				FILE *filter_file = fopen(filter_file_path, "r");
+				FILE *filter_file = fopen(state->flags.filter_file_path, "r");
 				if (filter_file == NULL) {
 					perror("fopen (filter_player_list)");
 					return -1;
@@ -780,7 +784,7 @@ int print_player_records(const char *player_dir, char *file_path, \
 		if (passes_filter == 1) {
 			char* output_colour_player = NOTHING;
 			char* reset_colour_player = NOTHING;
-			if (colour_output == 1) {
+			if (state->flags.colour_output == 1) {
 				reset_colour_player = NORMAL;
 				// If the player has a winning record
 				if (records[i].wins > records[i].losses) {
@@ -810,12 +814,12 @@ int print_player_records(const char *player_dir, char *file_path, \
 				records[i].name, output_colour_player, records[i].opp_name, \
 				reset_colour_player, records[i].wins);
 			/* If the user wants ties to be printed */
-			if (print_ties == 1) {
+			if (state->flags.print_ties == 1) {
 				fprintf(stdout, "-%d", records[i].ties);
 			}
 			fprintf(stdout, "-%d", records[i].losses);
-			if (verbose == 1) {
-				if (colour_output == 1) {
+			if (state->flags.verbose == 1) {
+				if (state->flags.colour_output == 1) {
 					fprintf(stdout, " -> ");
 					for (int j = 0; records[i].last_outcomes[j] != '\0'; j++) {
 						if (records[i].last_outcomes[j] == 'W') {
@@ -868,7 +872,9 @@ void print_player_attended(char *attended, int count) {
  *
  * \return a negative integer upon failure, and 0 upon success.
  */
-int print_matchup_table(const char *data_dir_file_path, int minimum_events) {
+int print_matchup_table(const char *data_dir_file_path, int minimum_events, \
+	g2me_state_t *state) {
+
 	int space_between_columns = 3;
 	/* Get the number of players and the names of all players in the system */
 	short num_players;
@@ -882,10 +888,11 @@ int print_matchup_table(const char *data_dir_file_path, int minimum_events) {
 	}
 
 	/* Filter players to be the ones in the given '-f' flag file */
-	if (f_flag_used == 1) {
+	if (state->flags.f_flag_used == 1) {
 		int ret = 0;
 		if (0 != (ret = \
-			filter_player_list(&players, &num_players, filter_file_path))) {
+			filter_player_list(&players, &num_players, \
+				state->flags.filter_file_path))) {
 
 			fprintf(stderr, \
 				"filter_player_list (%d) (print_matchup_table)", \
@@ -898,7 +905,7 @@ int print_matchup_table(const char *data_dir_file_path, int minimum_events) {
 	if (minimum_events > 0) {
 		int ret = 0;
 		if (0 != (ret = \
-			filter_player_list_min_events(&players, &num_players))) {
+			filter_player_list_min_events(&players, &num_players, state))) {
 
 			fprintf(stderr, \
 				"filter_player_list_min_events (%d) (print_matchup_table)", \
@@ -944,7 +951,7 @@ int print_matchup_table(const char *data_dir_file_path, int minimum_events) {
 		for (int i = 0; i < num_players; i++) {
 			int record_length;
 
-			if (print_ties == 1) {
+			if (state->flags.print_ties == 1) {
 				record_length = chars_needed_to_print_record(&records[i][j]);
 			} else {
 				record_length = \
@@ -992,7 +999,7 @@ int print_matchup_table(const char *data_dir_file_path, int minimum_events) {
 			char col[longest_rec[j] + space_between_columns + 1];
 
 			/* If the user wants ties to be printed */
-			if (print_ties == 1) {
+			if (state->flags.print_ties == 1) {
 				 snprintf(col, sizeof(col), "%d-%d-%-*d", \
 				 	records[i][j].wins, \
 					records[i][j].ties, \
@@ -1077,7 +1084,7 @@ int add_to_line(char *s, long *line_length, long *line_size, char **ret) {
  * \return a negative integer upon failure, and 0 upon success.
  */
 int print_matchup_table_csv(const char *data_dir_file_path, \
-	int minimum_events) {
+	int minimum_events, g2me_state_t *state) {
 
 	/* Get the number of players and the names of all players in the system */
 	short num_players;
@@ -1092,10 +1099,11 @@ int print_matchup_table_csv(const char *data_dir_file_path, \
 	}
 
 	/* Filter players to be the ones in the given '-f' flag file */
-	if (f_flag_used == 1) {
+	if (state->flags.f_flag_used == 1) {
 		int ret = 0;
 		if (0 != (ret = \
-			filter_player_list(&players, &num_players, filter_file_path))) {
+			filter_player_list(&players, &num_players, \
+			state->flags.filter_file_path))) {
 
 			fprintf(stderr, \
 				"Error: print_matchup_table_csv(): " \
@@ -1109,7 +1117,7 @@ int print_matchup_table_csv(const char *data_dir_file_path, \
 	if (minimum_events > 0) {
 		int ret = 0;
 		if (0 != (ret = \
-			filter_player_list_min_events(&players, &num_players))) {
+			filter_player_list_min_events(&players, &num_players, state))) {
 
 			fprintf(stderr, \
 				"filter_player_list_min_events (%d) (print_matchup_table)", \
@@ -1161,7 +1169,7 @@ int print_matchup_table_csv(const char *data_dir_file_path, \
 			} else {
 				int record_length;
 
-				if (print_ties == 1) {
+				if (state->flags.print_ties == 1) {
 					record_length = chars_needed_to_print_record(&temp_rec);
 				} else {
 					record_length = \
@@ -1171,7 +1179,7 @@ int print_matchup_table_csv(const char *data_dir_file_path, \
 				char col[record_length + 1 + 1];
 
 				/* If the user wants ties to be printed */
-				if (print_ties == 1) {
+				if (state->flags.print_ties == 1) {
 					 snprintf(col, sizeof(col), "%d-%d-%d,", \
 						temp_rec.wins, temp_rec.ties, temp_rec.losses);
 				} else {

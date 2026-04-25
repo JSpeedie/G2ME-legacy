@@ -21,11 +21,26 @@
 #define MINIMUM_ADJ_BEFORE_FORK 24
 #define SIZE_ATTEN_HASHTABLE 128
 
-extern char colour_output;
-extern char f_flag_used;
-extern char verbose;
-extern char print_ties;
-extern char filter_file_path[MAX_FILE_PATH_LEN + 1];
+
+typedef struct g2me_flags {
+	char flag_output_to_stdout;
+	char silent;
+	char silent_all;
+	char verbose;
+	char use_games;
+	char keep_players;
+	int pr_minimum_events;
+	char colour_output;
+	char print_ties;
+	char calc_absent_players;
+	double flag_outcome_weight;
+	char f_flag_used;
+	char filter_file_path[MAX_FILE_PATH_LEN + 1];
+}g2me_flags_t;
+
+typedef struct g2me_state {
+	g2me_flags_t flags;
+}g2me_state_t;
 
 typedef struct record {
 	char name[MAX_NAME_LEN + 1];
@@ -54,20 +69,21 @@ int hashtable_reset();
 int init_record(struct record *);
 
 void update_player_on_outcome(short, char *, short, char *, struct player *, \
-	struct player *, char *, char *, char, char, short, short, char *, short);
+	struct player *, char *, char *, char, char, short, short, char *, short, \
+	g2me_state_t *);
 
 /* Adjustments */
 void adjust_absent_player(char *, char, char, short, short, char *);
 void adjust_absent_players_no_file(char, char, short, short, char *, int);
 
 /* Glicko2 number crunching functions */
-int update_players(char *, short);
-int run_single_bracket(char *);
-int run_brackets(char *);
+int update_players(char *, short, g2me_state_t *);
+int run_single_bracket(char *, g2me_state_t *);
+int run_brackets(char *, g2me_state_t *);
 
 /* Generate Ratings */
-int generate_ratings_file(char *, char *);
-int generate_ratings_file_full(char *);
+int generate_ratings_file(char *, char *, g2me_state_t *);
+int generate_ratings_file_full(char *, g2me_state_t *);
 
 /* Records */
 int get_record(char *, char *, struct record *);
@@ -76,6 +92,6 @@ struct record *get_all_records(char *, long *);
 /* Random helper functions */
 long longest_name(char *, int);
 int filter_player_list(char **, short *, char *);
-int filter_player_list_min_events(char **, short *);
+int filter_player_list_min_events(char **, short *, g2me_state_t *);
 
 #endif
