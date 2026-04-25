@@ -2505,23 +2505,11 @@ int main(int argc, char **argv) {
 					return -1;
 				}
 				if (state.flags.verbose == true) {
-					print_player_file_verbose( \
-						state.data.data_dir,  \
-						state.data.player_dir, \
-						full_player_path, \
-						state.flags.colour_output, \
-						state.flags.filter_by_filter_file, \
-						state.flags.filter_file_path, \
-						state.flags.min_events);
+					print_player_file_verbose(&(state.flags), &(state.data), \
+						full_player_path);
 				} else {
-					print_player_file( \
-						state.data.data_dir, \
-						state.data.player_dir, \
-						full_player_path, \
-						state.flags.colour_output, \
-						state.flags.filter_by_filter_file, \
-						state.flags.filter_file_path, \
-						state.flags.min_events);
+					print_player_file(&(state.flags), &(state.data), \
+						full_player_path);
 				}
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
@@ -2537,7 +2525,8 @@ int main(int argc, char **argv) {
 						"player directory\n", optarg);
 					return -1;
 				}
-				print_player_records(&state, full_player_path);
+				print_player_records(&(state.flags), &(state.data), \
+					full_player_path);
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		}
@@ -2574,7 +2563,7 @@ int main(int argc, char **argv) {
 				break;
 			case 'C':
 				if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
-					print_matchup_table_csv(&state);
+					print_matchup_table_csv(&(state.flags), &(state.data));
 					break;
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 			case 'e':
@@ -2597,7 +2586,7 @@ int main(int argc, char **argv) {
 				state.flags.min_events = atoi(optarg);
 				break;
 			case 'M':
-				print_matchup_table(&state);
+				print_matchup_table(&(state.flags), &(state.data));
 				break;
 			case 'n':
 				state.flags.colour_output = false;
