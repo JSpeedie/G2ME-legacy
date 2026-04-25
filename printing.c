@@ -376,7 +376,7 @@ int print_player_file_verbose(const char *data_dir_file_path, \
 		char found_name = 1;
 		/* If a filter file was specified, and the entry passes the
 		 * minimum event filter */
-		if (state->flags.f_flag_used == 1 && count_entry == 1) {
+		if (state->flags.filter_by_filter_file == true && count_entry == 1) {
 			found_name = 0;
 
 			FILE *filter_file = fopen(state->flags.filter_file_path, "r");
@@ -468,7 +468,7 @@ int print_player_file_verbose(const char *data_dir_file_path, \
 		char found_name = 1;
 		/* If a filter file was specified, and the entry passes the
 		 * minimum event filter */
-		if (state->flags.f_flag_used == 1 && print == 1) {
+		if (state->flags.filter_by_filter_file == true && print == 1) {
 			found_name = 0;
 
 			FILE *filter_file = fopen(state->flags.filter_file_path, "r");
@@ -570,7 +570,7 @@ int print_player_file(const char *data_dir_file_path, const char *player_dir, \
 		char found_name = 1;
 		/* If a filter file was specified, and the entry passes the
 		 * minimum event filter */
-		if (state->flags.f_flag_used == 1 && count_entry == 1) {
+		if (state->flags.filter_by_filter_file == true && count_entry == 1) {
 			found_name = 0;
 
 			FILE *filter_file = fopen(state->flags.filter_file_path, "r");
@@ -651,7 +651,7 @@ int print_player_file(const char *data_dir_file_path, const char *player_dir, \
 		char found_name = 1;
 		/* If a filter file was specified, and the entry passes the
 		 * minimum event filter */
-		if (state->flags.f_flag_used == 1 && print == 1) {
+		if (state->flags.filter_by_filter_file == true && print == 1) {
 			found_name = 0;
 
 			FILE *filter_file = fopen(state->flags.filter_file_path, "r");
@@ -755,7 +755,7 @@ int print_player_records(const char *player_dir, char *file_path, \
 		if (attended_count >= minimum_events) {
 			passes_filter = 1;
 			/* Filter players to be the ones in the given '-f' flag file */
-			if (state->flags.f_flag_used == 1) {
+			if (state->flags.filter_by_filter_file == true) {
 				passes_filter = 0;
 				FILE *filter_file = fopen(state->flags.filter_file_path, "r");
 				if (filter_file == NULL) {
@@ -784,7 +784,7 @@ int print_player_records(const char *player_dir, char *file_path, \
 		if (passes_filter == 1) {
 			char* output_colour_player = NOTHING;
 			char* reset_colour_player = NOTHING;
-			if (state->flags.colour_output == 1) {
+			if (state->flags.colour_output == true) {
 				reset_colour_player = NORMAL;
 				// If the player has a winning record
 				if (records[i].wins > records[i].losses) {
@@ -814,12 +814,12 @@ int print_player_records(const char *player_dir, char *file_path, \
 				records[i].name, output_colour_player, records[i].opp_name, \
 				reset_colour_player, records[i].wins);
 			/* If the user wants ties to be printed */
-			if (state->flags.print_ties == 1) {
+			if (state->flags.print_ties == true) {
 				fprintf(stdout, "-%d", records[i].ties);
 			}
 			fprintf(stdout, "-%d", records[i].losses);
-			if (state->flags.verbose == 1) {
-				if (state->flags.colour_output == 1) {
+			if (state->flags.verbose == true) {
+				if (state->flags.colour_output == true) {
 					fprintf(stdout, " -> ");
 					for (int j = 0; records[i].last_outcomes[j] != '\0'; j++) {
 						if (records[i].last_outcomes[j] == 'W') {
@@ -888,7 +888,7 @@ int print_matchup_table(const char *data_dir_file_path, int minimum_events, \
 	}
 
 	/* Filter players to be the ones in the given '-f' flag file */
-	if (state->flags.f_flag_used == 1) {
+	if (state->flags.filter_by_filter_file == true) {
 		int ret = 0;
 		if (0 != (ret = \
 			filter_player_list(&players, &num_players, \
@@ -951,7 +951,7 @@ int print_matchup_table(const char *data_dir_file_path, int minimum_events, \
 		for (int i = 0; i < num_players; i++) {
 			int record_length;
 
-			if (state->flags.print_ties == 1) {
+			if (state->flags.print_ties == true) {
 				record_length = chars_needed_to_print_record(&records[i][j]);
 			} else {
 				record_length = \
@@ -999,7 +999,7 @@ int print_matchup_table(const char *data_dir_file_path, int minimum_events, \
 			char col[longest_rec[j] + space_between_columns + 1];
 
 			/* If the user wants ties to be printed */
-			if (state->flags.print_ties == 1) {
+			if (state->flags.print_ties == true) {
 				 snprintf(col, sizeof(col), "%d-%d-%-*d", \
 				 	records[i][j].wins, \
 					records[i][j].ties, \
@@ -1099,7 +1099,7 @@ int print_matchup_table_csv(const char *data_dir_file_path, \
 	}
 
 	/* Filter players to be the ones in the given '-f' flag file */
-	if (state->flags.f_flag_used == 1) {
+	if (state->flags.filter_by_filter_file == true) {
 		int ret = 0;
 		if (0 != (ret = \
 			filter_player_list(&players, &num_players, \
@@ -1169,7 +1169,7 @@ int print_matchup_table_csv(const char *data_dir_file_path, \
 			} else {
 				int record_length;
 
-				if (state->flags.print_ties == 1) {
+				if (state->flags.print_ties == true) {
 					record_length = chars_needed_to_print_record(&temp_rec);
 				} else {
 					record_length = \
@@ -1179,7 +1179,7 @@ int print_matchup_table_csv(const char *data_dir_file_path, \
 				char col[record_length + 1 + 1];
 
 				/* If the user wants ties to be printed */
-				if (state->flags.print_ties == 1) {
+				if (state->flags.print_ties == true) {
 					 snprintf(col, sizeof(col), "%d-%d-%d,", \
 						temp_rec.wins, temp_rec.ties, temp_rec.losses);
 				} else {

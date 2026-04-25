@@ -55,18 +55,18 @@ int get_record(char *, char *, struct record *);
 struct record *get_all_records(char *, long *);
 
 void default_state(g2me_state_t *s) {
-	s->flags.flag_output_to_stdout = 0;
-	s->flags.silent = 0;
-	s->flags.silent_all = 0;
-	s->flags.verbose = 0;
-	s->flags.use_games = 0;
-	s->flags.keep_players = 0;
-	s->flags.pr_minimum_events = 0;
-	s->flags.colour_output = 1;
-	s->flags.print_ties = 1;
-	s->flags.calc_absent_players = 1;
-	s->flags.flag_outcome_weight = 1;
-	s->flags.f_flag_used = 0;
+	s->flags.output_to_stdout = false;
+	s->flags.silent = false;
+	s->flags.silent_all = false;
+	s->flags.verbose = false;
+	s->flags.use_games = false;
+	s->flags.keep_players = false;
+	s->flags.min_events = 0;
+	s->flags.colour_output = true;
+	s->flags.print_ties = true;
+	s->flags.calc_absent_players = true;
+	s->flags.outcome_weight = 1.0;
+	s->flags.filter_by_filter_file = false;
 }
 
 
@@ -447,9 +447,9 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
 
 	/* Adjust changes in glicko data based on weight of given game/set */
 	new_p1.__rating = \
-		p1->__rating + ((new_p1.__rating - p1->__rating) * state->flags.flag_outcome_weight);
-	new_p1.__rd = p1->__rd + ((new_p1.__rd - p1->__rd) * state->flags.flag_outcome_weight);
-	new_p1.vol = p1->vol + ((new_p1.vol - p1->vol) * state->flags.flag_outcome_weight);
+		p1->__rating + ((new_p1.__rating - p1->__rating) * state->flags.outcome_weight);
+	new_p1.__rd = p1->__rd + ((new_p1.__rd - p1->__rd) * state->flags.outcome_weight);
+	new_p1.vol = p1->vol + ((new_p1.vol - p1->vol) * state->flags.outcome_weight);
 
 	struct entry p1_new_entry =
 		create_entry(&new_p1, p1_name, p2_name, *p1_gc, *p2_gc, \
@@ -921,7 +921,7 @@ int update_players(char* bracket_file_path, short season_id, \
 			hashtable_insert(p2_name, p2_name_hash);
 		}
 
-		if (state->flags.calc_absent_players == 1) {
+		if (state->flags.calc_absent_players == true) {
 
 			//for (unsigned long i = 0; i < tourn_atten_len; i++) {
 			//	/* If the name already exists in the list of entrants,
@@ -1037,7 +1037,7 @@ int update_players(char* bracket_file_path, short season_id, \
 	if (available_cores < 1) available_cores = 1;
 
 #ifdef _WIN32
-	if (calc_absent_players == 1) {
+	if (calc_absent_players == true) {
 		adjust_absent_players_no_file(day, month, year, \
 			Et.tournament_id, t_name, available_cores);
 	}
@@ -1138,7 +1138,7 @@ int update_players(char* bracket_file_path, short season_id, \
 	 * 5. The process can now go on to do its "post-barrier" work!
 	 */
 
-	if (state->flags.calc_absent_players == 1) {
+	if (state->flags.calc_absent_players == true) {
 		if (available_cores > 1) {
 			/* Init the semaphore to be shared between processes (pshared is
 			 * non-zero) and to have a value of 0 */
@@ -1422,7 +1422,7 @@ int update_players(char* bracket_file_path, short season_id, \
 		struct player p2;
 		char p1_out;
 		char p2_out;
-		if (state->flags.use_games == 1) {
+		if (state->flags.use_games == true) {
 			p1_out = 1;
 			p2_out = 0;
 			for (int i = 0; i < p1_gc; i++) {
@@ -1574,8 +1574,8 @@ int update_players(char* bracket_file_path, short season_id, \
  */
 int run_single_bracket(char *bracket_file_path, g2me_state_t *state) {
 	/* If the silent flags haven't been set, print progress */
-	if (state->flags.silent == 0 && state->flags.silent_all == 0) {
-		if (state->flags.use_games == 1) {
+	if (state->flags.silent == false && state->flags.silent_all == false) {
+		if (state->flags.use_games == true) {
 			fprintf(stdout, "running \"%s\" using games ...", bracket_file_path);
 			fflush(stdout);
 		} else {
@@ -1593,7 +1593,7 @@ int run_single_bracket(char *bracket_file_path, g2me_state_t *state) {
 	}
 	int ret = update_players(bracket_file_path, latest_season_id, state);
 
-	if (state->flags.silent == 0 && state->flags.silent_all == 0) {
+	if (state->flags.silent == false && state->flags.silent_all == false) {
 		if (ret == 0) {
 			fprintf(stdout, "DONE\n");
 			return 0;
@@ -1604,7 +1604,7 @@ int run_single_bracket(char *bracket_file_path, g2me_state_t *state) {
 	}
 
 	/* small silent only affects the first following input flag. Turn off */
-	if (state->flags.silent == 1) state->flags.silent = 0;
+	if (state->flags.silent == true) state->flags.silent = false;
 	return 0;
 }
 
@@ -1699,8 +1699,8 @@ int run_brackets(char *bracket_list_file_path, g2me_state_t *state) {
 
 	for (int j = 0; j < num_brk; j++) {
 		/* If the silent flags haven't been set, print progress */
-		if (state->flags.silent == 0 && state->flags.silent_all == 0) {
-			if (state->flags.use_games == 1) {
+		if (state->flags.silent == false && state->flags.silent_all == false) {
+			if (state->flags.use_games == true) {
 				fprintf(stdout, "running \"%s\" using games ...", \
 					&bracket_paths[j * (MAX_FILE_PATH_LEN + 1)]);
 				fflush(stdout);
@@ -1714,12 +1714,12 @@ int run_brackets(char *bracket_list_file_path, g2me_state_t *state) {
 			latest_season_id + 1, state);
 		s_file_set_latest_season_id(data_dir, latest_season_id + 1);
 
-		if (state->flags.silent == 0 && state->flags.silent_all == 0) {
+		if (state->flags.silent == false && state->flags.silent_all == false) {
 			fprintf(stdout, "DONE\n");
 		}
 		/* small silent only affects the first following input flag.
 		 * Turn off */
-		if (state->flags.silent == 1) state->flags.silent = 0;
+		if (state->flags.silent == true) state->flags.silent = false;
 	}
 
 	fclose(bracket_list_file);
@@ -1747,7 +1747,7 @@ int generate_ratings_file(char* filter_file_path, char* output_file_path, \
 		return -1;
 	}
 
-	if (state->flags.flag_output_to_stdout == 0) {
+	if (state->flags.output_to_stdout == false) {
 		clear_file(output_file_path);
 	}
 
@@ -1799,7 +1799,7 @@ int generate_ratings_file(char* filter_file_path, char* output_file_path, \
 				longest_outcomes = num_outcomes;
 			}
 			// If the player attended the minimum number of events
-			if (num_events >= state->flags.pr_minimum_events) {
+			if (num_events >= state->flags.min_events) {
 				/* If there is no space to add this pr entry, reallocate */
 				if (pr_entries_num + 1 > pr_entries_size) {
 					pr_entries_size += REALLOC_PR_ENTRIES_INC;
@@ -1838,7 +1838,7 @@ int generate_ratings_file(char* filter_file_path, char* output_file_path, \
 	longest_outcomes = strlen(string_rep);
 	/* Append each entry pr file */
 	for (int i = 0; i < pr_entries_num; i++) {
-		if (state->flags.verbose == 1) {
+		if (state->flags.verbose == true) {
 			append_pr_entry_to_file_verbose( \
 				player_dir, \
 				&players_pr_entries[i], \
@@ -1846,14 +1846,14 @@ int generate_ratings_file(char* filter_file_path, char* output_file_path, \
 				longest_name_length, \
 				longest_attended, \
 				longest_outcomes,
-				(bool) state->flags.flag_output_to_stdout);
+				state->flags.output_to_stdout);
 		} else {
 			append_pr_entry_to_file( \
 				player_dir, \
 				&players_pr_entries[i], \
 				output_file_path, \
 				longest_name_length, \
-				(bool) state->flags.flag_output_to_stdout);
+				state->flags.output_to_stdout);
 		}
 	}
 
@@ -1878,7 +1878,7 @@ int generate_ratings_file_full(char *output_file_path, g2me_state_t *state) {
 	DIR *p_dir;
 	struct dirent *entry;
 	if ((p_dir = opendir(player_dir)) != NULL) {
-		if (state->flags.flag_output_to_stdout == 0) {
+		if (state->flags.output_to_stdout == false) {
 			clear_file(output_file_path);
 		}
 
@@ -1905,7 +1905,7 @@ int generate_ratings_file_full(char *output_file_path, g2me_state_t *state) {
 				if (0 == p_file_read_last_entry(data_dir, full_player_path, &temp)) {
 					// TODO: finish this, if the m flag isn't used, no need to
 					// do all this
-					//if (pr_minimum_events > 0) {
+					//if (min_events > 0) {
 					int num_events = \
 						p_file_get_events_attended_count(full_player_path);
 
@@ -1920,7 +1920,7 @@ int generate_ratings_file_full(char *output_file_path, g2me_state_t *state) {
 						longest_outcomes = num_outcomes;
 					}
 					// If the player attended the minimum number of events
-					if (num_events >= state->flags.pr_minimum_events) {
+					if (num_events >= state->flags.min_events) {
 						/* If there is no space to add this pr entry,
 						 * reallocate */
 						if (pr_entries_num + 1 > pr_entries_size) {
@@ -1965,7 +1965,7 @@ int generate_ratings_file_full(char *output_file_path, g2me_state_t *state) {
 		longest_outcomes = strlen(string_rep);
 		/* Append each entry pr file */
 		for (int i = 0; i < pr_entries_num; i++) {
-			if (state->flags.verbose == 1) {
+			if (state->flags.verbose == true) {
 				append_pr_entry_to_file_verbose( \
 					player_dir,
 					&players_pr_entries[i], \
@@ -1973,14 +1973,14 @@ int generate_ratings_file_full(char *output_file_path, g2me_state_t *state) {
 					longest_name_length, \
 					longest_attended, \
 					longest_outcomes, \
-					(bool) state->flags.flag_output_to_stdout);
+					state->flags.output_to_stdout);
 			} else {
 				append_pr_entry_to_file( \
 					player_dir,
 					&players_pr_entries[i], \
 					output_file_path, \
 					longest_name_length, \
-					(bool) state->flags.flag_output_to_stdout);
+					state->flags.output_to_stdout);
 			}
 		}
 		return 0;
@@ -2290,7 +2290,7 @@ int filter_player_list(char **players_pointer, short *num_players, \
 
 /* Takes an array of player names created with a malloc or calloc call,
  * the length of the array, and a file path. Modifies the array
- * to contain only player names that have attended 'pr_minimum_events', and
+ * to contain only player names that have attended 'min_events', and
  * changes '*num_players' accordingly.
  *
  * \param '*players' pointer to an array of
@@ -2319,7 +2319,7 @@ int filter_player_list_min_events(char **players_pointer, short *num_players, \
 		int num_events = p_file_get_events_attended_count(full_player_path);
 
 		/* If the player passes the filter (has gone to enough events */
-		if (num_events >= state->flags.pr_minimum_events) {
+		if (num_events >= state->flags.min_events) {
 			strncpy(&filtered_players[(MAX_NAME_LEN + 1) * app_ind], \
 				&players[i * (MAX_NAME_LEN + 1)], \
 				MAX_NAME_LEN);
@@ -2454,13 +2454,13 @@ int main(int argc, char **argv) {
 						"player directory\n", optarg);
 					return -1;
 				}
-				if (state.flags.verbose == 1) {
+				if (state.flags.verbose == true) {
 					print_player_file_verbose(data_dir, player_dir, \
-						full_player_path, state.flags.pr_minimum_events, \
+						full_player_path, state.flags.min_events, \
 						&state);
 				} else {
 					print_player_file(data_dir, player_dir, full_player_path, \
-						state.flags.pr_minimum_events, &state);
+						state.flags.min_events, &state);
 				}
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
@@ -2476,19 +2476,19 @@ int main(int argc, char **argv) {
 					return -1;
 				}
 				print_player_records(player_dir, full_player_path, \
-					state.flags.pr_minimum_events, &state);
+					state.flags.min_events, &state);
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		}
 
 		switch (opt) {
 			case '0':
-				state.flags.calc_absent_players = 0;
+				state.flags.calc_absent_players = false;
 				break;
 			case 'b':
 				if (0 == player_and_data_dirs_check_and_create()) {
-					if (state.flags.keep_players == 0) player_and_data_dirs_reset();
-					if (state.flags.keep_players == 0) {
+					if (state.flags.keep_players == false) player_and_data_dirs_reset();
+					if (state.flags.keep_players == false) {
 						// TODO: put somewhere else. Would be useful to not reset, possibly
 						/* Reset hash table */
 						hashtable_reset();
@@ -2498,8 +2498,8 @@ int main(int argc, char **argv) {
 				break;
 			case 'B':
 				if (0 == player_and_data_dirs_check_and_create()) {
-					if (state.flags.keep_players == 0) player_and_data_dirs_reset();
-					if (state.flags.keep_players == 0) {
+					if (state.flags.keep_players == false) player_and_data_dirs_reset();
+					if (state.flags.keep_players == false) {
 						// TODO: put somewhere else. Would be useful to not reset, possibly
 						/* Reset hash table */
 						hashtable_reset();
@@ -2510,7 +2510,7 @@ int main(int argc, char **argv) {
 			case 'C':
 				if (0 == player_and_data_dirs_check_and_create()) {
 					print_matchup_table_csv(data_dir, \
-						state.flags.pr_minimum_events, &state);
+						state.flags.min_events, &state);
 					break;
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 			case 'e':
@@ -2519,32 +2519,32 @@ int main(int argc, char **argv) {
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'f':
-				state.flags.f_flag_used = 1;
+				state.flags.filter_by_filter_file = true;
 				strncpy(state.flags.filter_file_path, optarg, \
 					sizeof(state.flags.filter_file_path) - 1);
 				break;
 			case 'g':
-				state.flags.use_games = 1;
+				state.flags.use_games = true;
 				break;
 			case 'k':
-				state.flags.keep_players = 1;
+				state.flags.keep_players = true;
 				break;
 			case 'm':
-				state.flags.pr_minimum_events = atoi(optarg);
+				state.flags.min_events = atoi(optarg);
 				break;
 			case 'M':
-				print_matchup_table(data_dir, state.flags.pr_minimum_events, \
+				print_matchup_table(data_dir, state.flags.min_events, \
 					&state);
 				break;
 			case 'n':
-				state.flags.colour_output = 0;
+				state.flags.colour_output = false;
 				break;
 			case 'N':
-				state.flags.print_ties = 0;
+				state.flags.print_ties = false;
 				break;
 			case 'o':
 				if (0 == player_and_data_dirs_check_and_create()) {
-					if (state.flags.f_flag_used) {
+					if (state.flags.filter_by_filter_file == true) {
 						int ret = \
 							generate_ratings_file( \
 							state.flags.filter_file_path, optarg, \
@@ -2558,8 +2558,8 @@ int main(int argc, char **argv) {
 				break;
 			case 'O':
 				if (0 == player_and_data_dirs_check_and_create()) {
-					state.flags.flag_output_to_stdout = 1;
-					if (state.flags.f_flag_used) {
+					state.flags.output_to_stdout = 1;
+					if (state.flags.filter_by_filter_file == true) {
 						int ret = \
 							generate_ratings_file( \
 							state.flags.filter_file_path, optarg, \
@@ -2572,16 +2572,16 @@ int main(int argc, char **argv) {
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 's':
-				state.flags.silent = 1;
+				state.flags.silent = true;
 				break;
 			case 'S':
-				state.flags.silent_all = 1;
+				state.flags.silent_all = true;
 				break;
 			case 'v':
-				state.flags.verbose = 1;
+				state.flags.verbose = true;
 				break;
 			case 'w':
-				state.flags.flag_outcome_weight = strtod(optarg, NULL);
+				state.flags.outcome_weight = strtod(optarg, NULL);
 				break;
 		}
 	}

@@ -23,18 +23,21 @@
 
 
 typedef struct g2me_flags {
-	char flag_output_to_stdout;
-	char silent;
-	char silent_all;
-	char verbose;
-	char use_games;
-	char keep_players;
-	int pr_minimum_events;
-	char colour_output;
-	char print_ties;
-	char calc_absent_players;
-	double flag_outcome_weight;
-	char f_flag_used;
+	/* If true, the program will output to `stdout` rather than to a file */
+	bool output_to_stdout;
+	bool silent;
+	bool silent_all;
+	bool verbose;
+	bool use_games;
+	bool keep_players;
+	/* A filter that removes players who have not participated in at least
+	 * `min_events` events. */
+	int min_events;
+	bool colour_output;
+	bool print_ties;
+	bool calc_absent_players;
+	double outcome_weight;
+	bool filter_by_filter_file;
 	char filter_file_path[MAX_FILE_PATH_LEN + 1];
 }g2me_flags_t;
 
