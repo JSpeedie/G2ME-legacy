@@ -52,7 +52,7 @@ char data_dir[MAX_FILE_PATH_LEN + 1];
 struct linked_list_node *tourn_atten_hashtable[SIZE_ATTEN_HASHTABLE];
 
 int get_record(char *, char *, struct record *);
-struct record *get_all_records(char *, long *);
+struct record *get_all_records(const char *, long *);
 
 void default_state(g2me_state_t *s) {
 	s->flags.output_to_stdout = false;
@@ -2089,7 +2089,7 @@ int get_record(char *player1, char *player2, struct record *ret) {
  * \return a pointer to a 'struct record' that is an array of 'struct record's
  *     indexed by 'opp_id'. Returns NULL on failure.
  */
-struct record *get_all_records(char *file_path, long *num_of_records) {
+struct record *get_all_records(const char *file_path, long *num_of_records) {
 
 	short *opp_id_list = NULL;
 	short **p_opp_id_list = &opp_id_list;
@@ -2245,7 +2245,7 @@ long longest_name(char *players, int array_len) {
  *     this function. 0 means sucess, negative numbers mean failure.
  */
 int filter_player_list(char **players_pointer, short *num_players, \
-	char *filter_file_path) {
+	const char *filter_file_path) {
 
 	FILE *filter_file = fopen(filter_file_path, "r");
 	if (filter_file == NULL) {
@@ -2300,7 +2300,7 @@ int filter_player_list(char **players_pointer, short *num_players, \
  *     this function. 0 means sucess, negative numbers mean failure.
  */
 int filter_player_list_min_events(char **players_pointer, short *num_players, \
-	g2me_state_t *state) {
+	int min_events) {
 
 	int app_ind = 0;
 	char *players = *(players_pointer);
@@ -2319,7 +2319,7 @@ int filter_player_list_min_events(char **players_pointer, short *num_players, \
 		int num_events = p_file_get_events_attended_count(full_player_path);
 
 		/* If the player passes the filter (has gone to enough events */
-		if (num_events >= state->flags.min_events) {
+		if (num_events >= min_events) {
 			strncpy(&filtered_players[(MAX_NAME_LEN + 1) * app_ind], \
 				&players[i * (MAX_NAME_LEN + 1)], \
 				MAX_NAME_LEN);
@@ -2456,11 +2456,14 @@ int main(int argc, char **argv) {
 				}
 				if (state.flags.verbose == true) {
 					print_player_file_verbose(data_dir, player_dir, \
-						full_player_path, state.flags.min_events, \
-						&state);
+						full_player_path, state.flags.colour_output, \
+						state.flags.filter_by_filter_file, \
+						state.flags.filter_file_path, state.flags.min_events);
 				} else {
 					print_player_file(data_dir, player_dir, full_player_path, \
-						state.flags.min_events, &state);
+						state.flags.colour_output, \
+						state.flags.filter_by_filter_file, \
+						state.flags.filter_file_path, state.flags.min_events);
 				}
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
@@ -2476,7 +2479,10 @@ int main(int argc, char **argv) {
 					return -1;
 				}
 				print_player_records(player_dir, full_player_path, \
-					state.flags.min_events, &state);
+					state.flags.colour_output, \
+					state.flags.filter_by_filter_file, \
+					state.flags.filter_file_path, state.flags.min_events, \
+					state.flags.print_ties, state.flags.verbose);
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		}
@@ -2510,7 +2516,9 @@ int main(int argc, char **argv) {
 			case 'C':
 				if (0 == player_and_data_dirs_check_and_create()) {
 					print_matchup_table_csv(data_dir, \
-						state.flags.min_events, &state);
+						state.flags.filter_by_filter_file, \
+						state.flags.filter_file_path, state.flags.min_events, \
+						state.flags.print_ties);
 					break;
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 			case 'e':
@@ -2533,8 +2541,10 @@ int main(int argc, char **argv) {
 				state.flags.min_events = atoi(optarg);
 				break;
 			case 'M':
-				print_matchup_table(data_dir, state.flags.min_events, \
-					&state);
+				print_matchup_table(data_dir, \
+					state.flags.filter_by_filter_file, \
+					state.flags.filter_file_path, state.flags.min_events, \
+					state.flags.print_ties);
 				break;
 			case 'n':
 				state.flags.colour_output = false;

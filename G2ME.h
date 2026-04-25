@@ -1,5 +1,5 @@
-#ifndef G2ME_G2ME
-#define G2ME_G2ME
+#ifndef __G2ME_H_
+#define __G2ME_H_
 
 #include "p_files.h"
 #include "fileops.h"
@@ -37,6 +37,8 @@ typedef struct g2me_flags {
 	bool print_ties;
 	bool calc_absent_players;
 	double outcome_weight;
+	/* A filter that removes players whose name does NOT appear as a one-line
+	 * entry in the filter file */
 	bool filter_by_filter_file;
 	char filter_file_path[MAX_FILE_PATH_LEN + 1];
 }g2me_flags_t;
@@ -90,11 +92,11 @@ int generate_ratings_file_full(char *, g2me_state_t *);
 
 /* Records */
 int get_record(char *, char *, struct record *);
-struct record *get_all_records(char *, long *);
+struct record *get_all_records(const char *, long *);
 
 /* Random helper functions */
 long longest_name(char *, int);
-int filter_player_list(char **, short *, char *);
-int filter_player_list_min_events(char **, short *, g2me_state_t *);
+int filter_player_list(char **, short *, const char *);
+int filter_player_list_min_events(char **, short *, int min_events);
 
 #endif
