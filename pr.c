@@ -21,8 +21,10 @@
  * \param '*file_path' the file path for the pr file.
  * \return 0 upon success, negative number on failure.
  */
-int append_pr_entry_to_file(struct entry *E, char *file_path, \
-	int longest_name_length, bool output_to_stdout) {
+int append_pr_entry_to_file(struct entry *E, \
+	char *file_path, \
+	int longest_name_length, \
+	bool output_to_stdout) {
 
 	FILE *p_file;
 
@@ -62,9 +64,13 @@ int append_pr_entry_to_file(struct entry *E, char *file_path, \
  * \return 0 upon success, negative number on failure.
  */
 int append_pr_entry_to_file_verbose(const char *player_dir, \
-	const char *data_dir_file_path, struct entry *E, char *file_path, \
-	int longest_name_length, int longest_attended_count, \
-	int longest_outcome_count, bool output_to_stdout) {
+	const char *data_dir_file_path, \
+	struct entry *E, \
+	char *file_path, \
+	int longest_name_length, \
+	int longest_attended_count, \
+	int longest_outcome_count, \
+	bool output_to_stdout) {
 
 	FILE *p_file;
 
