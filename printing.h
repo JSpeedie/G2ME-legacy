@@ -36,16 +36,11 @@ int print_player_file(const char *data_dir_file_path, const char *player_dir, \
 	const char *file_path, bool colour_output, bool filter_by_filter_file, \
 	char *filter_file_path, int min_events);
 
-int print_player_records(const char *player_dir, const char *file_path, \
-	bool colour_output, bool filter_by_filter_file, \
-	const char *filter_file_path, int min_events, bool print_ties, \
-	bool verbose);
+int print_player_records(g2me_state_t *state, const char *file_path);
 
 void print_player_attended(char *, int);
 
-int print_matchup_table(const char *, bool filter_by_filter_file, \
-	const char *filter_file_path, int min_events, bool print_ties);
-int print_matchup_table_csv(const char *, bool filter_by_filter_file, \
-	const char *filter_file_path, int min_events, bool print_ties);
+int print_matchup_table(g2me_state_t *state);
+int print_matchup_table_csv(g2me_state_t *state);
 
 #endif

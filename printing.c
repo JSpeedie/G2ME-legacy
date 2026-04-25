@@ -693,16 +693,17 @@ int print_player_file(const char *data_dir_file_path, const char *player_dir, \
 // TODO: divide function into 3 subfunctions, player_passes_filters,
 //       one that gets the array of records, and one that prints the records
 // TODO: improve efficiency for checking players pass filters
-int print_player_records(const char *player_dir, const char *file_path, \
-	bool colour_output, bool filter_by_filter_file, \
-	const char *filter_file_path, int min_events, bool print_ties, \
-	bool verbose) {
+int print_player_records(g2me_state_t *state, const char *file_path) {
+
+	g2me_data_t *data = &(state->data);
+	g2me_flags_t *flags = &(state->flags);
 
 	/* Get all records and sort them alphabetically */
 	long num_rec = 0;
 	// TODO: add filter to get_all_records, array indexed by opp_id,
 	// contains ret array index
-	struct record *records = get_all_records(file_path, &num_rec);
+	struct record *records = \
+		get_all_records(file_path, &num_rec, data);
 	merge_sort_player_records(records, num_rec);
 
 	char passes_filter = 0;
@@ -727,10 +728,10 @@ int print_player_records(const char *player_dir, const char *file_path, \
 			} else {
 				/* No need to retrieve attended_count if the minimum
 				 * criteria is zero */
-				if (min_events != 0) {
+				if (flags->min_events != 0) {
 					char *full_player_path = \
-						player_dir_file_path_with_player_dir(player_dir, \
-							records[i].opp_name);
+						player_dir_file_path_with_player_dir( \
+						data->player_dir, records[i].opp_name);
 					attended_count = \
 						p_file_get_events_attended_count(full_player_path);
 					free(full_player_path);
@@ -740,12 +741,12 @@ int print_player_records(const char *player_dir, const char *file_path, \
 			continue;
 		}
 
-		if (attended_count >= min_events) {
+		if (attended_count >= flags->min_events) {
 			passes_filter = 1;
 			/* Filter players to be the ones in the given '-f' flag file */
-			if (filter_by_filter_file == true) {
+			if (flags->filter_by_filter_file == true) {
 				passes_filter = 0;
-				FILE *filter_file = fopen(filter_file_path, "r");
+				FILE *filter_file = fopen(flags->filter_file_path, "r");
 				if (filter_file == NULL) {
 					perror("fopen (filter_player_list)");
 					return -1;
@@ -772,7 +773,7 @@ int print_player_records(const char *player_dir, const char *file_path, \
 		if (passes_filter == 1) {
 			char* output_colour_player = NOTHING;
 			char* reset_colour_player = NOTHING;
-			if (colour_output == true) {
+			if (flags->colour_output == true) {
 				reset_colour_player = NORMAL;
 				// If the player has a winning record
 				if (records[i].wins > records[i].losses) {
@@ -802,12 +803,12 @@ int print_player_records(const char *player_dir, const char *file_path, \
 				records[i].name, output_colour_player, records[i].opp_name, \
 				reset_colour_player, records[i].wins);
 			/* If the user wants ties to be printed */
-			if (print_ties == true) {
+			if (flags->print_ties == true) {
 				fprintf(stdout, "-%d", records[i].ties);
 			}
 			fprintf(stdout, "-%d", records[i].losses);
-			if (verbose == true) {
-				if (colour_output == true) {
+			if (flags->verbose == true) {
+				if (flags->colour_output == true) {
 					fprintf(stdout, " -> ");
 					for (int j = 0; records[i].last_outcomes[j] != '\0'; j++) {
 						if (records[i].last_outcomes[j] == 'W') {
@@ -860,15 +861,15 @@ void print_player_attended(char *attended, int count) {
  *
  * \return a negative integer upon failure, and 0 upon success.
  */
-int print_matchup_table(const char *data_dir_file_path, \
-	bool filter_by_filter_file, const char *filter_file_path, int min_events, \
-	bool print_ties) {
+int print_matchup_table(g2me_state_t *state) {
+	g2me_data_t *data = &(state->data);
+	g2me_flags_t *flags = &(state->flags);
 
 	int space_between_columns = 3;
 	/* Get the number of players and the names of all players in the system */
 	short num_players;
 	char *players = \
-		opp_file_get_all_opponent_names(data_dir_file_path, EXCLUDE_RD_ADJ, \
+		opp_file_get_all_opponent_names(data->data_dir, EXCLUDE_RD_ADJ, \
 			&num_players);
 	if (players == NULL) {
 		fprintf(stderr, \
@@ -877,10 +878,10 @@ int print_matchup_table(const char *data_dir_file_path, \
 	}
 
 	/* Filter players to be the ones in the given '-f' flag file */
-	if (filter_by_filter_file == true) {
+	if (flags->filter_by_filter_file == true) {
 		int ret = 0;
-		if (0 != (ret = \
-			filter_player_list(&players, &num_players, filter_file_path))) {
+		if (0 != (ret = filter_player_list(&players, &num_players, \
+			flags->filter_file_path))) {
 
 			fprintf(stderr, \
 				"filter_player_list (%d) (print_matchup_table)", \
@@ -890,11 +891,11 @@ int print_matchup_table(const char *data_dir_file_path, \
 	}
 
 	/* Filter players so that it keeps only those that pass the  '-m' flag */
-	if (min_events > 0) {
+	if (flags->min_events > 0) {
 		int ret = 0;
 		if (0 != (ret = \
 			filter_player_list_min_events(&players, &num_players, \
-			min_events))) {
+			flags->min_events, data))) {
 
 			fprintf(stderr, \
 				"filter_player_list_min_events (%d) (print_matchup_table)", \
@@ -924,7 +925,8 @@ int print_matchup_table(const char *data_dir_file_path, \
 				get_record( \
 					&players[i * (MAX_NAME_LEN + 1)], \
 					&players[j * (MAX_NAME_LEN + 1)], \
-					&records[i][j]);
+					&records[i][j], \
+					data);
 				/* Copy inverse of record to inverse spot */
 				records[j][i].wins = records[i][j].losses;
 				records[j][i].ties = records[i][j].ties;
@@ -940,7 +942,7 @@ int print_matchup_table(const char *data_dir_file_path, \
 		for (int i = 0; i < num_players; i++) {
 			int record_length;
 
-			if (print_ties == true) {
+			if (flags->print_ties == true) {
 				record_length = chars_needed_to_print_record(&records[i][j]);
 			} else {
 				record_length = \
@@ -988,7 +990,7 @@ int print_matchup_table(const char *data_dir_file_path, \
 			char col[longest_rec[j] + space_between_columns + 1];
 
 			/* If the user wants ties to be printed */
-			if (print_ties == true) {
+			if (flags->print_ties == true) {
 				 snprintf(col, sizeof(col), "%d-%d-%-*d", \
 				 	records[i][j].wins, \
 					records[i][j].ties, \
@@ -1072,14 +1074,14 @@ int add_to_line(char *s, long *line_length, long *line_size, char **ret) {
  *
  * \return a negative integer upon failure, and 0 upon success.
  */
-int print_matchup_table_csv(const char *data_dir_file_path, \
-	bool filter_by_filter_file, const char *filter_file_path, int min_events, \
-	bool print_ties) {
+int print_matchup_table_csv(g2me_state_t *state) {
+	g2me_data_t *data = &(state->data);
+	g2me_flags_t *flags = &(state->flags);
 
 	/* Get the number of players and the names of all players in the system */
 	short num_players;
 	char *players = \
-		opp_file_get_all_opponent_names(data_dir_file_path, EXCLUDE_RD_ADJ, \
+		opp_file_get_all_opponent_names(data->data_dir, EXCLUDE_RD_ADJ, \
 			&num_players);
 	if (players == NULL) {
 		fprintf(stderr, \
@@ -1089,10 +1091,10 @@ int print_matchup_table_csv(const char *data_dir_file_path, \
 	}
 
 	/* Filter players to be the ones in the given '-f' flag file */
-	if (filter_by_filter_file == true) {
+	if (flags->filter_by_filter_file == true) {
 		int ret = 0;
-		if (0 != (ret = \
-			filter_player_list(&players, &num_players, filter_file_path))) {
+		if (0 != (ret = filter_player_list(&players, &num_players, \
+			flags->filter_file_path))) {
 
 			fprintf(stderr, \
 				"Error: print_matchup_table_csv(): " \
@@ -1103,11 +1105,11 @@ int print_matchup_table_csv(const char *data_dir_file_path, \
 	}
 
 	/* Filter players so that it keeps only those that pass the  '-m' flag */
-	if (min_events > 0) {
+	if (flags->min_events > 0) {
 		int ret = 0;
 		if (0 != (ret = \
 			filter_player_list_min_events(&players, &num_players, \
-			min_events))) {
+			flags->min_events, data))) {
 
 			fprintf(stderr, \
 				"filter_player_list_min_events (%d) (print_matchup_table)", \
@@ -1150,7 +1152,8 @@ int print_matchup_table_csv(const char *data_dir_file_path, \
 			get_record( \
 				&players[i * (MAX_NAME_LEN + 1)], \
 				&players[j * (MAX_NAME_LEN + 1)], \
-				&temp_rec);
+				&temp_rec, \
+				data);
 			/* If the player has no data against a given opponent, print "-" */
 			if (temp_rec.wins == 0 && temp_rec.ties == 0 \
 				&& temp_rec.losses == 0) {
@@ -1159,7 +1162,7 @@ int print_matchup_table_csv(const char *data_dir_file_path, \
 			} else {
 				int record_length;
 
-				if (print_ties == true) {
+				if (flags->print_ties == true) {
 					record_length = chars_needed_to_print_record(&temp_rec);
 				} else {
 					record_length = \
@@ -1169,7 +1172,7 @@ int print_matchup_table_csv(const char *data_dir_file_path, \
 				char col[record_length + 1 + 1];
 
 				/* If the user wants ties to be printed */
-				if (print_ties == true) {
+				if (flags->print_ties == true) {
 					 snprintf(col, sizeof(col), "%d-%d-%d,", \
 						temp_rec.wins, temp_rec.ties, temp_rec.losses);
 				} else {

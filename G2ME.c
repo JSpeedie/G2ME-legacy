@@ -42,31 +42,62 @@ const char ERROR_PLAYER_DIR_DNE[] = { "Error: 'player_dir' either could "
 	"not be created or does not exist\n"};
 
 
-
 char player_list_file[MAX_FILE_PATH_LEN + 1];
 struct tournament_attendee *tourn_atten;
 unsigned long tourn_atten_len = 0;
 unsigned long tourn_atten_size = SIZE_TOURNAMENT_NAMES_LEN;
-char player_dir[MAX_FILE_PATH_LEN + 1];
-char data_dir[MAX_FILE_PATH_LEN + 1];
 struct linked_list_node *tourn_atten_hashtable[SIZE_ATTEN_HASHTABLE];
 
-int get_record(char *, char *, struct record *);
-struct record *get_all_records(const char *, long *);
 
+/** Takes a `g2me_flags_t` and configures it to the default values.
+ *
+ * \param '*f' the `g2me_flags_t` this function will modify to have default
+ *     values.
+ */
+void default_flags(g2me_flags_t *f) {
+	f->output_to_stdout = false;
+	f->silent = false;
+	f->silent_all = false;
+	f->verbose = false;
+	f->use_games = false;
+	f->keep_players = false;
+	f->min_events = 0;
+	f->colour_output = true;
+	f->print_ties = true;
+	f->calc_absent_players = true;
+	f->outcome_weight = 1.0;
+	f->filter_by_filter_file = false;
+	/* Initialize the state's `filter_file_path` to its default value */
+	f->filter_file_path[0] = '\0';
+}
+
+
+/** Takes a `g2me_data_t` and configures it to the default values.
+ *
+ * \param '*s' the `g2me_data_t` this function will modify to have default
+ *     values.
+ */
+void default_data(g2me_data_t *d) {
+	/* Initialize the state's `player_dir` to its default value */
+	memset(d->player_dir, 0, sizeof(d->player_dir));
+	strncpy(d->player_dir, DEFAULT_PLAYER_DIR, sizeof(d->player_dir) - 1);
+	/* Initialize the state's `data_dir` to its default value */
+	memset(d->data_dir, 0, sizeof(d->data_dir));
+	strncpy(d->data_dir, DEFAULT_DATA_DIR, sizeof(d->data_dir) - 1);
+}
+
+
+/** Takes a `g2me_state_t` and configures it to the default values.
+ *
+ * \param '*s' the `g2me_state_t` this function will modify to have default
+ *     values.
+ */
 void default_state(g2me_state_t *s) {
-	s->flags.output_to_stdout = false;
-	s->flags.silent = false;
-	s->flags.silent_all = false;
-	s->flags.verbose = false;
-	s->flags.use_games = false;
-	s->flags.keep_players = false;
-	s->flags.min_events = 0;
-	s->flags.colour_output = true;
-	s->flags.print_ties = true;
-	s->flags.calc_absent_players = true;
-	s->flags.outcome_weight = 1.0;
-	s->flags.filter_by_filter_file = false;
+	/* Initialize the program's flags */
+	default_flags(&(s->flags));
+
+	/* Initialize the program's data */
+	default_data(&(s->data));
 }
 
 
@@ -305,8 +336,10 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
 	char* p2_gc, char day, char month, short year, short t_id, \
 	char* t_name, short season_id, g2me_state_t *state) {
 
-	char *full_p1_path = player_dir_file_path_with_player_dir(player_dir, p1_name);
-	char *full_p2_path = player_dir_file_path_with_player_dir(player_dir, p2_name);
+	char *full_p1_path = \
+		player_dir_file_path_with_player_dir(state->data.player_dir, p1_name);
+	char *full_p2_path = \
+		player_dir_file_path_with_player_dir(state->data.player_dir, p2_name);
 
 	unsigned int p1_name_hash = simple_murmur_hash2(p1_name);
 	unsigned int p2_name_hash = simple_murmur_hash2(p2_name);
@@ -497,10 +530,10 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
  * \param '*t_name' the name of the event that they were absent from.
  */
 void adjust_absent_player(char *player_file, char day, char month, \
-	short year, short t_id, char *t_name) {
+	short year, short t_id, char *t_name, g2me_state_t *state) {
 
 	char* full_file_path = \
-		player_dir_file_path_with_player_dir(player_dir, player_file);
+		player_dir_file_path_with_player_dir(state->data.player_dir, player_file);
 
 	/* If the player who did not compete has a player file */
 #ifdef __linux__
@@ -513,8 +546,8 @@ void adjust_absent_player(char *player_file, char day, char month, \
 #endif
 		struct player P;
 		struct entry latest_ent;
-		if (0 == p_file_read_last_entry_absent(data_dir, full_file_path, \
-			&latest_ent)) {
+		if (0 == p_file_read_last_entry_absent(state->data.data_dir, \
+			full_file_path, &latest_ent)) {
 
 			/* If this adjustment is taking place on a different
 			 * day from their last entry */
@@ -566,6 +599,7 @@ typedef struct thread_args {
 	short year;
 	unsigned short t_id;
 	char **t_name;
+	g2me_state_t *state;
 }ThreadArgs;
 
 
@@ -576,7 +610,7 @@ void *adjust_p(void *arg) {
 	 * apply step 6 to them and append to player file */
 	for (unsigned long j = 0; j < t->num_adjustments; j++) {
 		adjust_absent_player(&(t->files[j * (MAX_NAME_LEN + 1)]), \
-			t->day, t->month, t->year, t->t_id, *(t->t_name));
+			t->day, t->month, t->year, t->t_id, *(t->t_name), t->state);
 	}
 	return NULL;
 }
@@ -596,12 +630,12 @@ void *adjust_p(void *arg) {
  *     the work up between.
  * \return void.
 */
-void adjust_absent_players_no_file(char day, char month, \
-	short year, short t_id, char* t_name, int available_cores) {
+void adjust_absent_players_no_file(char day, char month, short year, \
+	short t_id, char* t_name, int available_cores, g2me_state_t *state) {
 
 	DIR *p_dir;
 	/* If the directory could not be accessed, print error and return */
-	if ((p_dir = opendir(player_dir)) == NULL) {
+	if ((p_dir = opendir(state->data.player_dir)) == NULL) {
 		perror("opendir (adjust_absent_players_no_file)");
 		closedir(p_dir);
 		return;
@@ -623,6 +657,7 @@ void adjust_absent_players_no_file(char day, char month, \
 		args[i].year = year;
 		args[i].t_id = t_id;
 		args[i].t_name = &t_name;
+		args[i].state = state;
 	}
 
 	int cur_f = 0;
@@ -630,8 +665,8 @@ void adjust_absent_players_no_file(char day, char month, \
 	char all_thread_min_cap_reached = 0;
 
 	short num_players;
-	char *players = \
-		opp_file_get_all_opponent_names(data_dir, EXCLUDE_RD_ADJ, &num_players);
+	char *players = opp_file_get_all_opponent_names(state->data.data_dir, \
+		EXCLUDE_RD_ADJ, &num_players);
 
 	/* Create a list of player files, set work for threads */
 	for (int y = 0; y < num_players; y++) {
@@ -773,10 +808,14 @@ int update_players(char* bracket_file_path, short season_id, \
 	int ret = 0;
 	/* If the tournament file does not already contain an id for this
 	 * tournament */
-	if (-1 == (ret = t_file_contains_tournament(data_dir, Et.t_name))) {
+	if (-1 == (ret = \
+		t_file_contains_tournament(state->data.data_dir, Et.t_name))) {
+
 		/* Add the new tournament to the tournament file. This also corrects
 		 * the t_id if it is incorrect */
-		if (0 != t_file_add_new_tournament(data_dir, &Et)) return -8;
+		if (0 != t_file_add_new_tournament(state->data.data_dir, &Et)) {
+			return -8;
+		}
 	/* If there was an error */
 	} else if (ret < -1) {
 		return -9;
@@ -970,7 +1009,8 @@ int update_players(char* bracket_file_path, short season_id, \
 		}
 	}
 
-	char *full_opp_file_path = data_dir_file_path_opp_file(data_dir);
+	char *full_opp_file_path = \
+		data_dir_file_path_opp_file(state->data.data_dir);
 
 	FILE* opp_file = fopen(full_opp_file_path, "rb+");
 	if (opp_file == NULL) {
@@ -994,7 +1034,9 @@ int update_players(char* bracket_file_path, short season_id, \
 			 * the t_id if it is incorrect */
 			strncpy(&E.opp_name[0], &tourn_atten[o].name[0], MAX_NAME_LEN);
 			E.len_opp_name = strlen(E.opp_name);
-			if (0 != opp_file_add_new_opponent(data_dir, &E)) return -8;
+			if (0 != opp_file_add_new_opponent(state->data.data_dir, &E)) {
+				return -8;
+			}
 		/* If there was an error */
 		} else if (ret < -1) {
 			return -9;
@@ -1187,7 +1229,7 @@ int update_players(char* bracket_file_path, short season_id, \
 			if (p == 0) {
 				/* 1. Do the child process' work */
 				adjust_absent_players_no_file(day, month, year, \
-					Et.tournament_id, t_name, available_cores);
+					Et.tournament_id, t_name, available_cores, state);
 
 				/* 2a. Lock the proc_finished mutex */
 				if (0 != pthread_mutex_lock(proc_finished_mutex)) {
@@ -1301,7 +1343,7 @@ int update_players(char* bracket_file_path, short season_id, \
 			}
 		} else {
 			adjust_absent_players_no_file(day, month, year, \
-				Et.tournament_id, t_name, available_cores);
+				Et.tournament_id, t_name, available_cores, state);
 		}
 	}
 #endif
@@ -1584,11 +1626,12 @@ int run_single_bracket(char *bracket_file_path, g2me_state_t *state) {
 		}
 	}
 
-	short latest_season_id = s_file_get_latest_season_id(data_dir);
+	short latest_season_id = s_file_get_latest_season_id(state->data.data_dir);
 	/* If the system has not seen any activity yet, update season id from
 	 * uninitialized -1 to safe 0 */
 	if (latest_season_id == -1) {
-		s_file_set_latest_season_id(data_dir, latest_season_id + 1);
+		s_file_set_latest_season_id(state->data.data_dir, \
+			latest_season_id + 1);
 		latest_season_id = 0;
 	}
 	int ret = update_players(bracket_file_path, latest_season_id, state);
@@ -1624,7 +1667,7 @@ int run_brackets(char *bracket_list_file_path, g2me_state_t *state) {
 		return -1;
 	}
 
-	short latest_season_id = s_file_get_latest_season_id(data_dir);
+	short latest_season_id = s_file_get_latest_season_id(state->data.data_dir);
 	char line[MAX_FILE_PATH_LEN + 2]; /* + 1 for \n and +1 for \0 */
 	int bracket_paths_size = SIZE_BRACKET_PATHS;
 	char *bracket_paths = \
@@ -1712,7 +1755,7 @@ int run_brackets(char *bracket_list_file_path, g2me_state_t *state) {
 		}
 		update_players(&bracket_paths[j * (MAX_FILE_PATH_LEN + 1)], \
 			latest_season_id + 1, state);
-		s_file_set_latest_season_id(data_dir, latest_season_id + 1);
+		s_file_set_latest_season_id(state->data.data_dir, latest_season_id + 1);
 
 		if (state->flags.silent == false && state->flags.silent_all == false) {
 			fprintf(stdout, "DONE\n");
@@ -1774,7 +1817,7 @@ int generate_ratings_file(char* filter_file_path, char* output_file_path, \
 		}
 		*end_of_line = '\0';
 		char *full_player_path = \
-			player_dir_file_path_with_player_dir(player_dir, line);
+			player_dir_file_path_with_player_dir(state->data.player_dir, line);
 		/* If player in filter file does NOT have a player file */
 #ifdef __linux__
 		if (access(full_player_path, R_OK | W_OK) == -1) {
@@ -1787,7 +1830,9 @@ int generate_ratings_file(char* filter_file_path, char* output_file_path, \
 		}
 
 		/* If the player file was able to be read properly... */
-		if (0 == p_file_read_last_entry(data_dir, full_player_path, &temp)) {
+		if (0 == p_file_read_last_entry(state->data.data_dir, \
+			full_player_path, &temp)) {
+
 			// TODO: something here
 			int num_events = \
 				p_file_get_events_attended_count(full_player_path);
@@ -1840,8 +1885,8 @@ int generate_ratings_file(char* filter_file_path, char* output_file_path, \
 	for (int i = 0; i < pr_entries_num; i++) {
 		if (state->flags.verbose == true) {
 			append_pr_entry_to_file_verbose( \
-				player_dir, \
-				data_dir, \
+				state->data.player_dir, \
+				state->data.data_dir, \
 				&players_pr_entries[i], \
 				output_file_path, \
 				longest_name_length, \
@@ -1877,7 +1922,7 @@ int generate_ratings_file(char* filter_file_path, char* output_file_path, \
 int generate_ratings_file_full(char *output_file_path, g2me_state_t *state) {
 	DIR *p_dir;
 	struct dirent *entry;
-	if ((p_dir = opendir(player_dir)) != NULL) {
+	if ((p_dir = opendir(state->data.player_dir)) != NULL) {
 		if (state->flags.output_to_stdout == false) {
 			clear_file(output_file_path);
 		}
@@ -1897,12 +1942,16 @@ int generate_ratings_file_full(char *output_file_path, g2me_state_t *state) {
 
 		while ((entry = readdir(p_dir)) != NULL) {
 			// Make sure it doesn't count directories
-			char *path_to_entry = extend_path(player_dir, entry->d_name);
+			char *path_to_entry = extend_path(state->data.player_dir, \
+				entry->d_name);
 			if (1 == is_dir(path_to_entry)) {
 				char *full_player_path = \
-					player_dir_file_path_with_player_dir(player_dir, entry->d_name);
+					player_dir_file_path_with_player_dir( \
+					state->data.player_dir, entry->d_name);
 				/* If the player file was able to be read properly... */
-				if (0 == p_file_read_last_entry(data_dir, full_player_path, &temp)) {
+				if (0 == p_file_read_last_entry(state->data.data_dir, \
+					full_player_path, &temp)) {
+
 					// TODO: finish this, if the m flag isn't used, no need to
 					// do all this
 					//if (min_events > 0) {
@@ -1967,8 +2016,8 @@ int generate_ratings_file_full(char *output_file_path, g2me_state_t *state) {
 		for (int i = 0; i < pr_entries_num; i++) {
 			if (state->flags.verbose == true) {
 				append_pr_entry_to_file_verbose( \
-					player_dir, \
-					data_dir, \
+					state->data.player_dir, \
+					state->data.data_dir, \
 					&players_pr_entries[i], \
 					output_file_path, \
 					longest_name_length, \
@@ -2002,10 +2051,11 @@ int generate_ratings_file_full(char *output_file_path, g2me_state_t *state) {
  * \return an int representing if this function succeeded or failed.
  *     Negative upon failure, 0 upon success.
  */
-int get_record(char *player1, char *player2, struct record *ret) {
+int get_record(char *player1, char *player2, struct record *ret, \
+	g2me_data_t *data) {
 
 	char *full_player1_path = \
-		player_dir_file_path_with_player_dir(player_dir, player1);
+		player_dir_file_path_with_player_dir(data->player_dir, player1);
 	/* Read the starter data in the file */
 	struct entry ent;
 	p_file_read_start_from_file(full_player1_path, &ent);
@@ -2025,13 +2075,13 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	init_record(ret);
 
 	int num_ent = \
-		p_file_get_number_of_outcomes_against(data_dir, full_player1_path, \
-			player2);
+		p_file_get_number_of_outcomes_against(data->data_dir, \
+		full_player1_path, player2);
 	int cur_opp_ent_num = 0;
 	unsigned long num_of_last_outcomes = sizeof(ret->last_outcomes) - 1;
 
 	/* If there was an error with this function */
-	if (opp_file_get_id_from_name(data_dir, &ent) < 0) return -3;
+	if (opp_file_get_id_from_name(data->data_dir, &ent) < 0) return -3;
 
 	/* Get to the entries in the player file */
 	if (0 != fseek(p_file, 0, SEEK_SET)) return -4;
@@ -2045,7 +2095,7 @@ int get_record(char *player1, char *player2, struct record *ret) {
 	}
 
 	while (p_file_open_read_next_opp_entry( \
-		data_dir, p_file, &ent, ent.opp_id) == 0) {
+		data->data_dir, p_file, &ent, ent.opp_id) == 0) {
 
 		/* If the opponent for the given entry is the player of interest */
 		if (0 == strncmp(ent.opp_name, player2, MAX_NAME_LEN)) {
@@ -2089,11 +2139,13 @@ int get_record(char *player1, char *player2, struct record *ret) {
  * \return a pointer to a 'struct record' that is an array of 'struct record's
  *     indexed by 'opp_id'. Returns NULL on failure.
  */
-struct record *get_all_records(const char *file_path, long *num_of_records) {
+struct record *get_all_records(const char *file_path, long *num_of_records, \
+	g2me_data_t *data) {
 
 	short *opp_id_list = NULL;
 	short **p_opp_id_list = &opp_id_list;
-	*num_of_records = p_file_number_of_opponents(data_dir, file_path, p_opp_id_list);
+	*num_of_records = \
+		p_file_number_of_opponents(data->data_dir, file_path, p_opp_id_list);
 	struct record *ret = \
 		(struct record *)malloc(sizeof(struct record) * *num_of_records);
 	/* Read the starter data in the file */
@@ -2114,7 +2166,7 @@ struct record *get_all_records(const char *file_path, long *num_of_records) {
 	/* Get number of entries for every opponent */
 	// CONSIDER: only do if verbose? (Only used if verbose)
 	long *num_outcome_all = \
-		p_file_get_all_number_of_outcomes_against(data_dir, file_path, \
+		p_file_get_all_number_of_outcomes_against(data->data_dir, file_path, \
 			*num_of_records, opp_id_list);
 	/* Array containing the current number of entries for a given opponent */
 	int *cur_opp_num_of_ent = (int *) calloc(*num_of_records, sizeof(int));
@@ -2129,7 +2181,7 @@ struct record *get_all_records(const char *file_path, long *num_of_records) {
 	}
 
 	short prev_entrys_season = 0;
-	while (p_file_open_read_entry(data_dir, p_file, &ent) == 0) {
+	while (p_file_open_read_entry(data->data_dir, p_file, &ent) == 0) {
 		int j = 0;
 		/* Find position (j) of opp_id being searched for */
 		for (j = 0; j < *num_of_records; j++) {
@@ -2300,7 +2352,7 @@ int filter_player_list(char **players_pointer, short *num_players, \
  *     this function. 0 means sucess, negative numbers mean failure.
  */
 int filter_player_list_min_events(char **players_pointer, short *num_players, \
-	int min_events) {
+	int min_events, g2me_data_t *data) {
 
 	int app_ind = 0;
 	char *players = *(players_pointer);
@@ -2315,7 +2367,8 @@ int filter_player_list_min_events(char **players_pointer, short *num_players, \
 
 	for (int i = 0; i < *num_players; i++) {
 		char *full_player_path = \
-			player_dir_file_path_with_player_dir(player_dir, &players[i * (MAX_NAME_LEN + 1)]);
+			player_dir_file_path_with_player_dir(data->player_dir, \
+			&players[i * (MAX_NAME_LEN + 1)]);
 		int num_events = p_file_get_events_attended_count(full_player_path);
 
 		/* If the player passes the filter (has gone to enough events */
@@ -2336,22 +2389,22 @@ int filter_player_list_min_events(char **players_pointer, short *num_players, \
 }
 
 
-int player_and_data_dirs_check_and_create(void) {
-	if (0 != player_dir_check_and_create(player_dir)) {
+int player_and_data_dirs_check_and_create(g2me_data_t *data) {
+	if (0 != player_dir_check_and_create(data->player_dir)) {
 		return -1;
 	}
-	if (0 != data_dir_check_and_create(data_dir)) {
+	if (0 != data_dir_check_and_create(data->data_dir)) {
 		return -2;
 	}
 	return 0;
 }
 
 
-int player_and_data_dirs_reset(void) {
-	if (0 != player_dir_reset_players(player_dir)) {
+int player_and_data_dirs_reset(g2me_data_t *data) {
+	if (0 != player_dir_reset_players(data->player_dir)) {
 		return -1;
 	}
-	if (0 != data_dir_reset(data_dir)) {
+	if (0 != data_dir_reset(data->data_dir)) {
 		return -2;
 	}
 	return 0;
@@ -2402,13 +2455,6 @@ int main(int argc, char **argv) {
 	};
 	char opt_string[] = { "0A:b:B:c:Cd:ef:gh:km:MnNo:OR:Ssvw:" };
 
-	/* 1.1. Initialize player_dir to the file path for the player directory */
-	memset(player_dir, 0, sizeof(player_dir));
-	strncpy(player_dir, DEFAULT_PLAYER_DIR, sizeof(player_dir) - 1);
-	/* 1.2. Initialize data_dir to the file path for the data directory */
-	memset(data_dir, 0, sizeof(data_dir));
-	strncpy(data_dir, DEFAULT_DATA_DIR, sizeof(data_dir) - 1);
-
 	// TODO: put somewhere else. Right now it resets even if G2ME is called
 	//     flags that wouldn't use the hash table
 	/* Reset hash table */
@@ -2416,13 +2462,14 @@ int main(int argc, char **argv) {
 
 	while ((opt = getopt_long(argc, argv, opt_string, opt_table, NULL)) != -1) {
 		if (opt == 'A') {
-			if (0 == player_and_data_dirs_check_and_create()) {
+			if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
 				int count;
 				char *full_player_path = \
-					player_dir_file_path_with_player_dir(player_dir, optarg);
+					player_dir_file_path_with_player_dir( \
+					state.data.player_dir, optarg);
 				char *attended = \
-					p_file_get_events_attended(data_dir, full_player_path, \
-						&count);
+					p_file_get_events_attended(state.data.data_dir, \
+					full_player_path, &count);
 				print_player_attended(attended, count);
 				free(full_player_path);
 				free(attended);
@@ -2431,9 +2478,10 @@ int main(int argc, char **argv) {
 						"created or does not exist");
 			}
 		} else if (opt == 'c') {
-			if (0 == player_and_data_dirs_check_and_create()) {
+			if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
 				char *full_player_path = \
-					player_dir_file_path_with_player_dir(player_dir, optarg);
+					player_dir_file_path_with_player_dir( \
+					state.data.player_dir, optarg);
 
 				fprintf(stdout, "%d\n", \
 					p_file_get_outcome_count(full_player_path));
@@ -2441,12 +2489,14 @@ int main(int argc, char **argv) {
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		} else if (opt == 'd') {
-			memset(player_dir, 0, sizeof(player_dir));
-			strncpy(player_dir, optarg, sizeof(player_dir) - 1);
+			memset(state.data.player_dir, 0, sizeof(state.data.player_dir));
+			strncpy(state.data.player_dir, optarg, \
+				sizeof(state.data.player_dir) - 1);
 		} else if (opt == 'h') {
-			if (0 == player_and_data_dirs_check_and_create()) {
+			if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
 				char *full_player_path = \
-					player_dir_file_path_with_player_dir(player_dir, optarg);
+					player_dir_file_path_with_player_dir( \
+					state.data.player_dir, optarg);
 
 				if (access(full_player_path, R_OK | W_OK) == -1) {
 					fprintf(stderr, "ERROR: the given player (\"%s\") could " \
@@ -2455,22 +2505,31 @@ int main(int argc, char **argv) {
 					return -1;
 				}
 				if (state.flags.verbose == true) {
-					print_player_file_verbose(data_dir, player_dir, \
-						full_player_path, state.flags.colour_output, \
-						state.flags.filter_by_filter_file, \
-						state.flags.filter_file_path, state.flags.min_events);
-				} else {
-					print_player_file(data_dir, player_dir, full_player_path, \
+					print_player_file_verbose( \
+						state.data.data_dir,  \
+						state.data.player_dir, \
+						full_player_path, \
 						state.flags.colour_output, \
 						state.flags.filter_by_filter_file, \
-						state.flags.filter_file_path, state.flags.min_events);
+						state.flags.filter_file_path, \
+						state.flags.min_events);
+				} else {
+					print_player_file( \
+						state.data.data_dir, \
+						state.data.player_dir, \
+						full_player_path, \
+						state.flags.colour_output, \
+						state.flags.filter_by_filter_file, \
+						state.flags.filter_file_path, \
+						state.flags.min_events);
 				}
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		} else if (opt == 'R') {
-			if (0 == player_and_data_dirs_check_and_create()) {
+			if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
 				char *full_player_path = \
-					player_dir_file_path_with_player_dir(player_dir, optarg);
+					player_dir_file_path_with_player_dir( \
+					state.data.player_dir, optarg);
 
 				if (access(full_player_path, R_OK | W_OK) == -1) {
 					fprintf(stderr, "ERROR: the given player (\"%s\") could " \
@@ -2478,11 +2537,7 @@ int main(int argc, char **argv) {
 						"player directory\n", optarg);
 					return -1;
 				}
-				print_player_records(player_dir, full_player_path, \
-					state.flags.colour_output, \
-					state.flags.filter_by_filter_file, \
-					state.flags.filter_file_path, state.flags.min_events, \
-					state.flags.print_ties, state.flags.verbose);
+				print_player_records(&state, full_player_path);
 				free(full_player_path);
 			} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 		}
@@ -2492,8 +2547,10 @@ int main(int argc, char **argv) {
 				state.flags.calc_absent_players = false;
 				break;
 			case 'b':
-				if (0 == player_and_data_dirs_check_and_create()) {
-					if (state.flags.keep_players == false) player_and_data_dirs_reset();
+				if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
+					if (state.flags.keep_players == false) {
+						player_and_data_dirs_reset(&(state.data));
+					}
 					if (state.flags.keep_players == false) {
 						// TODO: put somewhere else. Would be useful to not reset, possibly
 						/* Reset hash table */
@@ -2503,8 +2560,10 @@ int main(int argc, char **argv) {
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'B':
-				if (0 == player_and_data_dirs_check_and_create()) {
-					if (state.flags.keep_players == false) player_and_data_dirs_reset();
+				if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
+					if (state.flags.keep_players == false) {
+						player_and_data_dirs_reset(&(state.data));
+					}
 					if (state.flags.keep_players == false) {
 						// TODO: put somewhere else. Would be useful to not reset, possibly
 						/* Reset hash table */
@@ -2514,16 +2573,13 @@ int main(int argc, char **argv) {
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'C':
-				if (0 == player_and_data_dirs_check_and_create()) {
-					print_matchup_table_csv(data_dir, \
-						state.flags.filter_by_filter_file, \
-						state.flags.filter_file_path, state.flags.min_events, \
-						state.flags.print_ties);
+				if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
+					print_matchup_table_csv(&state);
 					break;
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 			case 'e':
-				if (0 == player_and_data_dirs_check_and_create()) {
-					player_and_data_dirs_reset();
+				if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
+					player_and_data_dirs_reset(&(state.data));
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'f':
@@ -2541,10 +2597,7 @@ int main(int argc, char **argv) {
 				state.flags.min_events = atoi(optarg);
 				break;
 			case 'M':
-				print_matchup_table(data_dir, \
-					state.flags.filter_by_filter_file, \
-					state.flags.filter_file_path, state.flags.min_events, \
-					state.flags.print_ties);
+				print_matchup_table(&state);
 				break;
 			case 'n':
 				state.flags.colour_output = false;
@@ -2553,7 +2606,7 @@ int main(int argc, char **argv) {
 				state.flags.print_ties = false;
 				break;
 			case 'o':
-				if (0 == player_and_data_dirs_check_and_create()) {
+				if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
 					if (state.flags.filter_by_filter_file == true) {
 						int ret = \
 							generate_ratings_file( \
@@ -2567,7 +2620,7 @@ int main(int argc, char **argv) {
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'O':
-				if (0 == player_and_data_dirs_check_and_create()) {
+				if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
 					state.flags.output_to_stdout = 1;
 					if (state.flags.filter_by_filter_file == true) {
 						int ret = \

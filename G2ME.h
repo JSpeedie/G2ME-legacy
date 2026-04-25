@@ -43,8 +43,16 @@ typedef struct g2me_flags {
 	char filter_file_path[MAX_FILE_PATH_LEN + 1];
 }g2me_flags_t;
 
+/* This struct keeps track of all the stored data the program is to make use
+ * of. */
+typedef struct g2me_data {
+	char player_dir[MAX_FILE_PATH_LEN + 1];
+	char data_dir[MAX_FILE_PATH_LEN + 1];
+}g2me_data_t;
+
 typedef struct g2me_state {
 	g2me_flags_t flags;
+	g2me_data_t data;
 }g2me_state_t;
 
 typedef struct record {
@@ -78,8 +86,10 @@ void update_player_on_outcome(short, char *, short, char *, struct player *, \
 	g2me_state_t *);
 
 /* Adjustments */
-void adjust_absent_player(char *, char, char, short, short, char *);
-void adjust_absent_players_no_file(char, char, short, short, char *, int);
+void adjust_absent_player(char *, char, char, short, short, char *, \
+	g2me_state_t *state);
+void adjust_absent_players_no_file(char, char, short, short, char *, int, \
+	g2me_state_t *state);
 
 /* Glicko2 number crunching functions */
 int update_players(char *, short, g2me_state_t *);
@@ -91,12 +101,15 @@ int generate_ratings_file(char *, char *, g2me_state_t *);
 int generate_ratings_file_full(char *, g2me_state_t *);
 
 /* Records */
-int get_record(char *, char *, struct record *);
-struct record *get_all_records(const char *, long *);
+int get_record(char *player1, char *player2, struct record *ret, \
+	g2me_data_t *data);
+struct record *get_all_records(const char *file_path, long *num_of_records, \
+	g2me_data_t *data);
 
 /* Random helper functions */
 long longest_name(char *, int);
 int filter_player_list(char **, short *, const char *);
-int filter_player_list_min_events(char **, short *, int min_events);
+int filter_player_list_min_events(char **, short *, int min_events, \
+	g2me_data_t *data);
 
 #endif
