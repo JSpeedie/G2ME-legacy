@@ -26,8 +26,8 @@ void print_entry(struct entry E, bool colour_output, bool verbose);
 
 void print_entry_column_spaced_verbose(struct entry, int, \
 	int, int, int, int, int, int, int, int, int, int, int, int, bool);
-void print_entry_column_spaced(struct entry, int, int, int, int, int, int, int, \
-	bool);
+void print_entry_column_spaced(struct entry, int, int, int, int, int, int, \
+	int, bool);
 
 int print_player_file_verbose(g2me_flags_t *flags, g2me_data_t *data, \
 	const char *file_path);

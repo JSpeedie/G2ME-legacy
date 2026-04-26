@@ -480,9 +480,12 @@ void update_player_on_outcome(short p1_id, char* p1_name, short p2_id, \
 
 	/* Adjust changes in glicko data based on weight of given game/set */
 	new_p1.__rating = \
-		p1->__rating + ((new_p1.__rating - p1->__rating) * state->flags.outcome_weight);
-	new_p1.__rd = p1->__rd + ((new_p1.__rd - p1->__rd) * state->flags.outcome_weight);
-	new_p1.vol = p1->vol + ((new_p1.vol - p1->vol) * state->flags.outcome_weight);
+		p1->__rating + ((new_p1.__rating - p1->__rating) \
+		* state->flags.outcome_weight);
+	new_p1.__rd = p1->__rd + ((new_p1.__rd - p1->__rd) \
+		* state->flags.outcome_weight);
+	new_p1.vol = p1->vol + ((new_p1.vol - p1->vol) \
+		* state->flags.outcome_weight);
 
 	struct entry p1_new_entry =
 		create_entry(&new_p1, p1_name, p2_name, *p1_gc, *p2_gc, \
@@ -533,7 +536,8 @@ void adjust_absent_player(char *player_file, char day, char month, \
 	short year, short t_id, char *t_name, g2me_state_t *state) {
 
 	char* full_file_path = \
-		player_dir_file_path_with_player_dir(state->data.player_dir, player_file);
+		player_dir_file_path_with_player_dir(state->data.player_dir, \
+		player_file);
 
 	/* If the player who did not compete has a player file */
 #ifdef __linux__
@@ -1423,7 +1427,8 @@ int update_players(char* bracket_file_path, short season_id, \
 			while (L <= R) {
 				m = floor(((double) (L + R)) / 2.0);
 				/* Compare array[m] with the name being searched for */
-				int comp = strncmp(&tourn_atten[m].name[0], p1_name, MAX_NAME_LEN);
+				int comp = strncmp(&tourn_atten[m].name[0], p1_name, \
+					MAX_NAME_LEN);
 				if (0 > comp) {
 					L = m + 1;
 				} else if (0 < comp) {
@@ -1448,7 +1453,8 @@ int update_players(char* bracket_file_path, short season_id, \
 			while (L <= R) {
 				m = floor(((double) (L + R)) / 2.0);
 				/* Compare array[m] with the name being searched for */
-				int comp = strncmp(&tourn_atten[m].name[0], p2_name, MAX_NAME_LEN);
+				int comp = strncmp(&tourn_atten[m].name[0], p2_name, \
+					MAX_NAME_LEN);
 				if (0 > comp) {
 					L = m + 1;
 				} else if (0 < comp) {
@@ -1618,7 +1624,8 @@ int run_single_bracket(char *bracket_file_path, g2me_state_t *state) {
 	/* If the silent flags haven't been set, print progress */
 	if (state->flags.silent == false && state->flags.silent_all == false) {
 		if (state->flags.use_games == true) {
-			fprintf(stdout, "running \"%s\" using games ...", bracket_file_path);
+			fprintf(stdout, "running \"%s\" using games ...", \
+				bracket_file_path);
 			fflush(stdout);
 		} else {
 			fprintf(stdout, "running \"%s\" ...", bracket_file_path);
@@ -1755,7 +1762,8 @@ int run_brackets(char *bracket_list_file_path, g2me_state_t *state) {
 		}
 		update_players(&bracket_paths[j * (MAX_FILE_PATH_LEN + 1)], \
 			latest_season_id + 1, state);
-		s_file_set_latest_season_id(state->data.data_dir, latest_season_id + 1);
+		s_file_set_latest_season_id(state->data.data_dir, \
+			latest_season_id + 1);
 
 		if (state->flags.silent == false && state->flags.silent_all == false) {
 			fprintf(stdout, "DONE\n");
@@ -2460,7 +2468,9 @@ int main(int argc, char **argv) {
 	/* Reset hash table */
 	hashtable_reset();
 
-	while ((opt = getopt_long(argc, argv, opt_string, opt_table, NULL)) != -1) {
+	while (-1 != \
+		(opt = getopt_long(argc, argv, opt_string, opt_table, NULL))) {
+
 		if (opt == 'A') {
 			if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
 				int count;
@@ -2536,7 +2546,9 @@ int main(int argc, char **argv) {
 				state.flags.calc_absent_players = false;
 				break;
 			case 'b':
-				if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
+				if (0 == player_and_data_dirs_check_and_create( \
+					&(state.data))) {
+
 					if (state.flags.keep_players == false) {
 						player_and_data_dirs_reset(&(state.data));
 					}
@@ -2549,7 +2561,9 @@ int main(int argc, char **argv) {
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'B':
-				if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
+				if (0 == player_and_data_dirs_check_and_create( \
+					&(state.data))) {
+
 					if (state.flags.keep_players == false) {
 						player_and_data_dirs_reset(&(state.data));
 					}
@@ -2562,12 +2576,16 @@ int main(int argc, char **argv) {
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'C':
-				if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
+				if (0 == player_and_data_dirs_check_and_create( \
+					&(state.data))) {
+
 					print_matchup_table_csv(&(state.flags), &(state.data));
 					break;
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 			case 'e':
-				if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
+				if (0 == player_and_data_dirs_check_and_create( \
+					&(state.data))) {
+
 					player_and_data_dirs_reset(&(state.data));
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
@@ -2595,7 +2613,9 @@ int main(int argc, char **argv) {
 				state.flags.print_ties = false;
 				break;
 			case 'o':
-				if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
+				if (0 == player_and_data_dirs_check_and_create( \
+					&(state.data))) {
+
 					if (state.flags.filter_by_filter_file == true) {
 						int ret = \
 							generate_ratings_file( \
@@ -2609,7 +2629,9 @@ int main(int argc, char **argv) {
 				} else fprintf(stderr, ERROR_PLAYER_DIR_DNE);
 				break;
 			case 'O':
-				if (0 == player_and_data_dirs_check_and_create(&(state.data))) {
+				if (0 == player_and_data_dirs_check_and_create( \
+					&(state.data))) {
+
 					state.flags.output_to_stdout = 1;
 					if (state.flags.filter_by_filter_file == true) {
 						int ret = \
