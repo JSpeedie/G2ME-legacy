@@ -703,7 +703,7 @@ int print_player_records(g2me_flags_t *flags, g2me_data_t *data, \
 	// TODO: add filter to get_all_records, array indexed by opp_id,
 	// contains ret array index
 	struct record *records = \
-		get_all_records(file_path, &num_rec, data);
+		get_all_records(data, file_path, &num_rec);
 	merge_sort_player_records(records, num_rec);
 
 	char passes_filter = 0;
@@ -891,8 +891,8 @@ int print_matchup_table(g2me_flags_t *flags, g2me_data_t *data) {
 	if (flags->min_events > 0) {
 		int ret = 0;
 		if (0 != (ret = \
-			filter_player_list_min_events(&players, &num_players, \
-			flags->min_events, data))) {
+			filter_player_list_min_events(data, &players, &num_players, \
+			flags->min_events))) {
 
 			fprintf(stderr, \
 				"filter_player_list_min_events (%d) (print_matchup_table)", \
@@ -919,11 +919,10 @@ int print_matchup_table(g2me_flags_t *flags, g2me_data_t *data) {
 				records[j][i].ties = 0;
 				records[j][i].losses = 0;
 			} else {
-				get_record( \
+				get_record(data, \
 					&players[i * (MAX_NAME_LEN + 1)], \
 					&players[j * (MAX_NAME_LEN + 1)], \
-					&records[i][j], \
-					data);
+					&records[i][j]);
 				/* Copy inverse of record to inverse spot */
 				records[j][i].wins = records[i][j].losses;
 				records[j][i].ties = records[i][j].ties;
@@ -1102,8 +1101,8 @@ int print_matchup_table_csv(g2me_flags_t *flags, g2me_data_t *data) {
 	if (flags->min_events > 0) {
 		int ret = 0;
 		if (0 != (ret = \
-			filter_player_list_min_events(&players, &num_players, \
-			flags->min_events, data))) {
+			filter_player_list_min_events(data, &players, &num_players, \
+			flags->min_events))) {
 
 			fprintf(stderr, \
 				"filter_player_list_min_events (%d) (print_matchup_table)", \
@@ -1143,11 +1142,10 @@ int print_matchup_table_csv(g2me_flags_t *flags, g2me_data_t *data) {
 		/* Get row content */
 		for (int j = 0; j < num_players; j++) {
 			struct record temp_rec;
-			get_record( \
+			get_record(data, \
 				&players[i * (MAX_NAME_LEN + 1)], \
 				&players[j * (MAX_NAME_LEN + 1)], \
-				&temp_rec, \
-				data);
+				&temp_rec);
 			/* If the player has no data against a given opponent, print "-" */
 			if (temp_rec.wins == 0 && temp_rec.ties == 0 \
 				&& temp_rec.losses == 0) {

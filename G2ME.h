@@ -81,35 +81,40 @@ int hashtable_reset();
 /* struct record helpers */
 int init_record(struct record *);
 
-void update_player_on_outcome(short, char *, short, char *, struct player *, \
-	struct player *, char *, char *, char, char, short, short, char *, short, \
-	g2me_state_t *);
+void update_player_on_outcome(g2me_flags_t *flags, g2me_data_t *data, \
+	short p1_id, char* p1_name, short p2_id, char* p2_name, \
+	struct player* p1, struct player* p2, char* p1_gc, char* p2_gc, char day, \
+	char month, short year, short t_id, char* t_name, short season_id);
 
 /* Adjustments */
-void adjust_absent_player(char *, char, char, short, short, char *, \
-	g2me_state_t *state);
-void adjust_absent_players_no_file(char, char, short, short, char *, int, \
-	g2me_state_t *state);
+void adjust_absent_player(g2me_data_t *data, char *player_file, char day, \
+	char month, short year, short t_id, char *t_name);
+void adjust_absent_players_no_file(g2me_data_t *data, char day, char month, \
+	short year, short t_id, char* t_name, int available_cores);
 
 /* Glicko2 number crunching functions */
-int update_players(char *, short, g2me_state_t *);
-int run_single_bracket(char *, g2me_state_t *);
-int run_brackets(char *, g2me_state_t *);
+int update_players(g2me_flags_t *flags, g2me_data_t *data, \
+	char *bracket_file_path, short season_id);
+int run_single_bracket(g2me_flags_t *flags, g2me_data_t *data, \
+	char *bracket_file_path);
+int run_brackets(g2me_flags_t *flags, g2me_data_t *data, char *);
 
 /* Generate Ratings */
-int generate_ratings_file(char *, char *, g2me_state_t *);
-int generate_ratings_file_full(char *, g2me_state_t *);
+int generate_ratings_file(g2me_flags_t *flags, g2me_data_t *data, \
+	char *output_file_path);
+int generate_ratings_file_full(g2me_flags_t *flags, g2me_data_t *data, \
+	char *output_file_path);
 
 /* Records */
-int get_record(char *player1, char *player2, struct record *ret, \
-	g2me_data_t *data);
-struct record *get_all_records(const char *file_path, long *num_of_records, \
-	g2me_data_t *data);
+int get_record(g2me_data_t *data, char *player1, char *player2, \
+	struct record *ret);
+struct record *get_all_records(g2me_data_t *data, const char *file_path, \
+	long *num_of_records);
 
 /* Random helper functions */
 long longest_name(char *, int);
 int filter_player_list(char **, short *, const char *);
-int filter_player_list_min_events(char **, short *, int min_events, \
-	g2me_data_t *data);
+int filter_player_list_min_events(g2me_data_t *data, char **, short *, \
+	int min_events);
 
 #endif
