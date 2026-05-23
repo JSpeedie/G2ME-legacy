@@ -38,7 +38,6 @@ TestSuite(entry_tests, .init=entry_suite_setup, .fini=entry_suite_teardown);
 
 
 Test(entry_tests, createEntry) {
-	/* Test and Check */
 	cr_expect_eq(E_from_P.season_id, 0, \
 		"Setting Entry.season_id using create_entry() should work.");
 	cr_expect_eq(E_from_P.len_name, strlen(E_from_P.name), \
@@ -75,7 +74,6 @@ Test(entry_tests, createEntry) {
 
 
 Test(entry_tests, initPlayerFromEntry) {
-	/* Test and Check */
 	cr_expect_float_eq(P2_from_E.__rating, P.__rating, 0.00001, \
 		"Player initialized from Entry has the wrong rating");
 	cr_expect_float_eq(P2_from_E.__rd, P.__rd, 0.00001, \

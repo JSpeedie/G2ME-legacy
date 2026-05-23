@@ -27,10 +27,8 @@ Test(o_flag_tests, o_flag) {
 	// TODO: call function
 	int ret = 1;
 	/* int ret = generate_ratings_file_full("does not matter"); */
-	cr_expect_eq(0, ret, "Generating a rating file should not have failed in" \
-		"this situation.");
-	fflush(stdout);
-	printf("finished test\n");
+	cr_expect_eq(0, ret, "Generating a rating file should not have failed " \
+		"in this situation.");
 
 	/* Check */
 	/* cr_expect_stdout_eq_str( \ */
@@ -56,5 +54,4 @@ Test(o_flag_tests, o_flag) {
 	/* 	, \ */
 	/* 	"The output from generating a ratings file did not look the way it " \ */
 	/* 	"was expected to."); */
-	printf("finished check\n");
 }

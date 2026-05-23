@@ -27,7 +27,6 @@ TestSuite(player_tests, .init=player_suite_setup, .fini=player_suite_teardown);
 
 
 Test(player_tests, setRating) {
-	/* Test and Check */
 	cr_expect_float_eq(P_test.__rating, P_ref.__rating, 0.0000001, \
 		"Setting a rating for a Player should correctly convert the given " \
 		"original-scale value to a Glicko-2-scale value stored in the " \
@@ -36,7 +35,6 @@ Test(player_tests, setRating) {
 
 
 Test(player_tests, setRatingGetRating) {
-	/* Test and Check */
 	cr_expect_float_eq(getRating(&P_test), 1500.0, 0.0000001, \
 		"Getting a rating for a Player should return the same " \
 		"original-scale value it was set with.");
@@ -44,7 +42,6 @@ Test(player_tests, setRatingGetRating) {
 
 
 Test(player_tests, setRd) {
-	/* Test and Check */
 	cr_expect_float_eq(P_test.__rd, P_ref.__rd, 0.0000001, \
 		"Setting an RD for a Player should correctly convert the given " \
 		"original-scale value to a Glicko-2-scale value stored in the " \
@@ -53,7 +50,6 @@ Test(player_tests, setRd) {
 
 
 Test(player_tests, setRdGetRd) {
-	/* Test and Check */
 	cr_expect_float_eq(getRd(&P_test), 350.0, 0.0000001, \
 		"Getting an RD for a Player should return the same " \
 		"original-scale value it was set with.");
