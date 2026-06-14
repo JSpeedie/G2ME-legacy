@@ -17,3 +17,6 @@ LIBS:=-lm -lpthread
 # Create Make recipes for `$(NAME)_release`, `$(NAME)_release_install`,
 # `$(NAME)_release_uninstall`, and `$(NAME)_release_clean`
 include template-release.mk
+# Create Make recipes for `$(NAME)_debug`, `$(NAME)_debug_install`,
+# `$(NAME)_debug_uninstall`, and `$(NAME)_debug_clean`
+include template-debug.mk

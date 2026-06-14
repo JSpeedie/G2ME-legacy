@@ -18,5 +18,4 @@ LIBS:=
 include template-release.mk
 # Create Make recipes for `$(NAME)_debug`, `$(NAME)_debug_install`,
 # `$(NAME)_debug_uninstall`, and `$(NAME)_debug_clean`
-# TODO: uncomment
-# include template-debug.mk
+include template-debug.mk
