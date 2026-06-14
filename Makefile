@@ -7,9 +7,10 @@
 #   ----------------------------------------------------------------------------
 # All items in `BINARIES` must have an associated `.mk` file that:
 # (1) is included by this file,
-# (2) includes `template-release.mk` AND `template-debug.mk`,
+# (2) includes `template-release.mk`, `template-debug.mk`, AND
+#     `template-windows-release.mk`
 # (3) has a value for `NAME` that matches an item in `BINARIES`
-BINARIES := G2ME
+BINARIES := G2ME G2ME-client G2ME-server
 
 #   ----------------------------------------------------------------------------
 #   Categorized lists of all build targets
@@ -18,10 +19,13 @@ BINARIES_RELEASE := $(BINARIES:%=%_release)
 BINARIES_RELEASE_INSTALL := $(BINARIES:%=%_release_install)
 BINARIES_RELEASE_UNINSTALL := $(BINARIES:%=%_release_uninstall)
 BINARIES_RELEASE_CLEAN := $(BINARIES:%=%_release_clean)
+
 BINARIES_DEBUG := $(BINARIES:%=%_debug)
 BINARIES_DEBUG_INSTALL := $(BINARIES:%=%_debug_install)
 BINARIES_DEBUG_UNINSTALL := $(BINARIES:%=%_debug_uninstall)
 BINARIES_DEBUG_CLEAN := $(BINARIES:%=%_debug_clean)
+
+BINARIES_WINDOWS_RELEASE := $(BINARIES:%=%_windows_release)
 
 #   ----------------------------------------------------------------------------
 #   The makefiles for each build result
@@ -59,13 +63,5 @@ debug_uninstall: $(BINARIES_RELEASE_UNINSTALL)
 .PHONY: debug_clean
 debug_clean: $(BINARIES_RELEASE_clean)
 
-# # This rule requires the mingw-w64-gcc compilers. They can be installed
-# # with:
-# #
-# #     sudo pacman -S mingw-w64-gcc    # Arch
-# #
-# windows: G2ME.c $(G2MEDEP)
-# 	@# --static to create a statically linked binary to avoid issues with
-# 	@# pthreads on windows
-# 	$(WCC32) --static $(CFLAGS) $< $(G2MEDEP) -o G2ME32.exe
-# 	$(WCC64) --static $(CFLAGS) $< $(G2MEDEP) -o G2ME64.exe
+.PHONY: windows
+windows: $(BINARIES_WINDOWS_RELEASE)

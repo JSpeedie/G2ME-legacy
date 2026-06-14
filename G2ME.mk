@@ -20,3 +20,5 @@ include template-release.mk
 # Create Make recipes for `$(NAME)_debug`, `$(NAME)_debug_install`,
 # `$(NAME)_debug_uninstall`, and `$(NAME)_debug_clean`
 include template-debug.mk
+# Create Make recipe for `$(NAME)_windows_release`
+include template-windows-release.mk
