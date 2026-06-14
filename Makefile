@@ -7,19 +7,28 @@
 #   ----------------------------------------------------------------------------
 # All items in `BINARIES` must have an associated `.mk` file that:
 # (1) is included by this file,
-# (2) includes `template-release.mk`,
+# (2) includes `template-release.mk` AND `template-debug.mk`,
 # (3) has a value for `NAME` that matches an item in `BINARIES`
 BINARIES := G2ME
 
 #   ----------------------------------------------------------------------------
 #   Categorized lists of all build targets
 #   ----------------------------------------------------------------------------
-BINARIES_R := $(BINARIES:%=%_release)
+BINARIES_RELEASE := $(BINARIES:%=%_release)
+BINARIES_RELEASE_INSTALL := $(BINARIES:%=%_release_install)
+BINARIES_RELEASE_UNINSTALL := $(BINARIES:%=%_release_uninstall)
+BINARIES_RELEASE_CLEAN := $(BINARIES:%=%_release_clean)
+BINARIES_DEBUG := $(BINARIES:%=%_debug)
+BINARIES_DEBUG_INSTALL := $(BINARIES:%=%_debug_install)
+BINARIES_DEBUG_UNINSTALL := $(BINARIES:%=%_debug_uninstall)
+BINARIES_DEBUG_CLEAN := $(BINARIES:%=%_debug_clean)
 
 #   ----------------------------------------------------------------------------
 #   The makefiles for each build result
 #   ----------------------------------------------------------------------------
 include G2ME.mk
+include G2ME-server.mk
+include G2ME-client.mk
 
 #   ----------------------------------------------------------------------------
 #   High-level rules for the developer to invoke from the commandline
@@ -27,7 +36,28 @@ include G2ME.mk
 .DEFAULT_GOAL := release
 
 .PHONY: release
-release: $(BINARIES_R)
+release: $(BINARIES_RELEASE)
+
+.PHONY: release_install
+release_install: $(BINARIES_RELEASE_INSTALL)
+
+.PHONY: release_uninstall
+release_uninstall: $(BINARIES_RELEASE_UNINSTALL)
+
+.PHONY: release_clean
+release_clean: $(BINARIES_RELEASE_clean)
+
+.PHONY: debug
+debug: $(BINARIES_DEBUG)
+
+.PHONY: debug_install
+debug_install: $(BINARIES_RELEASE_INSTALL)
+
+.PHONY: debug_uninstall
+debug_uninstall: $(BINARIES_RELEASE_UNINSTALL)
+
+.PHONY: debug_clean
+debug_clean: $(BINARIES_RELEASE_clean)
 
 # # This rule requires the mingw-w64-gcc compilers. They can be installed
 # # with:
