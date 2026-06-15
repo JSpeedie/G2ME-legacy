@@ -169,7 +169,7 @@ def test_A(log_file=None) -> (int, int):
     # Setup
     g2me_exec = ""
     if os.name == "posix": # If this is being run on linux/macOS
-        g2me_exec = "../G2ME"
+        g2me_exec = "bin/G2ME"
         input_dir = Path("input")
     elif os.name == "nt": # If this is being run on windows
         g2me_exec = "..\\G2ME64.exe"
@@ -180,10 +180,10 @@ def test_A(log_file=None) -> (int, int):
     B1_test_collection=[
         Test(test_name="testB1A1",
              setup_cmd_list=[
-                # ../G2ME -B input/TEST.sea
+                # bin/G2ME -B input/TEST.sea
                 g2me_exec + " -B " + season1,
              ],
-             # ../G2ME -A Jayden
+             # bin/G2ME -A Jayden
              test_cmd=g2me_exec + " -A Jayden",
              redirect=True,
              log_file=log_file,
@@ -192,7 +192,7 @@ def test_A(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -A Harper
+             # bin/G2ME -A Harper
              test_cmd=g2me_exec + " -A Harper",
              redirect=True,
              log_file=log_file,
@@ -221,7 +221,7 @@ def test_c(log_file=None) -> (int, int):
     # Setup
     g2me_exec = ""
     if os.name == "posix": # If this is being run on linux/macOS
-        g2me_exec = "../G2ME"
+        g2me_exec = "bin/G2ME"
         input_dir = Path("input")
     elif os.name == "nt": # If this is being run on windows
         g2me_exec = "..\\G2ME64.exe"
@@ -232,10 +232,10 @@ def test_c(log_file=None) -> (int, int):
     B1_test_collection=[
         Test(test_name="testB1c1",
              setup_cmd_list=[
-                # ../G2ME -B input/TEST.sea
+                # bin/G2ME -B input/TEST.sea
                 g2me_exec + " -B " + season1,
              ],
-             # ../G2ME -c Dylan
+             # bin/G2ME -c Dylan
              test_cmd=g2me_exec + " -c Dylan",
              redirect=True,
              log_file=log_file,
@@ -244,7 +244,7 @@ def test_c(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -c Michael
+             # bin/G2ME -c Michael
              test_cmd=g2me_exec + " -c Michael",
              redirect=True,
              log_file=log_file,
@@ -253,7 +253,7 @@ def test_c(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -c Valerie
+             # bin/G2ME -c Valerie
              test_cmd=g2me_exec + " -c Valerie",
              redirect=True,
              log_file=log_file,
@@ -282,7 +282,7 @@ def test_C(log_file=None) -> (int, int):
     # Setup
     g2me_exec = ""
     if os.name == "posix": # If this is being run on linux/macOS
-        g2me_exec = "../G2ME"
+        g2me_exec = "bin/G2ME"
         input_dir = Path("input")
     elif os.name == "nt": # If this is being run on windows
         g2me_exec = "..\\G2ME64.exe"
@@ -296,10 +296,10 @@ def test_C(log_file=None) -> (int, int):
     b1_test_collection=[
         Test(test_name="testb1C",
              setup_cmd_list=[
-                # ../G2ME -b input/TEST1
+                # bin/G2ME -b input/TEST1
                 g2me_exec + " -b " + bracket1,
              ],
-             # ../G2ME -C
+             # bin/G2ME -C
              test_cmd=g2me_exec + " -C",
              redirect=True,
              log_file=log_file,
@@ -308,7 +308,7 @@ def test_C(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -C
+             # bin/G2ME -m 2 -C
              test_cmd=g2me_exec + " -m 2 -C",
              redirect=True,
              log_file=log_file,
@@ -317,7 +317,7 @@ def test_C(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -C
+             # bin/G2ME -f input/filter1 -C
              test_cmd=g2me_exec + " -f " + filter1 + " -C",
              redirect=True,
              log_file=log_file,
@@ -326,7 +326,7 @@ def test_C(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -f input/filter1 -C
+             # bin/G2ME -m 2 -f input/filter1 -C
              test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -C",
              redirect=True,
              log_file=log_file,
@@ -337,10 +337,10 @@ def test_C(log_file=None) -> (int, int):
     b2_test_collection=[
         Test(test_name="testb2C",
              setup_cmd_list=[
-                # ../G2ME -b input/TEST2
+                # bin/G2ME -b input/TEST2
                 g2me_exec + " -b " + bracket2,
              ],
-             # ../G2ME -C
+             # bin/G2ME -C
              test_cmd=g2me_exec + " -C",
              redirect=True,
              log_file=log_file,
@@ -349,7 +349,7 @@ def test_C(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -C
+             # bin/G2ME -m 2 -C
              test_cmd=g2me_exec + " -m 2 -C",
              redirect=True,
              log_file=log_file,
@@ -358,7 +358,7 @@ def test_C(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -C
+             # bin/G2ME -f input/filter1 -C
              test_cmd=g2me_exec + " -f " + filter1 + " -C",
              redirect=True,
              log_file=log_file,
@@ -367,7 +367,7 @@ def test_C(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -f input/filter1 -C
+             # bin/G2ME -m 2 -f input/filter1 -C
              test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -C",
              redirect=True,
              log_file=log_file,
@@ -378,10 +378,10 @@ def test_C(log_file=None) -> (int, int):
     B1_test_collection=[
         Test(test_name="testB1C",
              setup_cmd_list=[
-                # ../G2ME -B input/TEST.sea
+                # bin/G2ME -B input/TEST.sea
                 g2me_exec + " -B " + season1,
              ],
-             # ../G2ME -C
+             # bin/G2ME -C
              test_cmd=g2me_exec + " -C",
              redirect=True,
              log_file=log_file,
@@ -390,7 +390,7 @@ def test_C(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -C
+             # bin/G2ME -m 2 -C
              test_cmd=g2me_exec + " -m 2 -C",
              redirect=True,
              log_file=log_file,
@@ -399,7 +399,7 @@ def test_C(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -C
+             # bin/G2ME -f input/filter1 -C
              test_cmd=g2me_exec + " -f " + filter1 + " -C",
              redirect=True,
              log_file=log_file,
@@ -408,7 +408,7 @@ def test_C(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -f input/filter1 -C
+             # bin/G2ME -m 2 -f input/filter1 -C
              test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -C",
              redirect=True,
              log_file=log_file,
@@ -439,7 +439,7 @@ def test_h(log_file=None) -> (int, int):
     # Setup
     g2me_exec = ""
     if os.name == "posix": # If this is being run on linux/macOS
-        g2me_exec = "../G2ME"
+        g2me_exec = "bin/G2ME"
         input_dir = Path("input")
     elif os.name == "nt": # If this is being run on windows
         g2me_exec = "..\\G2ME64.exe"
@@ -453,10 +453,10 @@ def test_h(log_file=None) -> (int, int):
     b1_test_collection=[
         Test(test_name="testb1h1",
              setup_cmd_list=[
-                # ../G2ME -b input/TEST1
+                # bin/G2ME -b input/TEST1
                 g2me_exec + " -b " + bracket1,
              ],
-             # ../G2ME -h Dylan
+             # bin/G2ME -h Dylan
              test_cmd=g2me_exec + " -h Dylan",
              redirect=True,
              log_file=log_file,
@@ -465,7 +465,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -h Michael
+             # bin/G2ME -h Michael
              test_cmd=g2me_exec + " -h Michael",
              redirect=True,
              log_file=log_file,
@@ -474,7 +474,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vh Victoria
+             # bin/G2ME -vh Victoria
              test_cmd=g2me_exec + " -vh Victoria",
              redirect=True,
              log_file=log_file,
@@ -483,7 +483,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vh Aiden
+             # bin/G2ME -vh Aiden
              test_cmd=g2me_exec + " -vh Aiden",
              redirect=True,
              log_file=log_file,
@@ -492,7 +492,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -vh Aiden
+             # bin/G2ME -f input/filter1 -vh Aiden
              test_cmd=g2me_exec + " -f " + filter1 + " -vh Aiden",
              redirect=True,
              log_file=log_file,
@@ -501,7 +501,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -vh Valerie
+             # bin/G2ME -m 2 -vh Valerie
              test_cmd=g2me_exec + " -m 2 -vh Valerie",
              redirect=True,
              log_file=log_file,
@@ -510,7 +510,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 3 -vh Valerie
+             # bin/G2ME -m 3 -vh Valerie
              test_cmd=g2me_exec + " -m 3 -vh Valerie",
              redirect=True,
              log_file=log_file,
@@ -530,10 +530,10 @@ def test_h(log_file=None) -> (int, int):
     b2_test_collection=[
         Test(test_name="testb2h1",
              setup_cmd_list=[
-                # ../G2ME -b input/TEST2
+                # bin/G2ME -b input/TEST2
                 g2me_exec + " -b " + bracket2,
              ],
-             # ../G2ME -h Madison
+             # bin/G2ME -h Madison
              test_cmd=g2me_exec + " -h Madison",
              redirect=True,
              log_file=log_file,
@@ -542,7 +542,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -h Michael
+             # bin/G2ME -h Michael
              test_cmd=g2me_exec + " -h Michael",
              redirect=True,
              log_file=log_file,
@@ -551,7 +551,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vh Victoria
+             # bin/G2ME -vh Victoria
              test_cmd=g2me_exec + " -vh Victoria",
              redirect=True,
              log_file=log_file,
@@ -560,7 +560,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vh Carter
+             # bin/G2ME -vh Carter
              test_cmd=g2me_exec + " -vh Carter",
              redirect=True,
              log_file=log_file,
@@ -569,7 +569,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -vh Carter
+             # bin/G2ME -f input/filter1 -vh Carter
              test_cmd=g2me_exec + " -f " + filter1 + " -vh Carter",
              redirect=True,
              log_file=log_file,
@@ -578,7 +578,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -vh Jayden
+             # bin/G2ME -m 2 -vh Jayden
              test_cmd=g2me_exec + " -m 2 -vh Jayden",
              redirect=True,
              log_file=log_file,
@@ -587,7 +587,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 3 -vh Jayden
+             # bin/G2ME -m 3 -vh Jayden
              test_cmd=g2me_exec + " -m 3 -vh Jayden",
              redirect=True,
              log_file=log_file,
@@ -607,10 +607,10 @@ def test_h(log_file=None) -> (int, int):
     B1_test_collection=[
         Test(test_name="testB1h1",
              setup_cmd_list=[
-                # ../G2ME -B input/TEST.sea
+                # bin/G2ME -B input/TEST.sea
                 g2me_exec + " -B " + season1,
              ],
-             # ../G2ME -h Dylan
+             # bin/G2ME -h Dylan
              test_cmd=g2me_exec + " -h Dylan",
              redirect=True,
              log_file=log_file,
@@ -619,7 +619,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -h Michael
+             # bin/G2ME -h Michael
              test_cmd=g2me_exec + " -h Michael",
              redirect=True,
              log_file=log_file,
@@ -628,7 +628,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vh Victoria
+             # bin/G2ME -vh Victoria
              test_cmd=g2me_exec + " -vh Victoria",
              redirect=True,
              log_file=log_file,
@@ -637,7 +637,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vh Aiden
+             # bin/G2ME -vh Aiden
              test_cmd=g2me_exec + " -vh Aiden",
              redirect=True,
              log_file=log_file,
@@ -646,7 +646,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -vh Aiden
+             # bin/G2ME -f input/filter1 -vh Aiden
              test_cmd=g2me_exec + " -f " + filter1 + " -vh Aiden",
              redirect=True,
              log_file=log_file,
@@ -655,7 +655,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -vh Dylan
+             # bin/G2ME -f input/filter1 -vh Dylan
              test_cmd=g2me_exec + " -f " + filter1 + " -vh Dylan",
              redirect=True,
              log_file=log_file,
@@ -664,7 +664,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -vh Valerie
+             # bin/G2ME -m 2 -vh Valerie
              test_cmd=g2me_exec + " -m 2 -vh Valerie",
              redirect=True,
              log_file=log_file,
@@ -673,7 +673,7 @@ def test_h(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 3 -vh Valerie
+             # bin/G2ME -m 3 -vh Valerie
              test_cmd=g2me_exec + " -m 3 -vh Valerie",
              redirect=True,
              log_file=log_file,
@@ -713,7 +713,7 @@ def test_M(log_file=None) -> (int, int):
     # Setup
     g2me_exec = ""
     if os.name == "posix": # If this is being run on linux/macOS
-        g2me_exec = "../G2ME"
+        g2me_exec = "bin/G2ME"
         input_dir = Path("input")
     elif os.name == "nt": # If this is being run on windows
         g2me_exec = "..\\G2ME64.exe"
@@ -727,10 +727,10 @@ def test_M(log_file=None) -> (int, int):
     b1_test_collection=[
         Test(test_name="testb1M",
              setup_cmd_list=[
-                # ../G2ME -b input/TEST1
+                # bin/G2ME -b input/TEST1
                 g2me_exec + " -b " + bracket1,
              ],
-             # ../G2ME -M
+             # bin/G2ME -M
              test_cmd=g2me_exec + " -M",
              redirect=True,
              log_file=log_file,
@@ -739,7 +739,7 @@ def test_M(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -M
+             # bin/G2ME -m 2 -M
              test_cmd=g2me_exec + " -m 2 -M",
              redirect=True,
              log_file=log_file,
@@ -748,7 +748,7 @@ def test_M(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -M
+             # bin/G2ME -f input/filter1 -M
              test_cmd=g2me_exec + " -f " + filter1 + " -M",
              redirect=True,
              log_file=log_file,
@@ -757,7 +757,7 @@ def test_M(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -f input/filter1 -M
+             # bin/G2ME -m 2 -f input/filter1 -M
              test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -M",
              redirect=True,
              log_file=log_file,
@@ -768,10 +768,10 @@ def test_M(log_file=None) -> (int, int):
     b2_test_collection=[
         Test(test_name="testb2M",
              setup_cmd_list=[
-                # ../G2ME -b input/TEST2
+                # bin/G2ME -b input/TEST2
                 g2me_exec + " -b " + bracket2,
              ],
-             # ../G2ME -M
+             # bin/G2ME -M
              test_cmd=g2me_exec + " -M",
              redirect=True,
              log_file=log_file,
@@ -780,7 +780,7 @@ def test_M(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -M
+             # bin/G2ME -m 2 -M
              test_cmd=g2me_exec + " -m 2 -M",
              redirect=True,
              log_file=log_file,
@@ -789,7 +789,7 @@ def test_M(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -M
+             # bin/G2ME -f input/filter1 -M
              test_cmd=g2me_exec + " -f " + filter1 + " -M",
              redirect=True,
              log_file=log_file,
@@ -798,7 +798,7 @@ def test_M(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -f input/filter1 -M
+             # bin/G2ME -m 2 -f input/filter1 -M
              test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -M",
              redirect=True,
              log_file=log_file,
@@ -809,10 +809,10 @@ def test_M(log_file=None) -> (int, int):
     B1_test_collection=[
         Test(test_name="testB1M",
              setup_cmd_list=[
-                # ../G2ME -B input/TEST.sea
+                # bin/G2ME -B input/TEST.sea
                 g2me_exec + " -B " + season1,
              ],
-             # ../G2ME -M
+             # bin/G2ME -M
              test_cmd=g2me_exec + " -M",
              redirect=True,
              log_file=log_file,
@@ -821,7 +821,7 @@ def test_M(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -M
+             # bin/G2ME -m 2 -M
              test_cmd=g2me_exec + " -m 2 -M",
              redirect=True,
              log_file=log_file,
@@ -830,7 +830,7 @@ def test_M(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -M
+             # bin/G2ME -f input/filter1 -M
              test_cmd=g2me_exec + " -f " + filter1 + " -M",
              redirect=True,
              log_file=log_file,
@@ -839,7 +839,7 @@ def test_M(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -f input/filter1 -M
+             # bin/G2ME -m 2 -f input/filter1 -M
              test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -M",
              redirect=True,
              log_file=log_file,
@@ -870,7 +870,7 @@ def test_o(log_file=None) -> (int, int):
     # Setup
     g2me_exec = ""
     if os.name == "posix": # If this is being run on linux/macOS
-        g2me_exec = "../G2ME"
+        g2me_exec = "bin/G2ME"
         input_dir = Path("input")
     elif os.name == "nt": # If this is being run on windows
         g2me_exec = "..\\G2ME64.exe"
@@ -884,10 +884,10 @@ def test_o(log_file=None) -> (int, int):
     b1_test_collection=[
         Test(test_name="testb1o",
              setup_cmd_list=[
-                # ../G2ME -b input/TEST1
+                # bin/G2ME -b input/TEST1
                 g2me_exec + " -b " + bracket1,
              ],
-             # ../G2ME -o
+             # bin/G2ME -o
              test_cmd=g2me_exec + " -o",
              redirect=False,
              log_file=log_file,
@@ -896,7 +896,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vo
+             # bin/G2ME -vo
              test_cmd=g2me_exec + " -vo",
              redirect=False,
              log_file=log_file,
@@ -905,7 +905,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -o
+             # bin/G2ME -m 2 -o
              test_cmd=g2me_exec + " -m 2 -o",
              redirect=False,
              log_file=log_file,
@@ -914,7 +914,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -vo
+             # bin/G2ME -m 2 -vo
              test_cmd=g2me_exec + " -m 2 -vo",
              redirect=False,
              log_file=log_file,
@@ -923,7 +923,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -o
+             # bin/G2ME -f input/filter1 -o
              test_cmd=g2me_exec + " -f " + filter1 + " -o",
              redirect=False,
              log_file=log_file,
@@ -932,7 +932,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -vo
+             # bin/G2ME -f input/filter1 -vo
              test_cmd=g2me_exec + " -f " + filter1 + " -vo",
              redirect=False,
              log_file=log_file,
@@ -941,7 +941,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -f input/filter1 -o
+             # bin/G2ME -m 2 -f input/filter1 -o
              test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -o",
              redirect=False,
              log_file=log_file,
@@ -961,10 +961,10 @@ def test_o(log_file=None) -> (int, int):
     b2_test_collection=[
         Test(test_name="testb2o",
              setup_cmd_list=[
-                # ../G2ME -b input/TEST2
+                # bin/G2ME -b input/TEST2
                 g2me_exec + " -b " + bracket2,
              ],
-             # ../G2ME -o
+             # bin/G2ME -o
              test_cmd=g2me_exec + " -o",
              redirect=False,
              log_file=log_file,
@@ -973,7 +973,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vo
+             # bin/G2ME -vo
              test_cmd=g2me_exec + " -vo",
              redirect=False,
              log_file=log_file,
@@ -982,7 +982,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -o
+             # bin/G2ME -m 2 -o
              test_cmd=g2me_exec + " -m 2 -o",
              redirect=False,
              log_file=log_file,
@@ -991,7 +991,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -vo
+             # bin/G2ME -m 2 -vo
              test_cmd=g2me_exec + " -m 2 -vo",
              redirect=False,
              log_file=log_file,
@@ -1000,7 +1000,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -o
+             # bin/G2ME -f input/filter1 -o
              test_cmd=g2me_exec + " -f " + filter1 + " -o",
              redirect=False,
              log_file=log_file,
@@ -1009,7 +1009,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -vo
+             # bin/G2ME -f input/filter1 -vo
              test_cmd=g2me_exec + " -f " + filter1 + " -vo",
              redirect=False,
              log_file=log_file,
@@ -1018,7 +1018,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -f input/filter1 -o
+             # bin/G2ME -m 2 -f input/filter1 -o
              test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -o",
              redirect=False,
              log_file=log_file,
@@ -1038,10 +1038,10 @@ def test_o(log_file=None) -> (int, int):
     B1_test_collection=[
         Test(test_name="testB1o",
              setup_cmd_list=[
-                # ../G2ME -B input/TEST.sea
+                # bin/G2ME -B input/TEST.sea
                 g2me_exec + " -B " + season1,
              ],
-             # ../G2ME -o
+             # bin/G2ME -o
              test_cmd=g2me_exec + " -o",
              redirect=False,
              log_file=log_file,
@@ -1050,7 +1050,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vo
+             # bin/G2ME -vo
              test_cmd=g2me_exec + " -vo",
              redirect=False,
              log_file=log_file,
@@ -1059,7 +1059,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -o
+             # bin/G2ME -m 2 -o
              test_cmd=g2me_exec + " -m 2 -o",
              redirect=False,
              log_file=log_file,
@@ -1068,7 +1068,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -vo
+             # bin/G2ME -m 2 -vo
              test_cmd=g2me_exec + " -m 2 -vo",
              redirect=False,
              log_file=log_file,
@@ -1077,7 +1077,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -o
+             # bin/G2ME -f input/filter1 -o
              test_cmd=g2me_exec + " -f " + filter1 + " -o",
              redirect=False,
              log_file=log_file,
@@ -1086,7 +1086,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -vo
+             # bin/G2ME -f input/filter1 -vo
              test_cmd=g2me_exec + " -f " + filter1 + " -vo",
              redirect=False,
              log_file=log_file,
@@ -1095,7 +1095,7 @@ def test_o(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -f input/filter1 -o
+             # bin/G2ME -m 2 -f input/filter1 -o
              test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -o",
              redirect=False,
              log_file=log_file,
@@ -1135,7 +1135,7 @@ def test_O(log_file=None) -> (int, int):
     # Setup
     g2me_exec = ""
     if os.name == "posix": # If this is being run on linux/macOS
-        g2me_exec = "../G2ME"
+        g2me_exec = "bin/G2ME"
         input_dir = Path("input")
     elif os.name == "nt": # If this is being run on windows
         g2me_exec = "..\\G2ME64.exe"
@@ -1149,10 +1149,10 @@ def test_O(log_file=None) -> (int, int):
     b1_test_collection=[
         Test(test_name="testb1O",
              setup_cmd_list=[
-                # ../G2ME -b input/TEST1
+                # bin/G2ME -b input/TEST1
                 g2me_exec + " -b " + bracket1,
              ],
-             # ../G2ME -O
+             # bin/G2ME -O
              test_cmd=g2me_exec + " -O",
              redirect=True,
              log_file=log_file,
@@ -1161,7 +1161,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vO
+             # bin/G2ME -vO
              test_cmd=g2me_exec + " -vO",
              redirect=True,
              log_file=log_file,
@@ -1170,7 +1170,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -O
+             # bin/G2ME -m 2 -O
              test_cmd=g2me_exec + " -m 2 -O",
              redirect=True,
              log_file=log_file,
@@ -1179,7 +1179,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -vO
+             # bin/G2ME -m 2 -vO
              test_cmd=g2me_exec + " -m 2 -vO",
              redirect=True,
              log_file=log_file,
@@ -1188,7 +1188,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -O
+             # bin/G2ME -f input/filter1 -O
              test_cmd=g2me_exec + " -f " + filter1 + " -O",
              redirect=True,
              log_file=log_file,
@@ -1197,7 +1197,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -vO
+             # bin/G2ME -f input/filter1 -vO
              test_cmd=g2me_exec + " -f " + filter1 + " -vO",
              redirect=True,
              log_file=log_file,
@@ -1206,7 +1206,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -f input/filter1 -O
+             # bin/G2ME -m 2 -f input/filter1 -O
              test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -O",
              redirect=True,
              log_file=log_file,
@@ -1226,10 +1226,10 @@ def test_O(log_file=None) -> (int, int):
     b2_test_collection=[
         Test(test_name="testb2O",
              setup_cmd_list=[
-                # ../G2ME -b input/TEST2
+                # bin/G2ME -b input/TEST2
                 g2me_exec + " -b " + bracket2,
              ],
-             # ../G2ME -O
+             # bin/G2ME -O
              test_cmd=g2me_exec + " -O",
              redirect=True,
              log_file=log_file,
@@ -1238,7 +1238,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vO
+             # bin/G2ME -vO
              test_cmd=g2me_exec + " -vO",
              redirect=True,
              log_file=log_file,
@@ -1247,7 +1247,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -O
+             # bin/G2ME -m 2 -O
              test_cmd=g2me_exec + " -m 2 -O",
              redirect=True,
              log_file=log_file,
@@ -1256,7 +1256,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -vO
+             # bin/G2ME -m 2 -vO
              test_cmd=g2me_exec + " -m 2 -vO",
              redirect=True,
              log_file=log_file,
@@ -1265,7 +1265,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -O
+             # bin/G2ME -f input/filter1 -O
              test_cmd=g2me_exec + " -f " + filter1 + " -O",
              redirect=True,
              log_file=log_file,
@@ -1274,7 +1274,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -vO
+             # bin/G2ME -f input/filter1 -vO
              test_cmd=g2me_exec + " -f " + filter1 + " -vO",
              redirect=True,
              log_file=log_file,
@@ -1283,7 +1283,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -f input/filter1 -O
+             # bin/G2ME -m 2 -f input/filter1 -O
              test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -O",
              redirect=True,
              log_file=log_file,
@@ -1303,10 +1303,10 @@ def test_O(log_file=None) -> (int, int):
     B1_test_collection=[
         Test(test_name="testB1O",
              setup_cmd_list=[
-                # ../G2ME -B input/TEST.sea
+                # bin/G2ME -B input/TEST.sea
                 g2me_exec + " -B " + season1,
              ],
-             # ../G2ME -O
+             # bin/G2ME -O
              test_cmd=g2me_exec + " -O",
              redirect=True,
              log_file=log_file,
@@ -1315,7 +1315,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vO
+             # bin/G2ME -vO
              test_cmd=g2me_exec + " -vO",
              redirect=True,
              log_file=log_file,
@@ -1324,7 +1324,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -O
+             # bin/G2ME -m 2 -O
              test_cmd=g2me_exec + " -m 2 -O",
              redirect=True,
              log_file=log_file,
@@ -1333,7 +1333,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -vO
+             # bin/G2ME -m 2 -vO
              test_cmd=g2me_exec + " -m 2 -vO",
              redirect=True,
              log_file=log_file,
@@ -1342,7 +1342,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -O
+             # bin/G2ME -f input/filter1 -O
              test_cmd=g2me_exec + " -f " + filter1 + " -O",
              redirect=True,
              log_file=log_file,
@@ -1351,7 +1351,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -vO
+             # bin/G2ME -f input/filter1 -vO
              test_cmd=g2me_exec + " -f " + filter1 + " -vO",
              redirect=True,
              log_file=log_file,
@@ -1360,7 +1360,7 @@ def test_O(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -f input/filter1 -O
+             # bin/G2ME -m 2 -f input/filter1 -O
              test_cmd=g2me_exec + " -m 2 -f " + filter1 + " -O",
              redirect=True,
              log_file=log_file,
@@ -1400,7 +1400,7 @@ def test_R(log_file=None) -> (int, int):
     # Setup
     g2me_exec = ""
     if os.name == "posix": # If this is being run on linux/macOS
-        g2me_exec = "../G2ME"
+        g2me_exec = "bin/G2ME"
         input_dir = Path("input")
     elif os.name == "nt": # If this is being run on windows
         g2me_exec = "..\\G2ME64.exe"
@@ -1414,10 +1414,10 @@ def test_R(log_file=None) -> (int, int):
     b1_test_collection=[
         Test(test_name="testb1R1",
              setup_cmd_list=[
-                # ../G2ME -b input/TEST1
+                # bin/G2ME -b input/TEST1
                 g2me_exec + " -b " + bracket1,
              ],
-             # ../G2ME -R Dylan
+             # bin/G2ME -R Dylan
              test_cmd=g2me_exec + " -R Dylan",
              redirect=True,
              log_file=log_file,
@@ -1426,7 +1426,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -R Michael
+             # bin/G2ME -R Michael
              test_cmd=g2me_exec + " -R Michael",
              redirect=True,
              log_file=log_file,
@@ -1435,7 +1435,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vR Victoria
+             # bin/G2ME -vR Victoria
              test_cmd=g2me_exec + " -vR Victoria",
              redirect=True,
              log_file=log_file,
@@ -1444,7 +1444,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vR Aiden
+             # bin/G2ME -vR Aiden
              test_cmd=g2me_exec + " -vR Aiden",
              redirect=True,
              log_file=log_file,
@@ -1453,7 +1453,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -R Aiden
+             # bin/G2ME -f input/filter1 -R Aiden
              test_cmd=g2me_exec + " -f " + filter1 + " -R Aiden",
              redirect=True,
              log_file=log_file,
@@ -1462,7 +1462,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -R Dylan
+             # bin/G2ME -f input/filter1 -R Dylan
              test_cmd=g2me_exec + " -f " + filter1 + " -R Dylan",
              redirect=True,
              log_file=log_file,
@@ -1471,7 +1471,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -vR Victoria
+             # bin/G2ME -f input/filter1 -vR Victoria
              test_cmd=g2me_exec + " -f " + filter1 + " -vR Victoria",
              redirect=True,
              log_file=log_file,
@@ -1480,7 +1480,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -vR Michael
+             # bin/G2ME -f input/filter1 -vR Michael
              test_cmd=g2me_exec + " -f " + filter1 + " -vR Michael",
              redirect=True,
              log_file=log_file,
@@ -1489,7 +1489,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -R Owen
+             # bin/G2ME -m 2 -R Owen
              test_cmd=g2me_exec + " -m 2 -R Owen",
              redirect=True,
              log_file=log_file,
@@ -1498,7 +1498,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 1 -R Noah
+             # bin/G2ME -m 1 -R Noah
              test_cmd=g2me_exec + " -m 1 -R Noah",
              redirect=True,
              log_file=log_file,
@@ -1507,7 +1507,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -vR Amy
+             # bin/G2ME -m 2 -vR Amy
              test_cmd=g2me_exec + " -m 2 -vR Amy",
              redirect=True,
              log_file=log_file,
@@ -1516,7 +1516,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 3 -vR Owen
+             # bin/G2ME -m 3 -vR Owen
              test_cmd=g2me_exec + " -m 3 -vR Owen",
              redirect=True,
              log_file=log_file,
@@ -1536,10 +1536,10 @@ def test_R(log_file=None) -> (int, int):
     b2_test_collection=[
         Test(test_name="testb2R1",
              setup_cmd_list=[
-                # ../G2ME -b input/TEST2
+                # bin/G2ME -b input/TEST2
                 g2me_exec + " -b " + bracket2,
              ],
-             # ../G2ME -R James
+             # bin/G2ME -R James
              test_cmd=g2me_exec + " -R James",
              redirect=True,
              log_file=log_file,
@@ -1548,7 +1548,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -R Michael
+             # bin/G2ME -R Michael
              test_cmd=g2me_exec + " -R Michael",
              redirect=True,
              log_file=log_file,
@@ -1557,7 +1557,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vR Victoria
+             # bin/G2ME -vR Victoria
              test_cmd=g2me_exec + " -vR Victoria",
              redirect=True,
              log_file=log_file,
@@ -1566,7 +1566,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vR Jess
+             # bin/G2ME -vR Jess
              test_cmd=g2me_exec + " -vR Jess",
              redirect=True,
              log_file=log_file,
@@ -1575,7 +1575,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -R Jess
+             # bin/G2ME -f input/filter1 -R Jess
              test_cmd=g2me_exec + " -f " + filter1 + " -R Jess",
              redirect=True,
              log_file=log_file,
@@ -1584,7 +1584,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -R James
+             # bin/G2ME -f input/filter1 -R James
              test_cmd=g2me_exec + " -f " + filter1 + " -R James",
              redirect=True,
              log_file=log_file,
@@ -1593,7 +1593,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -vR Victoria
+             # bin/G2ME -f input/filter1 -vR Victoria
              test_cmd=g2me_exec + " -f " + filter1 + " -vR Victoria",
              redirect=True,
              log_file=log_file,
@@ -1602,7 +1602,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -vR Michael
+             # bin/G2ME -f input/filter1 -vR Michael
              test_cmd=g2me_exec + " -f " + filter1 + " -vR Michael",
              redirect=True,
              log_file=log_file,
@@ -1611,7 +1611,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -R Christian
+             # bin/G2ME -m 2 -R Christian
              test_cmd=g2me_exec + " -m 2 -R Christian",
              redirect=True,
              log_file=log_file,
@@ -1620,7 +1620,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 1 -R Jayden
+             # bin/G2ME -m 1 -R Jayden
              test_cmd=g2me_exec + " -m 1 -R Jayden",
              redirect=True,
              log_file=log_file,
@@ -1629,7 +1629,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -vR Madison
+             # bin/G2ME -m 2 -vR Madison
              test_cmd=g2me_exec + " -m 2 -vR Madison",
              redirect=True,
              log_file=log_file,
@@ -1638,7 +1638,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 3 -vR Christian
+             # bin/G2ME -m 3 -vR Christian
              test_cmd=g2me_exec + " -m 3 -vR Christian",
              redirect=True,
              log_file=log_file,
@@ -1658,10 +1658,10 @@ def test_R(log_file=None) -> (int, int):
     B1_test_collection=[
         Test(test_name="testB1R1",
              setup_cmd_list=[
-                # ../G2ME -B input/TEST.sea
+                # bin/G2ME -B input/TEST.sea
                 g2me_exec + " -B " + season1,
              ],
-             # ../G2ME -R Dylan
+             # bin/G2ME -R Dylan
              test_cmd=g2me_exec + " -R Dylan",
              redirect=True,
              log_file=log_file,
@@ -1670,7 +1670,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -R Michael
+             # bin/G2ME -R Michael
              test_cmd=g2me_exec + " -R Michael",
              redirect=True,
              log_file=log_file,
@@ -1679,7 +1679,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vR Victoria
+             # bin/G2ME -vR Victoria
              test_cmd=g2me_exec + " -vR Victoria",
              redirect=True,
              log_file=log_file,
@@ -1688,7 +1688,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -vR Aiden
+             # bin/G2ME -vR Aiden
              test_cmd=g2me_exec + " -vR Aiden",
              redirect=True,
              log_file=log_file,
@@ -1697,7 +1697,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -R Aiden
+             # bin/G2ME -f input/filter1 -R Aiden
              test_cmd=g2me_exec + " -f " + filter1 + " -R Aiden",
              redirect=True,
              log_file=log_file,
@@ -1706,7 +1706,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -R Dylan
+             # bin/G2ME -f input/filter1 -R Dylan
              test_cmd=g2me_exec + " -f " + filter1 + " -R Dylan",
              redirect=True,
              log_file=log_file,
@@ -1715,7 +1715,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -vR Victoria
+             # bin/G2ME -f input/filter1 -vR Victoria
              test_cmd=g2me_exec + " -f " + filter1 + " -vR Victoria",
              redirect=True,
              log_file=log_file,
@@ -1724,7 +1724,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -f input/filter1 -vR Michael
+             # bin/G2ME -f input/filter1 -vR Michael
              test_cmd=g2me_exec + " -f " + filter1 + " -vR Michael",
              redirect=True,
              log_file=log_file,
@@ -1733,7 +1733,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -R Owen
+             # bin/G2ME -m 2 -R Owen
              test_cmd=g2me_exec + " -m 2 -R Owen",
              redirect=True,
              log_file=log_file,
@@ -1742,7 +1742,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 1 -R Noah
+             # bin/G2ME -m 1 -R Noah
              test_cmd=g2me_exec + " -m 1 -R Noah",
              redirect=True,
              log_file=log_file,
@@ -1751,7 +1751,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 2 -vR Amy
+             # bin/G2ME -m 2 -vR Amy
              test_cmd=g2me_exec + " -m 2 -vR Amy",
              redirect=True,
              log_file=log_file,
@@ -1760,7 +1760,7 @@ def test_R(log_file=None) -> (int, int):
              setup_cmd_list=[
                 # Nothing - Use setup from previous test
              ],
-             # ../G2ME -m 3 -vR Owen
+             # bin/G2ME -m 3 -vR Owen
              test_cmd=g2me_exec + " -m 3 -vR Owen",
              redirect=True,
              log_file=log_file,
