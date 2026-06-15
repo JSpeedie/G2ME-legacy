@@ -70,16 +70,28 @@ math, essentially.
 
 ##### Installation
 
-To get up and running, launch a terminal and run the following commands
+If you just want to run the project, launch a terminal and run the following
+commands:
 
 ```bash
-# If you want to push to the repo
-git clone git@github.com:JSpeedie/G2ME.git G2MEGit
-# If you are just installing
-git clone https://www.github.com/JSpeedie/G2ME G2MEGit
-cd G2MEGit
-make
-sudo make release_install
+git clone https://www.github.com/JSpeedie/G2ME
+cd G2ME
+cmake -G Ninja -S . -B release/ -D CMAKE_BUILD_TYPE=Release -D CMAKE_COLOR_DIAGNOSTICS=ON
+cmake --build release/
+# Optional: install the executable
+sudo cmake --install release/
+```
+
+If you intend to do some developing of the project, run these commands instead:
+
+```bash
+git clone git@github.com:JSpeedie/G2ME.git
+cd G2ME
+cmake -G Ninja -S . -B debug/ -D CMAKE_BUILD_TYPE=Debug -D CMAKE_COLOR_DIAGNOSTICS=ON
+# To build the executables
+cmake --build debug/
+# Optional: to build the tests and run them
+cmake --build debug/ --target run_tests
 ```
 
 ##### Running the program
